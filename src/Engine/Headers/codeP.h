@@ -43,11 +43,6 @@ static inline ssaInsPo entryPoint(methodPo mtd) {
   return mtd->instructions;
 }
 
-static inline int32 argCount(methodPo mtd) {
-  assert(mtd != Null);
-  return lblArity(mtd->lbl);
-}
-
 #ifndef NOJIT
 static inline logical hasJit(methodPo mtd) {
   assert(mtd != Null);
@@ -61,6 +56,8 @@ static inline jittedCode jitCode(methodPo mtd) {
 
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
 void recordMethodJitCode(methodPo mtd);
+void rebalanceCodeTree();
+
 #endif
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);

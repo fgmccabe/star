@@ -48,7 +48,7 @@ static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *
   }
 }
 
-void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeRegs, moveFunc mover) {
+void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeRegs) {
   int32 groups = sortSpecs(args, arity);
 
   for (int32 gx = groups; gx > 0; gx--) {
@@ -62,7 +62,7 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
       FlexOp dst = group[0]->dst;
 
       if (!sameFlexOp(dst, group[0]->src)) {
-        mover(ctx, group[0]->dst, group[0]->src, freeRegs);
+        argMove(ctx, group[0]->dst, group[0]->src, freeRegs);
       }
       group[0]->group = -1;
     } else {
@@ -73,15 +73,15 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
       FlexOp dst = group[0]->dst;
       FlexOp src = group[0]->src;
 
-      mover(ctx,RG(tmp), dst, freeRegs);
-      mover(ctx, dst, src, freeRegs);
+      argMove(ctx,RG(tmp), dst, freeRegs);
+      argMove(ctx, dst, src, freeRegs);
       do {
         for (int32 ix = 0; ix < grpSize; ix++) {
           if (sameFlexOp(src, group[ix]->dst)) {
             if (sameFlexOp(group[ix]->src, dst))
-              mover(ctx, group[ix]->dst,RG(tmp), freeRegs);
+              argMove(ctx, group[ix]->dst,RG(tmp), freeRegs);
             else
-              mover(ctx, group[ix]->dst, group[ix]->src, freeRegs);
+              argMove(ctx, group[ix]->dst, group[ix]->src, freeRegs);
             src = group[ix]->src;
             break;
           }

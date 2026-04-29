@@ -35,17 +35,17 @@
 #include "stringBufferP.h"
 #include "ltype.h"
 
-char *copyright = "(c) 2010 and beyond F.G.McCabe\nApache Licence 2.0";
+char* copyright = "(c) 2010 and beyond F.G.McCabe\nApache Licence 2.0";
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   int narg;
 
 #ifdef HAVE_LOCALECONV
-  setlocale(LC_ALL,"");		/* set up locale */
+  setlocale(LC_ALL, ""); /* set up locale */
 #endif
 
 #ifdef LOCALEDIR
-  bindtextdomain(PACKAGE,LOCALEDIR);
+  bindtextdomain(PACKAGE, LOCALEDIR);
   textdomain(PACKAGE);
 #endif
 
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  initTimers();     /* Initialize time stuff */
+  initTimers(); /* Initialize time stuff */
   initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
   initLbls();
@@ -98,9 +98,8 @@ int main(int argc, char **argv) {
   initTime();
   initIoOps();
 
-  char *rootWd = defltCWD();
+  char* rootWd = defltCWD();
   defltRepoDir();
-
 
   /* IMPORTANT -- Keep the order of these set up calls */
   installEscapes();
@@ -120,7 +119,9 @@ int main(int argc, char **argv) {
     pauseTimer(loadTimer);
   }
 
-  init_args(argv, argc, narg);    /* Initialize the argument list */
+  init_args(argv, argc, narg); /* Initialize the argument list */
+
+  rebalanceCodeTree();
 
   setupSignals();
 

@@ -595,7 +595,7 @@ void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"stpf %R, %R, %F\n%_",Rt,Rt2,&Sn));
+  TRACE(outMsg(logFile,"ldpf %#R, %#R, %F\n%_",Rt,Rt2,&Sn));
   check(Rt!=Rt2, "Cannot load identical pairs");
   switch (Sn.mode) {
     case postX: {
@@ -1166,7 +1166,7 @@ void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void stpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"stpf %R, %R, %F\n%_",Rt,Rt2,&Sn));
+  TRACE(outMsg(logFile,"stpf %#R, %#R, %F\n%_",Rt,Rt2,&Sn));
   switch (Sn.mode) {
     case postX: {
       encodeLdStPrFpIx(w, 0b010, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
@@ -1261,7 +1261,7 @@ void strf_(uint1 w, fpReg Rt, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldrf_(uint1 w, fpReg Rt, FlexOp Sn, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"ldrf %R,%F\n%_",Rt,&Sn));
+  TRACE(outMsg(logFile,"ldrf %#R,%F\n%_",Rt,&Sn));
   switch (Sn.mode) {
     case postX:
       encodeFpLdStPostX((2 | w), 0x1, Sn.immediate, Sn.reg, Rt, ctx);

@@ -14,27 +14,24 @@ logical jitOnLoad = True;
 tracingLevel traceJit = noTracing;
 #endif
 
-assemCtxPo assemCtx(jitCompPo jitCtx)
-{
+assemCtxPo assemCtx(jitCompPo jitCtx) {
   return jitCtx->assemCtx;
 }
 
-void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space)
-{
+void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
   //  check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
 }
 
-retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
-{
-  if (!hasJit(mtd)){
+retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen) {
+  if (!hasJit(mtd)) {
     jitCompPo jit = jitContext(mtd);
 
     retCode ret = jitInstructions(jit, mtd, defaultArgRegs(), errMsg, msgLen);
 
-    if (ret == Ok){
+    if (ret == Ok) {
       assemCtxPo ctx = jit->assemCtx;
       ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
-      if (ret==Ok)
+      if (ret == Ok)
         recordMethodJitCode(mtd);
     }
     else
@@ -48,14 +45,13 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
   return Ok;
 }
 
-retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen)
-{
-  if (!hasJit(mtd)){
+retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen) {
+  if (!hasJit(mtd)) {
     jitCompPo jit = jitContext(mtd);
 
     retCode ret = jitInstructions(jit, mtd, emptyRegSet(), errMsg, msgLen);
 
-    if (ret == Ok){
+    if (ret == Ok) {
       assemCtxPo ctx = jit->assemCtx;
       ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
     }
@@ -64,9 +60,12 @@ retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen)
              mtdLabel(mtd));
 
     clearJitContext(jit);
+    recordMethodCode(mtd);
+#ifndef NOJIT
+    recordMethodJitCode(mtd);
+#endif
 
     return ret;
   }
   return Ok;
 }
-

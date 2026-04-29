@@ -72,8 +72,9 @@ examineStmt(S,Rp) :-
 examineStmt(S,Sx) :-
   isAssignment(S,Lc,L,R),!,
   macroTerm(L,Lx),
-  macroTerm(R,Rx),
-  assignment(Lc,Lx,Rx,Sx).
+  macroTerm(R,R1),
+  mkRef(Lc,R1,R2),
+  mkDefn(Lc,Lx,R2,Sx).
 examineStmt(S,Rp) :-
   isTypeFunStmt(S,Lc,Q,C,L,R),!,
   macroType(L,Lx),

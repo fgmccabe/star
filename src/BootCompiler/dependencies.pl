@@ -56,6 +56,11 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
   collectTermRefs(Exp,All,R1,Refs).
+collStmtRefs(St,All,Annots,Rfs,Rfx) :-
+  isAssignment(St,_,L,R),!,
+  collectAnnotRefs(L,All,Annots,Rfs,R0),
+  collectTermRefs(L,All,R0,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
   isEquation(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),

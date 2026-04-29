@@ -14,17 +14,17 @@
 
 integer pcCount = 0;
 
-static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore);
-static void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl);
-static void showBind(ioPo out, stackPo stk, termPo name, termPo val);
-static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason);
-static void showRet(ioPo out, stackPo stk, termPo lc, termPo val);
-static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val);
-static void showAssign(ioPo out, stackPo stk, termPo lc, termPo vl);
-static void showResume(ioPo out, stackPo stk, termPo lc, termPo cont);
+static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore, termPo ignore2);
+static void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl, termPo ignore);
+static void showBind(ioPo out, stackPo stk, termPo name, termPo val, termPo ignore);
+static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ignore);
+static void showRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore);
+static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore);
+static void showAssign(ioPo out, stackPo stk, termPo lc, termPo dst, termPo vl);
+static void showResume(ioPo out, stackPo stk, termPo lc, termPo cont, termPo evt);
 static void showRegisters(enginePo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk);
-static void showTos(ioPo out, stackPo stk, integer offset);
+static void showGlb(ioPo out, stackPo stk, termPo lc, termPo g, termPo ignore);
 
 static retCode showVarble(ioPo out, ptrPo args, int32 varNo);
 static retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char* buffer, integer bufLen);
@@ -38,9 +38,9 @@ logical insDebugging = False; // instruction tracing option
 logical lineDebugging = False;
 logical debugDebugging = False;
 tracingLevel tracing = generalTracing; /* tracing option */
-integer debuggerPort = 0; // Debug port to establish listener on
-logical showPkgFile = False; // True if we show file names instead of package names
-logical showColors = True; // True if we want to show colored output
+integer debuggerPort = 0;              // Debug port to establish listener on
+logical showPkgFile = False;           // True if we show file names instead of package names
+logical showColors = True;             // True if we want to show colored output
 
 logical interactive = False; /* interaction instruction tracing */
 logical stackVerify = False;
@@ -48,9 +48,9 @@ logical stackVerify = False;
 /* Handle suspension reasonably ... */
 static void sig_suspend(int sig) {
   if (!interactive) {
-    reset_stdin(); /* Reset the standard input channel */
+    reset_stdin();  /* Reset the standard input channel */
     raise(SIGSTOP); /* Actually suspend */
-    setup_stdin(); /* Put it back */
+    setup_stdin();  /* Put it back */
   }
   else
     raise(SIGSTOP); /* Actually suspend */
@@ -138,7 +138,7 @@ static logical shouldWeStop(enginePo p, ssaOp op) {
       return False;
   }
   case nextBreak: {
-    if (p->waterMark == Null && op == sEntry && prog!=Null && breakPointSet(mtdLabel(prog))) {
+    if (p->waterMark == Null && op == sEntry && prog != Null && breakPointSet(mtdLabel(prog))) {
       p->waitFor = stepInto;
       p->tracing = True;
       return atLine;
@@ -357,7 +357,7 @@ static DebugWaitFor dbgShowArg(char* line, enginePo p, termPo lc, void* cl) {
   stackPo stk = p->stk;
   methodPo mtd = locateMethod((uinteger)stk->pc);
 
-  if (argNo >= 0 && argNo < argCount(mtd))
+  if (argNo >= 0 && argNo < mtdArity(mtd))
     showVarble(debugOutChnnl, stk->args, argNo);
   else
     outMsg(debugOutChnnl, "invalid argument: %d", argNo);
@@ -676,7 +676,7 @@ static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
   return outMsg(out, ")");
 }
 
-static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
+static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore) {
   if (isALabel(pr)) {
     labelPo callee = C_LBL(pr);
 
@@ -692,7 +692,7 @@ static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
     outMsg(out, "invalid use of showCall\n%_");
 }
 
-static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure) {
+static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure, termPo ignore) {
   if (showColors)
     outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %T", lc, closure);
   else
@@ -708,7 +708,7 @@ static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure) {
   outMsg(out, "\n%_");
 }
 
-static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
+static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore) {
   if (isALabel(pr)) {
     labelPo callee = C_LBL(pr);
 
@@ -724,7 +724,7 @@ static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
   outMsg(out, "\n%_");
 }
 
-static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
+static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore, termPo ignore2) {
   if (tracing >= detailedTracing) {
     if (showColors)
       outMsg(out, GREEN_ESC_ON"line:"GREEN_ESC_OFF" %#L\n%_", lc);
@@ -733,7 +733,7 @@ static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
   }
 }
 
-void showBind(ioPo out, stackPo stk, termPo name, const termPo val) {
+void showBind(ioPo out, stackPo stk, termPo name, const termPo val, termPo ignore) {
   if (tracing >= detailedTracing) {
     if (showColors)
       outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %#T = %#,*T\n%_", name, displayDepth, val);
@@ -742,7 +742,7 @@ void showBind(ioPo out, stackPo stk, termPo name, const termPo val) {
   }
 }
 
-void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
+void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl, termPo ignore) {
   if (showColors)
     outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16A", lc, lbl);
   else
@@ -752,7 +752,7 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
   outMsg(out, "\n%_");
 }
 
-void showRet(ioPo out, stackPo stk, termPo lc, termPo val) {
+void showRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore) {
   methodPo mtd = locateMethod((uinteger)stk->pc);
   if (showColors)
     outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, mtd, displayDepth, val);
@@ -760,7 +760,7 @@ void showRet(ioPo out, stackPo stk, termPo lc, termPo val) {
     outMsg(out, "return: %#L %T->%#,*T\n%_", lc, mtd, displayDepth, val);
 }
 
-void showXRet(ioPo out, stackPo stk, termPo lc, termPo val) {
+void showXRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore) {
   methodPo mtd = locateMethod((uinteger)stk->pc);
   if (showColors)
     outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, mtd, displayDepth, val);
@@ -768,7 +768,7 @@ void showXRet(ioPo out, stackPo stk, termPo lc, termPo val) {
     outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, mtd, displayDepth, val);
 }
 
-static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason) {
+static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ignore) {
   methodPo mtd = locateMethod((uinteger)stk->pc);
 
   if (showColors)
@@ -777,17 +777,14 @@ static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason) {
     outMsg(out, "abort: %L %T->%#,*T\n%_", lc, mtd, displayDepth, reason);
 }
 
-void showAssign(ioPo out, stackPo stk, termPo lc, termPo vl) {
-  termPo val = peekStack(stk, 1);
-  termPo cell = topStack(stk);
-
+void showAssign(ioPo out, stackPo stk, termPo lc, termPo dst, termPo vl) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, cell, displayDepth, val);
+    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, dst, displayDepth, vl);
   else
-    outMsg(out, "assign: %L %#T->%#,*T\n%_", lc, cell, displayDepth, val);
+    outMsg(out, "assign: %L %#T->%#,*T\n%_", lc, dst, displayDepth, vl);
 }
 
-void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont) {
+void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont, termPo ignore) {
   if (showColors)
     outMsg(out, CYAN_ESC_ON"fiber:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
@@ -795,33 +792,33 @@ void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont) {
   outMsg(out, "\n%_");
 }
 
-void showSuspend(ioPo out, stackPo stk, termPo lc, termPo cont) {
+void showSuspend(ioPo out, stackPo stk, termPo lc, termPo cont, termPo event) {
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%L %#,*T -> %#,*T", lc, displayDepth, cont, displayDepth, event);
   else
-    outMsg(out, "suspend: %L %#,*T", lc, displayDepth, cont);
+    outMsg(out, "suspend: %L %#,*T -> %#,*T", lc, displayDepth, cont, displayDepth, event);
   outMsg(out, "\n%_");
 }
 
-void showResume(ioPo out, stackPo stk, termPo lc, termPo cont) {
+void showResume(ioPo out, stackPo stk, termPo lc, termPo cont, termPo evt) {
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%L %#,*T <- %#,*T", lc, displayDepth, cont, displayDepth, evt);
   else
-    outMsg(out, "resume: %L %#,*T", lc, displayDepth, cont);
+    outMsg(out, "resume: %L %#,*T <- %#,*T", lc, displayDepth, cont, displayDepth, evt);
   outMsg(out, "\n%_");
 }
 
-void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
+void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont, termPo evt) {
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%L %#,*T -> %#,*T", lc, displayDepth, cont, displayDepth, evt);
   else
-    outMsg(out, "retire: %L %#,*T", lc, displayDepth, cont);
+    outMsg(out, "retire: %L %#,*T -> %#,*T", lc, displayDepth, cont, displayDepth, evt);
   outMsg(out, "\n%_");
 }
 
-typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo trm);
+typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo arg1, termPo arg2);
 
-static DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show);
+static DebugWaitFor lnDebug(enginePo p, ssaOp op, showCmd show, termPo lc, termPo arg1, termPo arg2);
 
 DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
@@ -846,15 +843,15 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   case sXRet:
     return xretDebug(p, lc, topStack(stk));
   case sAssign:
-    return assignDebug(p, lc);
+    return assignDebug(p, lc, topStack(stk), peekStack(stk, 1));
   case sFiber:
     return fiberDebug(p, lc, topStack(stk));
   case sSuspend:
-    return suspendDebug(p, lc, topStack(stk));
+    return suspendDebug(p, lc, topStack(stk), peekStack(stk, 1));
   case sResume:
-    return resumeDebug(p, lc, topStack(stk));
+    return resumeDebug(p, lc, topStack(stk), peekStack(stk, 1));
   case sRetire:
-    return retireDebug(p, lc, topStack(stk));
+    return retireDebug(p, lc, topStack(stk), peekStack(stk, 1));
   default:
     return stepOver;
   }
@@ -871,6 +868,7 @@ logical isDebuggableOp(ssaOp op) {
   case sRet:
   case sXRet:
   case sAssign:
+  case sLG:
   case sFiber:
   case sSuspend:
   case sResume:
@@ -886,73 +884,75 @@ logical isDebugging() {
 }
 
 DebugWaitFor lineDebug(enginePo p, termPo lc) {
-  return lnDebug(p, sLine, lc, Null, showLine);
+  return lnDebug(p, sLine, showLine, lc, Null, Null);
 }
 
-DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset) {
-  ptrPo args = p->stk->args;
+DebugWaitFor bindDebug(enginePo p, termPo name, termPo val) {
+  return lnDebug(p, sBind, showBind, name, val, Null);
+}
 
-  return lnDebug(p, sBind, name, args[offset], showBind);
+DebugWaitFor glbDebug(enginePo p, termPo name, globalPo glb) {
+  return lnDebug(p, sBind, showGlb, name, (termPo)glb, Null);
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {
   stackPo stk = p->stk;
-  return lnDebug(p, sAbort, lc, topStack(stk), showAbort);
+  return lnDebug(p, sAbort, showAbort, lc, topStack(stk), Null);
 }
 
 DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
-  return lnDebug(p, op, lc, pr, showCall);
+  return lnDebug(p, op, showCall, lc, pr, Null);
 }
 
 DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr) {
-  return lnDebug(p, sTCall, lc, pr, showTCall);
+  return lnDebug(p, sTCall, showTCall, lc, pr, Null);
 }
 
 DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
-  return lnDebug(p, op, lc, pr, showOCall);
+  return lnDebug(p, op, showOCall, lc, pr, Null);
 }
 
 DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
-  return lnDebug(p, sTOCall, lc, pr, showOCall);
+  return lnDebug(p, sTOCall, showOCall, lc, pr, Null);
 }
 
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {
-  return lnDebug(p, sEntry, lc, (termPo)lbl, showEntry);
+  return lnDebug(p, sEntry, showEntry, lc, (termPo)lbl, Null);
 }
 
 DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sRet, lc, vl, showRet);
+  return lnDebug(p, sRet, showRet, lc, vl, Null);
 }
 
 DebugWaitFor xretDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sXRet, lc, vl, showXRet);
+  return lnDebug(p, sXRet, showXRet, lc, vl, Null);
 }
 
 DebugWaitFor rtnDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sRtn, lc, vl, showRet);
+  return lnDebug(p, sRtn, showRet, lc, vl, Null);
 }
 
-DebugWaitFor assignDebug(enginePo p, termPo lc) {
-  return lnDebug(p, sAssign, lc, Null, showAssign);
+DebugWaitFor assignDebug(enginePo p, termPo lc, termPo dst, termPo src) {
+  return lnDebug(p, sAssign, showAssign, lc, dst, src);
 }
 
 DebugWaitFor fiberDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sFiber, lc, vl, showFiber);
+  return lnDebug(p, sFiber, showFiber, lc, vl, Null);
 }
 
-DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sSuspend, lc, vl, showSuspend);
+DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo cn, termPo evt) {
+  return lnDebug(p, sSuspend, showSuspend, lc, cn, evt);
 }
 
-DebugWaitFor resumeDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sResume, lc, vl, showResume);
+DebugWaitFor resumeDebug(enginePo p, termPo lc, termPo cn, termPo ev) {
+  return lnDebug(p, sResume, showResume, lc, cn, ev);
 }
 
-DebugWaitFor retireDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sRetire, lc, vl, showRetire);
+DebugWaitFor retireDebug(enginePo p, termPo lc, termPo cn, termPo ev) {
+  return lnDebug(p, sRetire, showRetire, lc, cn, ev);
 }
 
-DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) {
+DebugWaitFor lnDebug(enginePo p, ssaOp op, showCmd show, termPo lc, termPo arg1, termPo arg2) {
   static DebugOptions opts = {
     .opts = {
       {.c = 'n', .cmd = dbgSingle, .usage = "n step into"},
@@ -993,7 +993,7 @@ DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) 
   logical stopping = shouldWeStop(p, op);
 
   if (p->tracing || stopping) {
-    show(debugOutChnnl, stk, lc, arg);
+    show(debugOutChnnl, stk, lc, arg1, arg2);
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0) {
@@ -1059,26 +1059,13 @@ retCode showLcl(ioPo out, ptrPo args, int32 vr) {
     return outMsg(out, " l[%d]", vr);
 }
 
-retCode showGlb(ioPo out, globalPo glb) {
-  if (glb != Null) {
-    if (glbIsSet(glb))
-      return outMsg(out, " %s=%,*T", globalVarName(glb), displayDepth, getGlobal(glb));
+void showGlb(ioPo out, stackPo stk, termPo lc, termPo g, termPo ignore) {
+  if (tracing >= detailedTracing) {
+    if (showColors)
+      outMsg(out, BLUE_ESC_ON"global:"BLUE_ESC_OFF" %#,*T\n%_", displayDepth, g);
     else
-      return outMsg(out, " %s (undef)", globalVarName(glb));
+      outMsg(out, "global: %#,*T\n%_", displayDepth, g);
   }
-  else
-    return outMsg(out, " unknown global");
-}
-
-void showTos(ioPo out, stackPo stk, integer offset) {
-  if (stk != Null) {
-    if (offset == 0)
-      outMsg(out, " tos = %#,*T", displayDepth, peekStack(stk, 0));
-    else
-      outMsg(out, " tos[%d] = %#,*T", offset, displayDepth, peekStack(stk, offset));
-  }
-  else
-    outMsg(out, " tos");
 }
 
 static void showPcTgt(ioPo out, int32 pc, int32 offset) {
@@ -1111,7 +1098,7 @@ void showRegisters(enginePo p, heapPo h) {
     outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp++);
   }
 
-  integer count = argCount(mtd);
+  integer count = mtdArity(mtd);
   for (integer ix = 0; ix < count; ix++) {
     outMsg(debugOutChnnl, "A[%d]=%,*T\n", ix, displayDepth, *stackVarble(args, ix));
   }

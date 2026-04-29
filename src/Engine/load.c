@@ -12,6 +12,7 @@
 #include "manifest.h"
 #include "codeP.h"
 #include "labelsP.h"
+#include "tree.h"
 #include "verifyP.h"
 
 tracingLevel tracePkg = noTracing;
@@ -45,7 +46,6 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
     if (file != NULL) {
       if (fileStatus(file) == Ok) {
-
         skipShellPreamble(O_FILE(file));
 
         PackageRec lddPkg;

@@ -366,7 +366,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       recordVariableStart(analysis, operand(1), local, nextPc, nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
       recordVariableUse(analysis, scope, operand(3), nextPc);
-      setSafePoint(analysis, pc);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -377,7 +377,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       recordVariableUse(analysis, scope, operand(3), nextPc);
       recordVariableUse(analysis, scope, operand(4), nextPc);
       markPhiVariable(analysis, checkScope(scope, pc + operand(1)), 0);
-      setSafePoint(analysis, pc);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -385,7 +385,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + 3;
       recordVariableStart(analysis, operand(1), local, nextPc, nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
-      setSafePoint(analysis, pc);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }

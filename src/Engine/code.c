@@ -23,7 +23,7 @@ static hashPo packages;
 
 static long mtdSize(builtinClassPo cl, termPo o);
 static termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
 static logical mtdCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer mtdHash(builtinClassPo cl, termPo o);
 static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -55,9 +55,9 @@ typedef struct code_index_ {
   methodPo mtd;
 } CodeIndexRecord, *codeIndexPo;
 
-static comparison indexCode(void *l, void *r) {
-  codeIndexPo lx = (codeIndexPo) l;
-  codeIndexPo rx = (codeIndexPo) r;
+static comparison indexCode(void* l, void* r) {
+  codeIndexPo lx = (codeIndexPo)l;
+  codeIndexPo rx = (codeIndexPo)r;
 
   if (lx->upperBound <= rx->lowerBound)
     return smaller;
@@ -70,7 +70,7 @@ static comparison indexCode(void *l, void *r) {
 }
 
 static void recordCode(methodPo mtd, uinteger lower, uinteger upper) {
-  codeIndexPo indexEntry = (codeIndexPo) allocPool(indexPool);
+  codeIndexPo indexEntry = (codeIndexPo)allocPool(indexPool);
 
   indexEntry->lowerBound = lower;
   indexEntry->upperBound = upper;
@@ -82,17 +82,21 @@ static void recordCode(methodPo mtd, uinteger lower, uinteger upper) {
 }
 
 void recordMethodCode(methodPo mtd) {
-  recordCode(mtd,(uinteger)(entryPoint(mtd)),(uinteger)(entryPoint(mtd) + codeSize(mtd)));
+  recordCode(mtd, (uinteger)(entryPoint(mtd)), (uinteger)(entryPoint(mtd) + codeSize(mtd)));
 }
 
 #ifndef NOJIT
 void recordMethodJitCode(methodPo mtd) {
-  recordCode(mtd,(uinteger)mtd->jit.code,(uinteger)mtd->jit.code+mtd->jit.codeSize);
+  recordCode(mtd, (uinteger)mtd->jit.code, (uinteger)mtd->jit.code + mtd->jit.codeSize);
 }
 #endif
 
+void rebalanceCodeTree() {
+  rebalanceTree(codeIndex);
+}
+
 methodPo locateMethod(uinteger pc) {
-  CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc+1};
+  CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc + 1};
   codeIndexPo entry = treeGet(codeIndex, &test);
   if (entry != Null)
     return entry->mtd;
@@ -109,12 +113,12 @@ void initCode() {
 
   codeIndex = newTree(indexCode, Null);
 
-  packages = newHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
+  packages = newHash(16, (hashFun)pkHash, (compFun)compPk, (destFun)delPkg);
 }
 
 extern methodPo C_MTD(termPo t) {
   assert(hasIndex(t, methodIndex));
-  return (methodPo) t;
+  return (methodPo)t;
 }
 
 long mtdSize(builtinClassPo cl, termPo o) {
@@ -124,23 +128,22 @@ long mtdSize(builtinClassPo cl, termPo o) {
 termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src) {
   syserr("Should not be scanning code objects");
   methodPo si = C_MTD(src);
-  methodPo di = (methodPo) dst;
+  methodPo di = (methodPo)dst;
   *di = *si;
 
-  return ((termPo) di) + mtdSize(cl, src);
+  return ((termPo)di) + mtdSize(cl, src);
 }
 
-termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   syserr("Should not be scanning code objects");
   methodPo mtd = C_MTD(o);
 
-  helper((ptrPo) &mtd->lbl, c);
+  helper((ptrPo)&mtd->lbl, c);
 
-  return ((termPo) o) + mtdSize(cl, o);
+  return ((termPo)o) + mtdSize(cl, o);
 }
 
-void markMethod(methodPo mtd, gcSupportPo G) {
-}
+void markMethod(methodPo mtd, gcSupportPo G) {}
 
 termPo codeFinalizer(builtinClassPo class, termPo o) {
   methodPo mtd = C_MTD(o);
@@ -149,28 +152,28 @@ termPo codeFinalizer(builtinClassPo class, termPo o) {
     mtd->instructions = Null;
   }
 
-  return ((termPo) o) + mtdSize(class, o);
+  return ((termPo)o) + mtdSize(class, o);
 }
 
 logical mtdCmp(builtinClassPo cl, termPo o1, termPo o2) {
-  return (logical) (o1 == o2);
+  return (logical)(o1 == o2);
 }
 
 integer mtdHash(builtinClassPo cl, termPo o) {
-  return hash61((integer) o);
+  return hash61((integer)o);
 }
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
   labelPo mtdLbl = mtd->lbl;
-  return outMsg(out, "%%%s/%d", lblName(mtdLbl),mtdLbl->lbl.arity);
+  return outMsg(out, "%%%s/%d", lblName(mtdLbl), mtdLbl->lbl.arity);
 }
 
 labelPo mtdLabel(methodPo mtd) {
   return mtd->lbl;
 }
 
-logical mtdHasName(methodPo mtd, char *name) {
+logical mtdHasName(methodPo mtd, char* name) {
   return uniIsLit(lblName(mtdLabel(mtd)), name);
 }
 
@@ -180,28 +183,28 @@ int32 stackDelta(methodPo mtd) {
 }
 
 logical validPC(methodPo mtd, ssaInsPo pc) {
-  return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
+  return (logical)(pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
 }
 
 int32 codeOffset(methodPo mtd, ssaInsPo pc) {
   ssaInsPo instructions = mtd->instructions;
   if (pc >= instructions && pc < instructions + mtd->insCount) {
-    return (int32) (pc - instructions);
+    return (int32)(pc - instructions);
   }
 #ifndef NOJIT
-  void *address = pc;
-  void *jitCode = (void *) mtd->jit.code;
+  void* address = pc;
+  void* jitCode = (void*)mtd->jit.code;
   if (address >= jitCode && address < jitCode + mtd->jit.codeSize)
-    return (int32) (address - jitCode);
+    return (int32)(address - jitCode);
 #endif
   return -1;
 }
 
-retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
-  return mtdDisp(f, (termPo) data, precision, depth, alt);
+retCode showMtdLbl(ioPo f, void* data, long depth, long precision, logical alt) {
+  return mtdDisp(f, (termPo)data, precision, depth, alt);
 }
 
-void showMethodCode(ioPo out, char *msg, methodPo mtd) {
+void showMethodCode(ioPo out, char* msg, methodPo mtd) {
   ssaInsPo pc = entryPoint(mtd);
   ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
 
@@ -222,26 +225,27 @@ int32 lclCount(methodPo mtd) {
 
 #ifndef NOJIT
 logical hasJitCode(methodPo mtd) {
-  return (logical) (mtd->jit.code != Null);
+  return (logical)(mtd->jit.code != Null);
 }
 #endif
 
-packagePo loadedPackage(const char *package) {
-  return (packagePo) hashGet(packages, (void *) package);
+packagePo loadedPackage(const char* package) {
+  return (packagePo)hashGet(packages, (void*)package);
 }
 
 logical isLoadedPackage(packagePo pkg) {
   packagePo lcl = loadedPackage(pkg->packageName);
   if (lcl != Null) {
     return compatiblePkg(pkg, lcl);
-  } else
+  }
+  else
     return False;
 }
 
-packagePo createPkg(char *name, char *version) {
-  packagePo pkg = (packagePo) allocPool(pkgPool);
-  uniCpy((char *) &pkg->packageName, NumberOf(pkg->packageName), name);
-  uniCpy((char *) &pkg->version, NumberOf(pkg->version), version);
+packagePo createPkg(char* name, char* version) {
+  packagePo pkg = (packagePo)allocPool(pkgPool);
+  uniCpy((char*)&pkg->packageName, NumberOf(pkg->packageName), name);
+  uniCpy((char*)&pkg->version, NumberOf(pkg->version), version);
   hashPut(packages, pkg, pkg);
   return pkg;
 }
@@ -251,11 +255,11 @@ retCode delPkg(packagePo pkg, packagePo p) {
   return Ok;
 }
 
-char *loadedVersion(char *package) {
+char* loadedVersion(char* package) {
   packagePo pkg = loadedPackage(package);
 
   if (pkg != NULL)
-    return (char *) &pkg->version;
+    return (char*)&pkg->version;
 
   return NULL;
 }
@@ -268,15 +272,16 @@ comparison compPk(packagePo p1, packagePo p2) {
   return uniCmp(p1->packageName, p2->packageName);
 }
 
-packagePo markLoaded(char *package, char *version) {
+packagePo markLoaded(char* package, char* version) {
   packagePo pkg = loadedPackage(package);
 
   if (pkg != NULL) {
-    if (!compatiblVersion((char *) &pkg->version, version))
+    if (!compatiblVersion((char*)&pkg->version, version))
       return Null;
     else
       return pkg;
-  } else
+  }
+  else
     return createPkg(package, version);
 }
 
@@ -289,9 +294,9 @@ int32 codeSize(methodPo mtd) {
 }
 
 methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
-  int root = gcAddRoot(H, (ptrPo) &lbl);
+  int root = gcAddRoot(H, (ptrPo)&lbl);
 
-  methodPo mtd = (methodPo) allocPool(mtdPool);
+  methodPo mtd = (methodPo)allocPool(mtdPool);
 
   mtd->clss.lblIndex = methodIndex;
   mtd->clss.space = FIVEAS;
@@ -312,7 +317,7 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
   return mtd;
 }
 
-labelPo specialMethod(const char *name, int32 arity, int32 insCx, ssaInsPo instructions, int32 lcls, int32 stkLimit) {
+labelPo specialMethod(const char* name, int32 arity, int32 insCx, ssaInsPo instructions, int32 lcls, int32 stkLimit) {
   labelPo lbl = declareLbl(name, arity, 0);
 
   methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, stkLimit, lbl);

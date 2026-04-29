@@ -8,7 +8,7 @@
 
 registerMap defltAvailRegSet() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
-         1u << X10 | 1u << X11;
+    1u << X10 | 1u << X11;
 }
 
 registerMap emptyRegSet() {
@@ -46,7 +46,7 @@ logical isRegInMap(registerMap from, armReg Rg) {
 }
 
 armReg nxtAvailReg(registerMap from) {
-  for (uint32 ix = 0; ix < 64u; ix++){
+  for (uint32 ix = 0; ix < 64u; ix++) {
     uint64 mask = (uint64)1u << ix;
     if ((from & mask) != 0)
       return ix;
@@ -55,7 +55,7 @@ armReg nxtAvailReg(registerMap from) {
 }
 
 void processRegisterMap(registerMap set, regProc proc, void* cl) {
-  for (uint32 ix = 0; ix < 64u; ix++){
+  for (uint32 ix = 0; ix < 64u; ix++) {
     uint64 mask = (uint64)1u << ix;
     if ((set & mask) != 0)
       proc((armReg)ix, cl);
@@ -63,7 +63,7 @@ void processRegisterMap(registerMap set, regProc proc, void* cl) {
 }
 
 void revProcessRegisterMap(registerMap set, regProc proc, void* cl) {
-  for (uint32 ix = 64u; ix > 0;){
+  for (uint32 ix = 64u; ix > 0;) {
     ix--;
     uint64 mask = (uint64)1u << ix;
     if ((set & mask) != 0)
@@ -74,13 +74,13 @@ void revProcessRegisterMap(registerMap set, regProc proc, void* cl) {
 static void svRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
   armReg nxt = nxtAvailReg(regs);
 
-  if (nxt == XZR){
+  if (nxt == XZR) {
     if (Rg != XZR)
       stp(Rg, XZR, PRX(SP, -16));
   }
   else if (Rg == XZR)
     svRegisters(ctx, dropReg(regs, nxt), nxt);
-  else{
+  else {
     stp(Rg, nxt, PRX(SP, -16));
     svRegisters(ctx, dropReg(regs, nxt), XZR);
   }
@@ -93,13 +93,13 @@ void saveRegisters(assemCtxPo ctx, registerMap regs) {
 static void restRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
   armReg nxt = nxtAvailReg(regs);
 
-  if (nxt == XZR){
+  if (nxt == XZR) {
     if (Rg != XZR)
       ldp(Rg, XZR, PSX(SP, 16));
   }
   else if (Rg == XZR)
     restRegisters(ctx, dropReg(regs, nxt), nxt);
-  else{
+  else {
     restRegisters(ctx, dropReg(regs, nxt), XZR);
     ldp(Rg, nxt, PSX(SP, 16));
   }
@@ -140,7 +140,7 @@ retCode loadCGlobal(assemCtxPo ctx, armReg reg, void* address) {
 void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset) {
   if (is9bit(offset))
     ldur(dst, src, offset);
-  else{
+  else {
     mov(dst, IM(offset));
     ldr(dst, EX2(src, dst, U_XTX, 0));
   }
@@ -149,7 +149,7 @@ void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset) {
 void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs) {
   if (is9bit(offset))
     stur(src, dst, offset);
-  else{
+  else {
     armReg tmp = nxtAvailReg(freeRegs);
     mov(tmp, IM(offset));
     str(src, EX2(dst, tmp, U_XTX, 0));
@@ -157,12 +157,15 @@ void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap fre
 }
 
 void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
-  switch (dst.mode){
+  switch (dst.mode) {
   case reg: {
-    switch (src.mode){
+    switch (src.mode) {
     case reg:
     case imm:
       mov(dst.reg, src);
+      return;
+    case fp:
+      fmov(dst, src);
       return;
     case sOff:
       load(ctx, dst.reg, src.reg, src.immediate);
@@ -172,13 +175,30 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
       return;
     }
   }
+  case fp: {
+    switch (src.mode) {
+    case reg:
+    case fp:
+      fmov(dst, src);
+      return;
+    case sOff:
+      fldr(dst.fpReg, src);
+      return;
+    default:
+      check(False, "unsupported source mode");
+      return;
+    }
+  }
   case sOff: {
-    switch (src.mode){
+    switch (src.mode) {
     case reg:
       store(ctx, src.reg, dst.reg, dst.immediate, freeRegs);
       return;
+    case fp:
+      fstr(src.fpReg, src);
+      return;
     case sOff: {
-      if (src.immediate != dst.immediate || src.reg != dst.reg){
+      if (src.immediate != dst.immediate || src.reg != dst.reg) {
         armReg tmp = nxtAvailReg(freeRegs);
         load(ctx, tmp, src.reg, src.immediate);
         store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
@@ -207,11 +227,11 @@ static logical powerOf2(int64 val) {
 }
 
 void immModulo(assemCtxPo ctx, armReg rg, int64 modulo, registerMap freeRegs) {
-  if (powerOf2(modulo) && modulo>1){
+  if (powerOf2(modulo) && modulo > 1) {
     int32 mask = (int32)(modulo - 1);
-    and(rg,rg,IM(mask));
+    and(rg, rg, IM(mask));
   }
-  else{
+  else {
     armReg divisor = nxtAvailReg(freeRegs);
     armReg quotient = nxtAvailReg(dropReg(freeRegs, divisor));
     mov(divisor, IM(modulo));

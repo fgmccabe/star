@@ -103,6 +103,39 @@ logical liveVar(localVarPo var, int32 pc) {
   return var->inUse && var->desc->start <= pc && var->desc->end > pc;
 }
 
+static int32 varOffset(codeGenPo state, int32 pc, localVarPo var);
+
+int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
+  if (liveVar(var, pc)) {
+    if (var->inited && isRegisterOp(var->src) && !var->desc->registerCandidate) {
+      int32 vOffset = var->stkOff = nextStkOff(state, pc);
+      FlexOp lclFlex = varFlex(vOffset);
+      storeFlex(state, pc, var->src, lclFlex);
+      releaseReg(state->jit, var->src.reg);
+      var->src = lclFlex;
+      var->stashed = True;
+      return vOffset;
+    }
+  }
+  return 0;
+}
+
+int32 flushArguments(codeGenPo state, int32 pc) {
+  return processLocals(state, pc, flushArg, Null);
+}
+
+int32 processLocals(codeGenPo state, int32 pc, localVarProc vProc, void* cl) {
+  int32 minOffset = 0;
+
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo var = &state->locals[ix];
+    if (liveVar(var, pc)) {
+      minOffset = min(minOffset, vProc(state, pc, var, cl));
+    }
+  }
+  return minOffset;
+}
+
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
   int32 minOffset = 0;
   for (int32 ix = 0; ix < state->numLocals; ix++) {
@@ -113,8 +146,6 @@ int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
   }
   return minOffset;
 }
-
-static int32 varOffset(codeGenPo state, int32 pc, localVarPo var);
 
 int32 activeLocals(codeGenPo state, int32 pc) {
   int32 minOffset = 0;
@@ -272,7 +303,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   }
   registerMap tmpMap = fixedRegSet(X16);
 
-  shuffleVars(ctx, operands, arity, &tmpMap, argMove);
+  shuffleVars(ctx, operands, arity, &tmpMap);
 
   int32 lastSlot = stashLiveLocals(state, livePc, moveOwnership);
   voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
@@ -296,7 +327,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
     assert(ax!=XZR);
     operands[ix] = argSpec(RG(ax), results[ax]);
   }
-  shuffleVars(ctx, operands, rsCnt, &tmpMap, argMove);
+  shuffleVars(ctx, operands, rsCnt, &tmpMap);
   restoreStashedLocals(state, livePc);
 }
 
@@ -396,8 +427,6 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   cmp(tmp, RG(FP));
   bhi(okLbl);
 
-  mov(tmp, IM((integer) mtd));
-  str(tmp, OF(STK, OffsetOf(StackRecord, prog)));
   adr(tmp, okLbl);
   str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
 
@@ -436,13 +465,13 @@ void unstashEngineState(jitCompPo jit) {
 }
 
 int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership) {
-  if (var->inited) {
+  if (liveVar(var, pc) && var->inited) {
     if (!var->stashed) {
       if (isRegisterOp(var->src)) {
         FlexOp lclFlex = varFlex(var->stkOff);
         storeFlex(state, pc, var->src, lclFlex);
-        if (moveOwnership || !var->desc->registerCandidate) {
-          releaseReg(state->jit, var->src.reg);
+        releaseReg(state->jit, var->src.reg);
+        if (moveOwnership) {
           var->src = lclFlex;
         }
         var->stashed = True;
@@ -458,7 +487,7 @@ int32 varOffset(codeGenPo state, int32 pc, localVarPo var) {
   if (var->inited) {
     if (!var->stashed) {
       if (isRegisterOp(var->src)) {
-        var->stkOff = (var->desc->kind == argument ? var->desc->varNo : nextStkOff(state, pc));
+        var->stkOff = nextStkOff(state, pc);
         return var->stkOff;
       }
     }
@@ -474,6 +503,7 @@ void restoreStashedLocals(codeGenPo state, int32 pc) {
     if (liveVar(var, pc) && var->inited && var->stashed) {
       if (isRegisterOp(var->src)) {
         ldr(var->src.reg, varFlex(var->stkOff));
+        reserveReg(state->jit, var->src.reg);
         var->stashed = False;
       }
     }

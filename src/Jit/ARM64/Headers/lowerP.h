@@ -88,7 +88,11 @@ FlexOp constantFlex(int32 index);
 FlexOp varFlex(int32 index);
 void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap* freeRegs);
 
+typedef int32 (*localVarProc)(codeGenPo state, int32 pc, localVarPo var, void *cl);
+int32 processLocals(codeGenPo state, int32 pc, localVarProc proc, void *cl) ;
+
 logical liveVar(localVarPo var, int32 pc);
+int32 flushArguments(codeGenPo state, int32 pc);
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership);
 int32 activeLocals(codeGenPo state, int32 pc);
 registerMap registerLocals(codeGenPo state, int32 pc);

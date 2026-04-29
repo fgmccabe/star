@@ -11,7 +11,6 @@ typedef void (*moveFunc)(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *fr
 void shuffleVars(assemCtxPo ctx,
                  argSpecPo args,
                  int32 arity,
-                 registerMap* freeRegs,
-                 moveFunc mover);
+                 registerMap* freeRegs);
 
 #endif //STAR_SHUFFLE_H

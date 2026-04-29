@@ -21,7 +21,7 @@ static void initTree() {
 treePo newTree(compFun cmp, destFun dest) {
   initTree();
 
-  treePo tr = (treePo) allocPool(treePool);
+  treePo tr = (treePo)allocPool(treePool);
 
   tr->tree = Null;
   tr->compare = cmp;
@@ -62,30 +62,30 @@ retCode eraseTree(treePo hp) {
 }
 
 /* Search the tree */
-static void *nodeSearch(treePo tr, nodePo nd, void *name) {
+static void* nodeSearch(treePo tr, nodePo nd, void* name) {
   switch (tr->compare(name, nd->nme)) {
-    case smaller: /* One item is smaller than another */
-      if (nd->left != Null)
-        return nodeSearch(tr, nd->left, name);
-      else
-        return Null;
-    case same: /* Two items are the same */
-      return nd->r;
-    case bigger:
-      if (nd->right != Null)
-        return nodeSearch(tr, nd->right, name);
-      else
-        return Null;
-    case different:
-      syserr("invalid node compare");
+  case smaller: /* One item is smaller than another */
+    if (nd->left != Null)
+      return nodeSearch(tr, nd->left, name);
+    else
       return Null;
+  case same: /* Two items are the same */
+    return nd->r;
+  case bigger:
+    if (nd->right != Null)
+      return nodeSearch(tr, nd->right, name);
+    else
+      return Null;
+  case different:
+    syserr("invalid node compare");
+    return Null;
   }
 }
 
-void *treeGet(treePo tr, void *name) {
+void* treeGet(treePo tr, void* name) {
   if (tr->tree != Null) {
     pthread_mutex_lock(&tr->mutex);
-    void *r = nodeSearch(tr, tr->tree, name);
+    void* r = nodeSearch(tr, tr->tree, name);
     pthread_mutex_unlock(&tr->mutex);
     return r;
   }
@@ -94,24 +94,25 @@ void *treeGet(treePo tr, void *name) {
 
 /* Install in the tree */
 
-static nodePo installNode(treePo tr, nodePo nd, void *name, void *r) {
+static nodePo installNode(treePo tr, nodePo nd, void* name, void* r) {
   if (nd != Null) {
     switch (tr->compare(name, nd->nme)) {
-      case smaller:
-        nd->left = installNode(tr, nd->left, name, r);
-        break;
-      case same:
-        nd->r = r;
-        break;
-      case bigger:
-        nd->right = installNode(tr, nd->right, name, r);
-        break;
-      case different:
-        syserr("invalid conparison result");
+    case smaller:
+      nd->left = installNode(tr, nd->left, name, r);
+      break;
+    case same:
+      nd->r = r;
+      break;
+    case bigger:
+      nd->right = installNode(tr, nd->right, name, r);
+      break;
+    case different:
+      syserr("invalid conparison result");
     }
     return nd;
-  } else {
-    nd = (nodePo) allocPool(nodePool);
+  }
+  else {
+    nd = (nodePo)allocPool(nodePool);
     nd->nme = name;
     nd->r = r;
     nd->left = nd->right = Null;
@@ -119,7 +120,7 @@ static nodePo installNode(treePo tr, nodePo nd, void *name, void *r) {
   }
 }
 
-retCode treePut(treePo tr, void *name, void *r) {
+retCode treePut(treePo tr, void* name, void* r) {
   pthread_mutex_lock(&tr->mutex);
 
   tr->tree = installNode(tr, tr->tree, name, r);
@@ -134,55 +135,57 @@ nodePo mergeNodes(treePo tr, nodePo left, nodePo right) {
     return left;
   else {
     switch (tr->compare(left->nme, right->nme)) {
-      case smaller:
-        left->right = mergeNodes(tr, left->right, right);
-        return left;
-      case bigger:
-        right->left = mergeNodes(tr, left, right->left);
-        return right;
-      default:
-        syserr("invalid conparison result");
-        return Null;
+    case smaller:
+      left->right = mergeNodes(tr, left->right, right);
+      return left;
+    case bigger:
+      right->left = mergeNodes(tr, left, right->left);
+      return right;
+    default:
+      syserr("invalid conparison result");
+      return Null;
     }
   }
 }
 
 /* remove an entry from the tree */
-nodePo removeNode(treePo tr, nodePo nd, void *name) {
+nodePo removeNode(treePo tr, nodePo nd, void* name) {
   if (nd != Null) {
     switch (tr->compare(name, nd->nme)) {
-      case smaller:
-        nd->left = removeNode(tr, nd->left, name);
-        return nd;
-      case same: {
-        if (nd->left != Null) {
-          if (nd->right != Null) {
-            nodePo merged = mergeNodes(tr, nd->left, nd->right);
-            freePool(nodePool, nd);
-            return merged;
-            // Both non-null
-          } else {
-            freePool(nodePool, nd);
-            return nd->left;
-          }
-        } else {
+    case smaller:
+      nd->left = removeNode(tr, nd->left, name);
+      return nd;
+    case same: {
+      if (nd->left != Null) {
+        if (nd->right != Null) {
+          nodePo merged = mergeNodes(tr, nd->left, nd->right);
           freePool(nodePool, nd);
-          return nd->right;
+          return merged;
+          // Both non-null
+        }
+        else {
+          freePool(nodePool, nd);
+          return nd->left;
         }
       }
-      case bigger:
-        nd->right = removeNode(tr, nd->right, name);
-        return nd;
+      else {
+        freePool(nodePool, nd);
+        return nd->right;
+      }
+    }
+    case bigger:
+      nd->right = removeNode(tr, nd->right, name);
+      return nd;
 
-      case different:
-        syserr("invalid conparison result");
-        return nd;
+    case different:
+      syserr("invalid conparison result");
+      return nd;
     }
   }
   return Null;
 }
 
-retCode treeRemove(treePo tr, void *name) {
+retCode treeRemove(treePo tr, void* name) {
   pthread_mutex_lock(&tr->mutex);
   tr->tree = removeNode(tr, tr->tree, name);
   pthread_mutex_unlock(&tr->mutex);
@@ -190,7 +193,7 @@ retCode treeRemove(treePo tr, void *name) {
 }
 
 /* Process the whole tree */
-static retCode processNode(treePo tr, nodePo nd, procFun pr, void *cl) {
+static retCode processNode(treePo tr, nodePo nd, procFun pr, void* cl) {
   if (nd != Null) {
     retCode ret = processNode(tr, nd->left, pr, cl);
     if (ret == Ok)
@@ -202,7 +205,7 @@ static retCode processNode(treePo tr, nodePo nd, procFun pr, void *cl) {
   return Ok;
 }
 
-retCode processTree(procFun pr, treePo tree, void *c) {
+retCode processTree(procFun pr, treePo tree, void* c) {
   pthread_mutex_lock(&tree->mutex);
 
   retCode ret = processNode(tree, tree->tree, pr, c);
@@ -210,21 +213,21 @@ retCode processTree(procFun pr, treePo tree, void *c) {
   return ret;
 }
 
-integer nodeSize(treePo t, nodePo nd) {
+static integer count(nodePo nd) {
   if (nd != Null)
-    return nodeSize(t, nd->left) + nodeSize(t, nd->right) + 1;
+    return count(nd->left) + count(nd->right) + 1;
   else
     return 0;
 }
 
 integer treeSize(treePo tr) {
   pthread_mutex_lock(&tr->mutex);
-  integer size = nodeSize(tr, tr->tree);
+  integer size = count(tr->tree);
   pthread_mutex_unlock(&tr->mutex);
   return size;
 }
 
-static integer countEls(nodePo node, nodePo *els, integer pos) {
+static integer countEls(nodePo node, nodePo* els, integer pos) {
   if (node != Null) {
     integer leftCount = countEls(node->left, els, pos);
     els[leftCount++] = node;
@@ -233,16 +236,21 @@ static integer countEls(nodePo node, nodePo *els, integer pos) {
   return pos;
 }
 
-static nodePo rebuild(integer amnt, nodePo *els, integer *pos, integer limit) {
+static nodePo rebuild(integer amnt, nodePo* els, integer* pos, integer limit) {
   if (amnt == 0)
     return Null;
   else if (*pos < limit) {
     nodePo left = rebuild(amnt / 2, els, pos, limit);
-    nodePo nd = els[(*pos)++];
-    nodePo right = rebuild(amnt / 2, els, pos, limit);
-    nd->left = left;
-    nd->right = right;
-    return nd;
+    if (*pos<limit) {
+      nodePo nd = els[(*pos)++];
+      nodePo right = rebuild(amnt / 2, els, pos, limit);
+      assert(*pos<=limit);
+      nd->left = left;
+      nd->right = right;
+      return nd;
+    }
+    else
+      return left;
   }
   return Null;
 }

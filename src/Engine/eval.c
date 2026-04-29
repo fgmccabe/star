@@ -223,7 +223,7 @@ ValueReturn run(enginePo P) {
       assert(arity==operand(2));
 
       // Overwrite existing arguments and locals
-      ptrPo tgt = &varble(argCount(PROG));
+      ptrPo tgt = &varble(mtdArity(PROG));
 
       // We have to make sure we don't overwrite arguments
       // So, we have to copy. (In jit code, this does not involve a copy)
@@ -267,7 +267,7 @@ ValueReturn run(enginePo P) {
       }
 
       // Overwrite existing arguments and locals
-      ptrPo tgt = &varble(argCount(PROG));
+      ptrPo tgt = &varble(mtdArity(PROG));
 
       // We have to make sure we don't overwrite arguments
       // So, we have to copy. (In jit code, this does not involve a copy)
@@ -319,7 +319,7 @@ ValueReturn run(enginePo P) {
 
       assert(FP > baseFrame(STK));
 
-      SP = &varble(argCount(PROG)); // Just above arguments to current call
+      SP = &varble(mtdArity(PROG)); // Just above arguments to current call
       PROG = FP->prog;
       ARGS = FP->args;
       PC = FP->link;
@@ -336,7 +336,7 @@ ValueReturn run(enginePo P) {
 
       assert(FP > baseFrame(STK));
 
-      SP = &varble(argCount(PROG)); // Just above arguments to current call
+      SP = &varble(mtdArity(PROG)); // Just above arguments to current call
       PROG = FP->prog;
       ARGS = FP->args;
       PC = FP->link;
@@ -354,7 +354,7 @@ ValueReturn run(enginePo P) {
 
       assert(FP > baseFrame(STK));
 
-      SP = &varble(argCount(PROG)); // Just above arguments to current call
+      SP = &varble(mtdArity(PROG)); // Just above arguments to current call
       PROG = FP->prog;
       ARGS = FP->args;
       PC = FP->link;
@@ -1082,7 +1082,7 @@ ValueReturn run(enginePo P) {
         termPo vrNm = getConstant(operand(1));
         PC += insSize; // We aim to continue at the next instruction
         saveRegisters();
-        bindDebug(P, vrNm, operand(2));
+        bindDebug(P, vrNm, varble(operand(2)));
         restoreRegisters();
         continue;
       }

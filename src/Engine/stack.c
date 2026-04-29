@@ -144,7 +144,7 @@ framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
 
-  stk->sp = stk->args + argCount(stk->prog);
+  stk->sp = stk->args + mtdArity(stk->prog);
 
   stk->pc = fp->link;
   stk->prog = fp->prog;
@@ -289,25 +289,27 @@ termPo stkScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   assert(stk != Null);
 
   if (stk->stkMem != Null){
-    assert(isMethod((termPo) stk->prog));
-    helper((ptrPo)&stk->prog, c);
-    assert(isMethod((termPo) stk->prog));
+    // assert(isMethod((termPo) stk->prog));
+    // helper((ptrPo)&stk->prog, c);
+    // assert(isMethod((termPo) stk->prog));
 
-    ptrPo spLimit = stackLimit(stk);
-    framePo fp = stk->fp;
-    framePo fpLimit = baseFrame(stk);
 
-    while (fp > fpLimit){
-      helper((ptrPo)&fp->prog, c);
-      assert(isMethod((termPo) fp->prog));
-      fp--;
-    }
+    // framePo fp = stk->fp;
+    // framePo fpLimit = baseFrame(stk);
+
+    // while (fp > fpLimit){
+    //   helper((ptrPo)&fp->prog, c);
+    //   assert(isMethod((termPo) fp->prog));
+    //   fp--;
+    // }
+
+    // assert(fp == fpLimit);
 
     // Walk the value stack...
+    ptrPo spLimit = stackLimit(stk);
     for (ptrPo sp = stk->sp; sp < spLimit; sp++)
       helper(sp, c);
 
-    assert(fp == fpLimit);
 
     if (stk->attachment != Null)
       helper((ptrPo)&stk->attachment, c);
@@ -368,7 +370,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
       outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, callProg,
              codeOffset(callProg, pc));
 
-    int32 count = argCount(callProg);
+    int32 count = mtdArity(callProg);
 
     switch (level){
     default:
@@ -483,6 +485,7 @@ stackPo newStack(enginePo P, logical execJit, termPo lam) {
   pushStack(child, lam);
   pushStack(child, (termPo)child);
   child->fp = pushFrame(child, execJit, labelMtd(taskProg));
+
 
   return child;
 }
