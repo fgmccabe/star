@@ -9,7 +9,6 @@
 #include "arm64.h"
 
 codeLblPo newLabel(assemCtxPo ctx);
-codeLblPo remoteLabel(assemCtxPo ctx, integer fn);
 codeLblPo here_(assemCtxPo ctx);
 #define here() here_(ctx)
 codeLblPo defineLabel(assemCtxPo ctx, integer pc);

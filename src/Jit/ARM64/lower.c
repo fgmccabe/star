@@ -161,10 +161,11 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 key = opand(1);
       int32 arity = lblArity(C_LBL(getConstant(key)));
       int32 nextPc = pc + insSize;
-      int32 argPnt = loadArguments(state, pc, nextPc, pc + 3, arity);
 
       labelPo tgt = C_LBL(getConstant(key));
       methodPo callee = labelMtd(tgt);
+
+      int32 argPnt = loadArguments(state, pc, nextPc, pc + 3, arity);
 
       if (callee != Null && hasJitCode(callee)) {
         jittedCode jitted = jitCode(callee);
@@ -201,7 +202,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       armReg lamReg = X17;
       loadRegister(state, lamReg, lam);
-      int32 lclLimit = loadLambdaArguments(state, pc, pc, pc + 3, numArgs);
+      int32 argPnt = loadLambdaArguments(state, pc, pc, pc + 3, numArgs);
       ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
       ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
       // pick up the pointer to the method
@@ -212,7 +213,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       bailOut(state, pc, undefinedCode);
 
       bind(haveMtd);
-      pushFrme(state, pc, lclLimit - arity);
+      pushFrme(state, pc, argPnt);
 
       // Pick up the jit code itself
       ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
@@ -321,10 +322,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sEntry: {
       int32 nextPc = pc + 3;
       str(LR, OF(FP, OffsetOf(StackFrame, link)));
-      if (traceJit >= detailedTracing) {
-        if (mtdHasName(state->mtd, "test.ac2@parent"))
-          installBkPt(state, pc);
-      }
+
+      // if (traceJit >= detailedTracing) {
+      //   if (mtdHasName(state->mtd, "star.heap@star.core$display!star.heap*heap@Γ%256@disp^"))
+      //     installBkPt(state, pc);
+      // }
+
       flushArguments(state, nextPc); // copy non register args to locals
       stackCheck(state, pc, opand(1), opand(2));
       pc = nextPc;
@@ -632,8 +635,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
       labelPo lit = C_LBL(getConstant(key));
-      mov_w(tmp2, IM(lit->labelIndex));
-      cmp_w(tmp, RG(tmp2));
+      if (is12bit(lit->labelIndex))
+        cmp_w(tmp, IM(lit->labelIndex));
+      else {
+        mov_w(tmp2, IM(lit->labelIndex));
+        cmp_w(tmp, RG(tmp2));
+      }
       bne(breakLabel(tgt));
       releaseReg(jit, tmp);
       releaseReg(jit, tmp2);
@@ -701,15 +708,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 nextPc = pc + insSize;
       int32 key = opand(1);
       armReg glb = findFreeReg(jit);
-      armReg content = findFreeReg(jit);
       globalPo glbVr = findGlobalVar(key);
       mov(glb, IM((integer) glbVr));
       // Check if global is set
-      ldr(content, OF(glb, OffsetOf(GlobalRecord, content)));
+      ldr(RTV, OF(glb, OffsetOf(GlobalRecord, content)));
       codeLblPo haveContent = newLabel(ctx);
-      loadRegister(state,RTV,RG(content));
       mov(RTS, IM(0));
-      cbnz(content, haveContent);
+      cbnz(RTV, haveContent);
 
       labelPo glbLbl = declareLbl(globalVarName(glbVr), 0, 0);
       if (glbLbl == Null)
@@ -742,7 +747,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       dropArguments(state, nextPc);
       bind(haveContent);
       releaseReg(jit, glb);
-      releaseReg(jit, content);
       pc = nextPc;
       continue;
     }
@@ -2012,7 +2016,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
 
   int32 regArgCnt = countBits(argRegs);
   int32 callArity = mtdArity(state->jit->mtd);
-  int32 tgtOff = callArity - regArgCnt;
+  int32 tgtOff = (callArity<regArgCnt?0:callArity - regArgCnt);
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp arg = sourceOperandFlex(state, argPc, ix);
@@ -2029,7 +2033,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
   }
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap);
-  return tgtOff - (arity - regArgCnt);
+  return (arity<regArgCnt?tgtOff:tgtOff - (arity - regArgCnt));
 }
 
 void adjustAG(codeGenPo state, int32 pc, int32 tgtOff) {

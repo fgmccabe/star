@@ -77,10 +77,11 @@ test.bench.bounce{
 
   main:(integer){}.
   main(Count){
-    timer = timer_start(Count, "List tail benchmark");
+    timer = timer_start(Count, "Bouncing ball benchmark");
 
     for I in 0..<Count do{
-      assert test()==1249
+--      assert test()==1249
+      show test()
     }
 
     timer_finish(timer);

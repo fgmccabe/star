@@ -288,6 +288,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   assemCtxPo ctx = assemCtx(state->jit);
 
   int32 currVarLimit = activeLocals(state, livePc);
+  int32 lastSlot = stashLiveLocals(state, livePc, moveOwnership);
 
   ArgSpec operands[arity];
 
@@ -305,7 +306,6 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
 
   shuffleVars(ctx, operands, arity, &tmpMap);
 
-  int32 lastSlot = stashLiveLocals(state, livePc, moveOwnership);
   voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
 
   assert(lastSlot==currVarLimit);

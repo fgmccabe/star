@@ -12,12 +12,14 @@ typedef struct assem_ctx {
   unsigned char *bytes;
   uint32 size;
   uint32 pc;
-  arrayPo lbls;
+  int32 lblCnt;
+  arrayPo labels;
 } AssemCtxRecord, *assemCtxPo;
 
 typedef struct assem_lbl {
   arrayPo refs;
   integer pc;
+  integer lblNo;
 } AssemLblRecord, *codeLblPo;
 
 void initAssem();

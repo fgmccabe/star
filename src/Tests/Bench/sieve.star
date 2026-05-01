@@ -35,5 +35,3 @@ test.bench.sieve{
     timer_finish(timer);
   }
 }
-  
-  
