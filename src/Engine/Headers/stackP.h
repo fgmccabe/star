@@ -77,12 +77,12 @@ static inline ptrPo stackLimit(stackPo stk) {
   return stk->stkMem + stk->sze;
 }
 
-static inline framePo baseFrame(stackPo stk) {
+static inline framePo stackFrameBase(stackPo stk) {
   return ((framePo) (stk->stkMem)) - 1;
 }
 
 static inline logical validFP(stackPo stk, framePo fp) {
-  return fp <= stk->fp && fp >= baseFrame(stk) && ((ptrPo) (fp + 1)) <= stk->sp;
+  return fp <= stk->fp && fp >= stackFrameBase(stk) && ((ptrPo) (fp + 1)) <= stk->sp;
 }
 
 static inline logical validStkPtr(stackPo stk, ptrPo p) {

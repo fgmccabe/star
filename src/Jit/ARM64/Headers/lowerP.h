@@ -94,12 +94,12 @@ int32 processLocals(codeGenPo state, int32 pc, localVarProc proc, void *cl) ;
 logical liveVar(localVarPo var, int32 pc);
 int32 flushArguments(codeGenPo state, int32 pc);
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership);
-int32 activeLocals(codeGenPo state, int32 pc);
 registerMap registerLocals(codeGenPo state, int32 pc);
 void restoreStashedLocals(codeGenPo state, int32 pc);
 localVarPo localSource(codeGenPo state, int32 pc, int32 lx);
 localVarPo localTarget(codeGenPo state, int32 pc, int32 lx);
 logical allLocalsStashed(codeGenPo state, int32 pc);
+int32 argSaveCnt(int32 arity);
 
 void dumpState(codeGenPo state, int32 pc);
 retCode showLocalVar(ioPo out, void* data, long depth, long precision, logical alt);

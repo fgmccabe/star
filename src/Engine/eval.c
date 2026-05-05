@@ -317,7 +317,7 @@ ValueReturn run(enginePo P) {
       RSLT.value = voidEnum; /* no return value */
       RSLT.status = Normal;
 
-      assert(FP > baseFrame(STK));
+      assert(FP > stackFrameBase(STK));
 
       SP = &varble(mtdArity(PROG)); // Just above arguments to current call
       PROG = FP->prog;
@@ -334,7 +334,7 @@ ValueReturn run(enginePo P) {
       RSLT.value = varble(operand(1)); /* return value */
       RSLT.status = Normal;
 
-      assert(FP > baseFrame(STK));
+      assert(FP > stackFrameBase(STK));
 
       SP = &varble(mtdArity(PROG)); // Just above arguments to current call
       PROG = FP->prog;
@@ -352,7 +352,7 @@ ValueReturn run(enginePo P) {
       RSLT.value = varble(operand(1)); /* return value */
       RSLT.status = Abnormal;
 
-      assert(FP > baseFrame(STK));
+      assert(FP > stackFrameBase(STK));
 
       SP = &varble(mtdArity(PROG)); // Just above arguments to current call
       PROG = FP->prog;

@@ -198,7 +198,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sOCall: {
       int32 numArgs = opand(2);
       int32 insSize = numArgs + 3;
-      int32 arity = numArgs + 1;
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       armReg lamReg = X17;
       loadRegister(state, lamReg, lam);
@@ -322,13 +321,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sEntry: {
       int32 nextPc = pc + 3;
       str(LR, OF(FP, OffsetOf(StackFrame, link)));
-
-      // if (traceJit >= detailedTracing) {
-      //   if (mtdHasName(state->mtd, "star.heap@star.core$display!star.heap*heap@Γ%256@disp^"))
-      //     installBkPt(state, pc);
-      // }
-
       flushArguments(state, nextPc); // copy non register args to locals
+
       stackCheck(state, pc, opand(1), opand(2));
       pc = nextPc;
       continue;
@@ -733,11 +727,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       bind(haveMtd);
 
-      int32 localLimit = activeLocals(state, nextPc);
       int32 minOffset = stashLiveLocals(state, nextPc, True); // save vars that will be live after the call
       voidOutFrameLocals(state, nextPc, minOffset);           // void out gaps in the locals map
-      assert(localLimit == minOffset);
-
       pushFrme(state, pc, minOffset);
 
       // Pick up the jit code itself
@@ -1945,7 +1936,7 @@ void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs) {
 int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, int32 argBase, int32 arity) {
   ArgSpec operands[arity];
 
-  int32 currVarLimit = activeLocals(state, livePc);
+  int32 currVarLimit = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
   int32 regArgCnt = countBits(argRegs);
   int32 argSlots = currVarLimit;
 
@@ -1966,9 +1957,7 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, in
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap);
 
-  int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
-  voidOutFrameLocals(state, livePc, minOffset);           // void out gaps in the locals map
-  assert(minOffset == currVarLimit);
+  voidOutFrameLocals(state, livePc, currVarLimit);           // void out gaps in the locals map
   return argSlots; // return how must space is needed to preserve current locals and arguments.
 }
 
@@ -1986,7 +1975,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   operands[0] = argSpec(RG(PR), RG(X0));
   registerMap argRegs = dropReg(defaultArgRegs(), X0);
 
-  int32 currVarLimit = activeLocals(state, livePc);
+  int32 currVarLimit = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
@@ -2003,11 +1992,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(assemCtx(state->jit), operands, arity + 1, &tmpMap);
 
-  int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
-  voidOutFrameLocals(state, livePc, minOffset);           // void out gaps in the locals map
-
-  assert(minOffset == currVarLimit);
-
+  voidOutFrameLocals(state, livePc, currVarLimit);           // void out gaps in the locals map
   return currVarLimit; // return how must space is needed to preserve current locals.
 }
 
@@ -2016,7 +2001,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
 
   int32 regArgCnt = countBits(argRegs);
   int32 callArity = mtdArity(state->jit->mtd);
-  int32 tgtOff = (callArity<regArgCnt?0:callArity - regArgCnt);
+  int32 tgtOff = (callArity < regArgCnt ? 0 : callArity - regArgCnt);
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp arg = sourceOperandFlex(state, argPc, ix);
@@ -2033,7 +2018,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
   }
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap);
-  return (arity<regArgCnt?tgtOff:tgtOff - (arity - regArgCnt));
+  return (arity < regArgCnt ? tgtOff : tgtOff - (arity - regArgCnt));
 }
 
 void adjustAG(codeGenPo state, int32 pc, int32 tgtOff) {

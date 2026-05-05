@@ -65,7 +65,7 @@ void setupGCSupport(heapPo H, gcSupportPo G) {
 retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   if (traceMemory > noTracing) {
-    outMsg(logFile, "GC #%d @ %ld\n%_", gcCount, pcCount);
+    outMsg(logFile, "GC #%d\n%_", gcCount);
   }
 #endif
 

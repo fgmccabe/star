@@ -17,7 +17,7 @@ void abort_star(enginePo P, termPo lc, termPo msg) {
   char msgStr[MAX_SYMB_LEN];
   strMsg(msgStr,NumberOf(msgStr), "Abort %T at %L", msg, lc);
   verifyProc(P, processHeap(P));
-  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, MAX_INT32);
+  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, 32);
   syserr(msgStr);
 }
 

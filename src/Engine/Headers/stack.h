@@ -45,10 +45,9 @@ termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);
 
-void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 arity);
+void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 saveCnt);
 
 void pushStack(stackPo stk, termPo ptr);
-void moveStack2Stack(stackPo toStk, stackPo fromStk, logical execJit, integer count);
 
 void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity);
 stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size);
