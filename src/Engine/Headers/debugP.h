@@ -30,7 +30,7 @@ typedef struct {
 
 extern tracingLevel tracing;        /* tracing option */
 extern logical insDebugging;
-extern logical lineDebugging;
+extern tracingLevel lineDebugging;
 extern logical debugDebugging;
 extern integer debuggerPort;
 extern logical showPkgFile;       // True if we show file instead of package during debugging

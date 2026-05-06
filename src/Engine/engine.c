@@ -39,7 +39,7 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelMtd(umain);
 
-  if (mainMtd != Null){
+  if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
 #ifndef NOJIT
     enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
@@ -55,7 +55,7 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
     pauseTimer(runTimer);
     return 0;
   }
-  else{
+  else {
     logMsg(logFile, "cannot find entry point %s\n", entry);
     return Abnormal;
   }
@@ -66,16 +66,20 @@ enginePo newEngine(heapPo h, int execJit, methodPo mtd, char* rootWd, termPo roo
 
   P->heap = h;
   P->state = quiescent;
-  if (insDebugging || lineDebugging){
-    if (interactive)
+  if (insDebugging || (lineDebugging > noTracing)) {
+    if (interactive) {
       P->waitFor = stepInto;
-    else
+      P->tracing = True;
+    }
+    else {
       P->waitFor = nextBreak;
+      P->tracing = False;
+    }
   }
-  else
+  else {
     P->waitFor = never;
-
-  P->tracing = False;
+    P->tracing = False;
+  }
   P->waterMark = Null;
 
   setProcessWd(P, rootWd, uniStrLen(rootWd));
@@ -93,12 +97,12 @@ enginePo newEngine(heapPo h, int execJit, methodPo mtd, char* rootWd, termPo roo
 }
 
 void ps_kill(enginePo p) {
-  if (p != NULL){
+  if (p != NULL) {
     p->stk = dropStack(p->stk);
 
     pthread_t thread = p->threadID;
 
-    if (thread){
+    if (thread) {
       pthread_cancel(thread); /* cancel the thread */
     }
 

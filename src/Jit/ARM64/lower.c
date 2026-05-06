@@ -1707,7 +1707,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sLine: {
       int32 insSize = 2;
-      if (lineDebugging) {
+      if (lineDebugging > generalTracing) {
         int32 locKey = opand(1);
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2,
                         (FlexOp[]){RG(PR), constantFlex(locKey)},
@@ -1719,7 +1719,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sBind: {
       int32 insSize = 3;
-      if (lineDebugging) {
+      if (lineDebugging > generalTracing) {
         int32 varKey = opand(1);
         FlexOp vl = localFlex(state, pc, opand(2));
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)bindDebug, 3, (FlexOp[]){
@@ -1732,7 +1732,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sdBug: {
       // enter the line debugger
       int32 insSize = 2;
-      if (lineDebugging) {
+      if (lineDebugging > noTracing) {
         int32 locKey = opand(1);
         int32 nextPc = pc + insSize;
         switch (code[nextPc].op.op) {
@@ -1756,7 +1756,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
                             constantFlex(operand(state, nextPc, 1)),
                             RG(argReg)
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit,argReg);
+          releaseReg(jit, argReg);
           break;
         }
         case sTCall: {
@@ -1766,7 +1766,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
                             RG(PR), constantFlex(locKey),
                             constantFlex(operand(state, nextPc, 1)),RG(argReg)
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit,argReg);
+          releaseReg(jit, argReg);
           break;
         }
         case sOCall: {
@@ -1776,7 +1776,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
                             RG(PR), IM(sOCall),
                             constantFlex(locKey), lam, RG(argReg)
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit,argReg);
+          releaseReg(jit, argReg);
           break;
         }
         case sTOCall: {
@@ -1785,7 +1785,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)tocallDebug, 4, (FlexOp[]){
                             RG(PR), constantFlex(locKey), lam,RG(argReg)
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit,argReg);
+          releaseReg(jit, argReg);
           break;
         }
         case sRet: {
@@ -1810,13 +1810,14 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           break;
         }
         case sLG: {
-          int32 glbKey = operand(state,nextPc,1);
+          int32 glbKey = operand(state, nextPc, 1);
+          globalPo glbVr = findGlobalVar(glbKey);
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)glbDebug, 3,
-                          (FlexOp[]){RG(PR), constantFlex(locKey), constantFlex(glbKey)}, False, 0, (FlexOp[]){});
+                          (FlexOp[]){RG(PR), constantFlex(locKey), IM((uint64)glbVr)}, False, 0, (FlexOp[]){});
           break;
         }
         case sFiber: {
-          FlexOp vl = localFlex(state, pc, operand(state,nextPc,2));
+          FlexOp vl = localFlex(state, pc, operand(state, nextPc, 2));
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)fiberDebug, 3, (FlexOp[]){
                             RG(PR), constantFlex(locKey), vl
                           }, False, 0, (FlexOp[]){});
@@ -2216,7 +2217,7 @@ armReg allocCallArgVector(codeGenPo state, int32 argPc, int32 livePc) {
                   }, True, 1, (FlexOp[]){RG(tplReg)});
 
   for (int32 ix = 0; ix < arity; ix++) {
-    FlexOp tmp = localFlex(state, argPc, operand(state,argPc,ix+1));
+    FlexOp tmp = localFlex(state, argPc, operand(state, argPc, ix + 1));
     storeFlex(state, argPc, tmp,OF(tplReg, (ix + 1) * pointerSize));
   }
   return tplReg;

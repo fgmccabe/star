@@ -1048,7 +1048,7 @@ ValueReturn run(enginePo P) {
     }
     case sLine: {
       int32 insSize = 2;
-      if (lineDebugging) {
+      if (lineDebugging > generalTracing) {
         termPo loc = getConstant(operand(1));
         PC += insSize; // We aim to continue at the next instruction
         saveRegisters();
@@ -1063,7 +1063,7 @@ ValueReturn run(enginePo P) {
     }
     case sdBug: {
       int32 insSize = 2;
-      if (lineDebugging) {
+      if (lineDebugging > noTracing) {
         termPo loc = getConstant(operand(1));
         PC += insSize; // We aim to continue at the next instruction
         saveRegisters();
@@ -1078,7 +1078,7 @@ ValueReturn run(enginePo P) {
     }
     case sBind: {
       int32 insSize = 3;
-      if (lineDebugging) {
+      if (lineDebugging > generalTracing) {
         termPo vrNm = getConstant(operand(1));
         PC += insSize; // We aim to continue at the next instruction
         saveRegisters();

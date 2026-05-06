@@ -35,7 +35,7 @@ static ioPo debugInChnnl = Null;
 static ioPo debugOutChnnl = Null;
 
 logical insDebugging = False; // instruction tracing option
-logical lineDebugging = False;
+tracingLevel lineDebugging = noTracing;
 logical debugDebugging = False;
 tracingLevel tracing = generalTracing; /* tracing option */
 integer debuggerPort = 0;              // Debug port to establish listener on
@@ -496,14 +496,14 @@ static DebugWaitFor dbgDebug(char* line, enginePo p, termPo lc, void* cl) {
 }
 
 static DebugWaitFor dbgInsDebug(char* line, enginePo p, termPo lc, void* cl) {
-  lineDebugging = False;
+  lineDebugging = noTracing;
   insDebugging = True;
   resetDeflt("n");
   return stepInto;
 }
 
 static DebugWaitFor dbgSymbolDebug(char* line, enginePo p, termPo lc, void* cl) {
-  lineDebugging = True;
+  lineDebugging = generalTracing;
   insDebugging = False;
   resetDeflt("n");
   return stepInto;
@@ -877,7 +877,7 @@ logical isDebuggableOp(ssaOp op) {
 }
 
 logical isDebugging() {
-  return insDebugging || lineDebugging;
+  return insDebugging || (lineDebugging>noTracing);
 }
 
 DebugWaitFor lineDebug(enginePo p, termPo lc) {
@@ -889,7 +889,11 @@ DebugWaitFor bindDebug(enginePo p, termPo name, termPo val) {
 }
 
 DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb) {
-  return lnDebug(p, sBind, showGlb, loc, (termPo)glb, Null);
+  if (lineDebugging>generalTracing) {
+    return lnDebug(p, sBind, showGlb, loc, (termPo)glb, Null);
+  }
+  else
+    return moreDebug;
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {

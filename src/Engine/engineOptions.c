@@ -25,15 +25,18 @@ PackageRec mainPkge = {.packageName = "star.bboot", .version = "*"};
 char mainEntry[MAX_SYMB_LEN] = "star.bboot#__boot"; // entry point
 static logical bootSet = False;
 
-static retCode displayVersion(char *option, OptionAction action) {
+static retCode displayVersion(char* option, OptionAction action) {
   return outMsg(logFile, "star - %s", version);
 }
 
-char *defltCWD() {
+static tracingLevel bump(tracingLevel level);
+static tracingLevel drop(tracingLevel level);
+
+char* defltCWD() {
   // set up working directory
   if (uniIsLit(CWD, "")) {
     char cbuff[MAXFILELEN];
-    char *cwd = getcwd(cbuff, NumberOf(cbuff)); /* compute current starting directory */
+    char* cwd = getcwd(cbuff, NumberOf(cbuff)); /* compute current starting directory */
     if (cwd == NULL)
       syserr("cant determine current directory");
     else
@@ -42,193 +45,185 @@ char *defltCWD() {
   return CWD;
 }
 
-static retCode debugOption(char *option, OptionAction action) {
-  char *c = option;
+static retCode debugOption(char* option, OptionAction action) {
+  char* c = option;
 
   while (*c) {
     switch (*c++) {
-      case 'a': // Trace assembler
+    case 'a': // Trace assembler
 #ifndef NOJIT
 #ifdef TRACEJIT
-        if (traceAssem < detailedTracing)
-          traceAssem++;
-        continue;
+      traceAssem = bump(traceAssem);
+      continue;
 #else
-        logMsg(logFile, "Assembler tracing not enabled\n");
-        return Error;
+      logMsg(logFile, "Assembler tracing not enabled\n");
+      return Error;
 #endif
 #else
-        logMsg(logFile, "jit not enabled");
-        return Error;
+      logMsg(logFile, "jit not enabled");
+      return Error;
 #endif
 
-      case 'd': /* single step instruction tracing */
-        insDebugging = True;
-        tracing = generalTracing;
-        interactive = True;
-        continue;
+    case 'd': /* single step instruction tracing */
+      insDebugging = True;
+      tracing = generalTracing;
+      interactive = True;
+      continue;
 
-      case 'D': /*  instruction tracing */
-        insDebugging = True;
-        tracing = generalTracing;
-        interactive = False;
-        continue;
+    case 'D': /*  instruction tracing */
+      insDebugging = True;
+      tracing = generalTracing;
+      interactive = False;
+      continue;
 
-      case 'u': /*  debug the debugger */
+    case 'u': /*  debug the debugger */
 #ifdef TRACE_DBG
-        debugDebugging = True;
-        continue;
+      debugDebugging = True;
+      continue;
 #else
-        logMsg(logFile, "Debugging tracing not enabled\n");
-        return Error;
+      logMsg(logFile, "Debugging tracing not enabled\n");
+      return Error;
 #endif
 
-      case 'v': /* turn on verify tracing */
-        if (traceVerify < detailedTracing)
-          traceVerify++;
-        logMsg(logFile, "Verification tracing enabled");
-        continue;
+    case 'v': /* turn on verify tracing */
+      traceVerify = bump(traceVerify);
+      logMsg(logFile, "Verification tracing enabled");
+      continue;
 
-      case 'A': /* trace memory allocations  */
+    case 'A': /* trace memory allocations  */
 #ifdef TRACEMEM
-        traceAllocs = True;
+      traceAllocs = True;
 
-        logMsg(logFile, "Memory allocation tracing enabled");
-        continue;
+      logMsg(logFile, "Memory allocation tracing enabled");
+      continue;
 #else
-        logMsg(logFile, "memory tracing not enabled");
-        return -1;
+      logMsg(logFile, "memory tracing not enabled");
+      return -1;
 #endif
 
-      case 'm': {
-        /* trace memory activity  */
+    case 'm': {
+      /* trace memory activity  */
 #ifdef TRACEMEM
-        if (traceMemory < detailedTracing)
-          traceMemory++;
-        logMsg(logFile, "GC tracing enabled");
-        continue;
+      traceMemory = bump(traceMemory);
+      logMsg(logFile, "GC tracing enabled");
+      continue;
 #else
-        logMsg(logFile, "memory tracing not enabled");
-        return -1;
+      logMsg(logFile, "memory tracing not enabled");
+      return -1;
 #endif
-      }
+    }
 
-      case 'H': /* validate heap after allocations  */
+    case 'H': /* validate heap after allocations  */
 #ifdef TRACEMEM
-        validateMemory = True;
-        logMsg(logFile, "Heap validation enabled");
-        continue;
+      validateMemory = True;
+      logMsg(logFile, "Heap validation enabled");
+      continue;
 #else
-        logMsg(logFile, "memory validation not enabled");
-        return -1;
+      logMsg(logFile, "memory validation not enabled");
+      return -1;
 #endif
 
-      case 'S': /* trace stack operations  */
+    case 'S': /* trace stack operations  */
 #ifdef TRACESTACK
-        if (traceStack < detailedTracing)
-          traceStack++;
-
-        stackVerify = True;
-        logMsg(logFile, "Stack tracing (level %d) enabled", traceStack);
-        continue;
+      traceStack = bump(traceStack);
+      stackVerify = True;
+      logMsg(logFile, "Stack tracing (level %d) enabled", traceStack);
+      continue;
 #else
-        logMsg(logFile, "stack operation tracing not enabled");
-        return -1;
+      logMsg(logFile, "stack operation tracing not enabled");
+      return -1;
 #endif
 
-      case 'l': /* trace synch locks */
+    case 'l': /* trace synch locks */
 #ifdef LOCKTRACE
-        traceLock = True;
-        continue;
+      traceLock = True;
+      continue;
 #else
-        logMsg(logFile, "sync tracing not enabled");
-        return Error;
+      logMsg(logFile, "sync tracing not enabled");
+      return Error;
 #endif
 
-      case 'G': /* Internal symbolic tracing */
-        lineDebugging = True;
-        interactive = False;
-        tracing = generalTracing;
-        logMsg(logFile, "Symbolic tracing enabled");
-        continue;
+    case 'G': /* Internal symbolic tracing */
+      lineDebugging = detailedTracing;
+      interactive = False;
+      tracing = generalTracing;
+      logMsg(logFile, "Symbolic tracing enabled");
+      continue;
 
-      case 'g': /* Internal symbolic debugging */
-        lineDebugging = True;
-        interactive = True;
-        tracing = generalTracing;
-        continue;
+    case 'g': /* Internal symbolic debugging */
+      lineDebugging = generalTracing;
+      interactive = True;
+      tracing = generalTracing;
+      continue;
 
-      case 'j':
+    case 'j':
 #ifndef NOJIT
 #ifdef TRACEJIT
-        if (traceJit < detailedTracing)
-          traceJit++;
-        logMsg(logFile, "Jit tracing %s", traceJit == generalTracing ? "enabled" : "detauled");
-        continue;
+      traceJit = bump(traceJit);
+      logMsg(logFile, "Jit tracing %s", traceJit == generalTracing ? "enabled" : "detauled");
+      continue;
 #else
-        logMsg(logFile, "jit tracing not enabled");
-        return Error;
+      logMsg(logFile, "jit tracing not enabled");
+      return Error;
 #endif
 #else
-        logMsg(logFile, "jit not enabled");
-        return Error;
+      logMsg(logFile, "jit not enabled");
+      return Error;
 #endif
-      case 's':
-        collectStats = True;
-        atexit(dumpStats);
-        logMsg(logFile, "Statistics collection enabled");
-        break;
+    case 's':
+      collectStats = True;
+      atexit(dumpStats);
+      logMsg(logFile, "Statistics collection enabled");
+      break;
 
-      case 'M': /* Trace manifest mgt */
+    case 'M': /* Trace manifest mgt */
 #ifdef TRACEMANIFEST
-        if (traceManifest < detailedTracing)
-          traceManifest++;
-        logMsg(logFile, "Manifest tracing enabled");
+      traceManifest = bump(traceManifest);
+      logMsg(logFile, "Manifest tracing enabled");
 #else
-        logMsg(logFile, "Resource tracing not enabled\n");
-        return Error;
+      logMsg(logFile, "Resource tracing not enabled\n");
+      return Error;
 #endif
-        continue;
+      continue;
 
-      case 'P': /* trace package operations  */
+    case 'P': /* trace package operations  */
 #ifdef TRACEPKG
-        if (tracePkg < detailedTracing)
-          tracePkg++;
-        logMsg(logFile, "Package tracing enabled\n");
-        continue;
+      tracePkg = bump(tracePkg);
+      logMsg(logFile, "Package tracing enabled\n");
+      continue;
 #else
-        logMsg(logFile, "package tracing not enabled");
-        return -1;
+      logMsg(logFile, "package tracing not enabled");
+      return -1;
 #endif
 
-      case 'B': /* trace stack memory allocations operations  */
+    case 'B': /* trace stack memory allocations operations  */
 #ifdef TRACE_BUDDY_MEMORY
-        traceBuddyMemory = True;
-        logMsg(logFile, "Buddy memory allocator tracing enabled\n");
-        continue;
+      traceBuddyMemory = True;
+      logMsg(logFile, "Buddy memory allocator tracing enabled\n");
+      continue;
 #else
-        logMsg(logFile, "stack memory tracing not enabled");
-        return -1;
+      logMsg(logFile, "stack memory tracing not enabled");
+      return -1;
 #endif
 
-      case 'F': // Show file name instead of package
-        showPkgFile = True;
-        logMsg(logFile, "Show file names enabled\n");
-        continue;
+    case 'F': // Show file name instead of package
+      showPkgFile = True;
+      logMsg(logFile, "Show file names enabled\n");
+      continue;
 
-      case 'C': // Toggle showing colors
-        showColors = !showColors;
-        logMsg(logFile, "Show colors %s\n", (showColors ? "enabled" : "disabled"));
-        continue;
+    case 'C': // Toggle showing colors
+      showColors = !showColors;
+      logMsg(logFile, "Show colors %s\n", (showColors ? "enabled" : "disabled"));
+      continue;
 
-      default: ;
+    default: ;
     }
   }
 
   return Ok;
 }
 
-static retCode debugOptHelp(ioPo out, char opt, char *usage) {
+static retCode debugOptHelp(ioPo out, char opt, char* usage) {
   return outMsg(out, "    -d|--debug <"
                 "d|D|"
                 "v|"
@@ -264,42 +259,59 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage) {
                 ">\n%_");
 }
 
-static retCode setLogFile(char *option, OptionAction action) {
+static retCode setLogFile(char* option, OptionAction action) {
   return initLogfile(option);
 }
 
-static retCode setRepoDir(char *option, OptionAction action) {
+static retCode setRepoDir(char* option, OptionAction action) {
   setManifestPath(option);
   return Ok;
 }
 
-static retCode symbolDebug(char *option, OptionAction action) {
+tracingLevel bump(tracingLevel level) {
+  if (level < detailedTracing) {
+    return level + 1;
+  }
+  return level;
+}
+
+tracingLevel drop(tracingLevel level) {
+  if (level > noTracing) {
+    return level - 1;
+  }
+  return level;
+}
+
+static retCode symbolDebug(char* option, OptionAction action) {
   switch (action) {
-    case enable: {
-      lineDebugging = True; /* turn on symbolic insDebugging */
-      interactive = True; // Initially its also interactive
-      return Ok;
-    }
-    case disable: {
-      lineDebugging = False; /* turn off symbolic insDebugging */
-      interactive = False;
-      return Ok;
-    }
-    case toggle: {
-      lineDebugging = !lineDebugging; /* flip symbolic insDebugging */
-      interactive = !interactive;
-      return Ok;
-    }
+  case enable: {
+    lineDebugging = bump(lineDebugging);
+    tracing = bump(tracing);
+    interactive = True; // Initially its also interactive
+    return Ok;
+  }
+  case disable: {
+    lineDebugging = drop(lineDebugging);
+    tracing = drop(tracing);
+    interactive = lineDebugging > noTracing;
+    return Ok;
+  }
+  case toggle: {
+    lineDebugging = detailedTracing - lineDebugging; /* flip symbolic insDebugging */
+    interactive = lineDebugging > noTracing;
+    return Ok;
+  }
   }
   return Error;
 }
 
-static retCode setDebuggerPort(char *option, OptionAction action) {
+static retCode setDebuggerPort(char* option, OptionAction action) {
   debuggerPort = parseInt(option, uniStrLen(option));
   if (debuggerPort <= 0)
     return Error;
   else {
-    lineDebugging = True; /* set up for remote symbolic insDebugging */
+    lineDebugging = detailedTracing; /* set up for remote symbolic insDebugging */
+    tracing = detailedTracing;
     interactive = True;
     showPkgFile = True;
     showColors = False;
@@ -307,40 +319,40 @@ static retCode setDebuggerPort(char *option, OptionAction action) {
   return Ok;
 }
 
-static retCode setBootEntry(char *option, OptionAction action) {
+static retCode setBootEntry(char* option, OptionAction action) {
   uniCpy(mainEntry, NumberOf(mainEntry), option);
   return Ok;
 }
 
-static retCode setWD(char *option, OptionAction action) {
+static retCode setWD(char* option, OptionAction action) {
   uniCpy(CWD, NumberOf(CWD), option);
   return Ok;
 }
 
-static retCode setRootCapability(char *option, OptionAction action) {
+static retCode setRootCapability(char* option, OptionAction action) {
   uniCpy(rootCap, NumberOf(rootCap), option);
   return Ok;
 }
 
-static retCode setPkgMain(char *option, OptionAction action) {
+static retCode setPkgMain(char* option, OptionAction action) {
   tryRet(parsePkg(option, uniStrLen(option), &mainPkge));
   strMsg(mainEntry, NumberOf(mainEntry), "%s@_main", mainPkge.packageName);
   bootSet = True;
   return Ok;
 }
 
-static retCode enableJit(char *option, OptionAction action) {
+static retCode enableJit(char* option, OptionAction action) {
 #ifndef NOJIT
   switch (action) {
-    case enable:
-      jitOnLoad = True;
-      break;
-    case disable:
-      jitOnLoad = False;
-      break;
-    case toggle:
-      jitOnLoad = !jitOnLoad;
-      break;
+  case enable:
+    jitOnLoad = True;
+    break;
+  case disable:
+    jitOnLoad = False;
+    break;
+  case toggle:
+    jitOnLoad = !jitOnLoad;
+    break;
   }
   return Ok;
 #else
@@ -349,46 +361,48 @@ static retCode enableJit(char *option, OptionAction action) {
 #endif
 }
 
-static retCode setVerify(char *option, OptionAction action) {
-  enableVerify = (logical) !enableVerify;
+static retCode setVerify(char* option, OptionAction action) {
+  enableVerify = (logical)!enableVerify;
   return Ok;
 }
 
-static retCode setHeapSize(char *option, OptionAction action) {
+static retCode setHeapSize(char* option, OptionAction action) {
   initHeapSize = parseQuantity(option);
   if (initHeapSize == 0)
     return Error;
   return Ok;
 }
 
-static retCode setMaxHeapSize(char *option, OptionAction action) {
+static retCode setMaxHeapSize(char* option, OptionAction action) {
   maxHeapSize = parseQuantity(option);
   if (maxHeapSize == 0)
     return Error;
   return Ok;
 }
 
-static retCode setMaxLabels(char *option, OptionAction action) {
+static retCode setMaxLabels(char* option, OptionAction action) {
   maxLabels = parseInt(option, uniStrLen(option));
   if (maxLabels == 0)
     return Error;
   return Ok;
 }
 
-static retCode setDisplayDepth(char *option, OptionAction action) {
+static retCode setDisplayDepth(char* option, OptionAction action) {
   displayDepth = parseQuantity(option);
   return Ok;
 }
 
-static retCode setDefaultSize(char *option, OptionAction action) {
+static retCode setDefaultSize(char* option, OptionAction action) {
   integer size = parseQuantity(option);
   if (size < minStackSize) {
     outMsg(logFile, "default size should be at least %d\n", minStackSize);
     return Error;
-  } else if (size > stackRegionSize / 2) {
+  }
+  else if (size > stackRegionSize / 2) {
     outMsg(logFile, "size should no larger than %d\n", stackRegionSize / 2);
     return Error;
-  } else if (size != (1 << lg2(size))) {
+  }
+  else if (size != (1 << lg2(size))) {
     outMsg(logFile, "size should be a power of 2, suggesting %d\n", 1 << (lg2(size) + 1));
     size = 1 << (lg2(size) + 1);
   }
@@ -398,12 +412,13 @@ static retCode setDefaultSize(char *option, OptionAction action) {
   return Ok;
 }
 
-static retCode setMinStackSize(char *option, OptionAction action) {
+static retCode setMinStackSize(char* option, OptionAction action) {
   minStackSize = parseQuantity(option);
   if (minStackSize < MINMINSTACKSIZE) {
     outMsg(logFile, "minimum stack size should be at least %d\n", MINMINSTACKSIZE);
     minStackSize = MINMINSTACKSIZE;
-  } else if (minStackSize != (1 << lg2(minStackSize))) {
+  }
+  else if (minStackSize != (1 << lg2(minStackSize))) {
     outMsg(logFile, "minimum stack size should be a power of 2, suggesting %d\n", 1 << (lg2(minStackSize) + 1));
     minStackSize = 1 << (lg2(minStackSize) + 1);
   }
@@ -411,7 +426,7 @@ static retCode setMinStackSize(char *option, OptionAction action) {
   return Ok;
 }
 
-static retCode setStackRegionSize(char *option, OptionAction action) {
+static retCode setStackRegionSize(char* option, OptionAction action) {
   stackRegionSize = parseQuantity(option);
   if (stackRegionSize != (1 << lg2(stackRegionSize))) {
     outMsg(logFile, "maximum stack region size should be a power of 2, suggesting %d", 1 << lg2(stackRegionSize));
@@ -420,7 +435,7 @@ static retCode setStackRegionSize(char *option, OptionAction action) {
   return Ok;
 }
 
-static retCode setEnableTimers(char *option, OptionAction action) {
+static retCode setEnableTimers(char* option, OptionAction action) {
   enableTimers = True;
   atexit(reportTimers);
 
@@ -450,13 +465,14 @@ Option options[] = {
   {'t', "enable-timers", noArgument, Null, setEnableTimers, "-t|--enable-timers"},
 };
 
-int getEngineOptions(int argc, char **argv) {
+int getEngineOptions(int argc, char** argv) {
   splitFirstArg(argc, argv, &argc, &argv);
   int narg = processOptions(copyright, argc, argv, options, NumberOf(options));
 
   if (narg > 0 && narg < argc && !bootSet) {
     setPkgMain(argv[narg], enable);
     return narg + 1;
-  } else
+  }
+  else
     return narg;
 }
