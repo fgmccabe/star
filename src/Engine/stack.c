@@ -218,7 +218,7 @@ void verifyStack(stackPo stk, heapPo H) {
       framePo fpLimit = stackFrameBase(stk);
       ptrPo args = stk->args;
 
-      while (fp>fpLimit) {
+      while (fp > fpLimit) {
         check(args<=fp->args, "frame args out of step");
         args = fp->args;
         fp--;
@@ -248,24 +248,14 @@ integer stkHash(builtinClassPo cl, termPo o) {
 
 integer stackNo(stackPo tsk) { return tsk->hash; }
 
-termPo popStack(stackPo stk) {
-  assert(validStkPtr(stk, stk->sp));
-  return *stk->sp++;
-}
-
-termPo topStack(stackPo stk) {
-  assert(validStkPtr(stk, stk->sp));
-  return stk->sp[0];
-}
-
-termPo peekStack(stackPo stk, integer delta) {
-  assert(validStkPtr(stk, stk->sp + delta));
-  return stk->sp[delta];
-}
-
 void pushStack(stackPo stk, termPo ptr) {
   *--stk->sp = ptr;
   assert(validStkPtr(stk, stk->sp));
+}
+
+termPo stackVariable(stackPo stk, integer lclNo) {
+  assert(validStkPtr(stk, stk->args+lclNo));
+  return stk->args[lclNo];
 }
 
 static void moveStack2Stack(stackPo totsk, stackPo fromtsk, logical execJit, integer count) {

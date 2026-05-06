@@ -41,9 +41,7 @@ framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
 framePo pushFrame(stackPo stk, logical execJit, methodPo mtd);
 
-termPo popStack(stackPo stk);
-termPo peekStack(stackPo stk, integer delta);
-termPo topStack(stackPo stk);
+termPo stackVariable(stackPo stk, integer lclNo);
 
 void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 saveCnt);
 

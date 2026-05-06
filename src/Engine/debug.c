@@ -666,58 +666,37 @@ retCode showLoc(ioPo f, void* data, long depth, long precision, logical alt) {
     return outStr(f, "?unknown loc?");
 }
 
-static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
-  char* sep = "";
-  tryRet(outStr(out, "("));
-  for (integer ix = 0; ix < arity; ix++) {
-    tryRet(outMsg(out, "%s%#,*T", sep, depth, sp[ix]));
-    sep = ", ";
-  }
-  return outMsg(out, ")");
-}
-
-static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore) {
+static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo args) {
   if (isALabel(pr)) {
     labelPo callee = C_LBL(pr);
 
     if (showColors)
-      outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %#.16T", lc, callee);
+      outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %Q%#,*T", lc, lblName(callee), displayDepth, args);
     else
-      outMsg(out, "call: %#L %#.16A", lc, callee);
+      outMsg(out, "call: %#L %Q%#,*T", lc, lblName(callee), displayDepth, args);
 
-    shArgs(out, displayDepth, stk->sp, lblArity(callee));
     outMsg(out, "\n%_");
   }
   else
     outMsg(out, "invalid use of showCall\n%_");
 }
 
-static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure, termPo ignore) {
+static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure, termPo args) {
   if (showColors)
-    outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %T", lc, closure);
+    outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %T%#,*T", lc, closure, displayDepth, args);
   else
-    outMsg(out, "call: %#L %T", lc, closure);
-
-  if (isClosure(closure)) {
-    labelPo pr = closureLabel(C_CLOSURE(closure));
-    shArgs(out, displayDepth, stk->sp, lblArity(pr));
-  }
-  else {
-    outMsg(out, "invalid closure label");
-  }
+    outMsg(out, "call: %#L %T%#,*T", lc, closure, displayDepth, args);
   outMsg(out, "\n%_");
 }
 
-static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore) {
+static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo args) {
   if (isALabel(pr)) {
     labelPo callee = C_LBL(pr);
 
     if (showColors)
-      outMsg(out, GREEN_ESC_ON"tcall:"GREEN_ESC_OFF" %#L %#.16A", lc, callee);
+      outMsg(out, GREEN_ESC_ON"tcall:"GREEN_ESC_OFF" %#L %#Q%#,*T", lc, lblName(callee), displayDepth, args);
     else
-      outMsg(out, "tcall: %#L %#.16A", lc, callee);
-
-    shArgs(out, displayDepth, stk->sp, lblArity(callee));
+      outMsg(out, "tcall: %#L %#Q%#,*T", lc, lblName(callee), displayDepth, args);
   }
   else
     outMsg(out, "invalid use of showTCall");
@@ -747,8 +726,6 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl, termPo ignore) {
     outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16A", lc, lbl);
   else
     outMsg(out, "entry: %#L %#.16A", lc, lbl);
-
-  shArgs(out, displayDepth, stk->args, lblArity(C_LBL(lbl)));
   outMsg(out, "\n%_");
 }
 
@@ -819,6 +796,8 @@ void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont, termPo evt) {
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo arg1, termPo arg2);
 
 static DebugWaitFor lnDebug(enginePo p, ssaOp op, showCmd show, termPo lc, termPo arg1, termPo arg2);
+static termPo allocateCallArgs(enginePo p, methodPo mtd, ssaInsPo argPc);
+static int32 operand(ssaInsPo pc, int32 ox);
 
 DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
@@ -829,32 +808,50 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   case sAbort:
     return abortDebug(p, lc);
   case sCall:
-    return callDebug(p, sCall, lc, getConstant((pc + 1)->op.ltrl));
+    return callDebug(p, sCall, lc, getConstant(operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
   case sTCall:
-    return tcallDebug(p, lc, getConstant((pc + 1)->op.ltrl));
+    return tcallDebug(p, lc, getConstant(operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
   case sOCall:
-    return ocallDebug(p, sOCall, lc, topStack(stk));
+    return ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
   case sTOCall:
-    return tocallDebug(p, lc, topStack(stk));
+    return tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
   case sEntry:
     return entryDebug(p, lc, mtdLabel(mtd));
   case sRet:
-    return retDebug(p, lc, topStack(stk));
+    return retDebug(p, lc, stackVariable(stk,operand(pc,1)));
   case sXRet:
-    return xretDebug(p, lc, topStack(stk));
+    return xretDebug(p, lc, stackVariable(stk,operand(pc,1)));
   case sAssign:
-    return assignDebug(p, lc, topStack(stk), peekStack(stk, 1));
+    return assignDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
   case sFiber:
-    return fiberDebug(p, lc, topStack(stk));
+    return fiberDebug(p, lc, stackVariable(stk,operand(pc,1)));
   case sSuspend:
-    return suspendDebug(p, lc, topStack(stk), peekStack(stk, 1));
+    return suspendDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
   case sResume:
-    return resumeDebug(p, lc, topStack(stk), peekStack(stk, 1));
+    return resumeDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
   case sRetire:
-    return retireDebug(p, lc, topStack(stk), peekStack(stk, 1));
+    return retireDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
   default:
     return stepOver;
   }
+}
+
+int32 operand(ssaInsPo pc, int32 ox) {
+  return pc[ox].op.ltrl;
+}
+
+termPo allocateCallArgs(enginePo p, methodPo mtd, ssaInsPo argPc) {
+  int32 arity = argPc->op.ltrl;
+  labelPo lbl = tplLbl(arity);
+  normalPo argTpl = allocateStruct(p->heap, lbl); /* allocate a tuple for the call arguments */
+  stackPo stk = p->stk;
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    termPo arg = stackVariable(stk, argPc[ix + 1].op.ltrl);
+    setArg(argTpl, ix, arg);
+  }
+
+  return (termPo)argTpl;
 }
 
 logical isDebuggableOp(ssaOp op) {
@@ -891,29 +888,29 @@ DebugWaitFor bindDebug(enginePo p, termPo name, termPo val) {
   return lnDebug(p, sBind, showBind, name, val, Null);
 }
 
-DebugWaitFor glbDebug(enginePo p, termPo name, globalPo glb) {
-  return lnDebug(p, sBind, showGlb, name, (termPo)glb, Null);
+DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb) {
+  return lnDebug(p, sBind, showGlb, loc, (termPo)glb, Null);
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {
   stackPo stk = p->stk;
-  return lnDebug(p, sAbort, showAbort, lc, topStack(stk), Null);
+  return lnDebug(p, sAbort, showAbort, lc, stackVariable(stk,operand(stk->pc,1)), Null);
 }
 
-DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
-  return lnDebug(p, op, showCall, lc, pr, Null);
+DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args) {
+  return lnDebug(p, op, showCall, lc, pr, args);
 }
 
-DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr) {
-  return lnDebug(p, sTCall, showTCall, lc, pr, Null);
+DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr, termPo args) {
+  return lnDebug(p, sTCall, showTCall, lc, pr, args);
 }
 
-DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
-  return lnDebug(p, op, showOCall, lc, pr, Null);
+DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args) {
+  return lnDebug(p, op, showOCall, lc, pr, args);
 }
 
-DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
-  return lnDebug(p, sTOCall, showOCall, lc, pr, Null);
+DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr, termPo args) {
+  return lnDebug(p, sTOCall, showOCall, lc, pr, args);
 }
 
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {

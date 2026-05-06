@@ -74,11 +74,13 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genLbl(L1,Er,L2),
   defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D1),
   genLine(Opts,Lc,C,
-	  [iLbl(Abrt,iBlock([],[iLbl(Er,iBlock([AbrtVr],FC)),iXRet(AbrtVr)]))|CA]),
+	  [iLbl(Abrt,iBlock([],[iLbl(Er,iBlock([AbrtVr],FC))|XC0]))|CA]),
+  genXRet(AbrtVr,Opts,Lc,XC0,[]),
   BaseBrks = [("$try",Er)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D1,D2),
   bindExpToVar(Value,Lc,[("$abort",Abrt)|BaseBrks],Opts,RsVr,
-	  L3,L4,D2,D3,FC,[iRet(RsVr)]),
+	  L3,L4,D2,D3,FC,FC0),
+  genRet(RsVr,Opts,Lc,FC0,[]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),!,
   getLsMap(Dx,LsMap),
   prepareEntry(LsMap,Args,Ags,Lcs),
@@ -93,7 +95,8 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genLbl([],Abrt,L1),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([],FC))|CA]),
   compArgs(Args,Lc,0,Abrt,[],Opts,L1,L3,D,D2),
-  bindExpToVar(Value,Lc,[("$abort",Abrt)],Opts,RsVr,L3,L4,D2,D3,FC,[iRet(RsVr)]),
+  bindExpToVar(Value,Lc,[("$abort",Abrt)],Opts,RsVr,L3,L4,D2,D3,FC,FC0),
+  genRet(RsVr,Opts,Lc,FC0,[]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
   prepareEntry(LsMap,Args,Ags,Lcs),
@@ -804,6 +807,9 @@ next(Nx,_Lc,R,_Brks,_Opts,Lx,Lx,Dx,Dx,[iMv(Nx,R)|Cx],Cx).
 
 genRet(R,Opts,Lc,C,Cx) :-
   genDbg(Opts,Lc,C,[iRet(R)|Cx]).
+
+genXRet(R,Opts,Lc,C,Cx) :-
+  genDbg(Opts,Lc,C,[iXRet(R)|Cx]).
 
 rtn(Lc,_R,_Brks,Opts,Lx,Lx,Dx,Dx,C,Cx) :-
   genRtn(Opts,Lc,C,Cx).

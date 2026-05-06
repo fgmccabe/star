@@ -21,12 +21,12 @@ logical isDebugging();
 
 DebugWaitFor lineDebug(enginePo p, termPo lc);
 DebugWaitFor bindDebug(enginePo p, termPo name, termPo val);
-DebugWaitFor glbDebug(enginePo p, termPo name, globalPo glb);
+DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb);
 DebugWaitFor abortDebug(enginePo p, termPo lc);
-DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr);
-DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr);
-DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr);
-DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr);
+DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args);
+DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr, termPo args);
+DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args);
+DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr, termPo args);
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl);
 DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl);
 DebugWaitFor xretDebug(enginePo p, termPo lc, termPo vl);
