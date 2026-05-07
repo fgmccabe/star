@@ -12,22 +12,22 @@
 
 /* Generate a Star module, that knows how to assemble a program */
 
-char *prefix = "star.comp.assem";
-char *templateFn = "assem.star.plate";
+char* prefix = "star.comp.assem";
+char* templateFn = "ssa.star.plate";
 char date[MAXLINE] = "";
 
-int getOptions(int argc, char **argv) {
+int getOptions(int argc, char** argv) {
   int opt;
 
   while ((opt = getopt(argc, argv, "t:d:")) >= 0) {
     switch (opt) {
-      case 't':
-        templateFn = optarg;
-        break;
-      case 'd':
-        uniCpy(date, NumberOf(date), optarg);
-        break;
-      default: ;
+    case 't':
+      templateFn = optarg;
+      break;
+    case 'd':
+      uniCpy(date, NumberOf(date), optarg);
+      break;
+    default: ;
     }
   }
   return optind;
@@ -43,10 +43,10 @@ typedef struct {
 } AsmInfoRecord, *asmInfoPo;
 
 static void genAsm(hashPo vars);
-static void showIns(ioPo out, char *mnem, int op, char *fmt);
-static void ssaOpType(ioPo out, char *mnem, int op, char *fmt);
+void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt);
+static void ssaOpType(ioPo out, char* mnem, int op, char* fmt);
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   initLogfile("-");
   installMsgProc('P', genQuotedStr);
   int narg = getOptions(argc, argv);
@@ -54,11 +54,12 @@ int main(int argc, char **argv) {
   if (narg < 0) {
     fprintf(stdout, "bad args");
     exit(1);
-  } else {
+  }
+  else {
     if (uniStrLen(date) == 0) {
       time_t rawtime;
       time(&rawtime);
-      struct tm *timeinfo = localtime(&rawtime);
+      struct tm* timeinfo = localtime(&rawtime);
 
       strftime(date, NumberOf(date), "%c", timeinfo);
     }
@@ -77,7 +78,7 @@ int main(int argc, char **argv) {
       out = Stdout();
 
     // Template variables
-    hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
+    hashPo vars = newHash(8, (hashFun)uniHash, (compFun)uniCmp, NULL);
     hashPut(vars, "Date", date);
 
     // Set up the opcodes for the type definition
@@ -103,19 +104,23 @@ int main(int argc, char **argv) {
 #include "ssaInstructions.h"
 
     integer tpLen;
-    char *typeCode = getTextFromBuffer(typeBuff, &tpLen);
+    char* typeCode = getTextFromBuffer(typeBuff, &tpLen);
     hashPut(vars, "OpCodes", typeCode);
 
     // Set up the display code
     strBufferPo showBuff = newStringBuffer();
+    strBufferPo lineBuff = newStringBuffer();
+    strBufferPo auxBuff = newStringBuffer();
+
+    AsmInfoRecord info = {.out = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0};
 
 #undef instr
-#define instr(M, Fmt) showIns(O_IO(showBuff),#M, s##M, Fmt);
+#define instr(M, Fmt) showIns(&info, #M, s##M, Fmt);
 
 #include "ssaInstructions.h"
 
     integer showLen;
-    char *showCode = getTextFromBuffer(showBuff, &showLen);
+    char* showCode = getTextFromBuffer(showBuff, &showLen);
     hashPut(vars, "Show", showCode);
 
     genAsm(vars);
@@ -132,19 +137,19 @@ int main(int argc, char **argv) {
   }
 }
 
-static char *capitalize(char *str) {
+static char* capitalize(char* str) {
   static char buffer[128];
   strcpy(buffer, str);
   if (buffer[0] >= 'a' && buffer[0] <= 'z') {
-    buffer[0] = (char) ('A' + (buffer[0] - 'a'));
+    buffer[0] = (char)('A' + (buffer[0] - 'a'));
   }
   return buffer;
 }
 
-static void genArgs(ioPo out, char *fmt, int32 *cnt) {
+static void genArgs(ioPo out, char* fmt, int32* cnt) {
   *cnt = 0;
 
-  char *sep = "";
+  char* sep = "";
 
   while (*fmt++ != '\0') {
     outMsg(out, "%sV%d", sep, (*cnt)++);
@@ -152,59 +157,59 @@ static void genArgs(ioPo out, char *fmt, int32 *cnt) {
   }
 }
 
-static void genOp(asmInfoPo info, char **fmt) {
+static void genOp(asmInfoPo info, char** fmt) {
   switch (*(*fmt)++) {
-    case Slcl:
-      outMsg(O_IO(info->line), "findLocal(V%d,Lcs)", (info->vNo)++);
-      return;
-    case Slcls:
-      outMsg(O_IO(info->line), "mkTpl(findLocals(V%d,Lcs))", (info->vNo)++);
-      return;
-    case Slcm:
-      outMsg(O_IO(info->line), ".intgr(size(V%d))", (info->vNo)++);
-      return;
-    case Slit: {
-      int32 lastLtno = info->ltNo++;
-      outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,V%d); ", info->ltNo, info->ltNo, lastLtno, (info->vNo)++);
-      outMsg(O_IO(info->line), ".intgr(L%d)", info->ltNo);
-      return;
-    }
-    case Sglb:
-      outMsg(O_IO(info->line), ".strg(V%d)", (info->vNo)++);
-      return;
-    case Sart:
-    case Si32:
-      outMsg(O_IO(info->line), ".intgr(V%d)", (info->vNo)++);
-      return;
-    case SEs:
-      outMsg(O_IO(info->line), ".strg(V%d)", (info->vNo)++);
-      return;
-    case SbLk: {
-      int32 lastLtno = info->ltNo++;
-      int32 NxtLt = info->ltNo;
-      outMsg(O_IO(info->aux), "(A%d, _, Lt%d) = assemBlock(V%d,[],Pc+1,[.none,..Lbls],Lt%d,Lcs); ", NxtLt, NxtLt,
-             (info->vNo)++, lastLtno);
-      outMsg(O_IO(info->line), "mkTpl(A%d::cons[data])", NxtLt);
-      return;
-    }
-    case SlVl:
-      outMsg(O_IO(info->line), ".intgr(findLevel(Lbls,V%d))", (info->vNo)++);
-      return;
-    case Ssym: {
-      int32 lastLtno = info->ltNo++;
-      outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,.symb(V%d)); ", info->ltNo, info->ltNo, lastLtno,
-             (info->vNo)++);
-      outMsg(O_IO(info->line), ".intgr(L%d)", info->ltNo);
-      return;
-    }
+  case Slcl:
+    outMsg(O_IO(info->line), "findLocal(V%d,Lcs)", (info->vNo)++);
+    return;
+  case Slcls:
+    outMsg(O_IO(info->line), "mkTpl(findLocals(V%d,Lcs))", (info->vNo)++);
+    return;
+  case Slcm:
+    outMsg(O_IO(info->line), ".intgr(size(V%d))", (info->vNo)++);
+    return;
+  case Slit: {
+    int32 lastLtno = info->ltNo++;
+    outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,V%d); ", info->ltNo, info->ltNo, lastLtno, (info->vNo)++);
+    outMsg(O_IO(info->line), ".intgr(L%d)", info->ltNo);
+    return;
+  }
+  case Sglb:
+    outMsg(O_IO(info->line), ".strg(V%d)", (info->vNo)++);
+    return;
+  case Sart:
+  case Si32:
+    outMsg(O_IO(info->line), ".intgr(V%d)", (info->vNo)++);
+    return;
+  case SEs:
+    outMsg(O_IO(info->line), ".strg(V%d)", (info->vNo)++);
+    return;
+  case SbLk: {
+    int32 lastLtno = info->ltNo++;
+    int32 NxtLt = info->ltNo;
+    outMsg(O_IO(info->aux), "(A%d, _, Lt%d) = assemBlock(V%d,[],Pc+1,[.none,..Lbls],Lt%d,Lcs); ", NxtLt, NxtLt,
+           (info->vNo)++, lastLtno);
+    outMsg(O_IO(info->line), "mkTpl(A%d::cons[data])", NxtLt);
+    return;
+  }
+  case SlVl:
+    outMsg(O_IO(info->line), ".intgr(findLevel(Lbls,V%d))", (info->vNo)++);
+    return;
+  case Ssym: {
+    int32 lastLtno = info->ltNo++;
+    outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,.symb(V%d)); ", info->ltNo, info->ltNo, lastLtno,
+           (info->vNo)++);
+    outMsg(O_IO(info->line), ".intgr(L%d)", info->ltNo);
+    return;
+  }
 
-    default:
-      fprintf(stderr, "Unknown instruction type code\n");
-      exit(1);
+  default:
+    fprintf(stderr, "Unknown instruction type code\n");
+    exit(1);
   }
 }
 
-void genStarMnem(asmInfoPo info, char *mnem, int op, char *fmt) {
+void genStarMnem(asmInfoPo info, char* mnem, int op, char* fmt) {
   outMsg(info->out, "  mnem(.i%s", capitalize(mnem));
 
   clearStrBuffer(info->line);
@@ -220,7 +225,7 @@ void genStarMnem(asmInfoPo info, char *mnem, int op, char *fmt) {
   }
   outMsg(info->out, ", Pc,Lbls,Lt%d,Lcs) => ", info->ltNo);
 
-  char *opFmt = fmt;
+  char* opFmt = fmt;
   info->vNo = 0;
   while (*opFmt != '\0') {
     outMsg(O_IO(info->line), ",");
@@ -228,16 +233,17 @@ void genStarMnem(asmInfoPo info, char *mnem, int op, char *fmt) {
     info->pcNo++;
   }
   integer lineLen;
-  char *line = getTextFromBuffer(info->line, &lineLen);
+  char* line = getTextFromBuffer(info->line, &lineLen);
 
   if (strBufferLength(info->aux) > 0) {
     integer auxLen;
-    char *aux = getTextFromBuffer(info->aux, &auxLen);
-    outMsg(O_IO(info->out), "valof {\n    %S\n    valis ([.intgr(%d)%S],Pc+%d,Lt%d);\n  }\n", aux, (long) auxLen, op,
+    char* aux = getTextFromBuffer(info->aux, &auxLen);
+    outMsg(O_IO(info->out), "valof {\n    %S\n    valis ([.intgr(%d)%S],Pc+%d,Lt%d);\n  }\n", aux, (long)auxLen, op,
            line,
-           (long) lineLen, info->pcNo, info->ltNo);
-  } else {
-    outMsg(O_IO(info->out), "([.intgr(%d)%S],Pc+%d,Lt%d).\n", op, line, (long) lineLen, info->pcNo, info->ltNo);
+           (long)lineLen, info->pcNo, info->ltNo);
+  }
+  else {
+    outMsg(O_IO(info->out), "([.intgr(%d)%S],Pc+%d,Lt%d).\n", op, line, (long)lineLen, info->pcNo, info->ltNo);
   }
 }
 
@@ -255,100 +261,130 @@ static void genAsm(hashPo vars) {
 #include "ssaInstructions.h"
 
   integer insLen;
-  char *allCode = getTextFromBuffer(mnemBuff, &insLen);
+  char* allCode = getTextFromBuffer(mnemBuff, &insLen);
   hashPut(vars, "Mnem", allCode);
 }
 
-static char *opAndTp(char **f) {
+static char* opAndTp(char** f) {
   switch (*(*f)++) {
-    case Slcl:
-      return "varNm";
-    case Slcls:
-      return "cons[varNm]";
-    case Slcm:
-      return "cons[varNm]";
-    case Slit:
-      return "data";
-    case Sglb:
-      return "string";
-    case Sart:
-    case Si32:
-      return "integer";
-    case SEs:
-      return "string";
-    case SbLk:
-      return "multi[insOp]";
-    case SlVl:
-      return "assemLbl";
-    case Ssym:
-      return "termLbl";
+  case Slcl:
+    return "varNm";
+  case Slcls:
+    return "cons[varNm]";
+  case Slcm:
+    return "cons[varNm]";
+  case Slit:
+    return "data";
+  case Sglb:
+    return "string";
+  case Sart:
+  case Si32:
+    return "integer";
+  case SEs:
+    return "string";
+  case SbLk:
+    return "multi[insOp]";
+  case SlVl:
+    return "assemLbl";
+  case Ssym:
+    return "termLbl";
 
-    default:
-      fprintf(stderr, "Unknown instruction type code: %c\n", *((*f) - 1));
-      exit(1);
+  default:
+    fprintf(stderr, "Unknown instruction type code: %c\n", *((*f) - 1));
+    exit(1);
   }
 }
 
-void ssaOpType(ioPo out, char *mnem, int op, char *fmt) {
+void ssaOpType(ioPo out, char* mnem, int op, char* fmt) {
   outMsg(out, "    | .i%s", capitalize(mnem));
 
   if (uniStrLen(fmt) != 0) {
-    char *sep = "(";
+    char* sep = "(";
     while (*fmt != '\0') {
       outMsg(out, "%s%s", sep, opAndTp(&fmt));
       sep = ", ";
     }
     outMsg(out, ")\n");
-  } else
+  }
+  else
     outMsg(out, "\n");
 }
 
-static void genDisp(ioPo out, char *fmt, int32 arity) {
+static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
   int32 ix = 0;
+  char* sep = " ";
   while (ix < arity) {
     switch (*fmt++) {
-      case Slcl:
-        outMsg(out, " #(V%d)", ix++);
-        continue;
-      case Slcls:
-      case Slit:
-      case Slcm:
-        outMsg(out, " $(V%d)", ix++);
-        continue;
-      case Sglb:
-        outMsg(out, " #(V%d)", ix++);
-        continue;
-      case Sart:
-      case Si32:
-        outMsg(out, " $(V%d)", ix++);
-        continue;
-      case SEs:
-        outMsg(out, " #(V%d)", ix++);
-        continue;
-      case SbLk:
-        outMsg(out, " #(showBlock(V%d,[0,..Pc]))", ix++);
-        continue;
-      case SlVl:
-      case Ssym:
-        outMsg(out, " $(V%d)", ix++);
-        continue;
+    case Slcl:
+    case Sglb:
+    case SEs: {
+      int32 vNo = ix++;
+      outMsg(O_IO(info->line), "%s#(V%d)", sep, vNo);
+      sep = ", ";
+      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
+      info->pcNo++;
+      continue;
+    }
+    case Slcls:
+    case Slit:
+    case Slcm: {
+      int32 vNo = ix++;
+      outMsg(O_IO(info->line), "%s$(V%d)", sep, vNo);
+      sep = ", ";
+      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
+      info->pcNo++;
+      continue;
+    }
+    case Sart:
+    case Si32:
+    case SlVl:
+    case Ssym: {
+      int32 vNo = ix++;
+      outMsg(O_IO(info->line), "%s$(V%d)", sep, vNo);
+      sep = ", ";
+      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
+      info->pcNo++;
+      continue;
+    }
+    case SbLk: {
+      int32 vNo = ix++;
+      outMsg(O_IO(info->line), "%s#(InsTxt)", sep, vNo);
+      sep = ", ";
+      outMsg(O_IO(info->aux), "    (InsTxt,Pc%d) = showBlock(V%d,Pc%d,Sps+2);\n", info->pcNo + 1, vNo, info->pcNo);
+      info->pcNo++;
+      continue;
+    }
 
-      default:
-        fprintf(stderr, "Unknown instruction type code\n");
-        exit(1);
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
     }
   }
 }
 
-void showIns(ioPo out, char *mnem, int op, char *fmt) {
+void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
+  clearStrBuffer(info->line);
+  clearStrBuffer(info->aux);
+  info->vNo = 0;
+  info->pcNo = 0;
   int32 arity = 0;
-  outMsg(out, "  showIns(.i%s", capitalize(mnem));
+  outMsg(info->out, "  showIns(.i%s", capitalize(mnem));
   if (*fmt != '\0') {
-    outMsg(out, "(");
-    genArgs(out, fmt, &arity);
-    outMsg(out, ")");
+    outMsg(info->out, "(");
+    genArgs(info->out, fmt, &arity);
+    outMsg(info->out, ")");
   }
-  outMsg(out, ", Pc) => \"%P", mnem);
-  genDisp(out, fmt, arity);
-  outMsg(out, "\".\n");
+
+  outMsg(info->out, ", Pc%d, Sps) => valof{\n", info->pcNo);
+
+  genDisp(info, fmt, arity);
+
+  integer auxLen;
+  char* aux = getTextFromBuffer(info->aux, &auxLen);
+  outMsg(info->out, "%S", aux, auxLen);
+
+  integer lineLen;
+  char* line = getTextFromBuffer(info->line, &lineLen);
+  outMsg(info->out, "    valis (\"%s%S\",Pc%d+1)\n", capitalize(mnem), line, lineLen, info->pcNo);
+  outMsg(info->out, "  }\n");
 }
