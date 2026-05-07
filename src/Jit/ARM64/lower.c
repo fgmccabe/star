@@ -1790,15 +1790,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         }
         case sRet: {
           FlexOp vl = localFlex(state, pc, operand(state, nextPc, 1));
-          invokeIntrinsic(state, pc, nextPc, (runtimeFn)retDebug, 3, (FlexOp[]){
-                            RG(PR), constantFlex(locKey), vl
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)retDebug, 4, (FlexOp[]){
+                            RG(PR), constantFlex(locKey), IM((uinteger)state->mtd), vl
                           }, False, 0, (FlexOp[]){});
           break;
         }
         case sXRet: {
           FlexOp vl = localFlex(state, pc, operand(state, nextPc, 1));
-          invokeIntrinsic(state, pc, nextPc, (runtimeFn)xretDebug, 3, (FlexOp[]){
-                            RG(PR), constantFlex(locKey), vl
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)xretDebug, 4, (FlexOp[]){
+                            RG(PR), constantFlex(locKey), IM((uinteger)state->mtd), vl
                           }, False, 0, (FlexOp[]){});
           break;
         }

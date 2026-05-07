@@ -280,7 +280,8 @@ compAction(setix(Lc,Rc,Off,Vl),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
 compAction(asgn(Lc,Cl,Vl),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   bindExpToVar(Vl,Lc,Brks,Opts,VlVr,L,L1,D,D1,C0,C1),
-  bindExpToVar(Cl,Lc,Brks,Opts,ClVr,L1,Lx,D1,Dx,C1,[iAssign(ClVr,VlVr)|Cx]).
+  bindExpToVar(Cl,Lc,Brks,Opts,ClVr,L1,Lx,D1,Dx,C1,C2),
+  genDbg(Opts,Lc,C2,[iAssign(ClVr,VlVr)|Cx]).
 compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCase(T,Lc,genssa:wrapAction,Cases,Deflt,genssa:compActX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
@@ -590,7 +591,8 @@ compExp(vlof(Lc,A,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   compAction(A,Lc,[("$valof",Ok)|Brks],Opts,L0,Lx,D,Dx,CA,[]).
 compExp(tsk(Lc,F,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  bindExpToVar(F,Lc,Brks,Opts,FnVr,L,Lx,D,Dx,C0,[iFiber(RsVr,FnVr)|Cx]).
+  bindExpToVar(F,Lc,Brks,Opts,FnVr,L,Lx,D,Dx,C0,C1),
+  genDbg(Opts,Lc,C1,[iFiber(RsVr,FnVr)|Cx]).
 compExp(susp(Lc,T,M,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),

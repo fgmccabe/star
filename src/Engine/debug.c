@@ -729,20 +729,18 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl, termPo ignore) {
   outMsg(out, "\n%_");
 }
 
-void showRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore) {
-  methodPo mtd = locateMethod((uinteger)stk->pc);
+void showRet(ioPo out, stackPo stk, termPo lc, termPo pr, termPo val) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, mtd, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, pr, displayDepth, val);
   else
-    outMsg(out, "return: %#L %T->%#,*T\n%_", lc, mtd, displayDepth, val);
+    outMsg(out, "return: %#L %T->%#,*T\n%_", lc, pr, displayDepth, val);
 }
 
-void showXRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore) {
-  methodPo mtd = locateMethod((uinteger)stk->pc);
+void showXRet(ioPo out, stackPo stk, termPo lc, termPo pr, termPo val) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, mtd, displayDepth, val);
+    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, pr, displayDepth, val);
   else
-    outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, mtd, displayDepth, val);
+    outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, pr, displayDepth, val);
 }
 
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ignore) {
@@ -755,10 +753,12 @@ static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ig
 }
 
 void showAssign(ioPo out, stackPo stk, termPo lc, termPo dst, termPo vl) {
-  if (showColors)
-    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, dst, displayDepth, vl);
-  else
-    outMsg(out, "assign: %L %#T->%#,*T\n%_", lc, dst, displayDepth, vl);
+  if (tracing >= detailedTracing) {
+    if (showColors)
+      outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %#T:=%#,*T\n%_", lc, dst, displayDepth, vl);
+    else
+      outMsg(out, "assign: %L %#T:=%#,*T\n%_", lc, dst, displayDepth, vl);
+  }
 }
 
 void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont, termPo ignore) {
@@ -818,19 +818,19 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   case sEntry:
     return entryDebug(p, lc, mtdLabel(mtd));
   case sRet:
-    return retDebug(p, lc, stackVariable(stk,operand(pc,1)));
+    return retDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
   case sXRet:
-    return xretDebug(p, lc, stackVariable(stk,operand(pc,1)));
+    return xretDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
   case sAssign:
-    return assignDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
+    return assignDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
   case sFiber:
-    return fiberDebug(p, lc, stackVariable(stk,operand(pc,1)));
+    return fiberDebug(p, lc, stackVariable(stk, operand(pc, 1)));
   case sSuspend:
-    return suspendDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
+    return suspendDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
   case sResume:
-    return resumeDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
+    return resumeDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
   case sRetire:
-    return retireDebug(p, lc, stackVariable(stk,operand(pc,1)), stackVariable(stk,operand(pc,2)));
+    return retireDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
   default:
     return stepOver;
   }
@@ -877,7 +877,7 @@ logical isDebuggableOp(ssaOp op) {
 }
 
 logical isDebugging() {
-  return insDebugging || (lineDebugging>noTracing);
+  return insDebugging || (lineDebugging > noTracing);
 }
 
 DebugWaitFor lineDebug(enginePo p, termPo lc) {
@@ -889,7 +889,7 @@ DebugWaitFor bindDebug(enginePo p, termPo name, termPo val) {
 }
 
 DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb) {
-  if (lineDebugging>generalTracing) {
+  if (lineDebugging > generalTracing) {
     return lnDebug(p, sBind, showGlb, loc, (termPo)glb, Null);
   }
   else
@@ -898,7 +898,7 @@ DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb) {
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {
   stackPo stk = p->stk;
-  return lnDebug(p, sAbort, showAbort, lc, stackVariable(stk,operand(stk->pc,1)), Null);
+  return lnDebug(p, sAbort, showAbort, lc, stackVariable(stk, operand(stk->pc, 1)), Null);
 }
 
 DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args) {
@@ -921,12 +921,12 @@ DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {
   return lnDebug(p, sEntry, showEntry, lc, (termPo)lbl, Null);
 }
 
-DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sRet, showRet, lc, vl, Null);
+DebugWaitFor retDebug(enginePo p, termPo lc, termPo pr, termPo vl) {
+  return lnDebug(p, sRet, showRet, lc, pr, vl);
 }
 
-DebugWaitFor xretDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sXRet, showXRet, lc, vl, Null);
+DebugWaitFor xretDebug(enginePo p, termPo lc, termPo pr, termPo vl) {
+  return lnDebug(p, sXRet, showXRet, lc, pr, vl);
 }
 
 DebugWaitFor rtnDebug(enginePo p, termPo lc, termPo vl) {
