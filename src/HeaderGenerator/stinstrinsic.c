@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,30 +12,30 @@
 
 /* Generate a Star module, that knows about the intrinsics */
 
-char *prefix = "star.comp.intrinsics";
-char *templateFn = "intrinsics.star.plate";
+char* prefix = "star.comp.intrinsics";
+char* templateFn = "intrinsics.star.plate";
 char date[MAXLINE] = "";
 
-int getOptions(int argc, char **argv) {
+int getOptions(int argc, char** argv) {
   int opt;
 
   while ((opt = getopt(argc, argv, "t:d:")) >= 0) {
     switch (opt) {
-      case 't':
-        templateFn = optarg;
-        break;
-      case 'd':
-        uniCpy(date, NumberOf(date), optarg);
-        break;
-      default: ;
+    case 't':
+      templateFn = optarg;
+      break;
+    case 'd':
+      uniCpy(date, NumberOf(date), optarg);
+      break;
+    default: ;
     }
   }
   return optind;
 }
 
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt);
+static void genStarIntrinsic(ioPo out, char* name, char* tipe, char* op, char* cmt);
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   initLogfile("-");
   installMsgProc('P', genQuotedStr);
   int narg = getOptions(argc, argv);
@@ -42,11 +43,12 @@ int main(int argc, char **argv) {
   if (narg < 0) {
     fprintf(stdout, "bad args");
     exit(1);
-  } else {
+  }
+  else {
     if (uniStrLen(date) == 0) {
       time_t rawtime;
       time(&rawtime);
-      struct tm *timeinfo = localtime(&rawtime);
+      struct tm* timeinfo = localtime(&rawtime);
 
       strftime(date, NumberOf(date), "%c", timeinfo);
     }
@@ -65,19 +67,19 @@ int main(int argc, char **argv) {
       out = Stdout();
 
     // Template variables
-    hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
+    hashPo vars = newHash(8, (hashFun)uniHash, (compFun)uniCmp, NULL);
     hashPut(vars, "Date", date);
 
     // Set up the assembler proper
     strBufferPo mnemBuff = newStringBuffer();
 
 #undef intrinsic
-#define intrinsic(NM, Tp, Op, Alloc, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,Alloc, cmt);
+#define intrinsic(NM, Tp, Op, Alloc, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
 
 #include "intrinsics.h"
 
     integer insLen;
-    char *allCode = getTextFromBuffer(mnemBuff, &insLen);
+    char* allCode = getTextFromBuffer(mnemBuff, &insLen);
     hashPut(vars, "Intrinsics", allCode);
 
     processTemplate(out, plate, vars, NULL, NULL);
@@ -87,22 +89,65 @@ int main(int argc, char **argv) {
   }
 }
 
-static char *capitalize(char *str);
+static char* capitalize(char* str);
+static void genSicArgs(ioPo out, char* tipe);
 
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt) {
+static void genStarIntrinsic(ioPo out, char* name, char* tipe, char* op, char* cmt) {
   outMsg(out, "    | \"%s\" => .some((", name);
   dumpStarSig(tipe, out);
+  outMsg(out, ",([Rs, ");
+  genSicArgs(out, tipe);
   if (tipe[0] == throwSig)
-    outMsg(out, ",(Lb)=>.i%s(Lb), %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"), cmt);
+    outMsg(out, "],Lb) => .i%s(Lb, Rs, ", capitalize(op));
   else
-    outMsg(out, ",(_)=>.i%s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"), cmt);
+    outMsg(out, "],Lb) => .i%s(Rs, ", capitalize(op));
+  genSicArgs(out, tipe);
+  outMsg(out, "))).  -- %s\n", cmt);
 }
 
-static char *capitalize(char *str) {
+static integer skipPreamble(char* sig, integer* pos, integer len) {
+  switch (sig[*pos]) {
+  case allSig:
+    (*pos)++;
+    skipSig(sig, pos, len);
+    return skipPreamble(sig, pos, len);
+  case funSig:
+  case prcSig:
+  case throwSig: {
+    (*pos)++;
+    if (sig[*pos] == tplSig) {
+      (*pos)++;
+      return *pos;
+    }
+  }
+  default:
+    outMsg(logFile, "cannot parse intrinsic signature %s\n", sig);
+    exit(1);
+  }
+}
+
+void genSicArgs(ioPo out, char* tipe) {
+  char* sep = "";
+  int vNo = 0;
+  integer length = uniStrLen(tipe);
+  integer pos = 0;
+
+  skipPreamble(tipe, &pos, length);
+
+  assert(tipe[pos-1]==tplSig);
+
+  while (tipe[pos] != ')') {
+    outMsg(out, "%sV%d", sep, vNo++);
+    sep = ", ";
+    skipSig(tipe, &pos, length);
+  }
+}
+
+static char* capitalize(char* str) {
   static char buffer[128];
   strcpy(buffer, str);
   if (buffer[0] >= 'a' && buffer[0] <= 'z') {
-    buffer[0] = (char) ('A' + (buffer[0] - 'a'));
+    buffer[0] = (char)('A' + (buffer[0] - 'a'));
   }
   return buffer;
 }

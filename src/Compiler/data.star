@@ -129,8 +129,6 @@ star.compiler.data{
   public falseEnum:data.
   falseEnum = .term("false",[]).
 
-
-
   public implementation coercion[locn,data->>_]=>{
     _coerce(.locn(Pkg,Line,Col,Off,Ln))=>mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)]).
   }

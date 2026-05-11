@@ -287,7 +287,7 @@ compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   compCase(T,Lc,genssa:wrapAction,Cases,Deflt,genssa:compActX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
 compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  compUnpack(T,Lc,genssa:wrapAction,Cases,Deflt,genssa:compActX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
+  compIndexed(T,Lc,genssa:wrapAction,Cases,Deflt,genssa:compActX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
 compAction(whle(Lc,G,B),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock([],[iLbl(Lp,iLoop(LC))]))|Cx]),!,
   genLbl(L,Lp,L1),
@@ -552,7 +552,7 @@ compExp(cse(Lc,Gv,Cases,Deflt,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   compCase(Gv,Lc,genssa:wrapExpr(RsVr),Cases,Deflt,genssa:compExpX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
 compExp(unpack(Lc,Gv,Cases,Deflt,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  compUnpack(Gv,Lc,genssa:wrapExpr(RsVr),Cases,Deflt,genssa:compExpX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
+  compIndexed(Gv,Lc,genssa:wrapExpr(RsVr),Cases,Deflt,genssa:compExpX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
 compExp(tryX(Lc,B,idnt(E,ETp),H),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   genLbl(L,Ok,L0),
   genLbl(L0,Tr,L1),
@@ -758,7 +758,7 @@ compCaseCond([(P,E,Lc)|More],GV,Ok,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,
   call(Hndlr,Ok,E,Lc,Brks,Opts,L1,L2,D1,D2,C1,[]),
   compCaseCond(More,GV,Ok,Dflt,Hndlr,Brks,Opts,L2,Lx,D2,Dx,BC,Cx).
 
-compUnpack(Gv,Lc,Wrap,Cases,Deflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx) :-
+compIndexed(Gv,Lc,Wrap,Cases,Deflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx) :-
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
   tipeOf(Gv,GvTp),
