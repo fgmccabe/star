@@ -325,7 +325,14 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
       info->pcNo++;
       continue;
     }
-    case Slcls:
+    case Slcls: {
+      int32 vNo = ix++;
+      outMsg(O_IO(info->line), "%s#(showLocals(V%d))", sep, vNo);
+      sep = ", ";
+      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+size(V%d)+1;\n", info->pcNo + 1, info->pcNo, vNo);
+      info->pcNo++;
+      continue;
+    }
     case Slit:
     case Slcm: {
       int32 vNo = ix++;
@@ -337,10 +344,17 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
     }
     case Sart:
     case Si32:
-    case SlVl:
     case Ssym: {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s$(V%d)", sep, vNo);
+      sep = ", ";
+      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
+      info->pcNo++;
+      continue;
+    }
+    case SlVl: {
+      int32 vNo = ix++;
+      outMsg(O_IO(info->line), "%s#(V%d)", sep, vNo);
       sep = ", ";
       outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
       info->pcNo++;
@@ -374,7 +388,7 @@ void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
     genArgs(info->out, fmt, &arity);
     outMsg(info->out, ")");
   }
-
+  int32 basePc = info->pcNo;
   outMsg(info->out, ", Pc%d, Sps) => valof{\n", info->pcNo);
 
   genDisp(info, fmt, arity);
@@ -385,6 +399,7 @@ void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
 
   integer lineLen;
   char* line = getTextFromBuffer(info->line, &lineLen);
-  outMsg(info->out, "    valis (\"%s%S\",Pc%d+1)\n", capitalize(mnem), line, lineLen, info->pcNo);
+  outMsg(info->out, "    valis (\"#(showPc(Pc%d,Sps))%s%S\",Pc%d+1)\n", basePc, capitalize(mnem), line, lineLen,
+         info->pcNo);
   outMsg(info->out, "  }\n");
 }

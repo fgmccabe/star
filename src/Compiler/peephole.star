@@ -15,7 +15,7 @@ star.compiler.peephole{
   peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
     Ins0 = peepCode(Ins,[]);
     (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
-    valis .func(Lbl,Pol,Tp,Ags,LcMp1,adjustEntry(peepCode(Ins1,[]),size(LcMp1)))
+    valis .func(Lbl,Pol,Tp,LcMp1,adjustEntry(peepCode(Ins1,[]),LcMp1//fst))
   }
   peepOptimize(Df) default => Df.
 
@@ -33,131 +33,261 @@ star.compiler.peephole{
   varRead(Vr,[]) => .false.
   varRead(Vr,[I,..Is]) => vrRead(Vr,I) || varRead(Vr,Is).
 
-  vrRead(Vr,.iBlock(_,Is)) => varRead(Vr,Is).
-  vrRead(Vr,.iValof(_,Is)) => varRead(Vr,Is).
+  vrRead(Vr,.iEntry(As,_)) => Vr .<. As.
+  vrRead(Vr,.iCall(_,As)) => Vr .<. As.
+  vrRead(Vr,.iTCall(_,As)) => Vr .<. As.
+  vrRead(Vr,.iEscape(_,As)) => Vr .<. As.
+  vrRead(Vr,.iOCall(O,As)) => O==Vr || Vr .<. As.
+  vrRead(Vr,.iTOCall(O,As)) => O==Vr || Vr .<. As.
+  vrRead(Vr,.iHalt(V)) => V==Vr.
+  vrRead(Vr,.iAbort(_,V)) => V==Vr.
+  vrRead(Vr,.iRet(V)) => V==Vr.
+  vrRead(Vr,.iXRet(V)) => V==Vr.
+  
+  vrRead(Vr,.iBlock(As,Is)) => Vr.<.As || varRead(Vr,Is).
+  vrRead(Vr,.iResult(_,As)) => Vr .<. As.
+  vrRead(Vr,.iFiber(_,V)) => V==Vr.
+  vrRead(Vr,.iSuspend(T,E)) => T==Vr || E==Vr.
+  vrRead(Vr,.iResume(T,E)) => T==Vr || E==Vr.
+  vrRead(Vr,.iRetire(T,E)) => T==Vr || E==Vr.
+
   vrRead(Vr,.iBind(_,V)) => V==Vr.
-  vrRead(Vr,.iLd(V)) => V==Vr.
+  vrRead(Vr,.iMv(_,V)) => V==Vr.
+  vrRead(Vr,.iSG(_,V)) => V==Vr.
+  vrRead(Vr,.iLdSav(_,_,V)) => V==Vr.
+  vrRead(Vr,.iTstSav(_,V)) => V==Vr.
+  vrRead(Vr,.iStSav(_,S,V)) => V==Vr || S==Vr.
+  vrRead(Vr,.iCell(_,V)) => V==Vr.
+  vrRead(Vr,.iGet(_,V)) => V==Vr.
+  vrRead(Vr,.iAssign(T,V)) => V==Vr || T==Vr.
+
+  vrRead(Vr,.iCLbl(_,_,V)) => V==Vr.
+  vrRead(Vr,.iCChar(_,_,V)) => V==Vr.
+  vrRead(Vr,.iCInt(_,_,V)) => V==Vr.
+  vrRead(Vr,.iCFlt(_,_,V)) => V==Vr.
+  vrRead(Vr,.iCLit(_,_,V)) => V==Vr.
+
+  vrRead(Vr,.iNth(_,_,V)) => V==Vr.
+  vrRead(Vr,.iStNth(T,_,V)) => V==Vr || T==Vr.
+
+  vrRead(Vr,.iIf(_,V)) => V==Vr.
+  vrRead(Vr,.iIfNot(_,V)) => V==Vr.
+
+  vrRead(Vr,.iICase(V,_)) => V==Vr.
+  vrRead(Vr,.iCase(V,_)) => V==Vr.
+  vrRead(Vr,.iIxCase(V,_)) => V==Vr.
+
+  vrRead(Vr,.iIAbs(_,L)) => L==Vr.
+  vrRead(Vr,.iIAdd(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iISub(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iIMul(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iIDiv(_,_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iIMod(_,_,L,R)) => L==Vr || R==Vr.
+
+  vrRead(Vr,.iFAbs(_,L)) => L==Vr.
+  vrRead(Vr,.iFAdd(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iFSub(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iFMul(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iFDiv(_,_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iFMod(_,_,L,R)) => L==Vr || R==Vr.
+
+  vrRead(Vr,.iIEq(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iILt(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iIGe(_,L,R)) => L==Vr || R==Vr.
+
+  vrRead(Vr,.iFEq(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iFLt(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iFGe(_,L,R)) => L==Vr || R==Vr.
+
+  vrRead(Vr,.iBNot(_,L)) => L==Vr.
+  vrRead(Vr,.iBAnd(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iBOr(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iBXor(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iBLsl(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iBAsr(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iBLsr(_,L,R)) => L==Vr || R==Vr.
+
+  vrRead(Vr,.iAlloc(_,_,As)) => Vr .<. As.
+  vrRead(Vr,.iClosure(_,_,F)) => F==Vr.
+  vrRead(Vr,.iBump(V)) => V==Vr.
+  vrRead(Vr,.iDrop(V)) => V==Vr.
+  
   vrRead(Vr,.iLbl(_,I)) => vrRead(Vr,I).
   vrRead(_,_) default => .false.
 
+  vrWrite(Vr,.iRSP(V)) => V==Vr.
+  vrWrite(Vr,.iRSX(_,V)) => V==Vr.
+  vrWrite(Vr,.iBlock(Vrs,_)) => Vr .<. Vrs.
+  vrWrite(Vr,.iFiber(V,_)) => V==Vr.
+
+  vrWrite(Vr,.iMv(V,_)) => V==Vr.
+  vrWrite(Vr,.iMC(V,_)) => V==Vr.
+
+  vrWrite(Vr,.iSav(V)) => V==Vr.
+
+  vrWrite(Vr,.iLdSav(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iTstSav(V,_)) => V==Vr.
+  vrWrite(Vr,.iStSav(V,_,_)) => V==Vr.
+
+  vrWrite(Vr,.iCell(V,_)) => V==Vr.
+  vrWrite(Vr,.iGet(V,_)) => V==Vr.
+
+  vrWrite(Vr,.iNth(V,_,_)) => V==Vr.
+
+  vrWrite(Vr,.iIAdd(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iISub(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iIMul(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iIDiv(_,V,_,_)) => V==Vr.
+  vrWrite(Vr,.iIMod(_,V,_,_)) => V==Vr.
+  vrWrite(Vr,.iIAbs(V,_)) => V==Vr.
+
+  vrWrite(Vr,.iFAdd(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFSub(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFMul(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFDiv(_,V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFMod(_,V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFAbs(V,_)) => V==Vr.
+
+  vrWrite(Vr,.iIEq(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iILt(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iIGe(V,_,_)) => V==Vr.
+
+  vrWrite(Vr,.iFEq(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFLt(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iFGe(V,_,_)) => V==Vr.
+
+  vrWrite(Vr,.iCEq(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iCLt(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iCGe(V,_,_)) => V==Vr.
+
+  vrWrite(Vr,.iBAnd(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iBOr(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iBXor(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iBLsl(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iBAsr(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iBLsr(V,_,_)) => V==Vr.
+  vrWrite(Vr,.iBNot(V,_)) => V==Vr.
+
+  vrWrite(Vr,.iAlloc(_,V,_)) => V==Vr.
+  vrWrite(Vr,.iClosure(_,V,_)) => V==Vr.
+
+  vrWrite(_,_) default => .false.
+
   dropVar(Vr,[]) => [].
-  dropVar(Vr,[.iTee(Vr),..Is]) => dropVar(Vr,Is).
-  dropVar(Vr,[.iSt(Vr),..Is]) => [.iDrop,..dropVar(Vr,Is)].
-  dropVar(Vr,[.iStV(Vr),..Is]) => dropVar(Vr,Is).
-  dropVar(Vr,[.iBlock(Tp,Bs),..Is]) => [.iBlock(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
-  dropVar(Vr,[.iValof(Tp,Bs),..Is]) => [.iValof(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
+  dropVar(Vr,[.iBlock(Vs,BI),..Is]) => [.iBlock(Vs,dropVar(Vr,BI)),..dropVar(Vr,Is)].
   dropVar(Vr,[.iLbl(Lb,I),..Is]) => valof{
-    IRx = dropVar(Vr,[I]);
-    if isEmpty(IRx) then
+    Ix = dropVar(Vr,[I]);
+    if isEmpty(Ix) then
       valis dropVar(Vr,Is)
-    else if [Ix].=IRx then
-      valis [.iLbl(Lb,Ix),..dropVar(Vr,Is)]
+    else if [Ir] .= Ix then
+      valis [.iLbl(Lb,Ir),..dropVar(Vr,Is)]
     else{
       reportTrap("problem in dropVar $(I)");
       valis []
     }
   }
+  dropVar(Vr,[I,..Is]) where vrWrite(Vr,I) => dropVar(Vr,Is).
   dropVar(Vr,[I,..Is]) => [I,..dropVar(Vr,Is)].
 
   dropUnreachable([]) => [].
   dropUnreachable([.iBreak(Lvl),.._]) => [.iBreak(Lvl)].
-  dropUnreachable([.iResult(Lbl),.._]) => [.iResult(Lbl)].
-  dropUnreachable([.iLoop(Lvl),.._]) => [.iLoop(Lvl)].
-  dropUnreachable([.iRet,.._]) => [.iRet].
-  dropUnreachable([.iXRet,.._]) => [.iXRet].
-  dropUnreachable([.iTCall(Lb),.._]) => [.iTCall(Lb)].
-  dropUnreachable([.iTOCall(Ar),.._]) => [.iTOCall(Ar)].
-  dropUnreachable([.iAbort(Lc),.._]) => [.iAbort(Lc)].
-  dropUnreachable([.iHalt,.._]) => [.iHalt].
-  dropUnreachable([.iRetire,.._]) => [.iRetire].
-  dropUnreachable([.iCase(Mx),..Is]) => [.iCase(Mx),..copyN(Mx,Is)].
-  dropUnreachable([.iICase(Mx),..Is]) => [.iICase(Mx),..copyN(Mx,Is)].
-  dropUnreachable([.iIxCase(Mx),..Is]) => [.iIxCase(Mx),..copyN(Mx,Is)].
+  dropUnreachable([.iResult(Lbl,Vrs),.._]) => [.iResult(Lbl,Vrs)].
+  dropUnreachable([.iCont(Lvl),.._]) => [.iCont(Lvl)].
+  dropUnreachable([.iRtn,.._]) => [.iRtn].
+  dropUnreachable([.iRet(V),.._]) => [.iRet(V)].
+  dropUnreachable([.iXRet(V),.._]) => [.iXRet(V)].
+  dropUnreachable([.iTCall(Lb,As),.._]) => [.iTCall(Lb,As)].
+  dropUnreachable([.iTOCall(O,As),.._]) => [.iTOCall(O,As)].
+  dropUnreachable([.iAbort(Lc,Vr),.._]) => [.iAbort(Lc,Vr)].
+  dropUnreachable([.iHalt(Vr),.._]) => [.iHalt(Vr)].
+  dropUnreachable([.iRetire(T,E),.._]) => [.iRetire(T,E)].
+  dropUnreachable([.iCase(Mx,Cs),.._]) => [.iCase(Mx,Cs)].
+  dropUnreachable([.iICase(Mx,Cs),.._]) => [.iICase(Mx,Cs)].
+  dropUnreachable([.iIxCase(Mx,Cs),.._]) => [.iIxCase(Mx,Cs)].
   dropUnreachable([I,..Is]) => [I,..dropUnreachable(Is)].
 
-  copyN(0,_) => [].
-  copyN(K,[I,..Is]) => [I,..copyN(K-1,Is)].
-    
   -- Low-level optimizations.
-  peep:(multi[assemOp],cons[(string,multi[assemOp])])=>multi[assemOp].
+  peep:(multi[insOp],cons[(string,multi[insOp])])=>multi[insOp].
   peep([],_) => [].
   peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],Lbls).
-  peep([.iSt(Off),.iLd(Off),.iRet,.._],_) => [.iRet].
-  peep([.iSt(Off),.iLd(Off),.iXRet,.._],_) => [.iXRet].
-  peep([.iSt(Off),.iLd(Off),..Ins],Lbls) => peep([.iTee(Off),..Ins],Lbls).
-  peep([.iLd(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
-  peep([.iLd(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
-  peep([.iNth(_),.iDrop,..Ins],Lbls) => peep([.iDrop,..Ins],Lbls).
+  peep([.iMv(D,S),.iRet(D),.._],_) => [.iRet(S)].
+  peep([.iMv(D,S),.iXRet(D),.._],_) => [.iXRet(S)].
   peep([.iBlock(L,Is),..Ins],Lbls) => [.iBlock(L,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
-  peep([.iLbl(Lb,.iBlock(Lvl,Is)),..Ins],Lbls) => valof{
+  peep([.iLbl(Lb,.iBlock(Vs,Is)),..Ins],Lbls) => valof{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
     if lblReferenced(Lb,Is0) then
-      valis [.iLbl(Lb,.iBlock(Lvl,Is0)),..peep(Ins,Lbls)]
+      valis [.iLbl(Lb,.iBlock(Vs,Is0)),..peep(Ins,Lbls)]
     else
     valis peepCode(Is0++Ins,Lbls)
   }
-  peep([.iValof(L,Is),..Ins],Lbls) => [.iValof(L,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
-  peep([.iLbl(Lb,.iValof(Lvl,Is)),..Ins],Lbls) => valof{
+  peep([.iLbl(Lb,.iLoop(Is)),..Ins],Lbls) => valof{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
     if lblReferenced(Lb,Is0) then
-      valis [.iLbl(Lb,.iValof(Lvl,Is0)),..peep(Ins,Lbls)]
+      valis [.iLbl(Lb,.iLoop(Is0)),..peep(Ins,Lbls)]
     else
     valis peepCode(Is0++Ins,Lbls)
   }
-  peep([.iIf(Lb),..Ins],Lbls) =>
-    [.iIf(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iIfNot(Lb),..Ins],Lbls) =>
-    [.iIfNot(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCLbl(Tgt,Lb),..Ins],Lbls) =>
-    [.iCLbl(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCInt(Tgt,Lb),..Ins],Lbls) =>
-    [.iCInt(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCChar(Tgt,Lb),..Ins],Lbls) =>
-    [.iCChar(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCFlt(Tgt,Lb),..Ins],Lbls) =>
-    [.iCFlt(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCLit(Tgt,Lb),..Ins],Lbls) =>
-    [.iCLit(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iIf(Lb,Vr),..Ins],Lbls) =>
+    [.iIf(resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
+  peep([.iIfNot(Lb,Vr),..Ins],Lbls) =>
+    [.iIfNot(resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
+  peep([.iCLbl(Tgt,Lb,Vr),..Ins],Lbls) =>
+    [.iCLbl(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
+  peep([.iCInt(Tgt,Lb,Vr),..Ins],Lbls) =>
+    [.iCInt(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
+  peep([.iCChar(Tgt,Lb,Vr),..Ins],Lbls) =>
+    [.iCChar(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
+  peep([.iCFlt(Tgt,Lb,Vr),..Ins],Lbls) =>
+    [.iCFlt(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
+  peep([.iCLit(Tgt,Lb,Vr),..Ins],Lbls) =>
+    [.iCLit(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
   peep([.iBreak(Lb),.._],Lbls) =>
     [.iBreak(resolveLbl(Lb,Lbls))].
-  peep([.iResult(Lb),.._],Lbls) => [.iResult(resolveLbl(Lb,Lbls))].
-  peep([.iLdSav(Lb),..Ins],Lbls) =>
-    [.iLdSav(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].
-  peep([.iRet,.._],_Lbls) => [.iRet].
-  peep([.iXRet,.._],_Lbls) => [.iXRet].
-  peep([.iRetire,.._],_Lbls) => [.iRetire].
-  peep([.iICase(Mx),..Ins],Lbls) => [.iICase(Mx),..copyN(Mx,Ins)].
-  peep([.iCase(Mx),..Ins],Lbls) => [.iCase(Mx),..copyN(Mx,Ins)].
-  peep([.iIxCase(Mx),..Ins],Lbls) => [.iIxCase(Mx),..copyN(Mx,Ins)].
-  peep([.iAbort(Lc),.._],Lbls) => [.iAbort(Lc)].
+  peep([.iResult(Lb,Vs),.._],Lbls) => [.iResult(resolveLbl(Lb,Lbls),Vs)].
+  peep([.iLdSav(D,Lb,S),..Ins],Lbls) =>
+    [.iLdSav(D,resolveLbl(Lb,Lbls),S),..peep(Ins,Lbls)].
+  peep([.iMv(I,S),.iMv(T,I),..Ins],Lbls) => peep([.iMv(I,S),.iMv(T,S),..Ins],Lbls).
+  peep([.iCont(Lb),.._],_Lbls) => [.iCont(Lb)].
+  peep([.iRtn,.._],_Lbls) => [.iRtn].
+  peep([.iRet(Vr),.._],_Lbls) => [.iRet(Vr)].
+  peep([.iXRet(Vr),.._],_Lbls) => [.iXRet(Vr)].
+  peep([.iRetire(T,E),.._],_Lbls) => [.iRetire(T,E)].
+  peep([.iICase(Mx,Cs),.._],Lbls) => [.iICase(Mx,Cs)].
+  peep([.iCase(Mx,Cs),.._],Lbls) => [.iCase(Mx,Cs)].
+  peep([.iIxCase(Mx,Cs),.._],Lbls) => [.iIxCase(Mx,Cs)].
+  peep([.iAbort(Lc,Vr),.._],Lbls) => [.iAbort(Lc,Vr)].
+  peep([.iCall(Lb,As),.iRSP(Rslt),.iRet(Rslt),.._],Lbls) => [.iTCall(Lb,As)].
+  peep([.iOCall(Lb,As),.iRSP(Rslt),.iRet(Rslt),.._],Lbls) => [.iTOCall(Lb,As)].
   peep([I,..Ins],Lbls) => [I,..peep(Ins,Lbls)].
 
   lblReferenced(_,[]) => .false.
   lblReferenced(Lb,[.iBreak(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iLoop(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iResult(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iXCall(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iXOCall(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iXEscape(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iIf(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iIfNot(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCInt(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCChar(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCFlt(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCLit(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCLbl(_,Lb),.._]) => .true.
-  lblReferenced(Lb,[.iIDiv(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iIMod(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iFDiv(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iFMod(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCont(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iResult(Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iIf(Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iIfNot(Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iCInt(_,Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iCChar(_,Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iCFlt(_,Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iCLit(_,Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iCLbl(_,Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iIDiv(Lb,_,_,_),.._]) => .true.
+  lblReferenced(Lb,[.iIMod(Lb,_,_,_),.._]) => .true.
+  lblReferenced(Lb,[.iFDiv(Lb,_,_,_),.._]) => .true.
+  lblReferenced(Lb,[.iFMod(Lb,_,_,_),.._]) => .true.
   lblReferenced(Lb,[.iLbl(_,I),..Ins]) =>
     lblReferenced(Lb,[I]) || lblReferenced(Lb,Ins).
   lblReferenced(Lb,[.iBlock(_,I),..Ins]) =>
     lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
-  lblReferenced(Lb,[.iValof(_,I),..Ins]) =>
+  lblReferenced(Lb,[.iLoop(I),..Ins]) =>
     lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
-  lblReferenced(Lb,[.iLdSav(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCase(_,I),..Ins]) =>
+    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
+  lblReferenced(Lb,[.iICase(_,I),..Ins]) =>
+    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
+  lblReferenced(Lb,[.iIxCase(_,I),..Ins]) =>
+    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
+  lblReferenced(Lb,[.iLdSav(_,Lb,_),.._]) => .true.
   lblReferenced(Lb,[_,..Ins]) => lblReferenced(Lb,Ins).
 
   resolveLbl(Lb,[]) default => Lb.
@@ -166,6 +296,6 @@ star.compiler.peephole{
   resolveLbl(Lb,[(Lb,_),.._]) => Lb.
   resolveLbl(Lb,[_,..Lbls]) => resolveLbl(Lb,Lbls).
 
-  adjustEntry([.iEntry(_),..Ins],Cnt) => [.iEntry(Cnt),..Ins].
+  adjustEntry([.iEntry(As,Ls),..Ins],Lsx) => [.iEntry(As,Lsx),..Ins].
   adjustEntry([Op,..Ins],Cnt) => [Op,..adjustEntry(Ins,Cnt)].
 }

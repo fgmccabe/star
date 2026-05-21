@@ -8,9 +8,8 @@
 #include "sort.h"
 
 typedef void (*moveFunc)(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs);
-void shuffleVars(assemCtxPo ctx,
+void shuffleVars(jitCompPo jit,
                  argSpecPo args,
-                 int32 arity,
-                 registerMap* freeRegs);
+                 int32 arity, registerMap* freeRegs);
 
 #endif //STAR_SHUFFLE_H

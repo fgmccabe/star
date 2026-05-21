@@ -86,7 +86,6 @@ void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
 void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
 FlexOp constantFlex(int32 index);
 FlexOp varFlex(int32 index);
-void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap* freeRegs);
 
 typedef int32 (*localVarProc)(codeGenPo state, int32 pc, localVarPo var, void *cl);
 int32 processLocals(codeGenPo state, int32 pc, localVarProc proc, void *cl) ;

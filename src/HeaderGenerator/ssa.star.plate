@@ -53,11 +53,11 @@ star.compiler.ssa{
   sortVInfo(Els) => sort(Els,((.term(_,[_,.intgr(I1),_]),.term(_,[_,.intgr(I2),_])) => I1<I2)).
 
   declareArgs:(cons[string],map[string,integer]) => map[string,integer].
-  declareArgs(Lst,Map) => let{.
+  declareArgs(Lst,Mp) => let{.
     declare([],_,Map) => Map.
     declare([Nm,..Vrs],Ax,Map) =>
       declare(Vrs,Ax+1,Map[Nm->Ax]).
-  .} in declare(Lst,0,Map).          -- First arg is 0
+  .} in declare(Lst,0,Mp).          -- First arg is 0
 
   declareLocals:(cons[string],map[string,integer]) => map[string,integer].
   declareLocals(Lcs,Map) => let{.
@@ -112,7 +112,7 @@ star.compiler.ssa{
 
   showMap:(string,cons[(string,data)])=>string.
   showMap(_,[]) => "".
-  showMap(Msg,Map) => "\#(Msg)\: \#((Map//((Nm,_))=>Nm++"\n")*)".
+  showMap(Msg,Map) => "\#(Msg)\: \#(interleave(Map//(((Nm,_))=>Nm),", ")*)\n".
 
   public implementation display[codeSegment] => {
     disp(.func(Nm,_,Tp,Lcs,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMap("locals",Lcs)++showMnem(Ins).
@@ -130,7 +130,7 @@ star.compiler.ssa{
   showBlock:(multi[insOp],integer,integer) => (string,integer).
   showBlock(Ins,Pc,Sps) => valof{
     (Blocks,Pcx) = showCode(Ins,Pc,Sps);
-    valis (interleave(Blocks,"\n")*,Pcx)
+    valis ("\n"++interleave(Blocks,"\n")*,Pcx)
   }
 
   showCode:(multi[insOp],integer,integer) => (cons[string],integer).
@@ -138,24 +138,28 @@ star.compiler.ssa{
   showCode([Ins,..Cde],Pc,Sps) => valof{
     (Itxt,Pc1) = showIns(Ins,Pc,Sps);
     (Rest,Pcx) = showCode(Cde,Pc1,Sps);
-    valis ([spaces(Sps),Itxt,..Rest],Pcx)
+    valis ([Itxt,..Rest],Pcx)
   }
 
   showIns:(insOp,integer,integer) => (string,integer).
   showIns(.iLbl(Lb,I),Pc,Sps) => valof{
     (Text,Pcx) = showIns(I,Pc,Sps);
-    valis ("\#(Lb): \#(Text)",Pcx)
+    Prefix = "\#(Lb):\n";
+    valis (Prefix++Text,Pcx)
   }
 #(Show)
 
   showPc:(integer, integer) => string.
-  showPc(Pc,Sps) => "$(Pc)\:\#(spaces(Sps))".
+  showPc(Pc,Sps) => "$(Pc):    9;\:\#(spaces(Sps))".
 
   spaces:(integer)=>string.
   spaces(Ln) => let{.
     sp(0) => [].
     sp(N) => [` `,..sp(N-1)].
   .} in _implode(sp(Ln)).
+
+  showLocals:(cons[string]) => string.
+  showLocals(Lcls) => "(\#(interleave(Lcls,", ")*))".
 
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].

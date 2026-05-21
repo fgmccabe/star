@@ -20,6 +20,11 @@ typedef struct instruction_ {
   } op;
 } Instruction;
 
+typedef struct codeLocation_ {
+  int32 offset;
+  termPo loc;
+} CodeLocation, *codeLocationPo;
+
 typedef struct method_ {
   TermHead clss;    // == specialClass
 #ifndef NOJIT
@@ -30,6 +35,7 @@ typedef struct method_ {
   int32 stackDelta;   // Maximum depth of active locals
   int32 insCount;     // How many instructions are there in the code?
   ssaInsPo instructions; // The actual instructions
+  arrayPo locations;
 } MethodRec;
 
 extern int32 methodIndex;
@@ -73,4 +79,8 @@ methodPo locateMethod(uinteger pc);
 void markMethod(methodPo mtd, gcSupportPo G);
 
 void showMethodCode(ioPo out, char *msg, methodPo mtd);
+
+void recordMethodLocation(methodPo mtd, termPo loc, uint32 offset);
+
+termPo locateMethodLocation(methodPo mtd, uinteger offset);
 #endif

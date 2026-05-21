@@ -5,6 +5,12 @@ test.a0{
   fact(0)=>1.
   fact(N)=>_int_times(N,fact(_int_minus(N,1))).
 
+  foo:(char)=>integer.
+  foo(`A`) => 0.
+  foo(`B`) => 1.
+  foo(`C`) => 2.
+  foo(X) default => -1.
+
   main:(){}.
   main(){
     _logmsg(_stringOf(fact(3),0))

@@ -54,7 +54,7 @@ void showRegisterMap(ioPo out, registerMap regs);
 typedef integer (*runtimeFn)();
 
 void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset);
-void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs);
+void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset);
 
 void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs);
 

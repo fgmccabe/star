@@ -146,13 +146,12 @@ void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset) {
   }
 }
 
-void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs) {
+void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset) {
   if (is9bit(offset))
     stur(src, dst, offset);
   else {
-    armReg tmp = nxtAvailReg(freeRegs);
-    mov(tmp, IM(offset));
-    str(src, EX2(dst, tmp, U_XTX, 0));
+    mov(X9, IM(offset));
+    str(src, EX2(dst, X9, U_XTX, 0));
   }
 }
 
@@ -192,7 +191,7 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
   case sOff: {
     switch (src.mode) {
     case reg:
-      store(ctx, src.reg, dst.reg, dst.immediate, freeRegs);
+      store(ctx, src.reg, dst.reg, dst.immediate);
       return;
     case fp:
       fstr(src.fpReg, src);
@@ -201,14 +200,14 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
       if (src.immediate != dst.immediate || src.reg != dst.reg) {
         armReg tmp = nxtAvailReg(freeRegs);
         load(ctx, tmp, src.reg, src.immediate);
-        store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
+        store(ctx, tmp, dst.reg, dst.immediate);
       }
       return;
     }
     case imm: {
       armReg tmp = nxtAvailReg(freeRegs);
       mov(tmp, src);
-      store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
+      store(ctx, tmp, dst.reg, dst.immediate);
       return;
     }
     default: {

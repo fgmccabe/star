@@ -12,7 +12,6 @@
 #include "pkgP.h"
 #include "stackP.h"
 #include "verify.h"
-#include "verifyP.h"
 
 // Used to support decoding
 typedef struct break_level_ *breakLevelPo;

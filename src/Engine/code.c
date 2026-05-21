@@ -53,11 +53,11 @@ typedef struct code_index_ {
   uinteger lowerBound;
   uinteger upperBound;
   methodPo mtd;
-} CodeIndexRecord, *codeIndexPo;
+} LocIndexRecord, *locIndexPo;
 
 static comparison indexCode(void* l, void* r) {
-  codeIndexPo lx = (codeIndexPo)l;
-  codeIndexPo rx = (codeIndexPo)r;
+  locIndexPo lx = (locIndexPo)l;
+  locIndexPo rx = (locIndexPo)r;
 
   if (lx->upperBound <= rx->lowerBound)
     return smaller;
@@ -70,7 +70,7 @@ static comparison indexCode(void* l, void* r) {
 }
 
 static void recordCode(methodPo mtd, uinteger lower, uinteger upper) {
-  codeIndexPo indexEntry = (codeIndexPo)allocPool(indexPool);
+  locIndexPo indexEntry = (locIndexPo)allocPool(indexPool);
 
   indexEntry->lowerBound = lower;
   indexEntry->upperBound = upper;
@@ -96,8 +96,8 @@ void rebalanceCodeTree() {
 }
 
 methodPo locateMethod(uinteger pc) {
-  CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc + 1};
-  codeIndexPo entry = treeGet(codeIndex, &test);
+  LocIndexRecord test = {.lowerBound = pc, .upperBound = pc + 1};
+  locIndexPo entry = treeGet(codeIndex, &test);
   if (entry != Null)
     return entry->mtd;
   return Null;
@@ -109,7 +109,7 @@ void initCode() {
 
   pkgPool = newPool(sizeof(PackageRec), 16);
   mtdPool = newPool(sizeof(MethodRec), 4096);
-  indexPool = newPool(sizeof(CodeIndexRecord), 4096);
+  indexPool = newPool(sizeof(LocIndexRecord), 4096);
 
   codeIndex = newTree(indexCode, Null);
 
@@ -134,11 +134,28 @@ termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src) {
   return ((termPo)di) + mtdSize(cl, src);
 }
 
+typedef struct {
+  specialHelperFun scan;
+  void* cl;
+} LocScanInfoRec;
+
+static retCode scanLocEntry(void* entry, int32 ix, void* cl) {
+  LocScanInfoRec* info = (LocScanInfoRec*)cl;
+  codeLocationPo loc = (codeLocationPo)entry;
+
+  info->scan(&loc->loc, info->cl);
+  return Ok;
+}
+
 termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   syserr("Should not be scanning code objects");
   methodPo mtd = C_MTD(o);
 
   helper((ptrPo)&mtd->lbl, c);
+  if (mtd->locations != Null) {
+    LocScanInfoRec info = {.scan = helper, .cl = cl};
+    processArray(mtd->locations, scanLocEntry, &info);
+  }
 
   return ((termPo)o) + mtdSize(cl, o);
 }
@@ -150,6 +167,10 @@ termPo codeFinalizer(builtinClassPo class, termPo o) {
   if (mtd->instructions != Null) {
     free(mtd->instructions);
     mtd->instructions = Null;
+  }
+
+  if (mtd->locations != Null) {
+    mtd->locations = eraseArray(mtd->locations,Null, Null);
   }
 
   return ((termPo)o) + mtdSize(class, o);
@@ -302,6 +323,7 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
   mtd->clss.space = FIVEAS;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
+  mtd->locations = Null;
 #ifndef NOJIT
   mtd->jit.code = Null;
   mtd->jit.codeSize = 0;
@@ -343,3 +365,40 @@ retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize) {
   return Ok;
 }
 #endif
+arrayPo allocArray(int elSize, int32 initial, logical growable);
+
+void recordMethodLocation(methodPo mtd, termPo loc, uint32 offset) {
+  if (mtd->locations == Null) {
+    mtd->locations = allocArray(sizeof(CodeLocation), 16, True);
+  }
+  CodeLocation locn = {.loc = loc, .offset = offset};
+  appendEntry(mtd->locations, &locn);
+}
+
+termPo locateMethodLocation(methodPo mtd, uinteger pc) {
+  if (mtd->locations == Null) {
+    return Null;
+  }
+
+#ifdef NOJIT
+  termPo offset =  codeOffset(mtd,(ssaInsPo)pc));
+#else
+  int32 offset = pc-(uinteger)jitCode(mtd);
+#endif
+
+  int32 minOffset = -1;
+  termPo minLoc = Null;
+
+  for (int32 lx=0;lx<arrayCount(mtd->locations);lx++) {
+    codeLocationPo loc = nthEntry(mtd->locations, lx);
+    if (loc->offset < offset) {
+      if (loc->offset>minOffset) {
+        minOffset = loc->offset;
+        minLoc = loc->loc;
+      }
+      else
+        break;
+    }
+  }
+  return minLoc;
+}

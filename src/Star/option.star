@@ -12,8 +12,8 @@ star.option{
   }
 
   private dispOptional:all x ~~ display[x] |= (option[x]) => string.
-  dispOptional(.none) => ".none".
-  dispOptional(.some(X)) => ".some($(X))".
+  dispOptional(.none) => "Ø".
+  dispOptional(.some(X)) => "$(X)?".
 
   public implementation all x ~~ equality[x] |= equality[option[x]] => {
     X == Y => optionEqual(X,Y).

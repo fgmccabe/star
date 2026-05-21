@@ -102,7 +102,7 @@ static void genStarIntrinsic(ioPo out, char* name, char* tipe, char* op, char* c
   else
     outMsg(out, "],Lb) => .i%s(Rs, ", capitalize(op));
   genSicArgs(out, tipe);
-  outMsg(out, "))).  -- %s\n", cmt);
+  outMsg(out, ")))  -- %s\n", cmt);
 }
 
 static integer skipPreamble(char* sig, integer* pos, integer len) {

@@ -10,36 +10,36 @@
 
 static logical usesReg(FlexOp op, mcRegister Rg) {
   switch (op.mode) {
-    case reg:
-    case sOff:
-      return op.reg == Rg;
-    case preX:
-      return op.reg == Rg || op.rgm == Rg;
-    default:
-      return False;
+  case reg:
+  case sOff:
+    return op.reg == Rg;
+  case preX:
+    return op.reg == Rg || op.rgm == Rg;
+  default:
+    return False;
   }
 }
 
 logical affects(FlexOp src, FlexOp dst) {
   switch (src.mode) {
+  case reg:
+    return usesReg(dst, src.reg);
+  case sOff: {
+    switch (dst.mode) {
     case reg:
-      return usesReg(dst, src.reg);
-    case sOff: {
-      switch (dst.mode) {
-        case reg:
-          return dst.reg == src.reg;
-        case sOff:
-          return dst.reg == src.reg && dst.immediate == src.immediate;
-        default:
-          return False;
-      }
-    }
+      return dst.reg == src.reg;
+    case sOff:
+      return dst.reg == src.reg && dst.immediate == src.immediate;
     default:
       return False;
+    }
+  }
+  default:
+    return False;
   }
 }
 
-static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *group) {
+static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo* group) {
   int32 pt = 0;
   for (int32 ix = 0; ix < arity; ix++) {
     if (args[ix].group == groupNo) {
@@ -48,7 +48,12 @@ static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *
   }
 }
 
-void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeRegs) {
+static void argMove(jitCompPo jit, FlexOp dst, FlexOp src, registerMap* freeRegs) {
+  move(assemCtx(jit), dst, src, *freeRegs);
+}
+
+void shuffleVars(jitCompPo jit, argSpecPo args, int32 arity, registerMap* freeRegs) {
+  assemCtxPo ctx = assemCtx(jit);
   int32 groups = sortSpecs(args, arity);
 
   for (int32 gx = groups; gx > 0; gx--) {
@@ -62,10 +67,11 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
       FlexOp dst = group[0]->dst;
 
       if (!sameFlexOp(dst, group[0]->src)) {
-        argMove(ctx, group[0]->dst, group[0]->src, freeRegs);
+        argMove(jit, group[0]->dst, group[0]->src, freeRegs);
       }
       group[0]->group = -1;
-    } else {
+    }
+    else {
       mcRegister tmp = nxtAvailReg(*freeRegs);
       check(tmp!=XZR, "no available registers");
       *freeRegs = dropReg(*freeRegs, tmp);
@@ -73,20 +79,21 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
       FlexOp dst = group[0]->dst;
       FlexOp src = group[0]->src;
 
-      argMove(ctx,RG(tmp), dst, freeRegs);
-      argMove(ctx, dst, src, freeRegs);
+      move(ctx, RG(tmp), dst, *freeRegs);
+      argMove(jit, dst, src, freeRegs);
       do {
         for (int32 ix = 0; ix < grpSize; ix++) {
           if (sameFlexOp(src, group[ix]->dst)) {
             if (sameFlexOp(group[ix]->src, dst))
-              argMove(ctx, group[ix]->dst,RG(tmp), freeRegs);
+              argMove(jit, group[ix]->dst, RG(tmp), freeRegs);
             else
-              argMove(ctx, group[ix]->dst, group[ix]->src, freeRegs);
+              argMove(jit, group[ix]->dst, group[ix]->src, freeRegs);
             src = group[ix]->src;
             break;
           }
         }
-      } while (!sameFlexOp(src, dst));
+      }
+      while (!sameFlexOp(src, dst));
       *freeRegs = addReg(*freeRegs, tmp);
     }
   }

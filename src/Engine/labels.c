@@ -285,6 +285,10 @@ logical isTplLabel(const char* nm) {
   return False;
 }
 
+logical isLabel(labelPo lbl, char *name) {
+  return uniIsLit(lbl->lbl.name, name);
+}
+
 retCode iterateLabels(labelProc proc, void* cl) {
   for (integer ix = 0; ix < lblTableTop; ix++)
     tryRet(proc(&labelTable[ix], cl));

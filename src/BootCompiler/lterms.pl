@@ -461,9 +461,10 @@ rewriteTerm(AQ,EX,rtire(Lc,T,E,Tp),rtire(Lc,TT,EE,Tp)) :-
 rewriteTerm(AQ,EX,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(AQ,EX,M,MM).
 rewriteTerm(AQ,EX,tryX(Lc,B,E,H),tryX(Lc,BB,EE,HH)) :-!,
-  rewriteTerm(AQ,EX,E,EE),
-  rewriteTerm(AQ,EX,B,BB),
-  rewriteTerm(AQ,EX,H,HH).
+  call(EX,AQ,ltt,E,NQ),
+  rewriteTerm(NQ,EX,E,EE),
+  rewriteTerm(NQ,EX,B,BB),
+  rewriteTerm(NQ,EX,H,HH).
 
 rewriteTerms(AQ,EX,Els,NEls):-
   map(Els,lterms:rewriteTerm(AQ,EX),NEls).
@@ -613,9 +614,10 @@ rewriteAction(AQ,EX,ltt(Lc,V,E,B),ltt(Lc,VV,EE,BB)) :-!,
 rewriteAction(AQ,EX,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(AQ,EX,M,MM).
 rewriteAction(AQ,EX,aTry(Lc,B,E,H),aTry(Lc,BB,EE,HH)) :-!,
-  rewriteTerm(AQ,EX,E,EE),
-  rewriteAction(AQ,EX,B,BB),
-  rewriteAction(AQ,EX,H,HH).
+  call(EX,AQ,ltt,E,NQ),
+  rewriteTerm(NQ,EX,E,EE),
+  rewriteAction(NQ,EX,B,BB),
+  rewriteAction(NQ,EX,H,HH).
   
 rewriteCase(AQ,EX,BCall,(P,E,Lbl),(NP,NE,Lbl)) :-
   call(EX,AQ,ptn,P,NQ),

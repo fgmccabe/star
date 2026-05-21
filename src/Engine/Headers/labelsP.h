@@ -64,4 +64,6 @@ static inline methodPo labelMtd(labelPo lbl) {
 
 int32 indexOfLabel(labelPo lbl);
 
+logical isLabel(labelPo lbl, char *name);
+
 #endif //STAR_LABELSP_H

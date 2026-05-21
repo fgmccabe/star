@@ -216,8 +216,8 @@ vrWrite(Vr,iBAsr(Vr,_,_)).
 vrWrite(Vr,iBLsr(Vr,_,_)).
 vrWrite(Vr,iBNot(Vr,_)).
 
-vrWrite(Vr,iAlloc(Vr,_,_)).
-vrWrite(Vr,iClosure(Vr,_,_)).
+vrWrite(Vr,iAlloc(_,Vr,_)).
+vrWrite(Vr,iClosure(_,Vr,_)).
 
 dropVar(_,[],[]).
 dropVar(Vr,[iLoop(In)|Is],[iLoop(Inx)|Isx]) :-

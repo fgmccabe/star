@@ -541,6 +541,11 @@ star.compiler.types{
   isPrType(Tp) where .prcType(A,E) .= deRef(Tp) => .some((A,E)).
   isPrType(_) default => .none.
 
+  public typeThrows:(tipe) => tipe.
+  typeThrows(Tp) where (_,_,Th) ?= isFunType(Tp) => Th.
+  typeThrows(Tp) where (_,Th) ?= isPrType(Tp) => Th.
+  typeThrows(_) default => .voidType.
+
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) => isCnType(deRef(Tp)).
 

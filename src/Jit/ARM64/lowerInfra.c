@@ -205,7 +205,7 @@ void showLocalSlotMap(ioPo out, codeGenPo state, int32 pc) {
 
 static void showLiveLocals(ioPo out, codeGenPo state, int32 pc) {
   outMsg(out, "Live locals: ");
-  showLocalSlotMap(out, state, pc);
+  // showLocalSlotMap(out, state, pc);
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo lcl = &state->locals[ix];
     if (lcl->inUse) {
@@ -287,10 +287,6 @@ static localVarPo findLclByOffset(codeGenPo state, int32 pc, int32 offset) {
   return Null;
 }
 
-void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap* freeRegs) {
-  move(ctx, dst, src, *freeRegs);
-}
-
 void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[],
                      logical moveOwnership,
                      int32 rsCnt, FlexOp results[]) {
@@ -312,7 +308,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   }
   registerMap tmpMap = fixedRegSet(X16);
 
-  shuffleVars(ctx, operands, arity, &tmpMap);
+  shuffleVars(state->jit, operands, arity, &tmpMap);
 
   voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
 
@@ -333,7 +329,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
     assert(ax!=XZR);
     operands[ix] = argSpec(RG(ax), results[ax]);
   }
-  shuffleVars(ctx, operands, rsCnt, &tmpMap);
+  shuffleVars(state->jit, operands, rsCnt, &tmpMap);
   restoreStashedLocals(state, livePc);
 }
 
@@ -454,6 +450,10 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   int32 delta = (argCnt + lclCnt + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
   armReg tmp = findFreeReg(jit);
 
+  // if (mtdHasName(state->mtd,"star.compiler.checker@checkProcedure")) {
+  //   installBkPt(state, pc);
+  // }
+
   if (is16bit(delta))
     sub(tmp, AG, IM(delta));
   else {
@@ -462,10 +462,6 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   }
   cmp(tmp, RG(FP));
   bhi(okLbl);
-
-  // if (traceJit >= detailedTracing) {
-  //   installBkPt(state, pc);
-  // }
 
   adr(tmp, okLbl);
   str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
@@ -525,7 +521,7 @@ void restoreStashedLocals(codeGenPo state, int32 pc) {
     localVarPo var = &state->locals[ix];
     if (liveVar(var, pc) && var->inited && var->stashed) {
       if (isRegisterOp(var->src)) {
-        ldr(var->src.reg, varFlex(var->stkOff));
+        loadRegister(state, var->src.reg, varFlex(var->stkOff));
         reserveReg(state->jit, var->src.reg);
         var->stashed = False;
       }
@@ -580,7 +576,9 @@ int32 argSaveCnt(int32 arity) {
   return (int32)(clamp(0, arity - countBits(defaultArgRegs()), arity));
 }
 
-void breakPt() {}
+void breakPt() {
+
+}
 
 void installBkPt(codeGenPo state, int32 pc) {
   armReg rg = findARegister(state, pc);

@@ -69,7 +69,7 @@ intrinsic(_blsr,func(int int,int),"BLsr",True,"logical right shift")
 intrinsic(_basr,func(int int,int),"BAsr",True,"arithmetic right shift")
 intrinsic(_bnot,func(int,int),"BNot",True,"bitwise negate number")
 
-intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r) s,fiber(r,s)))),"Fiber",True,"create a new fiber")
+intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r),fiber(r,s)))),"Fiber",True,"create a new fiber")
 
 #undef processState
 #undef thread

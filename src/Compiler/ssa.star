@@ -134,11 +134,11 @@ star.compiler.ssa{
   sortVInfo(Els) => sort(Els,((.term(_,[_,.intgr(I1),_]),.term(_,[_,.intgr(I2),_])) => I1<I2)).
 
   declareArgs:(cons[string],map[string,integer]) => map[string,integer].
-  declareArgs(Lst,Map) => let{.
+  declareArgs(Lst,Mp) => let{.
     declare([],_,Map) => Map.
     declare([Nm,..Vrs],Ax,Map) =>
       declare(Vrs,Ax+1,Map[Nm->Ax]).
-  .} in declare(Lst,0,Map).          -- First arg is 0
+  .} in declare(Lst,0,Mp).          -- First arg is 0
 
   declareLocals:(cons[string],map[string,integer]) => map[string,integer].
   declareLocals(Lcs,Map) => let{.
@@ -321,7 +321,7 @@ star.compiler.ssa{
 
   findLevel:(cons[lblLevel],assemLbl) => integer.
   findLevel(Lbs,Lb) => let{.
-    findLvl([],_) => unreachable.
+    findLvl([],_) => valof{ logMsg(.severe,"Cannont find $(Lb) in $(Lbs)"); valis unreachable}.
     findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? Lvl || findLvl(Ls,Lvl)).
     findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
   .} in findLvl(Lbs,0).
@@ -331,7 +331,7 @@ star.compiler.ssa{
 
   showMap:(string,cons[(string,data)])=>string.
   showMap(_,[]) => "".
-  showMap(Msg,Map) => "#(Msg)\: #((Map//((Nm,_))=>Nm++"\n")*)".
+  showMap(Msg,Map) => "#(Msg)\: #(interleave(Map//(((Nm,_))=>Nm),", ")*)\n".
 
   public implementation display[codeSegment] => {
     disp(.func(Nm,_,Tp,Lcs,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMap("locals",Lcs)++showMnem(Ins).
@@ -349,7 +349,7 @@ star.compiler.ssa{
   showBlock:(multi[insOp],integer,integer) => (string,integer).
   showBlock(Ins,Pc,Sps) => valof{
     (Blocks,Pcx) = showCode(Ins,Pc,Sps);
-    valis (interleave(Blocks,"\n")*,Pcx)
+    valis ("\n"++interleave(Blocks,"\n")*,Pcx)
   }
 
   showCode:(multi[insOp],integer,integer) => (cons[string],integer).
@@ -357,452 +357,456 @@ star.compiler.ssa{
   showCode([Ins,..Cde],Pc,Sps) => valof{
     (Itxt,Pc1) = showIns(Ins,Pc,Sps);
     (Rest,Pcx) = showCode(Cde,Pc1,Sps);
-    valis ([spaces(Sps),Itxt,..Rest],Pcx)
+    valis ([Itxt,..Rest],Pcx)
   }
 
   showIns:(insOp,integer,integer) => (string,integer).
   showIns(.iLbl(Lb,I),Pc,Sps) => valof{
     (Text,Pcx) = showIns(I,Pc,Sps);
-    valis ("#(Lb): #(Text)",Pcx)
+    Prefix = "#(Lb):\n";
+    valis (Prefix++Text,Pcx)
   }
   showIns(.iHalt(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Halt #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Halt #(V0)",Pc1+1)
   }
   showIns(.iAbort(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Abort $(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Abort $(V0), #(V1)",Pc2+1)
   }
   showIns(.iCall(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("Call $(V0), $(V1)",Pc2+1)
+    Pc2 = Pc1+size(V1)+1;
+    valis ("#(showPc(Pc0,Sps))Call $(V0), #(showLocals(V1))",Pc2+1)
   }
   showIns(.iOCall(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("OCall #(V0), $(V1)",Pc2+1)
+    Pc2 = Pc1+size(V1)+1;
+    valis ("#(showPc(Pc0,Sps))OCall #(V0), #(showLocals(V1))",Pc2+1)
   }
   showIns(.iEscape(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("Escape #(V0), $(V1)",Pc2+1)
+    Pc2 = Pc1+size(V1)+1;
+    valis ("#(showPc(Pc0,Sps))Escape #(V0), #(showLocals(V1))",Pc2+1)
   }
   showIns(.iTCall(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("TCall $(V0), $(V1)",Pc2+1)
+    Pc2 = Pc1+size(V1)+1;
+    valis ("#(showPc(Pc0,Sps))TCall $(V0), #(showLocals(V1))",Pc2+1)
   }
   showIns(.iTOCall(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("TOCall #(V0), $(V1)",Pc2+1)
+    Pc2 = Pc1+size(V1)+1;
+    valis ("#(showPc(Pc0,Sps))TOCall #(V0), #(showLocals(V1))",Pc2+1)
   }
   showIns(.iRSP(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("RSP #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))RSP #(V0)",Pc1+1)
   }
   showIns(.iRSX(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("RSX $(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))RSX #(V0), #(V1)",Pc2+1)
   }
   showIns(.iEntry(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Entry $(V0), $(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Entry $(V0), $(V1)",Pc2+1)
   }
   showIns(.iRtn, Pc0, Sps) => valof{
-    valis ("Rtn",Pc0+1)
+    valis ("#(showPc(Pc0,Sps))Rtn",Pc0+1)
   }
   showIns(.iRet(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Ret #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Ret #(V0)",Pc1+1)
   }
   showIns(.iXRet(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("XRet #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))XRet #(V0)",Pc1+1)
   }
   showIns(.iLoop(V0), Pc0, Sps) => valof{
     (InsTxt,Pc1) = showBlock(V0,Pc0,Sps+2);
-    valis ("Loop #(InsTxt)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Loop #(InsTxt)",Pc1+1)
   }
   showIns(.iBlock(V0, V1), Pc0, Sps) => valof{
-    Pc1 = Pc0+1;
+    Pc1 = Pc0+size(V0)+1;
     (InsTxt,Pc2) = showBlock(V1,Pc1,Sps+2);
-    valis ("Block $(V0), #(InsTxt)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Block #(showLocals(V0)), #(InsTxt)",Pc2+1)
   }
   showIns(.iBreak(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Break $(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Break #(V0)",Pc1+1)
   }
   showIns(.iResult(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("Result $(V0), $(V1)",Pc2+1)
+    Pc2 = Pc1+size(V1)+1;
+    valis ("#(showPc(Pc0,Sps))Result #(V0), #(showLocals(V1))",Pc2+1)
   }
   showIns(.iCont(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Cont $(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Cont #(V0)",Pc1+1)
   }
   showIns(.iIf(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("If $(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))If #(V0), #(V1)",Pc2+1)
   }
   showIns(.iIfNot(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("IfNot $(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))IfNot #(V0), #(V1)",Pc2+1)
   }
   showIns(.iICase(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     (InsTxt,Pc2) = showBlock(V1,Pc1,Sps+2);
-    valis ("ICase #(V0), #(InsTxt)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))ICase #(V0), #(InsTxt)",Pc2+1)
   }
   showIns(.iCase(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     (InsTxt,Pc2) = showBlock(V1,Pc1,Sps+2);
-    valis ("Case #(V0), #(InsTxt)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Case #(V0), #(InsTxt)",Pc2+1)
   }
   showIns(.iIxCase(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     (InsTxt,Pc2) = showBlock(V1,Pc1,Sps+2);
-    valis ("IxCase #(V0), #(InsTxt)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))IxCase #(V0), #(InsTxt)",Pc2+1)
   }
   showIns(.iCLbl(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CLbl $(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CLbl $(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCInt(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CInt $(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CInt $(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCChar(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CChar $(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CChar $(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCFlt(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CFlt $(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CFlt $(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCLit(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CLit $(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CLit $(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iMC(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("MC #(V0), $(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))MC #(V0), $(V1)",Pc2+1)
   }
   showIns(.iMv(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Mv #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Mv #(V0), #(V1)",Pc2+1)
   }
   showIns(.iLG(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("LG #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))LG #(V0)",Pc1+1)
   }
   showIns(.iSG(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("SG #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))SG #(V0), #(V1)",Pc2+1)
   }
   showIns(.iSav(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Sav #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Sav #(V0)",Pc1+1)
   }
   showIns(.iLdSav(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("LdSav #(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))LdSav #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iTstSav(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("TstSav #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))TstSav #(V0), #(V1)",Pc2+1)
   }
   showIns(.iStSav(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("StSav #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))StSav #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCell(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Cell #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Cell #(V0), #(V1)",Pc2+1)
   }
   showIns(.iGet(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Get #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Get #(V0), #(V1)",Pc2+1)
   }
   showIns(.iAssign(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Assign #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Assign #(V0), #(V1)",Pc2+1)
   }
   showIns(.iNth(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("Nth #(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))Nth #(V0), $(V1), #(V2)",Pc3+1)
   }
   showIns(.iStNth(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("StNth #(V0), $(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))StNth #(V0), $(V1), #(V2)",Pc3+1)
   }
   showIns(.iIAdd(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("IAdd #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))IAdd #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iISub(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("ISub #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))ISub #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iIMul(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("IMul #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))IMul #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iIDiv(V0, V1, V2, V3), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
     Pc4 = Pc3+1;
-    valis ("IDiv $(V0), #(V1), #(V2), #(V3)",Pc4+1)
+    valis ("#(showPc(Pc0,Sps))IDiv #(V0), #(V1), #(V2), #(V3)",Pc4+1)
   }
   showIns(.iIMod(V0, V1, V2, V3), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
     Pc4 = Pc3+1;
-    valis ("IMod $(V0), #(V1), #(V2), #(V3)",Pc4+1)
+    valis ("#(showPc(Pc0,Sps))IMod #(V0), #(V1), #(V2), #(V3)",Pc4+1)
   }
   showIns(.iIAbs(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("IAbs #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))IAbs #(V0), #(V1)",Pc2+1)
   }
   showIns(.iIEq(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("IEq #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))IEq #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iILt(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("ILt #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))ILt #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iIGe(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("IGe #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))IGe #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCEq(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CEq #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CEq #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCLt(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CLt #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CLt #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iCGe(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("CGe #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))CGe #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBAnd(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("BAnd #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))BAnd #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBOr(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("BOr #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))BOr #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBXor(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("BXor #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))BXor #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBLsl(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("BLsl #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))BLsl #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBLsr(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("BLsr #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))BLsr #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBAsr(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("BAsr #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))BAsr #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBNot(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("BNot #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))BNot #(V0), #(V1)",Pc2+1)
   }
   showIns(.iFAdd(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("FAdd #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))FAdd #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iFSub(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("FSub #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))FSub #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iFMul(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("FMul #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))FMul #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iFDiv(V0, V1, V2, V3), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
     Pc4 = Pc3+1;
-    valis ("FDiv $(V0), #(V1), #(V2), #(V3)",Pc4+1)
+    valis ("#(showPc(Pc0,Sps))FDiv #(V0), #(V1), #(V2), #(V3)",Pc4+1)
   }
   showIns(.iFMod(V0, V1, V2, V3), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
     Pc4 = Pc3+1;
-    valis ("FMod $(V0), #(V1), #(V2), #(V3)",Pc4+1)
+    valis ("#(showPc(Pc0,Sps))FMod #(V0), #(V1), #(V2), #(V3)",Pc4+1)
   }
   showIns(.iFAbs(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("FAbs #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))FAbs #(V0), #(V1)",Pc2+1)
   }
   showIns(.iFEq(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("FEq #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))FEq #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iFLt(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("FLt #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))FLt #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iFGe(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("FGe #(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))FGe #(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iAlloc(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    Pc3 = Pc2+1;
-    valis ("Alloc $(V0), #(V1), $(V2)",Pc3+1)
+    Pc3 = Pc2+size(V2)+1;
+    valis ("#(showPc(Pc0,Sps))Alloc $(V0), #(V1), #(showLocals(V2))",Pc3+1)
   }
   showIns(.iClosure(V0, V1, V2), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
     Pc3 = Pc2+1;
-    valis ("Closure $(V0), #(V1), #(V2)",Pc3+1)
+    valis ("#(showPc(Pc0,Sps))Closure $(V0), #(V1), #(V2)",Pc3+1)
   }
   showIns(.iBump(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Bump #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Bump #(V0)",Pc1+1)
   }
   showIns(.iDrop(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Drop #(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Drop #(V0)",Pc1+1)
   }
   showIns(.iFiber(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Fiber #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Fiber #(V0), #(V1)",Pc2+1)
   }
   showIns(.iSuspend(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Suspend #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Suspend #(V0), #(V1)",Pc2+1)
   }
   showIns(.iResume(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Resume #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Resume #(V0), #(V1)",Pc2+1)
   }
   showIns(.iRetire(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Retire #(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Retire #(V0), #(V1)",Pc2+1)
   }
   showIns(.iUnderflow, Pc0, Sps) => valof{
-    valis ("Underflow",Pc0+1)
+    valis ("#(showPc(Pc0,Sps))Underflow",Pc0+1)
   }
   showIns(.iLine(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("Line $(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))Line $(V0)",Pc1+1)
   }
   showIns(.iBind(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     Pc2 = Pc1+1;
-    valis ("Bind $(V0), #(V1)",Pc2+1)
+    valis ("#(showPc(Pc0,Sps))Bind $(V0), #(V1)",Pc2+1)
   }
   showIns(.iDBug(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
-    valis ("DBug $(V0)",Pc1+1)
+    valis ("#(showPc(Pc0,Sps))DBug $(V0)",Pc1+1)
   }
 
 
   showPc:(integer, integer) => string.
-  showPc(Pc,Sps) => "$(Pc)\:#(spaces(Sps))".
+  showPc(Pc,Sps) => "$(Pc):    9;\:#(spaces(Sps))".
 
   spaces:(integer)=>string.
   spaces(Ln) => let{.
     sp(0) => [].
     sp(N) => [` `,..sp(N-1)].
   .} in _implode(sp(Ln)).
+
+  showLocals:(cons[string]) => string.
+  showLocals(Lcls) => "(#(interleave(Lcls,", ")*))".
 
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].

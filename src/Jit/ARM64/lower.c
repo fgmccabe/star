@@ -166,6 +166,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       labelPo tgt = C_LBL(getConstant(key));
       methodPo callee = labelMtd(tgt);
 
+      // if (isLabel(tgt,"star.compiler.checker@processRules")) {
+      //   installBkPt(state, pc);
+      // }
+
       int32 argPnt = loadArguments(state, pc, nextPc, pc + 3, arity);
 
       if (callee != Null && hasJitCode(callee)) {
@@ -488,7 +492,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp dst = varSrc(state, pc, tgtBlock->phiVars[ax]);
         operands[ax] = argSpec(src, dst);
       }
-      shuffleVars(assemCtx(state->jit), operands, arity, &jit->freeRegs);
+      shuffleVars(state->jit, operands, arity, &jit->freeRegs);
 
       breakOut(state, pc + insSize, tgtBlock);
       pc += insSize;
@@ -1707,12 +1711,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sLine: {
       int32 insSize = 2;
-      if (lineDebugging > generalTracing) {
+      if (lineDebugging >= generalTracing) {
         int32 locKey = opand(1);
-        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2,
-                        (FlexOp[]){RG(PR), constantFlex(locKey)},
-                        False,
-                        0, (FlexOp[]){});
+        recordMethodLocation(state->mtd, getConstant(locKey), currentPc(ctx));
       }
       pc += insSize;
       continue;
@@ -1961,14 +1962,15 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, in
       operands[ix] = argSpec(argSrc, RG(ax));
     }
     else {
-      int32 argSlot = currVarLimit - (arity - regArgCnt) + ix;
+      int32 argSlot = currVarLimit - (arity - regArgCnt) + (ix - regArgCnt);
       if (argSlot < argSlots)
         argSlots = argSlot;
       operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
     }
   }
   registerMap tmpMap = fixedRegSet(X16);
-  shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap);
+  shuffleVars(state->jit, operands, arity, &tmpMap);
+  for (int32 ix = 0; ix < min(regArgCnt, arity); ix++) {}
 
   voidOutFrameLocals(state, livePc, currVarLimit); // void out gaps in the locals map
   return argSlots; // return how must space is needed to preserve current locals and arguments.
@@ -2003,7 +2005,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
     }
   }
   registerMap tmpMap = fixedRegSet(X16);
-  shuffleVars(assemCtx(state->jit), operands, arity + 1, &tmpMap);
+  shuffleVars(state->jit, operands, arity + 1, &tmpMap);
 
   voidOutFrameLocals(state, livePc, currVarLimit); // void out gaps in the locals map
   return currVarLimit;                             // return how must space is needed to preserve current locals.
@@ -2024,13 +2026,13 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
       operands[ix] = argSpec(arg, RG(rx));
     }
     else {
-      assert(ix > regArgCnt);
+      assert(ix >= regArgCnt);
       int32 argSlot = tgtOff - (arity - regArgCnt) + ix;
       operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
     }
   }
   registerMap tmpMap = fixedRegSet(X16);
-  shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap);
+  shuffleVars(state->jit, operands, arity, &tmpMap);
   return (arity < regArgCnt ? tgtOff : tgtOff - (arity - regArgCnt));
 }
 

@@ -336,7 +336,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
   methodPo callProg = locateMethod((uinteger)pc);
 
   if (callProg != Null) {
-    termPo loc = (pc - 2)->op.op == sdBug ? getConstant((pc - 1)->op.ltrl) : Null;
+    termPo loc = locateMethodLocation(callProg, (uinteger)pc);
 
     if (loc != Null)
       outMsg(out, "[%d] %L: %T", frameNo, loc, callProg);

@@ -20,6 +20,7 @@ set(SOURCE_FILES ${HEADER_FILES} manifest.c
         signature.c
         streamDecode.c
         timers.c
-        abort.c)
+        abort.c
+)
 
 add_library(infra ${SOURCE_FILES} ${HEADER_FILES})
