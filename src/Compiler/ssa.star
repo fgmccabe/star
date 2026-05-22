@@ -321,7 +321,7 @@ star.compiler.ssa{
 
   findLevel:(cons[lblLevel],assemLbl) => integer.
   findLevel(Lbs,Lb) => let{.
-    findLvl([],_) => valof{ logMsg(.severe,"Cannont find $(Lb) in $(Lbs)"); valis unreachable}.
+    findLvl([],_) => unreachable.
     findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? Lvl || findLvl(Ls,Lvl)).
     findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
   .} in findLvl(Lbs,0).
@@ -811,8 +811,655 @@ star.compiler.ssa{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  findEntryInstruction([.iEntry(A,L),.._]) => (A,L).
-  findEntryInstruction([_,..Ins]) => findEntryInstruction(Ins).
+  findEntryInstruction(Ins) => (Rslt ?= hasEntryInstruction(Ins) ?? Rslt || unreachable).
 
-  public opcodeHash = 211094525106623888.
+  public validateCode:(codeSegment){}.
+  validateCode(Code){
+    case Code in {
+    | .func(Nm,_,Tp,Lcs,Ins) do {
+        try{
+          if (A,L) ?= hasEntryInstruction(Ins) then{
+            validBlock(Ins, foldLeft(((N,Ls)=>Ls[N->.inited]),{ N->.notInited | N in L}, A),[])
+        } else{
+            validBlock(Ins, [], [])
+          }
+        } catch {
+          .exception(Msg) do {
+            reportTrap("Problem in code for $(Nm)\: #(Msg)")
+         }
+       }
+     }
+   | _ do {}
+   }
+  }
+
+  varState ::= .inited | .notInited | .phiVar.
+
+  implementation display[varState] => {
+    disp(.inited) => "inited".
+    disp(.notInited) => "not inited".
+    disp(.phiVar) => "phi".
+  }
+
+  validBlock:(multi[insOp],map[varNm,varState],set[string])=>map[varNm,varState] throws exception.
+  validBlock([],Lcls,Lbls) => Lcls.
+  validBlock([I,..Ins],Lcls,Lbls) =>
+    validBlock(Ins,validIns(I,Lcls,Lbls),Lbls).
+
+  validIns:(insOp,map[varNm,varState],set[string])=>map[varNm,varState] throws exception.
+  validIns(.iLbl(Lb,I),Lcls,Lbls) =>
+    validIns(I,Lcls,Lbls\+Lb).
+  validIns(.iHalt(V0), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Halt' not inited");
+    valis Lcls0
+  }
+  validIns(.iAbort(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Abort' not inited");
+    valis Lcls0
+  }
+  validIns(.iCall(V0, V1), Lcls0, Lbls) => valof{
+  if ~ {? Vv in V1 *> varInited(Lcls0,Vv) ?} then     throw .exception("Var $(V1) in 'Call' not inited");
+    valis Lcls0
+  }
+  validIns(.iOCall(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'OCall' not inited");
+  if ~ {? Vv in V1 *> varInited(Lcls0,Vv) ?} then     throw .exception("Var $(V1) in 'OCall' not inited");
+    valis Lcls0
+  }
+  validIns(.iEscape(V0, V1), Lcls0, Lbls) => valof{
+ if ~isEscape(V0) then   throw .exception("Unknown escape #(V0)");
+  if ~ {? Vv in V1 *> varInited(Lcls0,Vv) ?} then     throw .exception("Var $(V1) in 'Escape' not inited");
+    valis Lcls0
+  }
+  validIns(.iTCall(V0, V1), Lcls0, Lbls) => valof{
+  if ~ {? Vv in V1 *> varInited(Lcls0,Vv) ?} then     throw .exception("Var $(V1) in 'TCall' not inited");
+    valis Lcls0
+  }
+  validIns(.iTOCall(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'TOCall' not inited");
+  if ~ {? Vv in V1 *> varInited(Lcls0,Vv) ?} then     throw .exception("Var $(V1) in 'TOCall' not inited");
+    valis Lcls0
+  }
+  validIns(.iRSP(V0), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'RSP' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+    valis Lcls1
+  }
+  validIns(.iRSX(V0, V1), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'RSX' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+    valis Lcls1
+  }
+  validIns(.iEntry(V0, V1), Lcls0, Lbls) => valof{
+    valis Lcls0
+  }
+  validIns(.iRtn, Lcls0, Lbls) => valof{
+    valis Lcls0
+  }
+  validIns(.iRet(V0), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Ret' not inited");
+    valis Lcls0
+  }
+  validIns(.iXRet(V0), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'XRet' not inited");
+    valis Lcls0
+  }
+  validIns(.iLoop(V0), Lcls0, Lbls) => valof{
+    validBlock(V0,Lcls0,Lbls);
+    valis Lcls0
+  }
+  validIns(.iBlock(V0, V1), Lcls0, Lbls) => valof{
+   Lcls1 = foldRight(((V,Ls)=>Ls[V->.phiVar]),Lcls0,V0);
+   Lcls2 = foldRight(((V,Ls)=>Ls[V->.inited]),Lcls0,V0);
+    validBlock(V1,Lcls1,Lbls);
+    valis Lcls2
+  }
+  validIns(.iBreak(V0), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+    valis Lcls0
+  }
+  validIns(.iResult(V0, V1), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+  if ~ {? Vv in V1 *> varInited(Lcls0,Vv) ?} then     throw .exception("Var $(V1) in 'Result' not inited");
+    valis Lcls0
+  }
+  validIns(.iCont(V0), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+    valis Lcls0
+  }
+  validIns(.iIf(V0, V1), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'If' not inited");
+    valis Lcls0
+  }
+  validIns(.iIfNot(V0, V1), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'IfNot' not inited");
+    valis Lcls0
+  }
+  validIns(.iICase(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'ICase' not inited");
+    validBlock(V1,Lcls0,Lbls);
+    valis Lcls0
+  }
+  validIns(.iCase(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Case' not inited");
+    validBlock(V1,Lcls0,Lbls);
+    valis Lcls0
+  }
+  validIns(.iIxCase(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'IxCase' not inited");
+    validBlock(V1,Lcls0,Lbls);
+    valis Lcls0
+  }
+  validIns(.iCLbl(V0, V1, V2), Lcls0, Lbls) => valof{
+ if ~ V1 .<. Lbls then
+   throw .exception("Label #(V1) not in scope");
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'CLbl' not inited");
+    valis Lcls0
+  }
+  validIns(.iCInt(V0, V1, V2), Lcls0, Lbls) => valof{
+ if ~ V1 .<. Lbls then
+   throw .exception("Label #(V1) not in scope");
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'CInt' not inited");
+    valis Lcls0
+  }
+  validIns(.iCChar(V0, V1, V2), Lcls0, Lbls) => valof{
+ if ~ V1 .<. Lbls then
+   throw .exception("Label #(V1) not in scope");
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'CChar' not inited");
+    valis Lcls0
+  }
+  validIns(.iCFlt(V0, V1, V2), Lcls0, Lbls) => valof{
+ if ~ V1 .<. Lbls then
+   throw .exception("Label #(V1) not in scope");
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'CFlt' not inited");
+    valis Lcls0
+  }
+  validIns(.iCLit(V0, V1, V2), Lcls0, Lbls) => valof{
+ if ~ V1 .<. Lbls then
+   throw .exception("Label #(V1) not in scope");
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'CLit' not inited");
+    valis Lcls0
+  }
+  validIns(.iMC(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'MC' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+    valis Lcls1
+  }
+  validIns(.iMv(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Mv' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'Mv' not inited");
+    valis Lcls1
+  }
+  validIns(.iLG(V0), Lcls0, Lbls) => valof{
+    valis Lcls0
+  }
+  validIns(.iSG(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'SG' not inited");
+    valis Lcls0
+  }
+  validIns(.iSav(V0), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Sav' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+    valis Lcls1
+  }
+  validIns(.iLdSav(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'LdSav' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+ if ~ V1 .<. Lbls then
+   throw .exception("Label #(V1) not in scope");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'LdSav' not inited");
+    valis Lcls1
+  }
+  validIns(.iTstSav(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'TstSav' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'TstSav' not inited");
+    valis Lcls1
+  }
+  validIns(.iStSav(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'StSav' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'StSav' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'StSav' not inited");
+    valis Lcls1
+  }
+  validIns(.iCell(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Cell' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'Cell' not inited");
+    valis Lcls1
+  }
+  validIns(.iGet(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Get' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'Get' not inited");
+    valis Lcls1
+  }
+  validIns(.iAssign(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Assign' not inited");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Assign' not inited");
+    valis Lcls0
+  }
+  validIns(.iNth(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Nth' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'Nth' not inited");
+    valis Lcls1
+  }
+  validIns(.iStNth(V0, V1, V2), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'StNth' not inited");
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'StNth' not inited");
+    valis Lcls0
+  }
+  validIns(.iIAdd(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'IAdd' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'IAdd' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'IAdd' not inited");
+    valis Lcls1
+  }
+  validIns(.iISub(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'ISub' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'ISub' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'ISub' not inited");
+    valis Lcls1
+  }
+  validIns(.iIMul(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'IMul' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'IMul' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'IMul' not inited");
+    valis Lcls1
+  }
+  validIns(.iIDiv(V0, V1, V2, V3), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'IDiv' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'IDiv' not inited");
+   if ~varInited(Lcls1, V3) then
+     throw .exception("Var #(V3) in 'IDiv' not inited");
+    valis Lcls1
+  }
+  validIns(.iIMod(V0, V1, V2, V3), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'IMod' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'IMod' not inited");
+   if ~varInited(Lcls1, V3) then
+     throw .exception("Var #(V3) in 'IMod' not inited");
+    valis Lcls1
+  }
+  validIns(.iIAbs(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'IAbs' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'IAbs' not inited");
+    valis Lcls1
+  }
+  validIns(.iIEq(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'IEq' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'IEq' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'IEq' not inited");
+    valis Lcls1
+  }
+  validIns(.iILt(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'ILt' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'ILt' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'ILt' not inited");
+    valis Lcls1
+  }
+  validIns(.iIGe(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'IGe' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'IGe' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'IGe' not inited");
+    valis Lcls1
+  }
+  validIns(.iCEq(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'CEq' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'CEq' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'CEq' not inited");
+    valis Lcls1
+  }
+  validIns(.iCLt(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'CLt' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'CLt' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'CLt' not inited");
+    valis Lcls1
+  }
+  validIns(.iCGe(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'CGe' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'CGe' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'CGe' not inited");
+    valis Lcls1
+  }
+  validIns(.iBAnd(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BAnd' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BAnd' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'BAnd' not inited");
+    valis Lcls1
+  }
+  validIns(.iBOr(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BOr' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BOr' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'BOr' not inited");
+    valis Lcls1
+  }
+  validIns(.iBXor(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BXor' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BXor' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'BXor' not inited");
+    valis Lcls1
+  }
+  validIns(.iBLsl(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BLsl' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BLsl' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'BLsl' not inited");
+    valis Lcls1
+  }
+  validIns(.iBLsr(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BLsr' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BLsr' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'BLsr' not inited");
+    valis Lcls1
+  }
+  validIns(.iBAsr(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BAsr' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BAsr' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'BAsr' not inited");
+    valis Lcls1
+  }
+  validIns(.iBNot(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'BNot' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'BNot' not inited");
+    valis Lcls1
+  }
+  validIns(.iFAdd(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FAdd' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FAdd' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FAdd' not inited");
+    valis Lcls1
+  }
+  validIns(.iFSub(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FSub' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FSub' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FSub' not inited");
+    valis Lcls1
+  }
+  validIns(.iFMul(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FMul' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FMul' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FMul' not inited");
+    valis Lcls1
+  }
+  validIns(.iFDiv(V0, V1, V2, V3), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'FDiv' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FDiv' not inited");
+   if ~varInited(Lcls1, V3) then
+     throw .exception("Var #(V3) in 'FDiv' not inited");
+    valis Lcls1
+  }
+  validIns(.iFMod(V0, V1, V2, V3), Lcls0, Lbls) => valof{
+ if ~ V0 .<. Lbls then
+   throw .exception("Label #(V0) not in scope");
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'FMod' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FMod' not inited");
+   if ~varInited(Lcls1, V3) then
+     throw .exception("Var #(V3) in 'FMod' not inited");
+    valis Lcls1
+  }
+  validIns(.iFAbs(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FAbs' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FAbs' not inited");
+    valis Lcls1
+  }
+  validIns(.iFEq(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FEq' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FEq' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FEq' not inited");
+    valis Lcls1
+  }
+  validIns(.iFLt(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FLt' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FLt' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FLt' not inited");
+    valis Lcls1
+  }
+  validIns(.iFGe(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'FGe' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'FGe' not inited");
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'FGe' not inited");
+    valis Lcls1
+  }
+  validIns(.iAlloc(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Alloc' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+  if ~ {? Vv in V2 *> varInited(Lcls1,Vv) ?} then     throw .exception("Var $(V2) in 'Alloc' not inited");
+    valis Lcls1
+  }
+  validIns(.iClosure(V0, V1, V2), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Closure' already inited");
+   Lcls1 = markInited(Lcls0,V1);
+   if ~varInited(Lcls1, V2) then
+     throw .exception("Var #(V2) in 'Closure' not inited");
+    valis Lcls1
+  }
+  validIns(.iBump(V0), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Bump' not inited");
+    valis Lcls0
+  }
+  validIns(.iDrop(V0), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Drop' not inited");
+    valis Lcls0
+  }
+  validIns(.iFiber(V0, V1), Lcls0, Lbls) => valof{
+   if varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Fiber' already inited");
+   Lcls1 = markInited(Lcls0,V0);
+   if ~varInited(Lcls1, V1) then
+     throw .exception("Var #(V1) in 'Fiber' not inited");
+    valis Lcls1
+  }
+  validIns(.iSuspend(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Suspend' not inited");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Suspend' not inited");
+    valis Lcls0
+  }
+  validIns(.iResume(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Resume' not inited");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Resume' not inited");
+    valis Lcls0
+  }
+  validIns(.iRetire(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'Retire' not inited");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Retire' not inited");
+    valis Lcls0
+  }
+  validIns(.iUnderflow, Lcls0, Lbls) => valof{
+    valis Lcls0
+  }
+  validIns(.iLine(V0), Lcls0, Lbls) => valof{
+    valis Lcls0
+  }
+  validIns(.iBind(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'Bind' not inited");
+    valis Lcls0
+  }
+  validIns(.iDBug(V0), Lcls0, Lbls) => valof{
+    valis Lcls0
+  }
+
+
+  varInited(Lcls,Vn) => .inited ?= Lcls[Vn].
+
+  markInited(Lcls,Vn) => Lcls[Vn->.inited].
+
+  hasEntryInstruction([.iEntry(A,L),.._]) => .some((A,L)).
+  hasEntryInstruction([_,..Ins]) => hasEntryInstruction(Ins).
+  hasEntryInstruction([]) => .none.
+
+  public opcodeHash = 1457260803800190732.
 }

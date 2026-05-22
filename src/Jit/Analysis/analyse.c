@@ -150,10 +150,17 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       pc = nextPc;
       continue;
     }
-    case sBreak:
-    case sCont: {
+    case sBreak: {
       pc += 2;
       continue;
+    }
+    case sCont: {
+      int32 nextPc = pc + 2;
+      scopePo tgtScope = checkScope(scope, pc + operand(1));
+      assert(tgtScope->phiCnt==0);
+
+      markLoopVariables(analysis, tgtScope);
+      pc = nextPc;
     }
     case sResult: {
       int32 arity = operand(2);

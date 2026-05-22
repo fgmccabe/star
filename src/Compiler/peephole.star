@@ -13,21 +13,25 @@ star.compiler.peephole{
 
   public peepOptimize:(codeSegment)=>codeSegment.
   peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
-    Ins0 = peepCode(Ins,[]);
-    (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
-    valis .func(Lbl,Pol,Tp,LcMp1,adjustEntry(peepCode(Ins1,[]),LcMp1//fst))
+    (LcMp1,Ins1) = findUnusedVars(LcMap,peepCode(Ins,[]));
+    showMsg("After 1st round: $(Ins1)");
+    (LcMp2,Ins2) = findUnusedVars(LcMp1,peepCode(Ins1,[]));
+    showMsg("After 2nd round: $(Ins2)");
+    valis .func(Lbl,Pol,Tp,LcMp1,adjustEntry(Ins2,LcMp2//fst))
   }
   peepOptimize(Df) default => Df.
 
-  peepCode(Ins,Lbls) => peep(dropUnreachable(Ins),Lbls).
+  peepCode(Ins,Lbls) => peep(trace dropUnreachable(Ins),Lbls).
 
   findUnusedVars([],Ins) => ([],Ins).
   findUnusedVars([(Nm,Spec),..LcMp],Ins) => valof{
     if varRead(Nm,Ins) then {
       (Lm1,I1) = findUnusedVars(LcMp,Ins);
       valis ([(Nm,Spec),..Lm1],I1)
-    } else
-    valis findUnusedVars(LcMp,dropVar(Nm,Ins))
+    } else {
+      showMsg("drop $(Nm)");
+      valis findUnusedVars(LcMp,dropVar(Nm,Ins))
+    }
   }
 
   varRead(Vr,[]) => .false.
@@ -45,6 +49,7 @@ star.compiler.peephole{
   vrRead(Vr,.iXRet(V)) => V==Vr.
   
   vrRead(Vr,.iBlock(As,Is)) => Vr.<.As || varRead(Vr,Is).
+  vrRead(Vr,.iLoop(Is)) => varRead(Vr,Is).
   vrRead(Vr,.iResult(_,As)) => Vr .<. As.
   vrRead(Vr,.iFiber(_,V)) => V==Vr.
   vrRead(Vr,.iSuspend(T,E)) => T==Vr || E==Vr.
@@ -175,6 +180,7 @@ star.compiler.peephole{
 
   dropVar(Vr,[]) => [].
   dropVar(Vr,[.iBlock(Vs,BI),..Is]) => [.iBlock(Vs,dropVar(Vr,BI)),..dropVar(Vr,Is)].
+  dropVar(Vr,[.iLoop(BI),..Is]) => [.iLoop(dropVar(Vr,BI)),..dropVar(Vr,Is)].
   dropVar(Vr,[.iLbl(Lb,I),..Is]) => valof{
     Ix = dropVar(Vr,[I]);
     if isEmpty(Ix) then
@@ -218,7 +224,7 @@ star.compiler.peephole{
     if lblReferenced(Lb,Is0) then
       valis [.iLbl(Lb,.iBlock(Vs,Is0)),..peep(Ins,Lbls)]
     else
-    valis peepCode(Is0++Ins,Lbls)
+    valis peep([.iBlock(Vs,Is0),..peep(Ins,Lbls)],Lbls)
   }
   peep([.iLbl(Lb,.iLoop(Is)),..Ins],Lbls) => valof{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
@@ -264,6 +270,7 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iBreak(Lb),.._]) => .true.
   lblReferenced(Lb,[.iCont(Lb),.._]) => .true.
   lblReferenced(Lb,[.iResult(Lb,_),.._]) => .true.
+  lblReferenced(Lb,[.iRSX(Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iIf(Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iIfNot(Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iCInt(_,Lb,_),.._]) => .true.

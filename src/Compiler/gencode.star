@@ -28,8 +28,8 @@ star.compiler.gencode{
     valis compDefs(Defs,Vars,Tps)
   }
 
-  declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp::ltipe))].
-  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp::ltipe))].
+  declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
+  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
   declGlobal(_,Vrs) => Vrs.
 
   declType:(decl,map[string,indexMap])=>map[string,indexMap].
@@ -64,20 +64,22 @@ star.compiler.gencode{
     (EC,EV) = bindExpToVar(Val,Lc,Brks,.noMore,Ct1);
     Er = defineTmpVar(typeThrows(Tp),Ct1);
 
-    if traceCodegen! then
-      showMsg("EC=$(EC), Args=$(_stringOf(Args,3))");
-    
     C0 = [.iEntry(Args//((.cV(ArgNm,_))=>ArgNm),varNms(Ctx))]++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock([],
 	  [.iLbl(ExLbl,.iBlock([Er],EC++genDbg(Lc,[.iRet(EV)])))]++genDbg(Lc,[.iXRet(Er)]))),..AbrtCde];
     
     Code = .func(.tLbl(FnNm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct1),C0);
 
-    if traceCodegen! then
+    if traceCodegen! then{
       showMsg("non-peep code is $(Code)");
+    };
+
     Peeped = peepOptimize(Code);
+
     if traceCodegen! then
       showMsg("peeped code is $(Peeped)");
+
+    validateCode(Peeped);
 
     valis Peeped;
   }
@@ -142,10 +144,26 @@ star.compiler.gencode{
   compReturn ~> (multi[insOp],cV).
 
   bindExpToVar:(cExp,option[locn],breakLvls,tailMode,codeCtx) => (multi[insOp],identifier).
-  bindExpToVar(.cVar(_,.cV(Nm,Tp)),Lc,Bks,Tail,Ctx) => ([],Nm).
+  bindExpToVar(.cVar(_,.cV(Nm,Tp)),Lc,Bks,Tail,Ctx) =>
+    compIdExp(Nm,Tp,Lc,Bks,Tail,Ctx).
   bindExpToVar(Exp,Lc,Bks,Tail,Ctx) => valof{
     TV = defineTmpVar(typeOf(Exp),Ctx);
     valis (compExp(Exp,Lc,TV,Bks,Tail,Ctx),TV)
+  }
+
+  compIdExp(Nm,_Tp,_Lc,_Bks,_Tail,Ctx) where (_,VrSpec) ?= locateVar(Nm,Ctx) =>
+    compVar(VrSpec,Ctx).
+  compIdExp(Nm,Tp,Lc,_,_,_) => valof{
+    reportError("Cannot locate variable '#(Nm)'",Lc);
+    valis ([],Nm)
+  }
+
+  compVar:(srcLoc,codeCtx) => (multi[insOp],identifier).
+  compVar(.argVar(Nm,_),_) => ([],Nm).
+  compVar(.lclVar(Nm,_),_) => ([],Nm).
+  compVar(.glbVar(Nm,Tp),Ctx) => valof{
+    TV = defineTmpVar(Tp,Ctx);
+    valis ([.iLG(Nm),.iRSP(TV)],TV)
   }
 
   bindExpsToVars:(cons[cExp],option[locn],breakLvls,codeCtx) => (multi[insOp],cons[identifier]).
@@ -758,7 +776,7 @@ star.compiler.gencode{
 
   defineArgVar:(identifier,tipe,codeCtx) => codeCtx.
   defineArgVar(Nm,Tp,Ctx) => valof{
-    Ctx.vars:=Ctx.vars![Nm->(Tp,.argVar(Nm,Tp::ltipe))];
+    Ctx.vars:=Ctx.vars![Nm->(Tp,.argVar(Nm,Tp))];
     valis Ctx
   }
 
@@ -770,7 +788,7 @@ star.compiler.gencode{
 
   defineLclVar:(identifier,tipe,codeCtx) => codeCtx.
   defineLclVar(Nm,Tp,Ctx) => valof{
-    Ctx.vars:=Ctx.vars![Nm->(Tp,.lclVar(Nm,Tp::ltipe))];
+    Ctx.vars:=Ctx.vars![Nm->(Tp,.lclVar(Nm,Tp))];
     valis Ctx
   }
 
@@ -781,11 +799,14 @@ star.compiler.gencode{
     valis VrNm
   }
 
+  locateVar:(string,codeCtx) => option[(tipe,srcLoc)].
+  locateVar(Nm,Ctx) => Ctx.vars![Nm].
+
   srcLoc ::=
-    .argVar(identifier,ltipe) |
-    .lclVar(identifier,ltipe) |
-    .glbVar(identifier,ltipe) |
-    .glbFun(termLbl,ltipe).
+    .argVar(identifier,tipe) |
+    .lclVar(identifier,tipe) |
+    .glbVar(identifier,tipe) |
+    .glbFun(termLbl,tipe).
 
 
   breakLvls ~> map[identifier,assemLbl].

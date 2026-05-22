@@ -22,6 +22,10 @@ static char *ssaOpNames[] = {#(OpNames)};
 typedef enum {
   Slcl = 'v',
   Slcls = 'V',
+  SoUt = 'o',
+  SoUts = 'O',
+  SpHi = 'p',
+  SpHis = 'P',
   Slcm = 'm',
   Slit = 'l',
   Sglb = 'g',

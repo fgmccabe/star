@@ -8,14 +8,15 @@
 #include "globals.h"
 #include "stackP.h"
 
-static ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char *fmt);
+static ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char* fmt);
 
 ssaInsPo showIns(ioPo out, methodPo mtd, stackPo stk, ssaInsPo pc) {
   if (mtd != Null) {
     int32 offset = codeOffset(mtd, pc);
     labelPo lbl = mtdLabel(mtd);
     outMsg(out, "%,*T [%d] ", displayDepth, lbl, offset);
-  } else {
+  }
+  else {
     outMsg(out, "\?\?\? [%lx] ", pc);
   }
   ptrPo args = (stk != Null) ? stk->args : Null;
@@ -24,6 +25,10 @@ ssaInsPo showIns(ioPo out, methodPo mtd, stackPo stk, ssaInsPo pc) {
 #define sym "s"
 #define lcl "v"
 #define lcls "V"
+#define oUt "o"
+#define oUts "O"
+#define pHi "p"
+#define pHis "P"
 #define lcm "m"
 #define lit "l"
 #define glb "g"
@@ -41,14 +46,18 @@ case s##Op:{\
   return showOperands(out,mtd,args,pc+1,fmt);\
 }
 #include "ssaInstructions.h"
-    default:
-      return 0;
+  default:
+    return 0;
   }
 
 #undef instr
 #undef sym
 #undef lcl
 #undef lcls
+#undef oUt
+#undef oUts
+#undef pHi
+#undef pHis
 #undef lit
 #undef glb
 #undef art
@@ -63,94 +72,99 @@ case s##Op:{\
 static retCode showVarble(ioPo out, ptrPo args, int32 varNo);
 static retCode showGlobal(ioPo out, globalPo glb);
 
-ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char *fmt) {
+ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char* fmt) {
   ssaInsPo basePc = pc - 1;
-  char *sep = " ";
+  char* sep = " ";
   while (*fmt != '\0') {
     outMsg(out, sep);
     sep = ", ";
     switch (*fmt++) {
-      case 's': // Program label
-      case 'l': {
-        termPo lit = getConstant(pc->op.ltrl);
-        if (lit != Null) {
-          outMsg(out, "%,*T", displayDepth, lit);
-        } else {
-          outMsg(out, "(unknown constant) [%%d]", lit);
-        }
-        pc++;
-        continue;
+    case 's': // Program label
+    case 'l':{
+      termPo lit = getConstant(pc->op.ltrl);
+      if (lit != Null) {
+        outMsg(out, "%,*T", displayDepth, lit);
       }
-      case 'v': {
-        // Variable reference
+      else {
+        outMsg(out, "(unknown constant) [%%d]", lit);
+      }
+      pc++;
+      continue;
+    }
+    case 'v':
+    case 'o':
+    case 'p': {
+      // Variable reference
+      showVarble(out, args, pc->op.ltrl);
+      pc++;
+      continue;
+    }
+    case 'V':
+    case 'O':
+    case 'P': {
+      // Vector of variable references
+      int32 count = pc->op.ltrl;
+      pc++;
+      outMsg(out, "[");
+      char* argsep = "";
+      for (int32 ax = 0; ax < count; ax++) {
+        outMsg(out, argsep);
+        argsep = ", ";
         showVarble(out, args, pc->op.ltrl);
         pc++;
-        continue;
       }
-      case 'V': {
-        // Vector of variable references
-        int32 count = pc->op.ltrl;
-        pc++;
-        outMsg(out, "[");
-        char *argsep = "";
-        for (int32 ax = 0; ax < count; ax++) {
-          outMsg(out, argsep);
-          argsep = ", ";
-          showVarble(out, args, pc->op.ltrl);
-          pc++;
-        }
-        outMsg(out, "]");
-        continue;
-      }
-      case 'g': {
-        // Global variable
-        int32 glbNo = pc->op.ltrl;
-        showGlobal(out, findGlobalVar(glbNo));
-        pc++;
-        continue;
-      }
-      case 'a': // Arity
-      case 'i':
-      case 'm': {
-        // Integer
-        int32 ix = pc->op.ltrl;
-        pc++;
-        outMsg(out, "%d", ix);
-        continue;
-      }
-      case 'e': {
-        // Escape number
-        int32 escno = pc->op.ltrl;
-        pc++;
-        outMsg(out, " %s", escapeName(getEscape(escno)));
-        continue;
-      }
-      case 'k': {
-        //  Vector of instructions
-        int32 skip = pc->op.ltrl;
-        pc++;
-        int32 offset = codeOffset(mtd, basePc);
-        outMsg(out, " ↓[%d]", skip + offset);
-        continue;
-      }
-      case 'b': {
-        int32 skip = pc->op.ltrl;
-        int32 offset = codeOffset(mtd, basePc);
+      outMsg(out, "]");
+      continue;
+    }
+    case 'g': {
+      // Global variable
+      int32 glbNo = pc->op.ltrl;
+      showGlobal(out, findGlobalVar(glbNo));
+      pc++;
+      continue;
+    }
+    case 'a': // Arity
+    case 'i':
+    case 'm': {
+      // Integer
+      int32 ix = pc->op.ltrl;
+      pc++;
+      outMsg(out, "%d", ix);
+      continue;
+    }
+    case 'e': {
+      // Escape number
+      int32 escno = pc->op.ltrl;
+      pc++;
+      outMsg(out, " %s", escapeName(getEscape(escno)));
+      continue;
+    }
+    case 'k': {
+      //  Vector of instructions
+      int32 skip = pc->op.ltrl;
+      pc++;
+      int32 offset = codeOffset(mtd, basePc);
+      outMsg(out, " ↓[%d]", skip + offset);
+      continue;
+    }
+    case 'b': {
+      int32 skip = pc->op.ltrl;
+      int32 offset = codeOffset(mtd, basePc);
 
-        pc++;
-        outMsg(out, " ↑%d", offset + skip);
-        continue;
-      }
-      default:
-        syserr("unknown operand format");
-        return Null;
+      pc++;
+      outMsg(out, " ↑%d", offset + skip);
+      continue;
+    }
+    default:
+      syserr("unknown operand format");
+      return Null;
     }
   }
   return pc;
 }
 
 retCode showVarble(ioPo out, ptrPo args, int32 varNo) {
-  char *kind = (varNo >= 0 ? "A" : "L");
+  char* kind = (varNo >= 0 ? "A" : "L");
   if (args != Null) {
     termPo val = *stackVarble(args, varNo);
     if (val != voidEnum)
@@ -167,6 +181,7 @@ static retCode showGlobal(ioPo out, globalPo glb) {
       return outMsg(out, " %s=%,*T", globalVarName(glb), displayDepth, getGlobal(glb));
     else
       return outMsg(out, " %s (undef)", globalVarName(glb));
-  } else
+  }
+  else
     return outMsg(out, " unknown global");
 }

@@ -34,7 +34,7 @@ int getOptions(int argc, char** argv) {
 }
 
 typedef struct {
-  ioPo out;
+  ioPo outFl;
   strBufferPo line;
   strBufferPo aux;
   int32 vNo;
@@ -45,6 +45,9 @@ typedef struct {
 static void genAsm(hashPo vars);
 void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt);
 static void ssaOpType(ioPo out, char* mnem, int op, char* fmt);
+
+static void generateDisplay(hashPo vars);
+static void generateVerify(hashPo vars);
 
 int main(int argc, char** argv) {
   initLogfile("-");
@@ -70,12 +73,12 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    ioPo out;
+    ioPo outFl;
 
     if (narg < argc)
-      out = openOutFile(argv[narg], utf8Encoding);
+      outFl = openOutFile(argv[narg], utf8Encoding);
     else
-      out = Stdout();
+      outFl = Stdout();
 
     // Template variables
     hashPo vars = newHash(8, (hashFun)uniHash, (compFun)uniCmp, NULL);
@@ -88,6 +91,10 @@ int main(int argc, char** argv) {
 #define sym "s"
 #define lcl "v"
 #define lcls "V"
+#define oUt "o"
+#define oUts "O"
+#define pHi "p"
+#define pHis "P"
 #define lcm "m"
 #define lit "l"
 #define glb "g"
@@ -107,21 +114,8 @@ int main(int argc, char** argv) {
     char* typeCode = getTextFromBuffer(typeBuff, &tpLen);
     hashPut(vars, "OpCodes", typeCode);
 
-    // Set up the display code
-    strBufferPo showBuff = newStringBuffer();
-    strBufferPo lineBuff = newStringBuffer();
-    strBufferPo auxBuff = newStringBuffer();
-
-    AsmInfoRecord info = {.out = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0};
-
-#undef instr
-#define instr(M, Fmt) showIns(&info, #M, s##M, Fmt);
-
-#include "ssaInstructions.h"
-
-    integer showLen;
-    char* showCode = getTextFromBuffer(showBuff, &showLen);
-    hashPut(vars, "Show", showCode);
+    generateDisplay(vars);
+    generateVerify(vars);
 
     genAsm(vars);
 
@@ -129,10 +123,10 @@ int main(int argc, char** argv) {
     strMsg(hashBuff, NumberOf(hashBuff), "%ld", OPCODE_SIGNATURE);
     hashPut(vars, "Hash", hashBuff);
 
-    retCode ret = processTemplate(out, plate, vars, NULL, NULL);
+    retCode ret = processTemplate(outFl, plate, vars, NULL, NULL);
 
     flushOut();
-    closeIo(out);
+    closeIo(outFl);
     exit(0);
   }
 }
@@ -146,13 +140,13 @@ static char* capitalize(char* str) {
   return buffer;
 }
 
-static void genArgs(ioPo out, char* fmt, int32* cnt) {
+static void genArgs(ioPo outFl, char* fmt, int32* cnt) {
   *cnt = 0;
 
   char* sep = "";
 
   while (*fmt++ != '\0') {
-    outMsg(out, "%sV%d", sep, (*cnt)++);
+    outMsg(outFl, "%sV%d", sep, (*cnt)++);
     sep = ", ";
   }
 }
@@ -160,9 +154,13 @@ static void genArgs(ioPo out, char* fmt, int32* cnt) {
 static void genOp(asmInfoPo info, char** fmt) {
   switch (*(*fmt)++) {
   case Slcl:
+  case SoUt:
+  case SpHi:
     outMsg(O_IO(info->line), "findLocal(V%d,Lcs)", (info->vNo)++);
     return;
   case Slcls:
+  case SoUts:
+  case SpHis:
     outMsg(O_IO(info->line), "mkTpl(findLocals(V%d,Lcs))", (info->vNo)++);
     return;
   case Slcm:
@@ -210,7 +208,7 @@ static void genOp(asmInfoPo info, char** fmt) {
 }
 
 void genStarMnem(asmInfoPo info, char* mnem, int op, char* fmt) {
-  outMsg(info->out, "  mnem(.i%s", capitalize(mnem));
+  outMsg(info->outFl, "  mnem(.i%s", capitalize(mnem));
 
   clearStrBuffer(info->line);
   clearStrBuffer(info->aux);
@@ -219,11 +217,11 @@ void genStarMnem(asmInfoPo info, char* mnem, int op, char* fmt) {
 
   if (uniStrLen(fmt) > 0) {
     int32 vCnt = 0;
-    outMsg(info->out, "(");
-    genArgs(info->out, fmt, &vCnt);
-    outMsg(info->out, ")");
+    outMsg(info->outFl, "(");
+    genArgs(info->outFl, fmt, &vCnt);
+    outMsg(info->outFl, ")");
   }
-  outMsg(info->out, ", Pc,Lbls,Lt%d,Lcs) => ", info->ltNo);
+  outMsg(info->outFl, ", Pc,Lbls,Lt%d,Lcs) => ", info->ltNo);
 
   char* opFmt = fmt;
   info->vNo = 0;
@@ -238,12 +236,12 @@ void genStarMnem(asmInfoPo info, char* mnem, int op, char* fmt) {
   if (strBufferLength(info->aux) > 0) {
     integer auxLen;
     char* aux = getTextFromBuffer(info->aux, &auxLen);
-    outMsg(O_IO(info->out), "valof {\n    %S\n    valis ([.intgr(%d)%S],Pc+%d,Lt%d);\n  }\n", aux, (long)auxLen, op,
+    outMsg(O_IO(info->outFl), "valof {\n    %S\n    valis ([.intgr(%d)%S],Pc+%d,Lt%d);\n  }\n", aux, (long)auxLen, op,
            line,
            (long)lineLen, info->pcNo, info->ltNo);
   }
   else {
-    outMsg(O_IO(info->out), "([.intgr(%d)%S],Pc+%d,Lt%d).\n", op, line, (long)lineLen, info->pcNo, info->ltNo);
+    outMsg(O_IO(info->outFl), "([.intgr(%d)%S],Pc+%d,Lt%d).\n", op, line, (long)lineLen, info->pcNo, info->ltNo);
   }
 }
 
@@ -253,7 +251,7 @@ static void genAsm(hashPo vars) {
   strBufferPo auxBuff = newStringBuffer();
   strBufferPo lineBuff = newStringBuffer();
 
-  AsmInfoRecord info = {.out = O_IO(mnemBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .ltNo = 0};
+  AsmInfoRecord info = {.outFl = O_IO(mnemBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .ltNo = 0};
 
 #undef instr
 #define instr(M, Fmt) genStarMnem(&info, #M, s##M, Fmt);
@@ -268,8 +266,12 @@ static void genAsm(hashPo vars) {
 static char* opAndTp(char** f) {
   switch (*(*f)++) {
   case Slcl:
+  case SoUt:
+  case SpHi:
     return "varNm";
   case Slcls:
+  case SoUts:
+  case SpHis:
     return "cons[varNm]";
   case Slcm:
     return "cons[varNm]";
@@ -295,19 +297,37 @@ static char* opAndTp(char** f) {
   }
 }
 
-void ssaOpType(ioPo out, char* mnem, int op, char* fmt) {
-  outMsg(out, "    | .i%s", capitalize(mnem));
+void ssaOpType(ioPo outFl, char* mnem, int op, char* fmt) {
+  outMsg(outFl, "    | .i%s", capitalize(mnem));
 
   if (uniStrLen(fmt) != 0) {
     char* sep = "(";
     while (*fmt != '\0') {
-      outMsg(out, "%s%s", sep, opAndTp(&fmt));
+      outMsg(outFl, "%s%s", sep, opAndTp(&fmt));
       sep = ", ";
     }
-    outMsg(out, ")\n");
+    outMsg(outFl, ")\n");
   }
   else
-    outMsg(out, "\n");
+    outMsg(outFl, "\n");
+}
+
+static void generateDisplay(hashPo vars) {
+  // Set up the display code
+  strBufferPo showBuff = newStringBuffer();
+  strBufferPo lineBuff = newStringBuffer();
+  strBufferPo auxBuff = newStringBuffer();
+
+  AsmInfoRecord info = {.outFl = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0};
+
+#undef instr
+#define instr(M, Fmt) showIns(&info, #M, s##M, Fmt);
+
+#include "ssaInstructions.h"
+
+  integer showLen;
+  char* showCode = getTextFromBuffer(showBuff, &showLen);
+  hashPut(vars, "Show", showCode);
 }
 
 static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
@@ -316,6 +336,8 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
   while (ix < arity) {
     switch (*fmt++) {
     case Slcl:
+    case SoUt:
+    case SpHi:
     case Sglb:
     case SEs: {
       int32 vNo = ix++;
@@ -325,7 +347,9 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
       info->pcNo++;
       continue;
     }
-    case Slcls: {
+    case Slcls:
+    case SoUts:
+    case SpHis: {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s#(showLocals(V%d))", sep, vNo);
       sep = ", ";
@@ -382,24 +406,153 @@ void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
   info->vNo = 0;
   info->pcNo = 0;
   int32 arity = 0;
-  outMsg(info->out, "  showIns(.i%s", capitalize(mnem));
+  outMsg(info->outFl, "  showIns(.i%s", capitalize(mnem));
   if (*fmt != '\0') {
-    outMsg(info->out, "(");
-    genArgs(info->out, fmt, &arity);
-    outMsg(info->out, ")");
+    outMsg(info->outFl, "(");
+    genArgs(info->outFl, fmt, &arity);
+    outMsg(info->outFl, ")");
   }
   int32 basePc = info->pcNo;
-  outMsg(info->out, ", Pc%d, Sps) => valof{\n", info->pcNo);
+  outMsg(info->outFl, ", Pc%d, Sps) => valof{\n", info->pcNo);
 
   genDisp(info, fmt, arity);
 
   integer auxLen;
   char* aux = getTextFromBuffer(info->aux, &auxLen);
-  outMsg(info->out, "%S", aux, auxLen);
+  outMsg(info->outFl, "%S", aux, auxLen);
 
   integer lineLen;
   char* line = getTextFromBuffer(info->line, &lineLen);
-  outMsg(info->out, "    valis (\"#(showPc(Pc%d,Sps))%s%S\",Pc%d+1)\n", basePc, capitalize(mnem), line, lineLen,
+  outMsg(info->outFl, "    valis (\"#(showPc(Pc%d,Sps))%s%S\",Pc%d+1)\n", basePc, capitalize(mnem), line, lineLen,
          info->pcNo);
-  outMsg(info->out, "  }\n");
+  outMsg(info->outFl, "  }\n");
+}
+
+static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity) {
+  int32 vx = 0;
+  char* sep = " ";
+  while (vx < arity) {
+    switch (*fmt++) {
+    case Slcl: {
+      outMsg(O_IO(info->aux), "%s  if ~varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
+      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' not inited\");\n", sep, vx,mnem);
+      vx++;
+      continue;
+    }
+    case Sglb: {
+      vx++;
+      continue;
+    }
+    case SEs: {
+      int32 vr = vx++;
+      outMsg(O_IO(info->aux), "%sif ~isEscape(V%d) then", sep, info->vNo, vr);
+      outMsg(O_IO(info->aux), "%s  throw .exception(\"Unknown escape #(V%d)\");\n", sep, vr);
+      continue;
+    }
+    case SoUt: {
+      outMsg(O_IO(info->aux), "%s  if varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
+      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->aux), "%s  Lcls%d = markInited(Lcls%d,V%d);\n", sep, info->vNo + 1, info->vNo, vx);
+      vx++;
+      info->vNo++;
+      continue;
+    }
+    case SpHi: {
+      outMsg(O_IO(info->aux), "%sif ~varPhi(Lcls%d, V%d) then", sep, info->vNo, vx);
+      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' not phi var\");\n", sep, vx,mnem);
+      vx++;
+      continue;
+    }
+    case Slcls: {
+      outMsg(O_IO(info->aux), "%s if ~ {? Vv in V%d *> varInited(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
+      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var $(V%d) in '%s' not inited\");\n", sep, vx,mnem);
+      vx++;
+      continue;
+    }
+    case SoUts: {
+      outMsg(O_IO(info->aux), "%sif ~ {? Vv in V%d *> varFresh(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
+      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
+      vx++;
+      continue;
+    }
+    case SpHis: {
+      outMsg(O_IO(info->aux), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.phiVar]),Lcls%d,V%d);\n",
+             sep, info->vNo + 1, info->vNo, vx);
+      outMsg(O_IO(info->aux), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.inited]),Lcls%d,V%d);\n",
+             sep, info->vNo + 2, info->vNo, vx);
+
+      vx++;
+      info->vNo++;
+      continue;
+    }
+    case Slit:
+    case Si32:
+    case Slcm:
+    case Sart:
+    case Ssym: {
+      vx++;
+      continue;
+    }
+    case SlVl: {
+      outMsg(O_IO(info->aux), "%sif ~ V%d .<. Lbls then\n", sep, vx);
+      outMsg(O_IO(info->aux), "%s  throw .exception(\"Label #(V%d) not in scope\");\n", sep, vx);
+      vx++;
+      continue;
+    }
+    case SbLk: {
+      int32 vNo = vx++;
+      outMsg(O_IO(info->aux), "    validBlock(V%d,Lcls%d,Lbls);\n", vNo, info->vNo);
+      info->vNo++;
+      continue;
+    }
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+    }
+  }
+}
+
+void validIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
+  clearStrBuffer(info->line);
+  clearStrBuffer(info->aux);
+  info->vNo = 0;
+  int32 arity = 0;
+  outMsg(info->outFl, "  validIns(.i%s", capitalize(mnem));
+  if (*fmt != '\0') {
+    outMsg(info->outFl, "(");
+    genArgs(info->outFl, fmt, &arity);
+    outMsg(info->outFl, ")");
+  }
+  outMsg(info->outFl, ", Lcls%d, Lbls) => valof{\n", info->vNo);
+
+  genArgValidation(info, fmt, mnem, arity);
+
+  integer auxLen;
+  char* aux = getTextFromBuffer(info->aux, &auxLen);
+  outMsg(info->outFl, "%S", aux, auxLen);
+
+  integer lineLen;
+  char* line = getTextFromBuffer(info->line, &lineLen);
+  outMsg(info->outFl, "%s", line);
+  outMsg(info->outFl, "    valis Lcls%d\n", info->vNo);
+  outMsg(info->outFl, "  }\n");
+}
+
+static void generateVerify(hashPo vars) {
+  // Set up the verification code
+  strBufferPo showBuff = newStringBuffer();
+  strBufferPo lineBuff = newStringBuffer();
+  strBufferPo auxBuff = newStringBuffer();
+
+  AsmInfoRecord info = {.outFl = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0};
+
+#undef instr
+#define instr(M, Fmt) validIns(&info, #M, s##M, Fmt);
+
+#include "ssaInstructions.h"
+
+  integer showLen;
+  char* verifyCode = getTextFromBuffer(showBuff, &showLen);
+  hashPut(vars, "Valid", verifyCode);
 }

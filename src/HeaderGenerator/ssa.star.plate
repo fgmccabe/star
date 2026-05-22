@@ -164,8 +164,53 @@ star.compiler.ssa{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  findEntryInstruction([.iEntry(A,L),.._]) => (A,L).
-  findEntryInstruction([_,..Ins]) => findEntryInstruction(Ins).
+  findEntryInstruction(Ins) => (Rslt ?= hasEntryInstruction(Ins) ?? Rslt || unreachable).
+
+  public validateCode:(codeSegment){}.
+  validateCode(Code){
+    case Code in {
+    | .func(Nm,_,Tp,Lcs,Ins) do {
+        try{
+          if (A,L) ?= hasEntryInstruction(Ins) then{
+            validBlock(Ins, foldLeft(((N,Ls)=>Ls[N->.inited]),{ N->.notInited | N in L}, A),[])
+        } else{
+            validBlock(Ins, [], [])
+          }
+        } catch {
+          .exception(Msg) do {
+            reportTrap("Problem in code for $(Nm)\: \#(Msg)")
+         }
+       }
+     }
+   | _ do {}
+   }
+  }
+
+  varState ::= .inited | .notInited | .phiVar.
+
+  implementation display[varState] => {
+    disp(.inited) => "inited".
+    disp(.notInited) => "not inited".
+    disp(.phiVar) => "phi".
+  }
+
+  validBlock:(multi[insOp],map[varNm,varState],set[string])=>map[varNm,varState] throws exception.
+  validBlock([],Lcls,Lbls) => Lcls.
+  validBlock([I,..Ins],Lcls,Lbls) =>
+    validBlock(Ins,validIns(I,Lcls,Lbls),Lbls).
+
+  validIns:(insOp,map[varNm,varState],set[string])=>map[varNm,varState] throws exception.
+  validIns(.iLbl(Lb,I),Lcls,Lbls) =>
+    validIns(I,Lcls,Lbls\+Lb).
+#(Valid)
+
+  varInited(Lcls,Vn) => .inited ?= Lcls[Vn].
+
+  markInited(Lcls,Vn) => Lcls[Vn->.inited].
+
+  hasEntryInstruction([.iEntry(A,L),.._]) => .some((A,L)).
+  hasEntryInstruction([_,..Ins]) => hasEntryInstruction(Ins).
+  hasEntryInstruction([]) => .none.
 
   public opcodeHash = #(Hash).
 }
