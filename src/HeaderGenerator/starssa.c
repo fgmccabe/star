@@ -434,8 +434,8 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
   while (vx < arity) {
     switch (*fmt++) {
     case Slcl: {
-      outMsg(O_IO(info->aux), "%s  if ~varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
-      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' not inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s  if ~varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' not inited\");\n", sep, vx,mnem);
       vx++;
       continue;
     }
@@ -445,42 +445,41 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
     }
     case SEs: {
       int32 vr = vx++;
-      outMsg(O_IO(info->aux), "%sif ~isEscape(V%d) then", sep, info->vNo, vr);
-      outMsg(O_IO(info->aux), "%s  throw .exception(\"Unknown escape #(V%d)\");\n", sep, vr);
+      outMsg(O_IO(info->line), "%sif ~isEscape(V%d) then", sep, info->vNo, vr);
+      outMsg(O_IO(info->line), "%s  throw .exception(\"Unknown escape #(V%d)\");\n", sep, vr);
       continue;
     }
     case SoUt: {
-      outMsg(O_IO(info->aux), "%s  if varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
-      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
-      outMsg(O_IO(info->aux), "%s  Lcls%d = markInited(Lcls%d,V%d);\n", sep, info->vNo + 1, info->vNo, vx);
+      outMsg(O_IO(info->line), "%s  if varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s  Lcls%d = markInited(Lcls%d,V%d);\n", sep, info->vNo + 1, info->vNo, vx);
       vx++;
       info->vNo++;
       continue;
     }
     case SpHi: {
-      outMsg(O_IO(info->aux), "%sif ~varPhi(Lcls%d, V%d) then", sep, info->vNo, vx);
-      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' not phi var\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%sif ~varPhi(Lcls%d, V%d) then", sep, info->vNo, vx);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' not phi var\");\n", sep, vx,mnem);
       vx++;
       continue;
     }
     case Slcls: {
-      outMsg(O_IO(info->aux), "%s if ~ {? Vv in V%d *> varInited(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
-      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var $(V%d) in '%s' not inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s if ~ {? Vv in V%d *> varInited(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var $(V%d) in '%s' not inited\");\n", sep, vx,mnem);
       vx++;
       continue;
     }
     case SoUts: {
-      outMsg(O_IO(info->aux), "%sif ~ {? Vv in V%d *> varFresh(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
-      outMsg(O_IO(info->aux), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%sif ~ {? Vv in V%d *> varFresh(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
       vx++;
       continue;
     }
     case SpHis: {
-      outMsg(O_IO(info->aux), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.phiVar]),Lcls%d,V%d);\n",
+      outMsg(O_IO(info->line), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.phiVar]),Lcls%d,V%d);\n",
              sep, info->vNo + 1, info->vNo, vx);
       outMsg(O_IO(info->aux), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.inited]),Lcls%d,V%d);\n",
-             sep, info->vNo + 2, info->vNo, vx);
-
+             sep, info->vNo + 3, info->vNo+2, vx);
       vx++;
       info->vNo++;
       continue;
@@ -494,14 +493,18 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
       continue;
     }
     case SlVl: {
-      outMsg(O_IO(info->aux), "%sif ~ V%d .<. Lbls then\n", sep, vx);
-      outMsg(O_IO(info->aux), "%s  throw .exception(\"Label #(V%d) not in scope\");\n", sep, vx);
+      outMsg(O_IO(info->line), "%sif ~ V%d .<. Lbls then\n", sep, vx);
+      outMsg(O_IO(info->line), "%s  throw .exception(\"Label #(V%d) not in scope\");\n", sep, vx);
       vx++;
       continue;
     }
     case SbLk: {
       int32 vNo = vx++;
-      outMsg(O_IO(info->aux), "    validBlock(V%d,Lcls%d,Lbls);\n", vNo, info->vNo);
+      outMsg(O_IO(info->line), "    Lcls%d = validBlock(V%d,Lcls%d,Lbls);\n", info->vNo+1, vNo, info->vNo);
+      integer lineLen;
+      char* line = getTextFromBuffer(info->aux, &lineLen);
+      outMsg(O_IO(info->line), "%s", line);
+      clearStrBuffer(info->aux);
       info->vNo++;
       continue;
     }
@@ -529,12 +532,9 @@ void validIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
   genArgValidation(info, fmt, mnem, arity);
 
   integer auxLen;
-  char* aux = getTextFromBuffer(info->aux, &auxLen);
+  char* aux = getTextFromBuffer(info->line, &auxLen);
   outMsg(info->outFl, "%S", aux, auxLen);
 
-  integer lineLen;
-  char* line = getTextFromBuffer(info->line, &lineLen);
-  outMsg(info->outFl, "%s", line);
   outMsg(info->outFl, "    valis Lcls%d\n", info->vNo);
   outMsg(info->outFl, "  }\n");
 }

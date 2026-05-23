@@ -144,7 +144,7 @@ framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
 
-  stk->sp = stk->args + mtdArity(stk->prog);
+  stk->sp = stk->args + mtdArity(locateMethod((uinteger)stk->pc));
 
   stk->pc = fp->link;
   stk->prog = fp->prog;
@@ -262,7 +262,7 @@ static void moveStack2Stack(stackPo totsk, stackPo fromtsk, logical execJit, int
   assert(validStkPtr(fromtsk, fromtsk->sp + count));
   assert(stackHasSpace(totsk, count));
 
-  pushFrame(totsk, execJit, fromtsk->prog);
+  pushFrame(totsk, execJit, locateMethod((uinteger)fromtsk->pc));
   totsk->pc = fromtsk->pc;
 
   ptrPo src = fromtsk->sp + count;

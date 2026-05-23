@@ -14,14 +14,12 @@ star.compiler.peephole{
   public peepOptimize:(codeSegment)=>codeSegment.
   peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
     (LcMp1,Ins1) = findUnusedVars(LcMap,peepCode(Ins,[]));
-    showMsg("After 1st round: $(Ins1)");
     (LcMp2,Ins2) = findUnusedVars(LcMp1,peepCode(Ins1,[]));
-    showMsg("After 2nd round: $(Ins2)");
-    valis .func(Lbl,Pol,Tp,LcMp1,adjustEntry(Ins2,LcMp2//fst))
+    valis .func(Lbl,Pol,Tp,LcMp2,adjustEntry(Ins2,LcMp2//fst))
   }
   peepOptimize(Df) default => Df.
 
-  peepCode(Ins,Lbls) => peep(trace dropUnreachable(Ins),Lbls).
+  peepCode(Ins,Lbls) => peep(dropUnreachable(Ins),Lbls).
 
   findUnusedVars([],Ins) => ([],Ins).
   findUnusedVars([(Nm,Spec),..LcMp],Ins) => valof{
@@ -29,7 +27,6 @@ star.compiler.peephole{
       (Lm1,I1) = findUnusedVars(LcMp,Ins);
       valis ([(Nm,Spec),..Lm1],I1)
     } else {
-      showMsg("drop $(Nm)");
       valis findUnusedVars(LcMp,dropVar(Nm,Ins))
     }
   }

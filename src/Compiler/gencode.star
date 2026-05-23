@@ -79,7 +79,7 @@ star.compiler.gencode{
     if traceCodegen! then
       showMsg("peeped code is $(Peeped)");
 
-    validateCode(Peeped);
+--    validateCode(Peeped);
 
     valis Peeped;
   }

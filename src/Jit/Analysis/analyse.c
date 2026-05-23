@@ -161,6 +161,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
 
       markLoopVariables(analysis, tgtScope);
       pc = nextPc;
+      continue;
     }
     case sResult: {
       int32 arity = operand(2);
