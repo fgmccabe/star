@@ -72,9 +72,6 @@ star.compiler.peephole{
   vrRead(Vr,.iNth(_,_,V)) => V==Vr.
   vrRead(Vr,.iStNth(T,_,V)) => V==Vr || T==Vr.
 
-  vrRead(Vr,.iIf(_,V)) => V==Vr.
-  vrRead(Vr,.iIfNot(_,V)) => V==Vr.
-
   vrRead(Vr,.iICase(V,_)) => V==Vr.
   vrRead(Vr,.iCase(V,_)) => V==Vr.
   vrRead(Vr,.iIxCase(V,_)) => V==Vr.
@@ -221,7 +218,7 @@ star.compiler.peephole{
     if lblReferenced(Lb,Is0) then
       valis [.iLbl(Lb,.iBlock(Vs,Is0)),..peep(Ins,Lbls)]
     else
-    valis peep([.iBlock(Vs,Is0),..peep(Ins,Lbls)],Lbls)
+    valis peepCode(Is0++Ins,Lbls)
   }
   peep([.iLbl(Lb,.iLoop(Is)),..Ins],Lbls) => valof{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
@@ -230,10 +227,6 @@ star.compiler.peephole{
     else
     valis peepCode(Is0++Ins,Lbls)
   }
-  peep([.iIf(Lb,Vr),..Ins],Lbls) =>
-    [.iIf(resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
-  peep([.iIfNot(Lb,Vr),..Ins],Lbls) =>
-    [.iIfNot(resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
   peep([.iCLbl(Tgt,Lb,Vr),..Ins],Lbls) =>
     [.iCLbl(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
   peep([.iCInt(Tgt,Lb,Vr),..Ins],Lbls) =>
@@ -268,8 +261,6 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iCont(Lb),.._]) => .true.
   lblReferenced(Lb,[.iResult(Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iRSX(Lb,_),.._]) => .true.
-  lblReferenced(Lb,[.iIf(Lb,_),.._]) => .true.
-  lblReferenced(Lb,[.iIfNot(Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iCInt(_,Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iCChar(_,Lb,_),.._]) => .true.
   lblReferenced(Lb,[.iCFlt(_,Lb,_),.._]) => .true.

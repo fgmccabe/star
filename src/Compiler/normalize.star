@@ -14,6 +14,7 @@ star.compiler.normalize{
   import star.compiler.normalize.meta.
   import star.compiler.misc.
   import star.compiler.opts.
+  import star.compiler.rewrite.
   import star.compiler.types.
 
   import star.compiler.location.
@@ -44,7 +45,7 @@ star.compiler.normalize{
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
+    valis [uniqify(.glDef(Lc,FullNm,Tp,Vl)),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[.eqn(Lc,[],.none,Val)],funcType([],Tp),Map,Outer,Q,Extra,Ex).
@@ -850,7 +851,7 @@ star.compiler.normalize{
   }
   transformLetDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    valis (Fx,[.glDef(Lc,FullNm,Tp,Vl),..Defs])
+    valis (Fx,[uniqify(.glDef(Lc,FullNm,Tp,Vl)),..Defs])
   }
   transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
     if (_,Ix) ?= thunkIndex(FullNm,Map) then{

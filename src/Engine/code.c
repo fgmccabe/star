@@ -381,7 +381,7 @@ termPo locateMethodLocation(methodPo mtd, uinteger pc) {
   }
 
 #ifdef NOJIT
-  termPo offset =  codeOffset(mtd,(ssaInsPo)pc));
+  int32 offset =  codeOffset(mtd,(ssaInsPo)pc);
 #else
   int32 offset = pc-(uinteger)jitCode(mtd);
 #endif

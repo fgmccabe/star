@@ -429,20 +429,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
       pc += insSize;
       continue;
     }
-    case sIf:
-    case sIfNot: {
-      int32 insSize = 3;
-      int32 tstVr = operand(2);
-
-      if (checkBreak(&ctx, pc, pc + operand(1), 0) != Ok)
-        return Error;
-
-      if (!initedLocal(&ctx, tstVr))
-        return verifyError(&ctx, ".%d: var %d not initialized", pc, tstVr);
-
-      pc += insSize;
-      continue;
-    }
     case sCLbl: {
       int32 insSize = 4;
       int32 srcVr = operand(3);

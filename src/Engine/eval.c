@@ -395,32 +395,6 @@ ValueReturn run(enginePo P) {
       PC += 2; // Move to start of actual instructions
       continue;
     }
-    case sIf: {
-      int32 insSize = 3;
-      termPo i = varble(operand(2));
-
-      if (i == trueEnum) {
-        breakBlock(1);
-        continue;
-      }
-      else {
-        PC += insSize;
-        continue;
-      }
-    }
-    case sIfNot: {
-      int32 insSize = 3;
-      termPo i = varble(operand(2));
-
-      if (i != trueEnum) {
-        breakBlock(1);
-        continue;
-      }
-      else {
-        PC += insSize;
-        continue;
-      }
-    }
     case sICase: {
       int32 insSize = 3;
       // This calculation undoes the effects introduced during decoding.

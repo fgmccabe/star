@@ -23,9 +23,6 @@ instr(Break, lVl)
 instr(Result, lVl lcls)
 instr(Cont, lVl)
 
-instr(If, lVl lcl)
-instr(IfNot, lVl lcl)
-
 instr(ICase, lcl bLk)
 instr(Case, lcl bLk)
 instr(IxCase, lcl bLk)

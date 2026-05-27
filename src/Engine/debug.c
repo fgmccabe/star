@@ -20,6 +20,7 @@ static void showBind(ioPo out, stackPo stk, termPo name, termPo val, termPo igno
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ignore);
 static void showRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore);
 static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore);
+static void showRtn(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore);
 static void showAssign(ioPo out, stackPo stk, termPo lc, termPo dst, termPo vl);
 static void showResume(ioPo out, stackPo stk, termPo lc, termPo cont, termPo evt);
 static void showRegisters(enginePo p, heapPo h);
@@ -743,6 +744,13 @@ void showXRet(ioPo out, stackPo stk, termPo lc, termPo pr, termPo val) {
     outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, pr, displayDepth, val);
 }
 
+void showRtn(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore) {
+  if (showColors)
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T\n%_", lc, pr, displayDepth);
+  else
+    outMsg(out, "return: %#L %T\n%_", lc, pr, displayDepth);
+}
+
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ignore) {
   methodPo mtd = locateMethod((uinteger)stk->pc);
 
@@ -864,6 +872,7 @@ logical isDebuggableOp(ssaOp op) {
   case sEntry:
   case sRet:
   case sXRet:
+  case sRtn:
   case sAssign:
   case sLG:
   case sFiber:
@@ -889,11 +898,7 @@ DebugWaitFor bindDebug(enginePo p, termPo name, termPo val) {
 }
 
 DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb) {
-  if (lineDebugging > generalTracing) {
-    return lnDebug(p, sBind, showGlb, loc, (termPo)glb, Null);
-  }
-  else
-    return moreDebug;
+  return lnDebug(p, sLG, showGlb, loc, (termPo)glb, Null);
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {
@@ -929,8 +934,8 @@ DebugWaitFor xretDebug(enginePo p, termPo lc, termPo pr, termPo vl) {
   return lnDebug(p, sXRet, showXRet, lc, pr, vl);
 }
 
-DebugWaitFor rtnDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, sRtn, showRet, lc, vl, Null);
+DebugWaitFor rtnDebug(enginePo p, termPo lc, termPo pr) {
+  return lnDebug(p, sRtn, showRtn, lc, pr, Null);
 }
 
 DebugWaitFor assignDebug(enginePo p, termPo lc, termPo dst, termPo src) {

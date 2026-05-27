@@ -228,6 +228,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sTCall: {
       int32 insSize = opand(2) + 3;
+      int32 nextPc = pc + insSize;
       int32 key = opand(1);
       int32 arity = lblArity(C_LBL(getConstant(key)));
 
@@ -263,14 +264,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // Pick up the old return address
       ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
       br(X16);
-      dropArguments(state, pc + insSize);
-      pc += insSize;
+      dropArguments(state, nextPc);
+      pc = nextPc;
       continue;
     }
     case sTOCall: {
       int32 insSize = opand(2) + 3;
       int32 numArgs = opand(2);
       int32 argPc = pc + 3;
+      int32 nextPc = pc + insSize;
       armReg lamReg = X16;
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       loadRegister(state, lamReg, lam);
@@ -295,8 +297,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // Pick up the old return address
       ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
       br(X17);
-      dropArguments(state, pc + insSize);
-      pc += insSize;
+      dropArguments(state, nextPc);
+      pc = nextPc;
       continue;
     }
     case sEscape: {
@@ -506,48 +508,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo loop = loopLabel(tgtBlock);
       assert(loop != Null);
       b(loop);
-      pc += insSize;
-      continue;
-    }
-    case sIf: {
-      // break if true
-      int32 insSize = 3;
-      blockPo tgt = targetBlock(block, pc + opand(1), sBlock);
-      armReg trueReg = findARegister(state, pc);
-      FlexOp vl = sourceOperandFlex(state, pc, 2);
-      loadConstant(jit, trueIndex, trueReg);
-      if (isRegisterOp(vl)) {
-        cmp(trueReg, vl);
-      }
-      else {
-        armReg tmp2 = findARegister(state, pc);
-        loadRegister(state, tmp2, vl);
-        cmp(trueReg, RG(tmp2));
-        releaseReg(jit, tmp2);
-      }
-      beq(breakLabel(tgt));
-      releaseReg(jit, trueReg);
-      pc += insSize;
-      continue;
-    }
-    case sIfNot: {
-      // break if false
-      int32 insSize = 3;
-      blockPo tgt = targetBlock(block, pc + opand(1), sBlock);
-      armReg trueReg = findARegister(state, pc);
-      FlexOp vl = sourceOperandFlex(state, pc, 2);
-      loadConstant(jit, trueIndex, trueReg);
-      if (isRegisterOp(vl)) {
-        cmp(trueReg, vl);
-      }
-      else {
-        armReg tmp2 = findARegister(state, pc);
-        loadRegister(state, tmp2, vl);
-        cmp(trueReg, RG(tmp2));
-        releaseReg(jit, tmp2);
-      }
-      bne(breakLabel(tgt));
-      releaseReg(jit, trueReg);
       pc += insSize;
       continue;
     }
@@ -1793,6 +1753,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           FlexOp vl = localFlex(state, pc, operand(state, nextPc, 1));
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)retDebug, 4, (FlexOp[]){
                             RG(PR), constantFlex(locKey), IM((uinteger)state->mtd), vl
+                          }, False, 0, (FlexOp[]){});
+          break;
+        }
+        case sRtn: {
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)rtnDebug, 3, (FlexOp[]){
+                            RG(PR), constantFlex(locKey), IM((uinteger)state->mtd)
                           }, False, 0, (FlexOp[]){});
           break;
         }

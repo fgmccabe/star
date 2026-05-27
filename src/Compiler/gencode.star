@@ -49,7 +49,7 @@ star.compiler.gencode{
   identifier ~> string.
 
   genFun:(option[locn],identifier,tipe,cons[cV],cExp,map[identifier,(tipe,srcLoc)],map[identifier,indexMap]) => codeSegment.
-  genFun(Lc,FnNm,Tp,Args,Val,Glbs,Tps) => valof{
+  genFun(Lc,FnNm,Tp,Args,Val,Glbs,Tps) where isThrowingType(Tp) => valof{
     Ctx = emptyCtx(Glbs,Tps);
 
     if traceCodegen! then
@@ -83,6 +83,40 @@ star.compiler.gencode{
 
     valis Peeped;
   }
+  genFun(Lc,FnNm,Tp,Args,Val,Glbs,Tps) => valof{
+    Ctx = emptyCtx(Glbs,Tps);
+
+    if traceCodegen! then
+      showMsg("Compile $(.fnDef(Lc,FnNm,Tp,Args,Val))\n");
+
+    AbrtCde = compAbort(Lc,"function: $(FnNm) aborted",Ctx);
+    AbrtLbl = defineLbl(Ctx,"Abrt");
+    Brks = ["$abort" -> AbrtLbl];
+
+    Ct1 = declareArgs(Args,Ctx);
+    (EC,EV) = bindExpToVar(Val,Lc,Brks,.noMore,Ct1);
+    Er = defineTmpVar(typeThrows(Tp),Ct1);
+
+    C0 = [.iEntry(Args//((.cV(ArgNm,_))=>ArgNm),varNms(Ctx))]++
+    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock([],
+	  EC++genDbg(Lc,[.iRet(EV)]))),..AbrtCde];
+
+    Code = .func(.tLbl(FnNm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct1),C0);
+
+    if traceCodegen! then{
+      showMsg("non-peep code is $(Code)");
+    };
+
+    Peeped = peepOptimize(Code);
+
+    if traceCodegen! then
+      showMsg("peeped code is $(Peeped)");
+
+--    validateCode(Peeped);
+
+    valis Peeped;
+  }
+
 
   genPrc:(option[locn],identifier,tipe,cons[cV],aAction,map[identifier,(tipe,srcLoc)],map[identifier,indexMap]) => codeSegment.
   genPrc(Lc,PrNm,Tp,Args,Act,Glbs,Tps) => valof{
@@ -151,19 +185,19 @@ star.compiler.gencode{
     valis (compExp(Exp,Lc,TV,Bks,Tail,Ctx),TV)
   }
 
-  compIdExp(Nm,_Tp,_Lc,_Bks,_Tail,Ctx) where (_,VrSpec) ?= locateVar(Nm,Ctx) =>
-    compVar(VrSpec,Ctx).
+  compIdExp(Nm,_Tp,Lc,_Bks,_Tail,Ctx) where (_,VrSpec) ?= locateVar(Nm,Ctx) =>
+    compVar(Lc,VrSpec,Ctx).
   compIdExp(Nm,Tp,Lc,_,_,_) => valof{
     reportError("Cannot locate variable '#(Nm)'",Lc);
     valis ([],Nm)
   }
 
-  compVar:(srcLoc,codeCtx) => (multi[insOp],identifier).
-  compVar(.argVar(Nm,_),_) => ([],Nm).
-  compVar(.lclVar(Nm,_),_) => ([],Nm).
-  compVar(.glbVar(Nm,Tp),Ctx) => valof{
+  compVar:(option[locn],srcLoc,codeCtx) => (multi[insOp],identifier).
+  compVar(_,.argVar(Nm,_),_) => ([],Nm).
+  compVar(_,.lclVar(Nm,_),_) => ([],Nm).
+  compVar(Lc,.glbVar(Nm,Tp),Ctx) => valof{
     TV = defineTmpVar(Tp,Ctx);
-    valis ([.iLG(Nm),.iRSP(TV)],TV)
+    valis (genDbg(Lc,[.iLG(Nm),.iRSP(TV)]),TV)
   }
 
   bindExpsToVars:(cons[cExp],option[locn],breakLvls,codeCtx) => (multi[insOp],cons[identifier]).
@@ -355,7 +389,7 @@ star.compiler.gencode{
     FlVr = defineTmpVar(boolType,Ctx);
     valis [.iLbl(Ok,.iBlock([Vr],
 	  [.iLbl(Fl,.iBlock([],CC++[.iMC(OkVr,.symb(.tLbl("true",0))),.iResult(Ok,[OkVr])])),
-	    .iMC(OkVr,.symb(.tLbl("false",0))),.iResult(Ok,[OkVr])]))]
+	    .iMC(FlVr,.symb(.tLbl("false",0))),.iResult(Ok,[FlVr])]))]
   }
   compExp(C,Lc,_,_,_,_) => valof{
     reportError("cannot compile expression $(C)",Lc);
@@ -421,7 +455,7 @@ star.compiler.gencode{
     }
     | Exp default => valof{
       (EC,EV) = bindExpToVar(Exp,OLc,Brks,.notLast,Ctx);
-      valis EC++[.iIfNot(Fail,EV)]
+      valis EC++[.iCLbl(.tLbl("true",0),Fail,EV)]
     }
   }
 
@@ -441,7 +475,7 @@ star.compiler.gencode{
     }
     | Exp default => valof{
       (EC,EV) = bindExpToVar(Exp,OLc,Brks,.notLast,Ctx);
-      valis EC++[.iIf(Fail,EV)]
+      valis EC++[.iCLbl(.tLbl("false",0),Fail,EV)]
     }
   }
 
@@ -618,15 +652,13 @@ star.compiler.gencode{
 
     CC = compCases(Table,0,Max,GV,Df,Hndlr,Brks,Last,GC,Caser,Ctx);
 
-    valis [.iBlock([],[.iLbl(Df,.iBlock([],CC))]++DC)]
+    valis [.iLbl(Df,.iBlock([],CC))]++DC
   }
 
   compIndexCase:all e ~~ display[e] |=
     (option[locn],cExp,cons[cCase[e]],e,
     caseHandler[e],breakLvls,tailMode,codeCtx) => multi[insOp].
   compIndexCase(Lc,Gv,Cases,Deflt,Hndlr,Brks,Last,Ctx) where hasIndexMap(Ctx,tpName(typeOf(Gv))) => valof{
-    if traceCodegen! then
-      showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
     Df = defineLbl(Ctx,"Df");
     (GC,GVr) = bindExpToVar(Gv,Lc,Brks,.notLast,Ctx);
 
@@ -637,7 +669,7 @@ star.compiler.gencode{
 
     CC = compCases(Table,0,Mx,GVr,Df,Hndlr,Brks,Last,GC,((Bks)=>[.iIxCase(GVr,Bks)]),Ctx);
 
-    valis [.iBlock([],[.iLbl(Df,.iBlock([],CC))]++DC)]
+    valis [.iLbl(Df,.iBlock([],CC))]++DC
   }
   compIndexCase(Lc,Gv,Cases,Deflt,Hndlr,Brks,Last,Ctx) =>
     compCase(Lc,Gv,Cases,Deflt,Hndlr,Brks,Last,Ctx).

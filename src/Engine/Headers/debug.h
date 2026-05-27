@@ -30,6 +30,7 @@ DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr, termPo args);
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl);
 DebugWaitFor retDebug(enginePo p, termPo lc, termPo pr, termPo vl);
 DebugWaitFor xretDebug(enginePo p, termPo lc, termPo pr, termPo vl);
+DebugWaitFor rtnDebug(enginePo p, termPo lc, termPo pr);
 DebugWaitFor assignDebug(enginePo p, termPo lc, termPo dst, termPo src);
 DebugWaitFor fiberDebug(enginePo p, termPo lc, termPo vl);
 DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo cn, termPo evt);

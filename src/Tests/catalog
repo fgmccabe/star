@@ -45,6 +45,7 @@
     "test.cns": "cns.star",
     "test.cnx": "cnx.star",
     "test.coe": "coe.star",
+    "test.coe1": "coe1.star",
     "test.cse": "casetest.star",
     "test.ct0" : "ct0.star",
     "test.ct1" : "ct1.star",

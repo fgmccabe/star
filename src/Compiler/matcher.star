@@ -8,6 +8,7 @@ star.compiler.matcher{
   import star.compiler.misc.
   import star.compiler.normalize.meta.
   import star.compiler.opts.
+  import star.compiler.rewrite.
   import star.compiler.term.
   import star.compiler.types.
 
@@ -27,7 +28,7 @@ star.compiler.matcher{
 
       Error = genRaise(Lc,"function match failure #(Nm)",funTypeRes(Tp));
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-      valis .some(.fnDef(Lc,Nm,Tp,NVrs,Reslt))
+      valis .some(uniqify(.fnDef(Lc,Nm,Tp,NVrs,Reslt)))
     }
     else{
       reportError("Cant create a match for non function type $(Tp)",Lc);
@@ -46,7 +47,7 @@ star.compiler.matcher{
 
       Error = .aAbort(Lc,"function match failure #(Nm)");
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-      valis .some(.prDef(Lc,Nm,Tp,NVrs,Reslt))
+      valis .some(uniqify(.prDef(Lc,Nm,Tp,NVrs,Reslt)))
     }
     else{
       reportError("Cant create a match for non procedure type $(Tp)",Lc);

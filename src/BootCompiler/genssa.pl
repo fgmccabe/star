@@ -437,9 +437,9 @@ compCond(mtch(Lc,P,E),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx) :-!,
   bindExpToVar(E,Lc,Brks,Opts,Vr,L1,L2,D,D1,CB,C1),
   compPtn(P,Vr,Lc,Ok,Brks,Opts,L2,Lx,D1,Dx,C1,[iBreak(Fail)]).
 compCond(E,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  bindExpToVar(E,Lc,Brks,Opts,Vr,L,Lx,D,Dx,C,[iIfNot(Fail,Vr)|Cx]).
+  bindExpToVar(E,Lc,Brks,Opts,Vr,L,Lx,D,Dx,C,[iCLbl(lbl("true",0),Fail,Vr)|Cx]).
 compCond(E,Lc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx) :-
-  bindExpToVar(E,Lc,Brks,Opts,Vr,L,Lx,D,Dx,C,[iIf(Fail,Vr)|Cx]).
+  bindExpToVar(E,Lc,Brks,Opts,Vr,L,Lx,D,Dx,C,[iCLbl(lbl("false",0),Fail,Vr)|Cx]).
 
 % compile expressions
 

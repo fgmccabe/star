@@ -62,10 +62,10 @@ static inline jittedCode jitCode(methodPo mtd) {
 
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
 void recordMethodJitCode(methodPo mtd);
-void rebalanceCodeTree();
 
 #endif
 
+void rebalanceCodeTree();
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackDelta, labelPo lbl);

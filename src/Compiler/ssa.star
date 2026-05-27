@@ -36,8 +36,6 @@ star.compiler.ssa{
     | .iBreak(assemLbl)
     | .iResult(assemLbl, cons[varNm])
     | .iCont(assemLbl)
-    | .iIf(assemLbl, varNm)
-    | .iIfNot(assemLbl, varNm)
     | .iICase(varNm, multi[insOp])
     | .iCase(varNm, multi[insOp])
     | .iIxCase(varNm, multi[insOp])
@@ -198,110 +196,108 @@ star.compiler.ssa{
   mnem(.iBreak(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(15),.intgr(findLevel(Lbls,V0))],Pc+2,Lt0).
   mnem(.iResult(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(16),.intgr(findLevel(Lbls,V0)),mkTpl(findLocals(V1,Lcs))],Pc+3,Lt0).
   mnem(.iCont(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(17),.intgr(findLevel(Lbls,V0))],Pc+2,Lt0).
-  mnem(.iIf(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(18),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iIfNot(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(19),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs)],Pc+3,Lt0).
   mnem(.iICase(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (A1, _, Lt1) = assemBlock(V1,[],Pc+1,[.none,..Lbls],Lt0,Lcs); 
-    valis ([.intgr(20),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
+    valis ([.intgr(18),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
   }
   mnem(.iCase(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (A1, _, Lt1) = assemBlock(V1,[],Pc+1,[.none,..Lbls],Lt0,Lcs); 
-    valis ([.intgr(21),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
+    valis ([.intgr(19),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
   }
   mnem(.iIxCase(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (A1, _, Lt1) = assemBlock(V1,[],Pc+1,[.none,..Lbls],Lt0,Lcs); 
-    valis ([.intgr(22),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
+    valis ([.intgr(20),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
   }
   mnem(.iCLbl(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,.symb(V0)); 
-    valis ([.intgr(23),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
+    valis ([.intgr(21),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
   mnem(.iCInt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(24),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
+    valis ([.intgr(22),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
   mnem(.iCChar(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(25),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
+    valis ([.intgr(23),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
   mnem(.iCFlt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(26),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
+    valis ([.intgr(24),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
   mnem(.iCLit(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(27),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
+    valis ([.intgr(25),.intgr(L1),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
   mnem(.iMC(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V1); 
-    valis ([.intgr(28),findLocal(V0,Lcs),.intgr(L1)],Pc+3,Lt1);
+    valis ([.intgr(26),findLocal(V0,Lcs),.intgr(L1)],Pc+3,Lt1);
   }
-  mnem(.iMv(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(29),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iLG(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(30),.strg(V0)],Pc+2,Lt0).
-  mnem(.iSG(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(31),.strg(V0),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iSav(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(32),findLocal(V0,Lcs)],Pc+2,Lt0).
-  mnem(.iLdSav(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(33),findLocal(V0,Lcs),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iTstSav(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(34),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iStSav(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(35),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iCell(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(36),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iGet(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(37),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iAssign(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(38),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iNth(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(39),findLocal(V0,Lcs),.intgr(V1),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iStNth(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(40),findLocal(V0,Lcs),.intgr(V1),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iIAdd(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(41),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iISub(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(42),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iIMul(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(43),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iIDiv(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(44),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
-  mnem(.iIMod(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(45),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
-  mnem(.iIAbs(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(46),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iIEq(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(47),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iILt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(48),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iIGe(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(49),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iCEq(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(50),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iCLt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(51),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iCGe(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(52),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBAnd(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(53),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBOr(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(54),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBXor(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(55),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBLsl(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(56),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBLsr(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(57),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBAsr(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(58),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iBNot(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(59),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iFAdd(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(60),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iFSub(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(61),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iFMul(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(62),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iFDiv(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(63),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
-  mnem(.iFMod(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(64),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
-  mnem(.iFAbs(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(65),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iFEq(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(66),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iFLt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(67),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
-  mnem(.iFGe(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(68),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iMv(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(27),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iLG(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(28),.strg(V0)],Pc+2,Lt0).
+  mnem(.iSG(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(29),.strg(V0),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iSav(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(30),findLocal(V0,Lcs)],Pc+2,Lt0).
+  mnem(.iLdSav(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(31),findLocal(V0,Lcs),.intgr(findLevel(Lbls,V1)),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iTstSav(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(32),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iStSav(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(33),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iCell(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(34),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iGet(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(35),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iAssign(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(36),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iNth(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(37),findLocal(V0,Lcs),.intgr(V1),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iStNth(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(38),findLocal(V0,Lcs),.intgr(V1),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iIAdd(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(39),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iISub(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(40),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iIMul(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(41),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iIDiv(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(42),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
+  mnem(.iIMod(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(43),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
+  mnem(.iIAbs(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(44),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iIEq(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(45),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iILt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(46),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iIGe(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(47),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iCEq(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(48),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iCLt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(49),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iCGe(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(50),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBAnd(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(51),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBOr(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(52),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBXor(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(53),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBLsl(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(54),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBLsr(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(55),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBAsr(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(56),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iBNot(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(57),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iFAdd(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(58),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iFSub(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(59),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iFMul(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(60),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iFDiv(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(61),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
+  mnem(.iFMod(V0, V1, V2, V3), Pc,Lbls,Lt0,Lcs) => ([.intgr(62),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs),findLocal(V2,Lcs),findLocal(V3,Lcs)],Pc+5,Lt0).
+  mnem(.iFAbs(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(63),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iFEq(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(64),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iFLt(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(65),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
+  mnem(.iFGe(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(66),findLocal(V0,Lcs),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt0).
   mnem(.iAlloc(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,.symb(V0)); 
-    valis ([.intgr(69),.intgr(L1),findLocal(V1,Lcs),mkTpl(findLocals(V2,Lcs))],Pc+4,Lt1);
+    valis ([.intgr(67),.intgr(L1),findLocal(V1,Lcs),mkTpl(findLocals(V2,Lcs))],Pc+4,Lt1);
   }
   mnem(.iClosure(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,.symb(V0)); 
-    valis ([.intgr(70),.intgr(L1),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt1);
+    valis ([.intgr(68),.intgr(L1),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
-  mnem(.iBump(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(71),findLocal(V0,Lcs)],Pc+2,Lt0).
-  mnem(.iDrop(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(72),findLocal(V0,Lcs)],Pc+2,Lt0).
-  mnem(.iFiber(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(73),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iSuspend(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(74),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iResume(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(75),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iRetire(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(76),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iUnderflow, Pc,Lbls,Lt0,Lcs) => ([.intgr(77)],Pc+1,Lt0).
+  mnem(.iBump(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(69),findLocal(V0,Lcs)],Pc+2,Lt0).
+  mnem(.iDrop(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(70),findLocal(V0,Lcs)],Pc+2,Lt0).
+  mnem(.iFiber(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(71),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iSuspend(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(72),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iResume(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(73),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iRetire(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(74),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iUnderflow, Pc,Lbls,Lt0,Lcs) => ([.intgr(75)],Pc+1,Lt0).
   mnem(.iLine(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(78),.intgr(L1)],Pc+2,Lt1);
+    valis ([.intgr(76),.intgr(L1)],Pc+2,Lt1);
   }
   mnem(.iBind(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(79),.intgr(L1),findLocal(V1,Lcs)],Pc+3,Lt1);
+    valis ([.intgr(77),.intgr(L1),findLocal(V1,Lcs)],Pc+3,Lt1);
   }
   mnem(.iDBug(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(80),.intgr(L1)],Pc+2,Lt1);
+    valis ([.intgr(78),.intgr(L1)],Pc+2,Lt1);
   }
 
   mnem(I,Pc,Lbls,Lts,Lcs) => valof{
@@ -363,8 +359,7 @@ star.compiler.ssa{
   showIns:(insOp,integer,integer) => (string,integer).
   showIns(.iLbl(Lb,I),Pc,Sps) => valof{
     (Text,Pcx) = showIns(I,Pc,Sps);
-    Prefix = "#(Lb):\n";
-    valis (Prefix++Text,Pcx)
+    valis ("#(Lb):#(Text)",Pcx)
   }
   showIns(.iHalt(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
@@ -446,16 +441,6 @@ star.compiler.ssa{
   showIns(.iCont(V0), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
     valis ("#(showPc(Pc0,Sps))Cont #(V0)",Pc1+1)
-  }
-  showIns(.iIf(V0, V1), Pc0, Sps) => valof{
-    Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("#(showPc(Pc0,Sps))If #(V0), #(V1)",Pc2+1)
-  }
-  showIns(.iIfNot(V0, V1), Pc0, Sps) => valof{
-    Pc1 = Pc0+1;
-    Pc2 = Pc1+1;
-    valis ("#(showPc(Pc0,Sps))IfNot #(V0), #(V1)",Pc2+1)
   }
   showIns(.iICase(V0, V1), Pc0, Sps) => valof{
     Pc1 = Pc0+1;
@@ -915,13 +900,13 @@ star.compiler.ssa{
     valis Lcls0
   }
   validIns(.iLoop(V0), Lcls0, Lbls) => valof{
-    validBlock(V0,Lcls0,Lbls);
-    valis Lcls0
+    Lcls1 = validBlock(V0,Lcls0,Lbls);
+    valis Lcls1
   }
   validIns(.iBlock(V0, V1), Lcls0, Lbls) => valof{
    Lcls1 = foldRight(((V,Ls)=>Ls[V->.phiVar]),Lcls0,V0);
-   Lcls2 = foldRight(((V,Ls)=>Ls[V->.inited]),Lcls0,V0);
-    validBlock(V1,Lcls1,Lbls);
+    Lcls2 = validBlock(V1,Lcls1,Lbls);
+   Lcls3 = foldRight(((V,Ls)=>Ls[V->.inited]),Lcls2,V0);
     valis Lcls2
   }
   validIns(.iBreak(V0), Lcls0, Lbls) => valof{
@@ -940,37 +925,23 @@ star.compiler.ssa{
    throw .exception("Label #(V0) not in scope");
     valis Lcls0
   }
-  validIns(.iIf(V0, V1), Lcls0, Lbls) => valof{
- if ~ V0 .<. Lbls then
-   throw .exception("Label #(V0) not in scope");
-   if ~varInited(Lcls0, V1) then
-     throw .exception("Var #(V1) in 'If' not inited");
-    valis Lcls0
-  }
-  validIns(.iIfNot(V0, V1), Lcls0, Lbls) => valof{
- if ~ V0 .<. Lbls then
-   throw .exception("Label #(V0) not in scope");
-   if ~varInited(Lcls0, V1) then
-     throw .exception("Var #(V1) in 'IfNot' not inited");
-    valis Lcls0
-  }
   validIns(.iICase(V0, V1), Lcls0, Lbls) => valof{
    if ~varInited(Lcls0, V0) then
      throw .exception("Var #(V0) in 'ICase' not inited");
-    validBlock(V1,Lcls0,Lbls);
-    valis Lcls0
+    Lcls1 = validBlock(V1,Lcls0,Lbls);
+    valis Lcls1
   }
   validIns(.iCase(V0, V1), Lcls0, Lbls) => valof{
    if ~varInited(Lcls0, V0) then
      throw .exception("Var #(V0) in 'Case' not inited");
-    validBlock(V1,Lcls0,Lbls);
-    valis Lcls0
+    Lcls1 = validBlock(V1,Lcls0,Lbls);
+    valis Lcls1
   }
   validIns(.iIxCase(V0, V1), Lcls0, Lbls) => valof{
    if ~varInited(Lcls0, V0) then
      throw .exception("Var #(V0) in 'IxCase' not inited");
-    validBlock(V1,Lcls0,Lbls);
-    valis Lcls0
+    Lcls1 = validBlock(V1,Lcls0,Lbls);
+    valis Lcls1
   }
   validIns(.iCLbl(V0, V1, V2), Lcls0, Lbls) => valof{
  if ~ V1 .<. Lbls then
@@ -1461,5 +1432,5 @@ star.compiler.ssa{
   hasEntryInstruction([_,..Ins]) => hasEntryInstruction(Ins).
   hasEntryInstruction([]) => .none.
 
-  public opcodeHash = 1457260803800190732.
+  public opcodeHash = 332576119736608400.
 }

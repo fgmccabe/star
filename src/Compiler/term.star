@@ -235,6 +235,9 @@ star.compiler.term{
     Ar = size(Args)
   } in .cTerm(Lc,tplLbl(Ar), Args, TpTp).
 
+  public mcEnum:(option[locn],string,tipe) => cExp.
+  mcEnum(Lc,Nm,Tp) => .cTerm(Lc,Nm,[],Tp).
+
   public contract all e ~~ rewrite[e] ::= {
     rewrite:(e,(cExp)=>option[cExp])=>e
   }
@@ -679,13 +682,16 @@ star.compiler.term{
     def(V,M) where Nm .= lName(V) => (_ ?= M[Nm] ?? M || M[Nm->newVar(V)]).
   } in [foldLeft(def,Mp,Vrs),..Ms].
 
-  newVar(.cV(Nm,Tp)) => .cVar(.none,.cV(genId(Nm),Tp)).
+  public newVar(.cV(Nm,Tp)) => .cVar(.none,.cV(genId(Nm),Tp)).
 
   pushScope:(scope) => scope.
   pushScope(Sc) => [[],..Sc].
 
   public lName:(cV) => termLbl.
   lName(.cV(Nm,Tp)) => .tLbl(Nm,arity(Tp)).
+
+  public vName:(cV) => string.
+  vName(.cV(Nm,_)) => Nm.
 
   frshnA:(aAction,scope)=>aAction.
   frshnA(Ac,Sc) => case Ac in {
@@ -760,7 +766,7 @@ star.compiler.term{
     | .cCnj(_,_,_)=>.true
     | .cDsj(_,_,_)=>.true
     | .cNeg(_,_)=>.true
-    | .cCnd(_,_,L,R)=>isCond(L)&&isCond(R)
+    | .cCnd(_,_,L,R)=>(isCond(L)||isCond(R))
     | .cMatch(_,_,_)=>.true
     | _ default => .false
   }
@@ -1026,7 +1032,7 @@ star.compiler.term{
     | .aAbort(_,_) => .true
   }
 
-  ptnVrs:(cExp,set[cV]) => set[cV].
+  public ptnVrs:(cExp,set[cV]) => set[cV].
   ptnVrs(E,Vrs) => case E in {
     | .cVoid(_) => Vrs
     | .cAnon(_,_) => Vrs

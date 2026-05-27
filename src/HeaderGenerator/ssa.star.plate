@@ -144,8 +144,7 @@ star.compiler.ssa{
   showIns:(insOp,integer,integer) => (string,integer).
   showIns(.iLbl(Lb,I),Pc,Sps) => valof{
     (Text,Pcx) = showIns(I,Pc,Sps);
-    Prefix = "\#(Lb):\n";
-    valis (Prefix++Text,Pcx)
+    valis ("\#(Lb):\#(Text)",Pcx)
   }
 #(Show)
 
