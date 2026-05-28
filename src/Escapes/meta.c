@@ -2,6 +2,8 @@
 // Created by Francis McCabe on 6/25/25.
 //
 #include <errorCodes.h>
+
+#include "abort.h"
 #include "arith.h"
 #include "debug.h"
 #include "escapeP.h"
@@ -14,11 +16,9 @@ ValueReturn s__abort(enginePo P, termPo lc, termPo msg) {
 }
 
 void abort_star(enginePo P, termPo lc, termPo msg) {
-  char msgStr[MAX_SYMB_LEN];
-  strMsg(msgStr,NumberOf(msgStr), "Abort %T at %L", msg, lc);
-  verifyProc(P, processHeap(P));
+  outMsg(logFile, "Abort %T at %L\n", msg);
   stackTrace(P, logFile, P->stk, displayDepth, showPrognames, 32);
-  syserr(msgStr);
+  star_exit(P,abortCode);
 }
 
 ValueReturn s__stackTrace(enginePo P) {

@@ -20,7 +20,7 @@ test.do13{
       show BB;
       assert BB == 6;
       XX = maybeFail(10);
-      assert .false  -- never get here
+      unreachable  -- never get here
     } catch {
       (Ix) do {
 	assert Ix==10

@@ -29,7 +29,7 @@ star.compiler.gencode{
   }
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
-  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
+--  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
   declGlobal(_,Vrs) => Vrs.
 
   declType:(decl,map[string,indexMap])=>map[string,indexMap].
@@ -211,7 +211,28 @@ star.compiler.gencode{
   compExp(.cUnrch(Lc,_),_,_,_,_,Ctx) => compAbort(Lc,"unreachable",Ctx).
   compExp(.cAbort(Lc,Msg,_),_,_,_,_,Ctx) => compAbort(Lc,Msg,Ctx).
   compExp(E,_Lc,Vr,Brks,Last,Ctx) where isGround(E) => [.iMC(Vr,E:?data)].
-  compExp(.cVar(_,.cV(S,_)),_Lc,D,Brks,Last,Ctx) => [.iMv(D,S)].
+  -- compExp(.cVar(_,.cV(S,Tp)),Lc,Vr,Brks,Last,Ctx) => valof{
+  --   (VCde,SVr) = compIdExp(S,Tp,Lc,Brks,.notLast,Ctx);
+  --   valis VCde++[.iMv(Vr,SVr)]
+  -- }
+  compExp(.cVar(_,.cV(S,Tp)),Lc,Vr,Brks,Last,Ctx) => valof{
+    if (_,VrSpec) ?= locateVar(S,Ctx) then{
+      case VrSpec in {
+	| .argVar(Nm,_) do{
+	  valis [.iMv(Vr,Nm)]
+	}
+	| .lclVar(Nm,_) do{
+	  valis [.iMv(Vr,Nm)]
+	}
+	| .glbVar(Nm,_) do{
+	  valis genDbg(Lc,[.iLG(Nm),.iRSP(Vr)])
+	}
+      }
+    } else {
+      reportError("Cannot locate variable '#(S)'",Lc);
+      valis []
+    }
+  }
   compExp(.cVoid(_),_Lc,Vr,Brks,Last,Ctx) => [.iMC(Vr,.symb(.tLbl("void",0)))].
   compExp(.cAnon(_,_),_Lc,Vr,Brks,Last,Ctx) => [.iMC(Vr,.symb(.tLbl("void",0)))].
   compExp(.cTerm(_,Nm,Args,_),Lc,Vr,Brks,Last,Ctx) => valof{
@@ -471,7 +492,7 @@ star.compiler.gencode{
       NegOk = defineLbl(Ctx,"NegOk");
       (EC,EV) = bindExpToVar(Exp,Lc,Brks,.notLast,Ctx);
       PC = compPtn(Ptn,Lc,EV,NegOk,Brks,Ctx);
-      valis chLine(OLc,Lc)++EC++[.iLbl(NegOk,.iBlock([],EC++PC++[.iBreak(Fail)]))]
+      valis chLine(OLc,Lc)++EC++[.iLbl(NegOk,.iBlock([],PC++[.iBreak(Fail)]))]
     }
     | Exp default => valof{
       (EC,EV) = bindExpToVar(Exp,OLc,Brks,.notLast,Ctx);
