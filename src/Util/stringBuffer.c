@@ -14,9 +14,9 @@
 
 static void initBufferClass(classPo class, classPo req);
 static void BufferDestroy(objectPo o);
-static void BufferInit(objectPo o, va_list *args);
-static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual);
-static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual);
+static void BufferInit(objectPo o, va_list* args);
+static retCode bufferInBytes(ioPo io, byte* ch, integer count, integer* actual);
+static retCode bufferOutBytes(ioPo io, byte* b, integer count, integer* actual);
 static retCode bufferBackByte(ioPo io, byte b);
 static retCode bufferInputReady(ioPo io, integer count);
 static retCode bufferOutputReady(ioPo io, integer count);
@@ -27,45 +27,45 @@ static retCode bufferSeek(ioPo io, integer pos);
 
 BufferClassRec StrBufferClass = {
   .objectPart = {
-    .parent = (classPo) &IoClass,                    /* parent class is io object */
-    .className = "buffer",                             /* this is the buffer class */
-    .classInit = initBufferClass,                      /* Buffer class initializer */
+    .parent = (classPo)&IoClass,  /* parent class is io object */
+    .className = "buffer",        /* this is the buffer class */
+    .classInit = initBufferClass, /* Buffer class initializer */
     .classInherit = O_INHERIT_DEF,
-    .create = O_INHERIT_DEF,                        /* Buffer object element creation */
-    .destroy = BufferDestroy,                        /* Buffer objectdestruction */
-    .erase = O_INHERIT_DEF,                        /* erasure */
-    .init = BufferInit,                           /* initialization of a buffer object */
-    .size = sizeof(BufferObject),                 /* size of a buffer object */
-    .pool = NULL,                                 /* pool of buffer values */
-    .hashCode = O_INHERIT_DEF,                        // No special hash function
-    .equality = O_INHERIT_DEF,                        // No special equality
-    .inited = PTHREAD_ONCE_INIT,                    /* not yet initialized */
+    .create = O_INHERIT_DEF,      /* Buffer object element creation */
+    .destroy = BufferDestroy,     /* Buffer objectdestruction */
+    .erase = O_INHERIT_DEF,       /* erasure */
+    .init = BufferInit,           /* initialization of a buffer object */
+    .size = sizeof(BufferObject), /* size of a buffer object */
+    .pool = NULL,                 /* pool of buffer values */
+    .hashCode = O_INHERIT_DEF,    // No special hash function
+    .equality = O_INHERIT_DEF,    // No special equality
+    .inited = PTHREAD_ONCE_INIT,  /* not yet initialized */
     .mutex = PTHREAD_MUTEX_INITIALIZER
   },
   .lockPart = {},
   .ioPart = {
-    .read =bufferInBytes,                           /* inByte  */
-    .write = bufferOutBytes,                        /* outBytes  */
-    .backByte = bufferBackByte,                      /* backByte */
+    .read = bufferInBytes,      /* inByte  */
+    .write = bufferOutBytes,    /* outBytes  */
+    .backByte = bufferBackByte, /* backByte */
     .inputReady = bufferInputReady,
     .outputReady = bufferOutputReady,
-    .isAtEof = bufferAtEof,                          /* at end of file? */
-    .close = bufferClose,                           /* close  */
-    .position = bufferPos,                          // Report position in buffer
-    .seek = bufferSeek,                             // Move buffer position
-  }};
+    .isAtEof = bufferAtEof, /* at end of file? */
+    .close = bufferClose,   /* close  */
+    .position = bufferPos,  // Report position in buffer
+    .seek = bufferSeek,     // Move buffer position
+  }
+};
 
-classPo strBufferClass = (classPo) &StrBufferClass;
+classPo strBufferClass = (classPo)&StrBufferClass;
 
-static void initBufferClass(classPo class, classPo req) {
-}
+static void initBufferClass(classPo class, classPo req) {}
 
 logical isAStringBuffer(objectPo o) {
   return objectHasClass(o, strBufferClass);
 }
 
 // IO initialization should already be done at this point
-static void BufferInit(objectPo o, va_list *args) {
+static void BufferInit(objectPo o, va_list* args) {
   strBufferPo f = O_BUFFER(o);
 
   // Set up the buffer pointers
@@ -73,7 +73,7 @@ static void BufferInit(objectPo o, va_list *args) {
   setEncoding(O_IO(f), va_arg(*args, ioEncoding)); /* set up the encoding */
   f->buffer.buffer = va_arg(*args, char *);
   f->buffer.bufferSize = va_arg(*args, integer); /* set up the buffer */
-  f->io.mode = va_arg(*args, ioDirection); /* set up the access mode */
+  f->io.mode = va_arg(*args, ioDirection);       /* set up the access mode */
   f->buffer.resizeable = va_arg(*args, logical); /* is this buffer resizeable? */
   if (f->buffer.buffer == Null && f->buffer.bufferSize == 0 && f->buffer.resizeable) {
     f->buffer.buffer = f->buffer.line;
@@ -94,7 +94,6 @@ static void BufferDestroy(objectPo o) {
 
 // Implement class buffer functions
 
-
 retCode bufferInputReady(ioPo io, integer count) {
   if (isReadingFile(io) && isAStringBuffer(O_OBJECT(io))) {
     strBufferPo str = O_BUFFER(io);
@@ -103,7 +102,8 @@ retCode bufferInputReady(ioPo io, integer count) {
       return Ok;
     else
       return Fail;
-  } else
+  }
+  else
     return Error;
 }
 
@@ -117,11 +117,12 @@ retCode bufferOutputReady(ioPo io, integer count) {
       return Ok;
     else
       return Fail;
-  } else
+  }
+  else
     return Error;
 }
 
-static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) {
+static retCode bufferInBytes(ioPo io, byte* ch, integer count, integer* actual) {
   retCode ret = Ok;
   integer remaining = count;
   strBufferPo f = O_BUFFER(io);
@@ -131,8 +132,9 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
       if (remaining == count)
         ret = Eof;
       break;
-    } else {
-      *ch++ = (byte) f->buffer.buffer[f->buffer.pos++];
+    }
+    else {
+      *ch++ = (byte)f->buffer.buffer[f->buffer.pos++];
       remaining--;
     }
   }
@@ -146,27 +148,30 @@ static retCode ensureSpace(strBufferPo f, integer count) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1) + count; /* allow for some growth */
 
-      char *nbuff;
+      char* nbuff;
 
       if (f->buffer.buffer == f->buffer.line) {
         nbuff = malloc(sizeof(char) * nlen);
         memcpy(nbuff, f->buffer.line, f->buffer.bufferSize);
-      } else
+      }
+      else
         nbuff = realloc(f->buffer.buffer, sizeof(char) * nlen);
 
       if (nbuff != NULL) {
         f->buffer.buffer = nbuff;
         f->buffer.bufferSize = nlen;
-      } else
+      }
+      else
         syserr("could not allocate more space for buffer");
-    } else {
+    }
+    else {
       return Fail;
     }
   }
   return Ok;
 }
 
-static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) {
+static retCode bufferOutBytes(ioPo io, byte* b, integer count, integer* actual) {
   strBufferPo f = O_BUFFER(io);
 
   retCode ret = ensureSpace(f, count);
@@ -184,7 +189,8 @@ static retCode bufferBackByte(ioPo io, byte b) {
   if (f->buffer.pos > 0) {
     f->buffer.buffer[--f->buffer.pos] = b;
     return Ok;
-  } else
+  }
+  else
     return Error;
 }
 
@@ -232,7 +238,7 @@ strBufferPo newStringBuffer() {
   return O_BUFFER(newObject(strBufferClass, "buffer", utf8Encoding, Null, 0, ioWRITE, True));
 }
 
-strBufferPo newReadStringBuffer(char *text, integer textLen) {
+strBufferPo newReadStringBuffer(char* text, integer textLen) {
   char name[MAX_SYMB_LEN];
 
   strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
@@ -240,12 +246,12 @@ strBufferPo newReadStringBuffer(char *text, integer textLen) {
   return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, text, textLen, ioREAD, False));
 }
 
-strBufferPo fixedStringBuffer(char *buffer, long len) {
-  char *name = "buffer";
+strBufferPo fixedStringBuffer(char* buffer, long len) {
+  char* name = "buffer";
   return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, buffer, len, ioWRITE, False));
 }
 
-char *getTextFromBuffer(strBufferPo s, integer *len) {
+char* getTextFromBuffer(strBufferPo s, integer* len) {
   *len = s->buffer.size;
 
   ensureSpace(s, 1);
@@ -287,7 +293,7 @@ retCode insertIntoStringBuffer(strBufferPo b, codePoint ch) {
   return Ok;
 }
 
-retCode appendIntoStrBuffer(strBufferPo b, const char *text, integer txtLen) {
+retCode appendIntoStrBuffer(strBufferPo b, const char* text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
     b->buffer.buffer[b->buffer.pos++] = text[ix];
@@ -296,7 +302,7 @@ retCode appendIntoStrBuffer(strBufferPo b, const char *text, integer txtLen) {
   return Ok;
 }
 
-retCode appendToStrBuffer(strBufferPo b, const char *text, integer txtLen) {
+retCode appendToStrBuffer(strBufferPo b, const char* text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
     b->buffer.buffer[b->buffer.size++] = text[ix];
@@ -338,7 +344,8 @@ retCode deleteFromStrBuffer(strBufferPo b, integer len) {
       b->buffer.buffer[from + px] = b->buffer.buffer[endPt + px];
 
     b->buffer.size -= (endPt - from);
-  } else {
+  }
+  else {
     integer tgtPt = backCodePoint(b->buffer.buffer, endPt, -len);
     integer remaining = strBufferLength(b) - from;
 
@@ -357,10 +364,12 @@ strgPo stringFromBuffer(strBufferPo b) {
   return newStrng(b->buffer.size, b->buffer.buffer);
 }
 
-retCode showStringBuffer(ioPo f, void *data, long depth, long precision, logical alt) {
+retCode showStringBuffer(ioPo f, void* data, long depth, long precision, logical alt) {
   strBufferPo b = O_BUFFER(data);
   integer bufLen;
-  char *content = getTextFromBuffer(b, &bufLen);
+  char* content = getTextFromBuffer(b, &bufLen);
 
-  return outMsg(f, "«%S»", content, bufLen);
+  if (alt)
+    return outMsg(f, "«%S»", content, bufLen);
+  else return outMsg(f, "%S", content, bufLen);
 }

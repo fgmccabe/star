@@ -9,6 +9,7 @@
 #include "template.h"
 #include "formexts.h"
 #include "ssaOps.h"
+#include "stringBufferP.h"
 
 /* Generate a Star module, that knows how to assemble a program */
 
@@ -37,9 +38,11 @@ typedef struct {
   ioPo outFl;
   strBufferPo line;
   strBufferPo aux;
+  strBufferPo pcbuff;
   int32 vNo;
   int32 ltNo;
   int32 pcNo;
+  int32 insSize;
 } AsmInfoRecord, *asmInfoPo;
 
 static void genAsm(hashPo vars);
@@ -52,6 +55,7 @@ static void generateVerify(hashPo vars);
 int main(int argc, char** argv) {
   initLogfile("-");
   installMsgProc('P', genQuotedStr);
+  installMsgProc('B', showStringBuffer);
   int narg = getOptions(argc, argv);
 
   if (narg < 0) {
@@ -114,7 +118,7 @@ int main(int argc, char** argv) {
     char* typeCode = getTextFromBuffer(typeBuff, &tpLen);
     hashPut(vars, "OpCodes", typeCode);
 
-    generateDisplay(vars);
+    // generateDisplay(vars);
     generateVerify(vars);
 
     genAsm(vars);
@@ -249,9 +253,10 @@ static void genAsm(hashPo vars) {
   // Set up the assembler proper
   strBufferPo mnemBuff = newStringBuffer();
   strBufferPo auxBuff = newStringBuffer();
+  strBufferPo pcBuff = newStringBuffer();
   strBufferPo lineBuff = newStringBuffer();
 
-  AsmInfoRecord info = {.outFl = O_IO(mnemBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .ltNo = 0};
+  AsmInfoRecord info = {.outFl = O_IO(mnemBuff), .line = lineBuff, .aux = auxBuff, .pcbuff = pcBuff, .vNo = 0, .ltNo = 0};
 
 #undef instr
 #define instr(M, Fmt) genStarMnem(&info, #M, s##M, Fmt);
@@ -317,8 +322,9 @@ static void generateDisplay(hashPo vars) {
   strBufferPo showBuff = newStringBuffer();
   strBufferPo lineBuff = newStringBuffer();
   strBufferPo auxBuff = newStringBuffer();
+  strBufferPo pcBuff = newStringBuffer();
 
-  AsmInfoRecord info = {.outFl = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0};
+  AsmInfoRecord info = {.outFl = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .pcbuff = pcBuff, .vNo = 0};
 
 #undef instr
 #define instr(M, Fmt) showIns(&info, #M, s##M, Fmt);
@@ -343,8 +349,7 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s#(V%d)", sep, vNo);
       sep = ", ";
-      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
-      info->pcNo++;
+      outMsg(O_IO(info->pcbuff), "+1");
       continue;
     }
     case Slcls:
@@ -353,8 +358,7 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s#(showLocals(V%d))", sep, vNo);
       sep = ", ";
-      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+size(V%d)+1;\n", info->pcNo + 1, info->pcNo, vNo);
-      info->pcNo++;
+      outMsg(O_IO(info->pcbuff), "+size(V%d)+1", vNo);
       continue;
     }
     case Slit:
@@ -362,8 +366,7 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s$(V%d)", sep, vNo);
       sep = ", ";
-      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
-      info->pcNo++;
+      outMsg(O_IO(info->pcbuff), "+1");
       continue;
     }
     case Sart:
@@ -372,23 +375,22 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s$(V%d)", sep, vNo);
       sep = ", ";
-      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
-      info->pcNo++;
+      outMsg(O_IO(info->pcbuff), "+1");
       continue;
     }
     case SlVl: {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s#(V%d)", sep, vNo);
       sep = ", ";
-      outMsg(O_IO(info->aux), "    Pc%d = Pc%d+1;\n", info->pcNo + 1, info->pcNo);
-      info->pcNo++;
+      outMsg(O_IO(info->pcbuff), "+1");
       continue;
     }
     case SbLk: {
       int32 vNo = ix++;
       outMsg(O_IO(info->line), "%s#(InsTxt)", sep, vNo);
       sep = ", ";
-      outMsg(O_IO(info->aux), "    (InsTxt,Pc%d) = showBlock(V%d,Pc%d,Sps+2);\n", info->pcNo + 1, vNo, info->pcNo);
+      outMsg(O_IO(info->aux), "    (InsTxt,Pc%d) = showBlock(V%d,Pc%d%B+1,Sps+2);\n", info->pcNo+1, vNo,info->pcNo, info->pcbuff);
+      clearStrBuffer(info->pcbuff);
       info->pcNo++;
       continue;
     }
@@ -403,9 +405,13 @@ static void genDisp(asmInfoPo info, char* fmt, int32 arity) {
 void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
   clearStrBuffer(info->line);
   clearStrBuffer(info->aux);
+  clearStrBuffer(info->pcbuff);
   info->vNo = 0;
   info->pcNo = 0;
   int32 arity = 0;
+
+  outMsg(O_IO(info->pcbuff), "    Pc%d = Pc%d", info->pcNo+1,info->pcNo);
+
   outMsg(info->outFl, "  showIns(.i%s", capitalize(mnem));
   if (*fmt != '\0') {
     outMsg(info->outFl, "(");
@@ -413,9 +419,12 @@ void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
     outMsg(info->outFl, ")");
   }
   int32 basePc = info->pcNo;
-  outMsg(info->outFl, ", Pc%d, Sps) => valof{\n", info->pcNo);
+  outMsg(info->outFl, ", Pc%d, Sps) => valof{\n", basePc);
 
+  info->insSize = arity + 1;
   genDisp(info, fmt, arity);
+
+  outMsg(info->outFl, "%B", info->pcbuff);
 
   integer auxLen;
   char* aux = getTextFromBuffer(info->aux, &auxLen);
@@ -423,8 +432,8 @@ void showIns(asmInfoPo info, char* mnem, ssaOp op, char* fmt) {
 
   integer lineLen;
   char* line = getTextFromBuffer(info->line, &lineLen);
-  outMsg(info->outFl, "    valis (\"#(showPc(Pc%d,Sps))%s%S\",Pc%d+1)\n", basePc, capitalize(mnem), line, lineLen,
-         info->pcNo);
+  outMsg(info->outFl, "    valis (\"#(showPc(Pc%d,Sps))%s%S\",Pc%d)\n", basePc, capitalize(mnem), line, lineLen,
+         info->pcNo+1);
   outMsg(info->outFl, "  }\n");
 }
 
@@ -435,7 +444,7 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
     switch (*fmt++) {
     case Slcl: {
       outMsg(O_IO(info->line), "%s  if ~varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
-      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' not inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' not inited\");\n", sep, vx, mnem);
       vx++;
       continue;
     }
@@ -451,7 +460,7 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
     }
     case SoUt: {
       outMsg(O_IO(info->line), "%s  if varInited(Lcls%d, V%d) then\n", sep, info->vNo, vx);
-      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx, mnem);
       outMsg(O_IO(info->line), "%s  Lcls%d = markInited(Lcls%d,V%d);\n", sep, info->vNo + 1, info->vNo, vx);
       vx++;
       info->vNo++;
@@ -459,19 +468,19 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
     }
     case SpHi: {
       outMsg(O_IO(info->line), "%sif ~varPhi(Lcls%d, V%d) then", sep, info->vNo, vx);
-      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' not phi var\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' not phi var\");\n", sep, vx, mnem);
       vx++;
       continue;
     }
     case Slcls: {
       outMsg(O_IO(info->line), "%s if ~ {? Vv in V%d *> varInited(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
-      outMsg(O_IO(info->line), "%s    throw .exception(\"Var $(V%d) in '%s' not inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var $(V%d) in '%s' not inited\");\n", sep, vx, mnem);
       vx++;
       continue;
     }
     case SoUts: {
       outMsg(O_IO(info->line), "%sif ~ {? Vv in V%d *> varFresh(Lcls%d,Vv) ?} then", sep, vx, info->vNo);
-      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx,mnem);
+      outMsg(O_IO(info->line), "%s    throw .exception(\"Var #(V%d) in '%s' already inited\");\n", sep, vx, mnem);
       vx++;
       continue;
     }
@@ -479,7 +488,7 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
       outMsg(O_IO(info->line), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.phiVar]),Lcls%d,V%d);\n",
              sep, info->vNo + 1, info->vNo, vx);
       outMsg(O_IO(info->aux), "%s  Lcls%d = foldRight(((V,Ls)=>Ls[V->.inited]),Lcls%d,V%d);\n",
-             sep, info->vNo + 3, info->vNo+2, vx);
+             sep, info->vNo + 3, info->vNo + 2, vx);
       vx++;
       info->vNo++;
       continue;
@@ -500,7 +509,7 @@ static void genArgValidation(asmInfoPo info, char* fmt, char* mnem, int32 arity)
     }
     case SbLk: {
       int32 vNo = vx++;
-      outMsg(O_IO(info->line), "    Lcls%d = validBlock(V%d,Lcls%d,Lbls);\n", info->vNo+1, vNo, info->vNo);
+      outMsg(O_IO(info->line), "    Lcls%d = validBlock(V%d,Lcls%d,Lbls);\n", info->vNo + 1, vNo, info->vNo);
       integer lineLen;
       char* line = getTextFromBuffer(info->aux, &lineLen);
       outMsg(O_IO(info->line), "%s", line);

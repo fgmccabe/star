@@ -736,7 +736,12 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,Ix) ?= isTupleAcc(A) => valof{
     RtTp = newTypeVar("R");
     Rc = typeOfExp(R,RtTp,ErTp,Env,Path);
-    valis .tdot(Lc,Rc,Ix,Tp)
+    if _ ?= isTupleType(RtTp) then
+      valis .tdot(Lc,Rc,Ix,Tp)
+    else{
+      reportError("$(R)\:$(RtTp) not known to be a tuple type",Lc);
+      valis .anon(Lc,Tp)
+    }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,Fld,V) ?= isRecordUpdate(A) => valof{
     Rc = typeOfExp(R,Tp,ErTp,Env,Path);
@@ -853,7 +858,6 @@ star.compiler.checker{
       valis .anon(Lc,Tp)
     }
   }
-  
   typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,E) ?= isThunk(A) =>
     typeOfThunk(Lc,E,Tp,Env,Path).
   typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,E) ?= isThunkRef(A) => valof{

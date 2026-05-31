@@ -914,7 +914,7 @@ star.compiler.term{
       valis .false
     }
     | .cVar(Lc,V) =>  V .<. Vrs ?? .true || valof{
-      reportError("variable $(V)\:$(typeOf(V)) not in scope",Lc);
+      reportError("variable $(V) not in scope",Lc);
       valis .false
     }
     | .cInt(_,_) => .true

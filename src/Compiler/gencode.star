@@ -402,15 +402,15 @@ star.compiler.gencode{
     AC = compAction(A,Lc,Brks["$valof"->VLbl],Last,Ctx);
     valis chLine(OLc,Lc)++[.iLbl(VLbl,.iBlock([Vr],AC))]
   }
-  compExp(C where isCond(C),OLc,Vr,Brks,Last,Ctx) => valof{
+  compExp(C where isCond(C),Lc,Vr,Brks,Last,Ctx) => valof{
     Ok = defineLbl(Ctx,"CndOk");
     Fl = defineLbl(Ctx,"Fl");
-    CC = compCond(C,OLc,Fl,Brks,Ctx);
+    CC = compCond(C,Lc,Fl,Brks,Ctx);
     OkVr = defineTmpVar(boolType,Ctx);
     FlVr = defineTmpVar(boolType,Ctx);
     valis [.iLbl(Ok,.iBlock([Vr],
-	  [.iLbl(Fl,.iBlock([],CC++[.iMC(OkVr,.symb(.tLbl("true",0))),.iResult(Ok,[OkVr])])),
-	    .iMC(FlVr,.symb(.tLbl("false",0))),.iResult(Ok,[FlVr])]))]
+	  [.iLbl(Fl,.iBlock([],CC++[.iMC(OkVr,trueEnum),.iResult(Ok,[OkVr])])),
+	    .iMC(FlVr,falseEnum),.iResult(Ok,[FlVr])]))]
   }
   compExp(C,Lc,_,_,_,_) => valof{
     reportError("cannot compile expression $(C)",Lc);

@@ -5,12 +5,11 @@ test.sys{
 
   main:(){}.
   main(){
-    show envir();
-
     assert ~ ("$$","$$") .<. envir();
     assert getenv("$$")==.none;
 
     setenv("$$","$$");
+    show envir();
     assert "$$" ?= getenv("$$");
 
     assert ("$$","$$") .<. envir();

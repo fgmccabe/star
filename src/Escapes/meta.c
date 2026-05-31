@@ -16,7 +16,7 @@ ValueReturn s__abort(enginePo P, termPo lc, termPo msg) {
 }
 
 void abort_star(enginePo P, termPo lc, termPo msg) {
-  outMsg(logFile, "Abort %T at %L\n", msg);
+  outMsg(logFile, "Abort %T at %L\n", msg, lc);
   stackTrace(P, logFile, P->stk, displayDepth, showPrognames, 32);
   star_exit(P,abortCode);
 }

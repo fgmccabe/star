@@ -24,5 +24,10 @@ test.u3{
   right(.cons(X,Y)) => (X,Y).
 
   join(X,Y) => X.
+
+  -- Dummy main program, this is a compilation test.
+  main:(){}.
+  main(){
+  }
 }
       

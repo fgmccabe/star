@@ -132,7 +132,7 @@ star.compiler{
 	if errorFree() && ~ macroOnly! then{
 	  (PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
 	  if showCanon! then {
-	    showMsg("type checked definitions #(displayDefs(Defs))");
+	    showMsg("type checked definitions:\n#(displayDefs(Defs))");
 	  };
 	  
 	  if errorFree() && ~ typeCheckOnly! then {

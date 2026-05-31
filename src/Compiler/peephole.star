@@ -44,6 +44,8 @@ star.compiler.peephole{
   vrRead(Vr,.iAbort(_,V)) => V==Vr.
   vrRead(Vr,.iRet(V)) => V==Vr.
   vrRead(Vr,.iXRet(V)) => V==Vr.
+
+  vrRead(Vr,.iRSX(_,V)) => V==Vr. -- special case, because of the jump
   
   vrRead(Vr,.iBlock(As,Is)) => Vr.<.As || varRead(Vr,Is).
   vrRead(Vr,.iLoop(Is)) => varRead(Vr,Is).
@@ -217,8 +219,9 @@ star.compiler.peephole{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
     if lblReferenced(Lb,Is0) then
       valis [.iLbl(Lb,.iBlock(Vs,Is0)),..peep(Ins,Lbls)]
-    else
-    valis peepCode(Is0++Ins,Lbls)
+    else{
+      valis peepCode(Is0++Ins,Lbls)
+    }
   }
   peep([.iLbl(Lb,.iLoop(Is)),..Ins],Lbls) => valof{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);

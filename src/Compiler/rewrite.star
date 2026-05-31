@@ -76,8 +76,13 @@ star.compiler.rewrite{
     | .cDsj(_,_,_) => rwGoal(Trm,Mp,ExtFn)
     | .cNeg(_,_) =>rwGoal(Trm,Mp,ExtFn)
     | .cCnd(Lc,G,L,R) => valof{
-      NM = ExtFn(.inGoal(G),Mp);
-      valis .cCnd(Lc,rwGoal(G,NM,ExtFn), rwTerm(L,NM,ExtFn), rwTerm(R,NM,ExtFn))
+      if isCond(L) || isCond(R) then
+	valis rwGoal(Trm,Mp,ExtFn)
+      else{
+	NM = ExtFn(.inGoal(G),Mp);
+
+	valis .cCnd(Lc,rwGl(G,NM,ExtFn),rwTerm(L,NM,ExtFn),rwTerm(R,Mp,ExtFn))
+      }
     }
     | .cLtt(Lc,LV,D,E) => valof{
       NMp = ExtFn(.inLet(LV),Mp);
@@ -133,21 +138,28 @@ star.compiler.rewrite{
   rwPtns(Ts,Mp,Ex) => foldRight((A,Ti)=>[rwPtn(A,Mp,Ex),..Ti],[],Ts).
 
   rwGoal:(cExp,rwMap,extMap)=>cExp.
-  rwGoal(Gl,Mp,ExtFn) => case Gl in {
-    | .cSeq(Lc,L,R) =>.cSeq(Lc,rwGoal(L,Mp,ExtFn),rwGoal(R,Mp,ExtFn))
-    | .cCnj(Lc,L,R) =>.cCnj(Lc,rwGoal(L,Mp,ExtFn),rwGoal(R,Mp,ExtFn))
+  rwGoal(Gl,Mp,ExtFn) => valof{
+    NMp = ExtFn(.inGoal(Gl),Mp);
+    valis rwGl(Gl,NMp,ExtFn)
+  }
+
+  rwGl:(cExp,rwMap,extMap)=>cExp.
+  rwGl(Gl,Mp,ExtFn) => case Gl in {
+    | .cSeq(Lc,L,R) =>.cSeq(Lc,rwGl(L,Mp,ExtFn),rwGl(R,Mp,ExtFn))
+    | .cCnj(Lc,L,R) =>.cCnj(Lc,rwGl(L,Mp,ExtFn),rwGl(R,Mp,ExtFn))
     | .cDsj(Lc,L,R) => valof{
       DVrs = glVars(Gl,[]);
       if isEmpty(DVrs) then
-	valis .cDsj(Lc,rwGoal(L,Mp,ExtFn),rwGoal(R,Mp,ExtFn))
+	valis .cDsj(Lc,rwGl(L,Mp,ExtFn),rwGl(R,Mp,ExtFn))
       else
       valis rwDisjunction(Lc,L,R,Mp,ExtFn,DVrs)
     }
-    | .cNeg(Lc,R) =>.cNeg(Lc,rwGoal(R,Mp,ExtFn))
-    | .cCnd(Lc,G,L,R) =>
-
-      .cCnd(Lc,rwGoal(G,Mp,ExtFn),rwGoal(L,Mp,ExtFn),rwGoal(R,Mp,ExtFn))
-    | .cMatch(Lc,P,E) => .cMatch(Lc,rwPtn(P,Mp,ExtFn),rwGoal(E,Mp,ExtFn))
+    | .cNeg(Lc,R) =>.cNeg(Lc,rwGl(R,Mp,ExtFn))
+    | .cCnd(Lc,G,L,R) => valof{
+      NMp = ExtFn(.inGoal(G),Mp);
+      valis .cCnd(Lc,rwGl(G,NMp,ExtFn),rwGl(L,NMp,ExtFn),rwGl(R,Mp,ExtFn))
+    }
+    | .cMatch(Lc,P,E) => .cMatch(Lc,rwPtn(P,Mp,ExtFn),rwGl(E,Mp,ExtFn))
     | _ => rwTerm(Gl,Mp,ExtFn)
   }
 
@@ -156,8 +168,8 @@ star.compiler.rewrite{
     VTpl = mcTpl(Lc,foldLeft((Vr,Ls)=>[.cVar(Lc,Vr),..Ls],[],Dvrs));
     (L0,LPtn) = pullOutDis(L,VTpl,ExtFn);
     (R0,RPtn) = pullOutDis(R,VTpl,ExtFn);
-    Lx = rwGoal(L0,Mp,ExtFn);
-    Rx = rwGoal(R0,Mp,ExtFn);
+    Lx = rwGl(L0,Mp,ExtFn);
+    Rx = rwGl(R0,Mp,ExtFn);
     MTpl = rwTerm(VTpl,Mp,ExtFn);
     valis .cMatch(Lc,MTpl,
       .cCnd(Lc,Lx,LPtn,
@@ -168,7 +180,7 @@ star.compiler.rewrite{
     GVrs = glVars(G,[]);
     GD = foldRight((Vr,M)=>M[vName(Vr)->newVar(Vr)],[],GVrs);
     Ptn = rwPtn(Tpl,GD,ExtFn);
-    Gl = rwGoal(G,GD,ExtFn);
+    Gl = rwGl(G,GD,ExtFn);
     valis (Gl,Ptn)
   }
 
@@ -189,8 +201,14 @@ star.compiler.rewrite{
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,rwTerm(V,Mp,ExtFn),rwTerm(E,Mp,ExtFn))
     | .aCase(Lc,G,Cs,D) => .aCase(Lc,rwTerm(G,Mp,ExtFn),Cs//(C)=>rwCase(C,Mp,ExtFn,rwAct),rwAct(D,Mp,ExtFn))
     | .aIxCase(Lc,G,Cs,D) => .aIxCase(Lc,rwTerm(G,Mp,ExtFn),Cs//(C)=>rwCase(C,Mp,ExtFn,rwAct),rwAct(D,Mp,ExtFn))
-    | .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Mp,ExtFn),rwAct(L,Mp,ExtFn),rwAct(R,Mp,ExtFn))
-    | .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Mp,ExtFn),rwAct(B,Mp,ExtFn))
+    | .aIftte(Lc,C,L,R) => valof{
+      NMp = ExtFn(.inGoal(C),Mp);
+      valis .aIftte(Lc,rwGl(C,NMp,ExtFn),rwAct(L,NMp,ExtFn),rwAct(R,Mp,ExtFn))
+    }
+    | .aWhile(Lc,C,B) => valof{
+      NMp = ExtFn(.inGoal(C),Mp);
+      valis .aWhile(Lc,rwGl(C,NMp,ExtFn),rwAct(B,NMp,ExtFn))
+    }
     | .aTry(Lc,B,E,Hs) => .aTry(Lc,rwAct(B,Mp,ExtFn),rwTerm(E,Mp,ExtFn),rwAct(Hs,Mp,ExtFn))
     | .aThrw(Lc,E) => .aThrw(Lc,rwTerm(E,Mp,ExtFn))
     | .aLtt(Lc,V,D,A) => valof{

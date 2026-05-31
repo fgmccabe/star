@@ -7,5 +7,8 @@ test.h1{
     hash(.some(X)) => hash("?")*37+hash(X).
     hash(.none) => hash("none").
   }
+
+  -- Dummy main program, this is a compilation test.
+  main:(){}.
+  main(){}
 }
-  
