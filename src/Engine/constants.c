@@ -12,9 +12,12 @@ ptrPo constAnts = Null;
 static int32 nextConstant = 0;
 static int32 constantPoolSize = 0;
 
+static integer constantHash(void *n);
+static comparison cmpConstants(void *n1, void *n2);
+
 void initConstants() {
-  constantKeys = newHash(4096, (hashFun) termHash, (compFun) compTerm, Null);
-  constAnts = (ptrPo) malloc(sizeof(termPo) * 4096);
+  constantKeys = newHash(4096, constantHash, cmpConstants, Null);
+  constAnts = (ptrPo)malloc(sizeof(termPo) * 4096);
   constantPoolSize = 4096;
   constAnts[nextConstant++] = voidEnum; // First entry cannot be used
 }
@@ -24,12 +27,17 @@ termPo getConstant(int32 key) {
   return constAnts[key];
 }
 
+int32 lookupConstant(termPo t) {
+  constAnts[0] = t;
+  return (int32)(integer)hashGet(constantKeys, (void*)(integer)0);
+}
+
 int32 defineConstantLiteral(termPo t) {
-  integer tx = (integer) hashGet(constantKeys, t);
-  if (tx == (integer) Null) {
+  int32 key = lookupConstant(t);
+  if (key == 0) {
     if (nextConstant == constantPoolSize) {
       constantPoolSize *= 2;
-      constAnts = (termPo *) realloc(constAnts, sizeof(termPo) * constantPoolSize);
+      constAnts = (termPo*)realloc(constAnts, sizeof(termPo) * constantPoolSize);
       if (constAnts == Null) {
         syserr("Could not reallocate constants vector");
       }
@@ -37,25 +45,27 @@ int32 defineConstantLiteral(termPo t) {
     int32 cx = nextConstant++;
     constAnts[cx] = t;
 
-    hashPut(constantKeys, t, (void *) (integer) cx);
+    hashPut(constantKeys, (void*)(integer)cx, (void*)(integer)cx);
 
     return cx;
   }
 
-  return (int32) tx;
+  return key;
 }
 
 logical isDefinedConstant(int32 key) {
   if (key >= 0 && key < nextConstant) {
     termPo constant = getConstant(key);
-    return constant != Null && (integer) hashGet(constantKeys, constant) == (integer) key;
-  } else
+    return constant != Null && lookupConstant(constant) == key;
+  }
+  else
     return False;
 }
 
 void markConstants(gcSupportPo G) {
-  for (int32 ix = 0; ix < nextConstant; ix++)
+  for (int32 ix = 0; ix < nextConstant; ix++) {
     constAnts[ix] = markPtr(G, &constAnts[ix]);
+  }
 }
 
 void dumpConstants() {
@@ -64,4 +74,12 @@ void dumpConstants() {
       outMsg(logFile, "constant %d: %T\n", ix, constAnts[ix]);
   }
   flushOut();
+}
+
+static integer constantHash(void *n) {
+  return termHash(constAnts[(integer)n]);
+}
+
+static comparison cmpConstants(void *n1, void *n2) {
+  return compTerm(constAnts[(integer)n1], constAnts[(integer)n2]);
 }

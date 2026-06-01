@@ -238,6 +238,12 @@ star.compiler.term{
   public mcEnum:(option[locn],string,tipe) => cExp.
   mcEnum(Lc,Nm,Tp) => .cTerm(Lc,Nm,[],Tp).
 
+  public mcSome:(option[locn],cExp) => cExp.
+  mcSome(Lc,Arg) => .cTerm(Lc,"some",[Arg],optType(typeOf(Arg))).
+
+  public mcNone:(option[locn],tipe) => cExp.
+  mcNone(Lc,Tp) => mcEnum(Lc,"none",optType(Tp)).
+
   public contract all e ~~ rewrite[e] ::= {
     rewrite:(e,(cExp)=>option[cExp])=>e
   }

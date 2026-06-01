@@ -10,6 +10,7 @@
 
 int32 defineConstantLiteral(termPo t);
 termPo getConstant(int32 key);
+int32 lookupConstant(termPo t);
 logical isDefinedConstant(int32 key);
 
 #endif //STAR_CONSTANTS_H

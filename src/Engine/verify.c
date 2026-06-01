@@ -1028,9 +1028,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
     }
     case sLine: {
       int32 insSize = 2;
-      int32 constant = operand(1);
-      if (!isDefinedConstant(constant))
-        return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+      int32 key = operand(1);
+      if (!isDefinedConstant(key))
+        return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
 
       pc += insSize;
       continue;

@@ -171,9 +171,9 @@ star.compiler.rewrite{
     Lx = rwGl(L0,Mp,ExtFn);
     Rx = rwGl(R0,Mp,ExtFn);
     MTpl = rwTerm(VTpl,Mp,ExtFn);
-    valis .cMatch(Lc,MTpl,
-      .cCnd(Lc,Lx,LPtn,
-	.cCnd(Lc,Rx,RPtn,mcEnum(Lc,"false",boolType))))
+    valis .cMatch(Lc,mcSome(Lc,MTpl),
+      .cCnd(Lc,Lx,mcSome(Lc,LPtn),
+	.cCnd(Lc,Rx,mcSome(Lc,RPtn),mcNone(Lc,typeOf(MTpl)))))
   }
 
   pullOutDis(G,Tpl,ExtFn) => valof{
