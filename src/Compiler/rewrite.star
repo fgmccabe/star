@@ -21,7 +21,7 @@ star.compiler.rewrite{
 
   extendU:(extendTgt,rwMap)=>rwMap.
   extendU(.inLet(V),Map) => Map[vName(V)->newVar(V)].
-  extendU(.inPtn(P),Map) =>
+  extendU(.inPttrn(P),Map) =>
     foldRight((V,M)=>M[vName(V)->newVar(V)],Map,ptnVrs(P,[])).
   extendU(.inGoal(G),Map) =>
     foldRight((V,M)=>M[vName(V)->newVar(V)],Map,glVars(G,[])).
@@ -37,7 +37,7 @@ star.compiler.rewrite{
     rwTerm(Term,Mp,extendE).
 
   extendE(.inLet(V),Map) => Map[vName(V)->newVar(V)].
-  extendE(.inPtn(P),Map) =>
+  extendE(.inPttrn(P),Map) =>
     foldRight((V,M)=>M[vName(V)->newVar(V)],Map,ptnVrs(P,[])).
   extendE(.inGoal(G),Map) =>
     foldRight((V,M)=>M[vName(V)->newVar(V)],Map,glVars(G,[])).
@@ -98,7 +98,7 @@ star.compiler.rewrite{
     | .cIxCase(Lc,Sel,Cases,Dflt,Tp) => .cIxCase(Lc,rwTerm(Sel,Mp,ExtFn),
       Cases//(C)=>rwCase(C,Mp,ExtFn,rwTerm),rwTerm(Dflt,Mp,ExtFn),Tp)
     | .cTry(Lc,B,E,H,Tp) =>  valof{
-      NMp = ExtFn(.inPtn(E),Mp);
+      NMp = ExtFn(.inPttrn(E),Mp);
       valis .cTry(Lc,rwTerm(B,NMp,ExtFn),rwTerm(E,NMp,ExtFn),rwTerm(H,NMp,ExtFn),Tp)
     }
     | .cResum(Lc,T,M,Tp) => .cResum(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
@@ -114,7 +114,7 @@ star.compiler.rewrite{
 
   rwCase:all e ~~ (cCase[e],rwMap,extMap,(e,rwMap,extMap)=>e) => cCase[e].
   rwCase((Lc,Ptn,Rep),M,ExtFn,F) => valof{
-    NMp = ExtFn(.inPtn(Ptn),M);
+    NMp = ExtFn(.inPttrn(Ptn),M);
     valis (Lc,rwTerm(Ptn,NMp,ExtFn),F(Rep,NMp,ExtFn))
   }
 
@@ -227,9 +227,7 @@ star.compiler.rewrite{
   dropVar:(string,map[string,cExp]) => map[string,cExp].
   dropVar(Nm,Map) => Map[~Nm].
 
-  extendTgt ::= .inLet(cV) | .inGoal(cExp) | .inPtn(cExp) | .inSeq(aAction).
+  extendTgt ::= .inLet(cV) | .inGoal(cExp) | .inPttrn(cExp) | .inSeq(aAction).
   rwMap ~> map[string,cExp].
   extMap ~> (extendTgt,rwMap)=>rwMap.
-
-  
 }

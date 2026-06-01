@@ -29,7 +29,6 @@ star.compiler.gencode{
   }
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
---  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp))].
   declGlobal(_,Vrs) => Vrs.
 
   declType:(decl,map[string,indexMap])=>map[string,indexMap].
@@ -755,13 +754,20 @@ star.compiler.gencode{
 
   caseIndices(Cases,Ctx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseIndex(Pt,Ctx),Ex)).
 
+  caseIndex:(cExp,codeCtx) => integer.
   caseIndex(.cTerm(Lc,Nm,Els,Tp),Ctx) => valof{
-    if IxMap ?= Ctx.tps[tpName(Tp)] && Ix ?= IxMap[.tLbl(Nm,[|Els|])] then
-      valis Ix
-    else{
-      reportError("cannot find index of #(Nm)",Lc);
-      valis 0
+    Lbl = .tLbl(Nm,size(Els));
+
+    if IxMap ?= Ctx.tps[tpName(Tp)] then{
+      if Ix ?= IxMap[Lbl] then{
+	valis Ix
+      } else{
+	reportError("cannot find index of $(Lbl)\:$(Tp) in $(IxMap)",Lc);
+	valis 0
+      }
     }
+    reportError("cannot find index of $(Lbl) in $(Ctx.tps)",Lc);
+    valis 0
   }
 
   hasIndexMap(Ctx,TpNm) => _ ?= Ctx.tps[TpNm].
