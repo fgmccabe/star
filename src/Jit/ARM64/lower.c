@@ -230,13 +230,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 insSize = opand(2) + 3;
       int32 nextPc = pc + insSize;
       int32 key = opand(1);
-      int32 arity = lblArity(C_LBL(getConstant(key)));
+      labelPo tgt = C_LBL(getConstant(key));
+      int32 arity = lblArity(tgt);
+      methodPo callee = labelMtd(tgt);
 
       int32 argPc = pc + 3;
       int32 tgtOff = overrideArguments(state, defaultArgRegs(), pc, argPc, arity);
-
-      labelPo tgt = C_LBL(getConstant(key));
-      methodPo callee = labelMtd(tgt);
 
       if (callee != Null && hasJitCode(callee)) {
         mov(X16, IM((uinteger)jitCode(callee)));
@@ -1981,8 +1980,8 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
   ArgSpec operands[arity];
 
   int32 regArgCnt = countBits(argRegs);
-  int32 callArity = mtdArity(state->jit->mtd);
-  int32 tgtOff = (callArity < regArgCnt ? 0 : callArity - regArgCnt);
+  int32 callerArity = mtdArity(state->jit->mtd);
+  int32 tgtOff = (callerArity < regArgCnt ? 0 : callerArity - regArgCnt);
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp arg = sourceOperandFlex(state, argPc, ix);
@@ -1993,7 +1992,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
     }
     else {
       assert(ix >= regArgCnt);
-      int32 argSlot = tgtOff - (arity - regArgCnt) + ix;
+      int32 argSlot = tgtOff - (arity - regArgCnt) + (ix - regArgCnt);
       operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
     }
   }

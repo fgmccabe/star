@@ -12,6 +12,7 @@
 #include "ooio.h"
 #include "stackP.h"
 #include "codeP.h"
+#include "debugP.h"
 #include "engineP.h"
 #include "shuffle.h"
 #include "sort.h"
@@ -450,7 +451,7 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   int32 delta = (argCnt + lclCnt + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
   armReg tmp = findFreeReg(jit);
 
-  // if (mtdHasName(state->mtd,"star.compiler.checker@checkProcedure")) {
+  // if (mtdHasName(state->mtd,"star.compiler.normalize@liftLet")) {
   //   installBkPt(state, pc);
   // }
 
@@ -577,7 +578,6 @@ int32 argSaveCnt(int32 arity) {
 }
 
 void breakPt() {
-
 }
 
 void installBkPt(codeGenPo state, int32 pc) {
