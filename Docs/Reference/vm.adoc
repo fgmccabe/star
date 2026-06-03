@@ -3,6 +3,42 @@
 In this appendix, we introduce the virtual machine used to define the execution
 model of Star.
 
+== A Structured Machine
+
+Overall, the Star virtual machine combines a number of architectural elements,
+the most important being Structured control flow and Single assignment
+variables.
+
+Structured control flow is manifest by the use of `Block` instructions and the
+lack of a generalized goto or jump instruction: all control flow is relative to
+the beginning or end of a block. In fact, control flow instructions occur within
+a nested sequence of Block instructions, and the only permitted control flow
+action is to leave a block. (The only exception to this is the `Cont`
+instruction which is used to go back to the beginning of a block -- enabling the
+implementation of loops.)
+
+Variables in the Star VM are one of three types: argument variables, local
+variables or phi variables.
+
+Argument variables derive their value on entry to
+the function, and may not be re-assigned to.
+
+Local variables may only be
+assigned to once: each local variable has exactly one instruction that gives it
+a value.
+
+Phi variables are the 'output' of a `Block` instruction. Phi variables only get
+a variable when the `Block` that they are defined by is exited. There are two
+principal instructions that can give Phi variables a value: the `Result`
+instruction -- which simultaneously exits a `Block` and gives values to the
+associated Phi variables.
+
+Once assigned, no variable may be re-assigned to. This mirrors the structure of
+Star itself, which is a (mostly) single assignment language. Assignment of
+re-assignable variables is achieved with a combination of reference values and
+the the `Assign` and `Get` instructions. Reference values are not variables
+within the Star VM.
+
 == Individual Instructions
 
 === Control Flow
@@ -48,25 +84,35 @@ Returns from the current method with the value in `V0`, typically used in except
 
 === Blocks and Loops
 
-==== Loop level
-Begins a loop block of length `level`.
+==== Loop length
+Begins a loop block of length instructions. Executing a `Cont` instruction
+referencings this block will cause execution to restart at the beginning of the
+enclosed instructions.
 
-==== Block V*, level
-Begins an execution block that expects to return values into `V*` and has a length of `level`.
+==== Block V*, length
+Begins an execution block that expects to return values into `V*` and is
+followed by length instructions which considered to be part of the block. If the
+block is exited, then execution continues with the instruction immediately after
+the enclosed instructions.
 
 ==== Break level
-Exits the current block or loop, breaking out of the block at `level`.
+Exits the current block or loop, breaking out of the block at `level`. Level
+here is an integer that indicates the number of nested blocks to break out of: a
+level of 0 will break out of the innermost `Block`.
 
 ==== Result level, V*
 Returns the values in `V*` from the current block and breaks out of the block at `level`.
 
 ==== Cont level
-Continues the next iteration of the loop, breaking out of the block at `level` to the loop header.
+Continues the next iteration of the loop, restarting the instructions of the
+loop identified by the `level`.
 
 === Conditionals and Pattern Matching
 
-==== ICase V0, level
-Performs an integer-based hash jump on `V0` within a block of length `level`.
+==== ICase V0, length
+Performs a jump to the ``V0``th instruction within the next `length`
+instructions. It is required that these instructions are all either `Break`
+instructions or `Cont` instructions.
 
 ==== Case V0, level
 Performs a term-based hash jump on `V0` within a block of length `level`.
