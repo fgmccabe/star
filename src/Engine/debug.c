@@ -37,7 +37,6 @@ static ioPo debugOutChnnl = Null;
 
 logical insDebugging = False; // instruction tracing option
 tracingLevel lineDebugging = noTracing;
-logical debugDebugging = False;
 tracingLevel tracing = generalTracing; /* tracing option */
 integer debuggerPort = 0;              // Debug port to establish listener on
 logical showPkgFile = False;           // True if we show file names instead of package names
@@ -488,14 +487,6 @@ static DebugWaitFor dbgShowCode(char* line, enginePo p, termPo lc, void* cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgDebug(char* line, enginePo p, termPo lc, void* cl) {
-  debugDebugging = !debugDebugging;
-
-  logMsg(Stderr(), "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
-  resetDeflt("n");
-  return moreDebug;
-}
-
 static DebugWaitFor dbgInsDebug(char* line, enginePo p, termPo lc, void* cl) {
   lineDebugging = noTracing;
   insDebugging = True;
@@ -595,9 +586,8 @@ DebugWaitFor insDebug(enginePo p) {
       {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},
       {.c = 'y', .cmd = dbgSymbolDebug, .usage = "y turn on symbolic mode"},
       {.c = 'v', .cmd = dbgVerifyProcess, .usage = "v verify process"},
-      {.c = '&', .cmd = dbgDebug, .usage = "& flip debug debugging"}
     },
-    .count = 22,
+    .count = 21,
     .deflt = Null
   };
 
@@ -958,6 +948,8 @@ DebugWaitFor retireDebug(enginePo p, termPo lc, termPo cn, termPo ev) {
   return lnDebug(p, sRetire, showRetire, lc, cn, ev);
 }
 
+static integer lnEntryCount = 0;
+
 DebugWaitFor lnDebug(enginePo p, ssaOp op, showCmd show, termPo lc, termPo arg1, termPo arg2) {
   static DebugOptions opts = {
     .opts = {
@@ -982,19 +974,12 @@ DebugWaitFor lnDebug(enginePo p, ssaOp op, showCmd show, termPo lc, termPo arg1,
       {.c = '+', .cmd = dbgAddBreakPoint, .usage = "+ add break point"},
       {.c = '-', .cmd = dbgClearBreakPoint, .usage = "- clear break point"},
       {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},
-      {.c = '&', .cmd = dbgDebug, .usage = "& flip debug debugging"}
     },
-    .count = 22,
+    .count = 21,
     .deflt = Null
   };
 
-#ifdef TRACE_DBG
-  if (debugDebugging) {
-    logMsg(logFile, "traceCount=%d, waterMark=%x, tracing=%s, op=%d",
-           p->traceCount, p->waterMark, (p->tracing ? "yes" : "no"), op);
-  }
-#endif
-
+  lnEntryCount++;
   stackPo stk = p->stk;
   logical stopping = shouldWeStop(p, op);
 
@@ -1111,12 +1096,6 @@ void showRegisters(enginePo p, heapPo h) {
 
   showAllLocals(debugOutChnnl, stk);
 
-#ifdef TRACE_DBG
-  if (debugDebugging) {
-    stackSummary(debugOutChnnl, stk);
-    heapSummary(debugOutChnnl, h);
-  }
-#endif
   outMsg(debugOutChnnl, "\n%_");
 }
 

@@ -415,7 +415,7 @@ void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth,
     outMsg(out, "...\n");
 }
 
-void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity) {
+stackPo glueOnStack(enginePo P, logical execJit, integer size, integer arity) {
   stackPo stk = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
@@ -427,15 +427,25 @@ void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity) {
   int root = gcAddRoot(h, (ptrPo)&stk);
 
   assert(size >= minStackSize && stackState(stk) != moribund);
+  assert(validStkPtr(stk, stk->sp + arity));
+  assert(stk->sp == stk->args);
 
   stackPo child =
     allocateStack(P, size, underflowProg, execJit, stackState(stk), stk);
 
-  moveStack2Stack(child, stk, execJit, saveArity);
+  pushFrame(child, execJit, locateMethod((uinteger)stk->pc));
+  child->pc = stk->pc;
+  ptrPo src = stk->sp + arity;
+  ptrPo dst = child->sp;
+  for (integer ix = arity; ix > 0; ix--) {
+    *--dst = *--src;
+  }
+  child->sp = child->args = dst;
+  stk->sp += arity;
   dropFrame(stk);
   propagateHwm(child);
   gcReleaseRoot(h, root);
-  P->stk = child;
+  return P->stk = child;
 }
 
 void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 saveCnt) {

@@ -47,7 +47,7 @@ void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 saveC
 
 void pushStack(stackPo stk, termPo ptr);
 
-void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity);
+stackPo glueOnStack(enginePo P, logical execJit, integer size, integer arity);
 stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size);
 
 integer stackHwm(stackPo stk);

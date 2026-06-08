@@ -76,15 +76,6 @@ static retCode debugOption(char* option, OptionAction action) {
       interactive = False;
       continue;
 
-    case 'u': /*  debug the debugger */
-#ifdef TRACE_DBG
-      debugDebugging = True;
-      continue;
-#else
-      logMsg(logFile, "Debugging tracing not enabled\n");
-      return Error;
-#endif
-
     case 'v': /* turn on verify tracing */
       traceVerify = bump(traceVerify);
       logMsg(logFile, "Verification tracing enabled");

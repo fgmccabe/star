@@ -155,6 +155,7 @@ typedef struct {
 logical sameFlexOp(FlexOp a, FlexOp b);
 
 logical isRegisterOp(FlexOp a);
+logical isOffsetOp(FlexOp a);
 
 #define PLATFORM_PC_DELTA (0)
 

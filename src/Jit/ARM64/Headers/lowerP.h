@@ -38,6 +38,7 @@ typedef struct {
   ssaInsPo code;
   localVarPo locals;
   logical* voided;
+  int32 argMark;
   int32 numLocals;
 } CodeGenState, *codeGenPo;
 
@@ -54,10 +55,11 @@ typedef struct jitBlock_ {
   blockPo parent;
 } JitBlock;
 
-void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt);
+void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls);
 
 #define pointerSize ((int32)sizeof(integer))
 
+void verifyState(codeGenPo state, int32 pc);
 void bailOut(codeGenPo state, int32 pc, ExitCode code);
 
 retCode getIntVal(jitCompPo jit, armReg rg);
@@ -87,8 +89,8 @@ void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
 FlexOp constantFlex(int32 index);
 FlexOp varFlex(int32 index);
 
-typedef int32 (*localVarProc)(codeGenPo state, int32 pc, localVarPo var, void *cl);
-int32 processLocals(codeGenPo state, int32 pc, localVarProc proc, void *cl) ;
+typedef int32 (*localVarProc)(codeGenPo state, int32 pc, localVarPo var, void* cl);
+int32 processLocals(codeGenPo state, int32 pc, localVarProc proc, void* cl);
 
 logical liveVar(localVarPo var, int32 pc);
 int32 flushArguments(codeGenPo state, int32 pc);

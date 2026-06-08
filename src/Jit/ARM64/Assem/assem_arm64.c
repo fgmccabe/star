@@ -1561,3 +1561,7 @@ logical sameFlexOp(FlexOp a, FlexOp b) {
 logical isRegisterOp(FlexOp a) {
   return a.mode == reg;
 }
+
+logical isOffsetOp(FlexOp a) {
+  return a.mode == sOff;
+}

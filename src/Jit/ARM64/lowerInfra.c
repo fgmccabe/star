@@ -104,45 +104,22 @@ logical liveVar(localVarPo var, int32 pc) {
   return var->inUse && var->desc->start <= pc && var->desc->end > pc;
 }
 
-static int32 varOffset(codeGenPo state, int32 pc, localVarPo var);
+static int32 varOffset(localVarPo var, codeGenPo state, int32 pc) {
+  assert(liveVar(var, pc) && var->inited);
 
-int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
-  if (liveVar(var, pc)) {
-    if (var->inited && isRegisterOp(var->src) && !var->desc->registerCandidate) {
-      int32 vOffset = var->stkOff = nextStkOff(state, pc);
-      FlexOp lclFlex = varFlex(vOffset);
-      storeFlex(state, pc, var->src, lclFlex);
-      releaseReg(state->jit, var->src.reg);
-      var->src = lclFlex;
-      var->stashed = True;
-      return vOffset;
-    }
+  if (isRegisterOp(var->src)) {
+    varDescPo desc = var->desc;
+    return var->stkOff = desc->varNo >= 0 ? desc->varNo : nextStkOff(state, pc);
   }
-  return 0;
-}
-
-int32 flushArguments(codeGenPo state, int32 pc) {
-  return processLocals(state, pc, flushArg, Null);
-}
-
-int32 processLocals(codeGenPo state, int32 pc, localVarProc vProc, void* cl) {
-  int32 minOffset = 0;
-
-  for (int32 ix = 0; ix < state->numLocals; ix++) {
-    localVarPo var = &state->locals[ix];
-    if (liveVar(var, pc)) {
-      minOffset = min(minOffset, vProc(state, pc, var, cl));
-    }
-  }
-  return minOffset;
+  else
+    return var->stkOff;
 }
 
 int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership) {
   if (liveVar(var, pc) && var->inited) {
     if (!var->stashed) {
       if (isRegisterOp(var->src)) {
-        var->stkOff = nextStkOff(state, pc);
-        FlexOp lclFlex = varFlex(var->stkOff);
+        FlexOp lclFlex = varFlex(varOffset(var, state, pc));
         storeFlex(state, pc, var->src, lclFlex);
         releaseReg(state->jit, var->src.reg);
         if (moveOwnership) {
@@ -180,11 +157,12 @@ registerMap registerLocals(codeGenPo state, int32 pc) {
   return map;
 }
 
-logical allLocalsStashed(codeGenPo state, int32 pc) {
+logical allStashed(codeGenPo state, int32 pc) {
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo var = &state->locals[ix];
-    if (liveVar(var, pc) && var->inited && !var->stashed) {
-      return False;
+    if (liveVar(var, pc) && var->inited) {
+      if (isRegisterOp(var->src) && !var->stashed)
+        return False;
     }
   }
   return True;
@@ -205,7 +183,7 @@ void showLocalSlotMap(ioPo out, codeGenPo state, int32 pc) {
 }
 
 static void showLiveLocals(ioPo out, codeGenPo state, int32 pc) {
-  outMsg(out, "Live locals: ");
+  outMsg(out, "Live locals:\n");
   // showLocalSlotMap(out, state, pc);
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo lcl = &state->locals[ix];
@@ -218,18 +196,6 @@ static void showLiveLocals(ioPo out, codeGenPo state, int32 pc) {
 void dumpState(codeGenPo state, int32 pc) {
   showLiveLocals(logFile, state, pc);
   dRegisterMap(state->jit->freeRegs);
-}
-
-static void voidOutSlot(codeGenPo state, int32 pc, int32 offset) {
-  for (int32 vx = 0; vx < state->numLocals; vx++) {
-    localVarPo var = &state->locals[vx];
-    if (liveVar(var, pc) && var->stashed && var->stkOff == offset)
-      return; // Because C does not have labeled breaks
-  }
-  if (!state->voided[-offset]) {
-    storeFlex(state, pc, RG(XZR),OF(AG, offset*pointerSize));
-    state->voided[-offset] = True;
-  }
 }
 
 void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
@@ -272,10 +238,56 @@ FlexOp varFlex(int32 index) {
   return OF(AG, index*pointerSize);
 }
 
+static void voidOutSlot(codeGenPo state, int32 pc, int32 offset) {
+  for (int32 vx = 0; vx < state->numLocals; vx++) {
+    localVarPo var = &state->locals[vx];
+    if (liveVar(var, pc) && var->stashed && var->stkOff == offset)
+      return; // Because C does not have labeled breaks
+  }
+  assert(state->argMark+offset>=0 && state->argMark+offset<state->numLocals);
+  if (!state->voided[state->argMark + offset]) {
+    storeFlex(state, pc, RG(XZR),OF(AG, offset*pointerSize));
+    state->voided[state->argMark + offset] = True;
+  }
+}
+
 void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset) {
   for (int32 ix = -1; ix > minOffset; ix--) {
     voidOutSlot(state, pc, ix);
   }
+}
+
+int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
+  if (liveVar(var, pc)) {
+    if (var->inited) {
+      int32 vOffset = var->stkOff = var->desc->varNo;
+      if (isRegisterOp(var->src) && !var->desc->registerCandidate) {
+        FlexOp lclFlex = varFlex(vOffset);
+        storeFlex(state, pc, var->src, lclFlex);
+        releaseReg(state->jit, var->src.reg);
+        var->src = lclFlex;
+        var->stashed = True;
+        return vOffset;
+      }
+    }
+  }
+  return 0;
+}
+
+int32 flushArguments(codeGenPo state, int32 pc) {
+  return processLocals(state, pc, flushArg, Null);
+}
+
+int32 processLocals(codeGenPo state, int32 pc, localVarProc vProc, void* cl) {
+  int32 minOffset = 0;
+
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo var = &state->locals[ix];
+    if (liveVar(var, pc)) {
+      minOffset = min(minOffset, vProc(state, pc, var, cl));
+    }
+  }
+  return minOffset;
 }
 
 static localVarPo findLclByOffset(codeGenPo state, int32 pc, int32 offset) {
@@ -310,8 +322,9 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   registerMap tmpMap = fixedRegSet(X16);
 
   shuffleVars(state->jit, operands, arity, &tmpMap);
-
   voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
+
+  assert(allStashed(state,livePc));
 
   stashEngineState(state->jit, lastSlot, argRegs);
   registerMap saveMap = criticalRegs();
@@ -444,16 +457,16 @@ void restoreArgs(codeGenPo state, int32 pc) {
   }
 }
 
-void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
+void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = newLabel(ctx);
-  int32 delta = (argCnt + lclCnt + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
+  int32 delta = (arity + lcls + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
   armReg tmp = findFreeReg(jit);
 
-  // if (mtdHasName(state->mtd,"star.compiler.normalize@liftLet")) {
-  //   installBkPt(state, pc);
-  // }
+  if (mtdHasName(state->mtd, "test.dte@star.core$display!()8@over%1")) {
+    installBkPt(state, pc);
+  }
 
   if (is16bit(delta))
     sub(tmp, AG, IM(delta));
@@ -467,10 +480,10 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   adr(tmp, okLbl);
   str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
 
-  int32 base = stashLiveLocals(state, pc, False);
+  stashLiveLocals(state, pc, False);
 
   invokeIntrinsic(state, pc, pc + 1, (runtimeFn)handleStackOverflow,
-                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(-base)}, False, 0, (FlexOp[]){});
+                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(arity)}, False, 0, (FlexOp[]){});
   bind(okLbl);
   releaseReg(jit, tmp);
 }
@@ -503,21 +516,7 @@ void unstashEngineState(jitCompPo jit) {
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
-int32 varOffset(codeGenPo state, int32 pc, localVarPo var) {
-  if (var->inited) {
-    if (!var->stashed) {
-      if (isRegisterOp(var->src)) {
-        var->stkOff = nextStkOff(state, pc);
-        return var->stkOff;
-      }
-    }
-    return var->stkOff;
-  }
-  return 0;
-}
-
 void restoreStashedLocals(codeGenPo state, int32 pc) {
-  assemCtxPo ctx = assemCtx(state->jit);
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo var = &state->locals[ix];
     if (liveVar(var, pc) && var->inited && var->stashed) {
@@ -553,7 +552,7 @@ int32 nextStkOff(codeGenPo state, int32 pc) {
     }
   }
 
-  state->voided[-lastSlot] = False;
+  state->voided[state->argMark + lastSlot - 1] = False;
   return lastSlot - 1;
 }
 
@@ -577,8 +576,21 @@ int32 argSaveCnt(int32 arity) {
   return (int32)(clamp(0, arity - countBits(defaultArgRegs()), arity));
 }
 
-void breakPt() {
+void verifyState(codeGenPo state, int32 pc) {
+  registerMap freeRegs = state->jit->freeRegs;
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo v = &state->locals[ix];
+    if (v->inUse && v->inited) {
+      assert(v->desc->end >= pc);
+      assert(isRegisterOp(v->src) || isOffsetOp(v->src));
+      assert(isRegisterOp(v->src) ? !isRegInMap(freeRegs,v->src.reg):
+        v->stashed ? v->src.immediate==v->stkOff*pointerSize:True);
+      assert(v->stashed ? (v->stkOff>=-state->numLocals && v->stkOff<mtdArity(state->mtd)):True);
+    }
+  }
 }
+
+void breakPt() {}
 
 void installBkPt(codeGenPo state, int32 pc) {
   armReg rg = findARegister(state, pc);

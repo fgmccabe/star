@@ -12,7 +12,6 @@
 #include "closureP.h"
 #include "singleP.h"
 
-
 #ifdef TRACESTACK
 #define checkAlloc(Count) STMT_WRAP({  \
   if (reserveSpace(H, Count) != Ok) {  \
