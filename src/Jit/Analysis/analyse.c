@@ -118,19 +118,6 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       pc++;
       continue;
     }
-    case sLoop: {
-      int32 skipLen = operand(1);
-      int32 nextPc = pc + skipLen;
-
-      ScopeBlock block = {
-        .start = pc, .end = limit, .parent = scope, .kind = sLoop, .phiCnt = 0
-      };
-      ret = analyseBlock(analysis, &block, code, pc + 2, nextPc);
-      markLoopVariables(analysis, &block);
-      pc = nextPc;
-
-      continue;
-    }
     case sBlock: {
       int32 arity = operand(1);
       int32 blockLen = operand(arity+2);

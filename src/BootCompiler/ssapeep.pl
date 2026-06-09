@@ -262,13 +262,6 @@ dropUnreachable([I|Ins],[I|DIns]) :-
 peep([],_,[]) :-!.
 peep([iLine(Lne),iLine(_)|Ins],Lbls,Inx) :-!,
   peep([iLine(Lne)|Ins],Lbls,Inx).
-peep([iLbl(Lb,iLoop(IB))|Is],Lbls, Ins) :-!,
-  peepCode(IB,[(Lb,Is)|Lbls],IB0),
-  peep(Is,Lbls,Is0),
-  (lblReferenced(Lb,IB0) ->
-   Ins=[iLbl(Lb,iLoop(IB0))|Is0];
-   concat(IB0,Is0,Is1),
-   peepCode(Is1,Lbls,Ins)).
 peep([iLbl(Lb,iBlock(Vrs,IB))|Is],Lbls, Ins) :-!,
   peepCode(IB,[(Lb,Is)|Lbls],IB0),
   peep(Is,Lbls,Is0),

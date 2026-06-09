@@ -105,19 +105,6 @@ varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, in
 
 void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc) {
   varDescPo var = findVar(analysis, varNo);
-
-  while (block != Null) {
-    if (block->start >= var->start) { // extend scope of variable through the end of loops
-      if (block->kind == sLoop) {
-        if (var->end < block->end)
-          var->end = block->end;
-      }
-      block = block->parent;
-      continue;
-    }
-    break;
-  }
-
   if (var->end < pc)
     var->end = pc;
 }
@@ -191,7 +178,7 @@ varDescPo newPhiVar(analysisPo analysis, int32 varNo, scopePo block) {
 static retCode markLoopVar(void* n, void* r, void* c) {
   varDescPo var = (varDescPo)r;
   scopePo scope = (scopePo)c;
-  if (var->start < scope->start && var->end >= scope->start) { // in scope in the block
+  if (var->start <= scope->start && var->end >= scope->start) { // in scope in the block
     if (var->end < scope->end)
       var->end = scope->end;
   }

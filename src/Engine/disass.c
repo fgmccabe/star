@@ -45,8 +45,9 @@ case s##Op:{\
   outMsg(out, #Op);\
   return showOperands(out,mtd,args,pc+1,fmt);\
 }
-#include "ssaInstructions.h"
-  default:
+#include "instructions.h"
+
+      default:
     return 0;
   }
 

@@ -10,7 +10,6 @@ set(HEADER_FILES
         Headers/ideal.h
         ../Headers/version.h
         ../Headers/config.h
-        ../Headers/instructions.h
         ../Util/Headers/ooio.h
         ../Util/Headers/cmdOptions.h
         Headers/escapeP.h

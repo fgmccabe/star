@@ -109,9 +109,9 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32* pc, int32* count, int32* st
       ret = decodeOperands(in, ar, basePc, pc, count, stackHeight, brk, Fmt); \
       break;
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-    default: {
+        default: {
       strMsg(brk->errorMsg, brk->msgSize, "invalid instruction");
       return Error;
     }

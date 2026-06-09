@@ -48,7 +48,6 @@ star.compiler.peephole{
   vrRead(Vr,.iRSX(_,V)) => V==Vr. -- special case, because of the jump
   
   vrRead(Vr,.iBlock(As,Is)) => Vr.<.As || varRead(Vr,Is).
-  vrRead(Vr,.iLoop(Is)) => varRead(Vr,Is).
   vrRead(Vr,.iResult(_,As)) => Vr .<. As.
   vrRead(Vr,.iFiber(_,V)) => V==Vr.
   vrRead(Vr,.iSuspend(T,E)) => T==Vr || E==Vr.
@@ -176,7 +175,6 @@ star.compiler.peephole{
 
   dropVar(Vr,[]) => [].
   dropVar(Vr,[.iBlock(Vs,BI),..Is]) => [.iBlock(Vs,dropVar(Vr,BI)),..dropVar(Vr,Is)].
-  dropVar(Vr,[.iLoop(BI),..Is]) => [.iLoop(dropVar(Vr,BI)),..dropVar(Vr,Is)].
   dropVar(Vr,[.iLbl(Lb,I),..Is]) => valof{
     Ix = dropVar(Vr,[I]);
     if isEmpty(Ix) then
@@ -222,13 +220,6 @@ star.compiler.peephole{
     else{
       valis peepCode(Is0++Ins,Lbls)
     }
-  }
-  peep([.iLbl(Lb,.iLoop(Is)),..Ins],Lbls) => valof{
-    Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
-    if lblReferenced(Lb,Is0) then
-      valis [.iLbl(Lb,.iLoop(Is0)),..peep(Ins,Lbls)]
-    else
-    valis peepCode(Is0++Ins,Lbls)
   }
   peep([.iCLbl(Tgt,Lb,Vr),..Ins],Lbls) =>
     [.iCLbl(Tgt,resolveLbl(Lb,Lbls),Vr),..peep(Ins,Lbls)].
@@ -276,8 +267,6 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iLbl(_,I),..Ins]) =>
     lblReferenced(Lb,[I]) || lblReferenced(Lb,Ins).
   lblReferenced(Lb,[.iBlock(_,I),..Ins]) =>
-    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
-  lblReferenced(Lb,[.iLoop(I),..Ins]) =>
     lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
   lblReferenced(Lb,[.iCase(_,I),..Ins]) =>
     lblReferenced(Lb,I) || lblReferenced(Lb,Ins).

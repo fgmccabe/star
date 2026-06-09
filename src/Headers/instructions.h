@@ -17,7 +17,6 @@ instr(Rtn, none)
 instr(Ret, lcl)
 instr(XRet, lcl)
 
-instr(Loop, bLk)
 instr(Block, pHis bLk)
 instr(Break, lVl)
 instr(Result, lVl lcls)

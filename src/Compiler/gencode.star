@@ -614,7 +614,8 @@ star.compiler.gencode{
       BC = compAction(B,Lc,Brks,.notLast,Ctx);
 
       valis [.iLbl(Done,.iBlock([],[.iLbl(Lp,
-		.iLoop(GC++BC++[.iCont(Lp)]))]))]
+		.iBlock([],GC++BC++[.iCont(Lp)]))]))]
+--		.iLoop(GC++BC++[.iCont(Lp)]))]))]
     }
     |.aLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       Ctx1 = defineLclVar(Vr,VTp,Ctx);

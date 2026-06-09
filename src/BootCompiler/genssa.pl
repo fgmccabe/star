@@ -289,7 +289,7 @@ compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compIndexed(T,Lc,genssa:wrapAction,Cases,Deflt,genssa:compActX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
 compAction(whle(Lc,G,B),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock([],[iLbl(Lp,iLoop(LC))]))|Cx]),!,
+  chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock([],[iLbl(Lp,iBlock([],LC))]))|Cx]),!,
   genLbl(L,Lp,L1),
   genLbl(L1,Done,L2),
   compCond(G,Lc,Done,Brks,normal,Opts,L2,L3,D,D1,LC,LC1),

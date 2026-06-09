@@ -112,9 +112,9 @@ int main(int argc, char** argv) {
 
 #define instr(M, Fmt) ssaOpType(O_IO(typeBuff), #M, s##M, Fmt);
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-    integer tpLen;
+      integer tpLen;
     char* typeCode = getTextFromBuffer(typeBuff, &tpLen);
     hashPut(vars, "OpCodes", typeCode);
 
@@ -261,9 +261,9 @@ static void genAsm(hashPo vars) {
 #undef instr
 #define instr(M, Fmt) genStarMnem(&info, #M, s##M, Fmt);
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-  integer insLen;
+    integer insLen;
   char* allCode = getTextFromBuffer(mnemBuff, &insLen);
   hashPut(vars, "Mnem", allCode);
 }
@@ -329,9 +329,9 @@ static void generateDisplay(hashPo vars) {
 #undef instr
 #define instr(M, Fmt) showIns(&info, #M, s##M, Fmt);
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-  integer showLen;
+    integer showLen;
   char* showCode = getTextFromBuffer(showBuff, &showLen);
   hashPut(vars, "Show", showCode);
 }
@@ -559,9 +559,9 @@ static void generateVerify(hashPo vars) {
 #undef instr
 #define instr(M, Fmt) validIns(&info, #M, s##M, Fmt);
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-  integer showLen;
+    integer showLen;
   char* verifyCode = getTextFromBuffer(showBuff, &showLen);
   hashPut(vars, "Valid", verifyCode);
 }

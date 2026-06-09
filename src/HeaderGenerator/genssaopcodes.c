@@ -75,9 +75,9 @@ int main(int argc, char **argv) {
 
 #define instr(M, Fmt) insOp(O_IO(typeBuff), #M, Op); Op++;
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-    integer tpLen;
+      integer tpLen;
     char *typeCode = getTextFromBuffer(typeBuff, &tpLen);
     hashPut(vars, "OpCodes", typeCode);
 
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 #undef instr
 #define instr(M, Fmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
 #undef instr
 
@@ -141,8 +141,8 @@ integer staropHash() {
 #define none ""
 #define instr(M, Fmt) hash = hash61(hash*39+opHash(#M,Op,Fmt)); Op++;
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-  return hash;
+    return hash;
 }
 

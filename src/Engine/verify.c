@@ -7,7 +7,6 @@
 
 #include "analyseP.h"
 #include "constants.h"
-#include "ssaOps.h"
 #include "debugP.h"
 #include "verifyP.h"
 #include "arith.h"
@@ -360,15 +359,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
       pc += insWidth;
       continue;
     }
-    case sLoop: {
-      int32 blockLen = operand(1);
-
-      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, 0) == Ok) {
-        pc += blockLen;
-        continue;
-      }
-      return Error;
-    }
     case sBlock: {
       int32 arity = operand(1);
       int32 blockLen = operand(arity+2);
@@ -549,7 +539,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
         }
         switch (code[pc].op.op) {
         case sBreak:
-        case sLoop:
           if (checkBreak(&ctx, pc, pc + operand(1), 0) != Ok)
             return Error;
           pc += 2;

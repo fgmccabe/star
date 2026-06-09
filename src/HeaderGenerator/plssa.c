@@ -239,9 +239,9 @@ static void genAsm(hashPo vars) {
 #undef instr
 #define instr(M, Fmt) genMnem(&info, #M, s##M, Fmt);
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-  integer insLen;
+    integer insLen;
   char* allCode = getTextFromBuffer(mnemBuff, &insLen);
   hashPut(vars, "Mnem", allCode);
 
@@ -345,9 +345,9 @@ static void genShow(hashPo vars) {
 #undef instr
 #define instr(M, Fmt) showIns(&info,#M, s##M, Fmt);
 
-#include "ssaInstructions.h"
+#include "instructions.h"
 
-  integer showLen;
+    integer showLen;
   char* showCode = getTextFromBuffer(showBuff, &showLen);
   hashPut(vars, "Show", showCode);
 

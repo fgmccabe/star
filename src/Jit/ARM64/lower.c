@@ -414,29 +414,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       pc += insSize;
       continue;
     }
-    case sLoop: {
-      // block of instructions
-      int32 blockLen = opand(1);
-      int32 nextPc = pc + blockLen;
-      codeLblPo brkLbl = newLabel(ctx);
-
-      JitBlock subBlock = {
-        .blockType = sLoop,
-        .startPc = pc,
-        .endPc = nextPc,
-        .breakLbl = brkLbl,
-        .loopLbl = here(),
-        .parent = block,
-        .phiCnt = 0,
-        .phiVars = Null
-      };
-
-      ret = jitBlock(&subBlock, state, code, pc + 2, nextPc);
-      pc = nextPc; // Skip over the block
-      retireExpiredVars(state, pc);
-      bind(brkLbl);
-      continue;
-    }
     case sBlock: {
       // vlof block of instructions
       int32 arity = opand(1);
@@ -496,7 +473,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // jump back to start of block
       int32 insSize = 2;
       int32 tgt = pc + opand(1);
-      blockPo tgtBlock = targetBlock(block, tgt, sLoop);
+      blockPo tgtBlock = targetBlock(block, tgt, sBlock);
       codeLblPo loop = loopLabel(tgtBlock);
       assert(loop != Null);
       b(loop);
@@ -1863,7 +1840,7 @@ retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   while (pc < limit) {
-    check(code[pc].op.op==sBreak||code[pc].op.op==sLoop, "Expecting a Break instruction");
+    check(code[pc].op.op==sBreak||code[pc].op.op==sCont, "Expecting a Break instruction");
     blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
     codeLblPo lbl = (code[pc].op.op == sBreak ? breakLabel(tgtBlock) : loopLabel(tgtBlock));
     b(lbl);

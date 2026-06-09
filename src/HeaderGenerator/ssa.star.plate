@@ -163,10 +163,6 @@ star.compiler.ssa{
   showIns(.iRtn, Pc, Sps) => ("\#(showPc(Pc,Sps))Rtn",Pc+1).
   showIns(.iRet(V0), Pc, Sps) => ("\#(showPc(Pc,Sps))Ret \#(V0)",Pc+2).
   showIns(.iXRet(V0), Pc, Sps) => ("\#(showPc(Pc,Sps))XRet \#(V0)",Pc+2).
-  showIns(.iLoop(V0), Pc, Sps) => valof{
-    (InsTxt,Pc1) = showBlock(V0,Pc+2,Sps+2);
-    valis ("\#(showPc(Pc,Sps))Loop \#(InsTxt)",Pc1)
-  }
   showIns(.iBlock(V0, V1), Pc, Sps) => valof{
     (InsTxt,Pc2) = showBlock(V1,Pc+size(V0)+3,Sps+2);
     valis ("\#(showPc(Pc,Sps))Block \#(showLocals(V0)), \#(InsTxt)",Pc2)

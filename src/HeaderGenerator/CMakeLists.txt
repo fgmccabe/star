@@ -29,7 +29,7 @@ set(STARESC_SOURCE_FILES
 add_executable(genstaresc ${STARESC_SOURCE_FILES})
 target_link_libraries(genstaresc ooio)
 
-set(SSA_OPCODES_SOURCE_FILES genssaopcodes.c ../Headers/ssaInstructions.h)
+set(SSA_OPCODES_SOURCE_FILES genssaopcodes.c ../Headers/instructions.h)
 add_executable(genssaopcodes ${SSA_OPCODES_SOURCE_FILES})
 target_link_libraries(genssaopcodes ooio)
 

@@ -364,10 +364,6 @@ ValueReturn run(enginePo P) {
 
       continue; /* and carry on regardless */
     }
-    case sLoop: {
-      PC += 2;
-      continue;
-    }
     case sBlock: {
       int32 arity = operand(1);
       PC += arity + 3; // Skip over the arity & size markers
