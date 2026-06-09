@@ -94,30 +94,36 @@ treePo newVarIndex() {
   return newTree(indexComp, Null);
 }
 
-varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc, int32 end) {
+varDescPo recordVariableStart(analysisPo analysis, scopePo block, int32 varNo, varKind kind, int32 pc, int32 end) {
   varDescPo desc = findVar(analysis, varNo);
-  assert(desc != Null && (kind==valof || desc->start==-1));
+  assert(desc != Null && (kind == valof || desc->start == -1));
   desc->start = pc;
   desc->end = end;
   desc->kind = kind;
+  desc->scope = block;
   return desc;
 }
 
-void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc) {
+retCode recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc) {
   varDescPo var = findVar(analysis, varNo);
   if (var->end < pc)
     var->end = pc;
+  // if (!inBlockScope(block, var->scope)) {
+  //   return Error;
+  // }
+  return Ok;
 }
 
 void markPhiVariable(analysisPo analysis, scopePo block, int32 phiNo) {
-  assert(block->kind==sBlock);
-  assert(block->phiCnt>phiNo);
+  assert(block->kind == sBlock);
+  assert(block->phiCnt > phiNo);
+
 }
 
-static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
+static varDescPo newVar(analysisPo analysis, scopePo scope, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
   varDescPo var = (varDescPo)allocPool(varPool);
 
-  assert(kind==argument ? (varNo>=0):True);
+  assert(kind == argument ? (varNo >= 0) : True);
 
   var->varNo = varNo;
   var->kind = kind;
@@ -125,7 +131,7 @@ static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc
   var->end = -1;
   var->registerCandidate = False;
   var->state = state;
-  var->block = Null;
+  var->scope = scope;
 
   hashPut(analysis->vars, var, var);
   return var;
@@ -160,17 +166,16 @@ varDescPo findVar(analysisPo analysis, int32 varNo) {
   return hashGet(analysis->vars, &nme);
 }
 
-varDescPo newArgVar(analysisPo analysis, int32 varNo) {
-  return newVar(analysis, varNo, argument, 0, allocated);
+varDescPo newArgVar(analysisPo analysis, scopePo scope, int32 varNo) {
+  return newVar(analysis, scope, varNo, argument, 0, allocated);
 }
 
 varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
-  return newVar(analysis, varNo, local, -1, unAllocated);
+  return newVar(analysis, Null, varNo, local, -1, unAllocated);
 }
 
 varDescPo newPhiVar(analysisPo analysis, int32 varNo, scopePo block) {
-  varDescPo var = newVar(analysis, varNo, valof, block->start, unAllocated);
-  var->block = block;
+  varDescPo var = newVar(analysis, block->parent, varNo, valof, block->start, unAllocated);
   var->end = block->end;
   return var;
 }
@@ -189,9 +194,18 @@ void markLoopVariables(analysisPo analysis, scopePo block) {
   processHashTable(markLoopVar, analysis->vars, block);
 }
 
+logical inBlockScope(scopePo block, scopePo scope) {
+  while (block != Null) {
+    if (block == scope)
+      return True;
+    block = block->parent;
+  }
+  return False;
+}
+
 void retireVar(analysisPo analysis, int32 varNo, int32 pc) {
   varDescPo var = findVar(analysis, varNo);
-  assert(var!=Null);
+  assert(var != Null);
   var->end = pc;
 }
 
@@ -272,7 +286,7 @@ arrayPo varStarts(analysisPo analysis) {
 
   processHashTable(popVar, analysis->vars, &info);
 
-  sortArray(starts, compVarStart,Null);
+  sortArray(starts, compVarStart, Null);
 
   return starts;
 }
@@ -284,7 +298,7 @@ arrayPo varExits(analysisPo analysis) {
 
   processHashTable(popVar, analysis->vars, &info);
 
-  sortArray(exits, compLastOcc,Null);
+  sortArray(exits, compLastOcc, Null);
 
   return exits;
 }
@@ -314,7 +328,7 @@ static retCode checkSlot(void* n, void* r, void* cl) {
   analysisPo analysis = (analysisPo)cl;
   varDescPo var = (varDescPo)r;
 
-  assert(var->state==allocated);
+  assert(var->state == allocated);
 
   return Ok;
 }

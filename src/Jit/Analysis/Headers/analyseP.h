@@ -20,7 +20,7 @@ typedef struct block_scope_* scopePo;
 typedef struct var_description_
 {
   int32 varNo; // Variable number, first numbers are locals
-  scopePo block;
+  scopePo scope;
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
   logical registerCandidate;
@@ -54,14 +54,16 @@ void setSafePoint(analysisPo analysis, int32 pc);
 void markVarAsRegister(varDescPo var);
 void markVarAsMemory(varDescPo var);
 
-varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc, int32 end);
-void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc);
+varDescPo recordVariableStart(analysisPo analysis, scopePo block, int32 varNo, varKind kind, int32 pc, int32 end);
+retCode recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc);
 void markPhiVariable(analysisPo analysis, scopePo block, int32 phiNo);
 void markLoopVariables(analysisPo analysis, scopePo block);
 
+logical inBlockScope(scopePo block, scopePo scope);
+
 varDescPo newPhiVar(analysisPo analysis, int32 varNo, scopePo block);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
-varDescPo newArgVar(analysisPo analysis, int32 varNo);
+varDescPo newArgVar(analysisPo analysis, scopePo scope, int32 varNo);
 varDescPo findVar(analysisPo analysis, int32 varNo);
 
 retCode showVars(ioPo out, analysisPo analysis);
