@@ -1,125 +1,101 @@
-/*
-  Specification of the Star Bytecode Instruction set
-  (c) 2017, and beyond F.G.McCabe
+//
+// Created by Francis McCabe on 1/14/26.
+//
 
-  This file should NEVER be included directly. It must always be
-  preceded and followed by undefs. A typical sequence looks like:
+instr(Halt, lcl)
+instr(Abort, lit lcl)
 
-#undef instruction
-#define instruction(Op,A1,A2,Dl,Cmnt) ...<expansion>...
+instr(Call, sym lcls)
+instr(OCall, lcl lcls)
+instr(Escape, Es lcls)
+instr(TCall, sym lcls)
+instr(TOCall, lcl lcls)
+instr(RSP, oUt)
+instr(RSX, lVl oUt)
+instr(Entry, lcm lcm)
+instr(Rtn, none)
+instr(Ret, lcl)
+instr(XRet, lcl)
 
-#include "instruction.h"
-#undef instruction
+instr(Loop, bLk)
+instr(Block, pHis bLk)
+instr(Break, lVl)
+instr(Result, lVl lcls)
+instr(Cont, lVl)
 
-  Contact: Francis McCabe <fmccabe@gmail.com>
-*/
+instr(ICase, lcl bLk)
+instr(Case, lcl bLk)
+instr(IxCase, lcl bLk)
 
-instruction(Halt, tOs, nOp, 0, "Stop execution")
-instruction(Abort, lit, tOs, -1, "abort with message")
+instr(CLbl, sym lVl lcl)
+instr(CInt, lit lVl lcl)
+instr(CChar, lit lVl lcl)
+instr(CFlt, lit lVl lcl)
+instr(CLit, lit lVl lcl)
 
-instruction(Call, sym, nOp, 1, "Call <prog>")
-instruction(OCall, art, tOs, 1, "OCall")
-instruction(Escape, Es, nOp, 1, "call C escape")
-instruction(XCall, sym, lVl, 1, "Call <prog>")
-instruction(XOCall, art, lVl, 1, "OCall")
-instruction(XEscape, Es, lVl, 1, "call C escape")
-instruction(TCall, sym, nOp, 0, "TCall <prog>")
-instruction(TOCall, art, tOs, 0, "TOCall")
-instruction(Entry, i32, nOp, 0, "locals definition")
+instr(MC, oUt lit)
+instr(Mv, oUt lcl)
 
-instruction(Ret, tOs, nOp, 0, "return")
-instruction(XRet, tOs, nOp, 0, "return exception")
+instr(LG, glb)
+instr(SG, glb lcl)
 
-instruction(Block, i32, bLk, 0, "block of instructions")
-instruction(Valof, i32, bLk, 0, "return value from block")
-instruction(Break, nOp, lVl, 0, "leave block")
-instruction(Result, nOp, lVl, 0, "return value out of block")
-instruction(Loop, nOp, lVl, 0, "jump back to start of block")
+instr(Sav, oUt)
+instr(LdSav, oUt lVl lcl)
+instr(TstSav, oUt lcl)
+instr(StSav, oUt lcl lcl)
 
-instruction(Drop, tOs, nOp, -1, "drop top of stack")
-instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
+instr(Cell, oUt lcl)
+instr(Get, oUt lcl)
+instr(Assign, lcl lcl)
 
-instruction(Fiber, tOs, nOp, 0, "Create new fiber")
-instruction(Suspend, tOs, tOs, -1, "suspend fiber")
-instruction(Resume, tOs, tOs, -1, "resume fiber")
-instruction(Retire, tOs, tOs, -2, "retire a fiber")
-instruction(Underflow, nOp, nOp, 0, "underflow from current stack")
+instr(Nth, oUt i32 lcl)
+instr(StNth, lcl i32 lcl)
 
-instruction(LdV, nOp, nOp, 1, "Place a void value on stack")
-instruction(LdC, lit, nOp, 1, "load literal from constant pool")
-instruction(Ld, lcl, nOp, 1, "load stack from local[xx]")
-instruction(St, lcs, tOs, -1, "store tos to local[xx]")
-instruction(StV, lcs, nOp, 0, "clear a local to void")
-instruction(Tee, lcs, tOs, 0, "copy tos to local[xx]")
+instr(IAdd, oUt lcl lcl)
+instr(ISub, oUt lcl lcl)
+instr(IMul, oUt lcl lcl)
+instr(IDiv, lVl oUt lcl lcl)
+instr(IMod, lVl oUt lcl lcl)
+instr(IAbs, oUt lcl)
 
-instruction(LdG, glb, nOp, 1, "load a global variable")
-instruction(StG, glb, tOs, -1, "store into a global variable")
-instruction(TG, glb, tOs, 0, "copy into a global variable")
+instr(IEq, oUt lcl lcl)
+instr(ILt, oUt lcl lcl)
+instr(IGe, oUt lcl lcl)
 
-instruction(Sav, nOp, nOp, 1, "create a single assignment variable")
-instruction(LdSav, tOs, lVl, 0, "derefence a sav, break if not set")
-instruction(TstSav, tOs, nOp, 0, "test a sav, return a logical")
-instruction(StSav, tOs, tOs, -2, "store a value into a single assignment variable")
-instruction(TSav, tOs, tOs, -1, "update single assignment variable leave value on stack")
+instr(CEq, oUt lcl lcl)
+instr(CLt, oUt lcl lcl)
+instr(CGe, oUt lcl lcl)
 
-instruction(Cell, tOs, nOp, 0, "create R/W cell")
-instruction(Get, tOs, nOp, 0, "access a R/W cell")
-instruction(Assign, tOs, tOs, -2, "assign to a R/W cell")
+instr(BAnd, oUt lcl lcl)
+instr(BOr, oUt lcl lcl)
+instr(BXor, oUt lcl lcl)
+instr(BLsl, oUt lcl lcl)
+instr(BLsr, oUt lcl lcl)
+instr(BAsr, oUt lcl lcl)
+instr(BNot, oUt lcl)
 
-instruction(CLbl, sym, lVl, -1, "T,Lbl --> test for a data term, break if not lbl")
-instruction(CInt, lit, lVl, -1, "T,lit --> test for a literal integer, break if not")
-instruction(CChar, lit, lVl, -1, "T,lit --> test for a literal char, break if not")
-instruction(CFlt, lit, lVl, -1, "T,lit --> test for a literal floating point, break if not")
-instruction(CLit, lit, lVl, -1, "T,lit --> test for a literal value, break if not")
-instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")
-instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
+instr(FAdd, oUt lcl lcl)
+instr(FSub, oUt lcl lcl)
+instr(FMul, oUt lcl lcl)
+instr(FDiv, lVl oUt lcl lcl)
+instr(FMod, lVl oUt lcl lcl)
+instr(FAbs, oUt lcl)
 
-instruction(If, tOs, lVl, -1, "break if true")
-instruction(IfNot, tOs, lVl, -1, "break if false")
+instr(FEq, oUt lcl lcl)
+instr(FLt, oUt lcl lcl)
+instr(FGe, oUt lcl lcl)
 
-instruction(ICase, i32, tOs, -1, "T --> T, icase <Max>")
-instruction(Case, i32, tOs, -1, "T --> T, case <Max>")
-instruction(IxCase, i32, tOs, -1, "check and jump on type index")
+instr(Alloc, sym oUt lcls)
+instr(Closure, sym oUt lcl)
+instr(Bump, lcl)
+instr(Drop, lcl)
 
-instruction(IAdd, tOs, tOs, -1, "L R --> L+R")
-instruction(ISub, tOs, tOs, -1, "L R --> L-R")
-instruction(IMul, tOs, tOs, -1, "L R --> L*R")
-instruction(IDiv, tOs, lVl, -2, "L R --> L/R")
-instruction(IMod, tOs, lVl, -2, "L R --> L%R")
-instruction(IAbs, tOs, nOp, 0, "L --> abs(L)")
+instr(Fiber, oUt lcl)
+instr(Suspend, lcl lcl)
+instr(Resume, lcl lcl)
+instr(Retire, lcl lcl)
+instr(Underflow, none)
 
-instruction(IEq, tOs, tOs, -1, "L R --> L==R")
-instruction(ILt, tOs, tOs, -1, "L R --> L<R")
-instruction(IGe, tOs, tOs, -1, "L R --> L>=R")
-
-instruction(CEq, tOs, tOs, -1, "L R --> L==R")
-instruction(CLt, tOs, tOs, -1, "L R --> L<R")
-instruction(CGe, tOs, tOs, -1, "L R --> L>=R")
-
-instruction(BAnd, tOs, tOs, -1, "L R --> L&R")
-instruction(BOr, tOs, tOs, -1, "L R --> L|R")
-instruction(BXor, tOs, tOs, -1, "L R --> L^R")
-instruction(BLsl, tOs, tOs, -1, "L R --> L<<R")
-instruction(BLsr, tOs, tOs, -1, "L R --> L>>R")
-instruction(BAsr, tOs, tOs, -1, "L R --> L>>>R")
-instruction(BNot, tOs, nOp, 0, "L --> ~L")
-
-instruction(FAdd, tOs, tOs, -1, "L R --> L+R")
-instruction(FSub, tOs, tOs, -1, "L R --> L-R")
-instruction(FMul, tOs, tOs, -1, "L R --> L*R")
-instruction(FDiv, tOs, lVl, -1, "L R --> L/R")
-instruction(FMod, tOs, lVl, -1, "L R --> L%R")
-instruction(FAbs, tOs, nOp, 0, "L --> abs(L)")
-
-instruction(FEq, tOs, tOs, -1, "L R e --> L==R")
-instruction(FLt, tOs, tOs, -1, "L R --> L<R")
-instruction(FGe, tOs, tOs, -1, "L R --> L>=R")
-
-instruction(Alloc, sym, nOp, 1, "new structure, elements from stack")
-instruction(Closure, sym, tOs, 0, "allocate a closure")
-
-instruction(Frame, i32, nOp, 0, "frame instruction")
-
-instruction(Line, lit, nOp, 0, "source line indicator")
-instruction(Bind, lit, lcl, 0, "bind a variable")
-instruction(dBug, lit, nOp, 0, "debugging prefix")
+instr(Line, lit)
+instr(Bind, lit lcl)
+instr(dBug, lit)

@@ -1,3 +1,4 @@
+[appendix]
 =  The Star Virtual Machine
 
 In this appendix, we introduce the virtual machine used to define the execution
@@ -5,9 +6,8 @@ model of Star.
 
 == A Structured Machine
 
-Overall, the Star virtual machine combines a number of architectural elements,
-the most important being Structured control flow and Single assignment
-variables.
+Overall, the Star virtual machine combines Structured control flow and Single
+assignment variables.
 
 Structured control flow is manifest by the use of `Block` instructions and the
 lack of a generalized goto or jump instruction: all control flow is relative to
@@ -43,271 +43,279 @@ within the Star VM.
 
 === Control Flow
 
-==== Halt V0
+==== `Halt V0`
 Terminates the current execution, returning the value in `V0` as the result.
 
-==== Abort lit, V0
+==== `Abort lit, V0`
 Aborts execution with an error code `lit` and a message or value in `V0`.
 
-==== Call sym, V*
+==== `Call sym, V*`
 Invokes the program labeled `sym` with the arguments in the variable list `V*`.
 
-==== OCall V0, V*
-Performs an "object call" (closure invocation) on the closure in `V0` with arguments `V*`.
+==== `OCall V0, V*`
+Performs an "object call" (closure invocation) on the closure in `V0` with
+arguments `V*`.
 
-==== Escape esc, V*
+==== `Escape esc, V*`
 Invokes a system escape (intrinsic) identified by `esc` with arguments `V*`.
 
-==== TCall sym, V*
+==== `TCall sym, V*`
 Performs a tail-recursive call to the program labeled `sym` with arguments `V*`.
 
-==== TOCall V0, V*
+==== `TOCall V0, V*`
 Performs a tail-recursive object call on the closure in `V0` with arguments `V*`.
 
-==== RSP Vx
-Responds to a previous call or escape, storing the result in `Vx`.
+==== `RSP Vx`
+Responds to a previous call or escape, storing the result in `Vx`. This
+effectively splits some instructions which would otherwise be difficult to
+execute in an interpreter.
 
-==== RSX level, Vx
-Responds to a call or escape, storing the result in `Vx`. If an exception occurred, it breaks out of the block at `level`.
+==== `RSX level, Vx`
+Responds to a call or escape, storing the result in `Vx`. If an exception
+occurred, it breaks out of the block at `level` -- which should have exactly one
+phi variable.
 
-==== Entry Ar, Lcnt
-The entry point of a method; sets up the stack frame for `Ar` arguments and `Lcnt` local variables.
+==== `Entry Ar, Lcnt`
+The entry point of a method; sets up the stack frame for `Ar` arguments and
+`Lcnt` local variables.
 
-==== Rtn
+==== `Rtn`
 Returns from the current method without a result value.
 
-==== Ret V0
+==== `Ret V0`
 Returns from the current method with the value in `V0`.
 
-==== XRet V0
-Returns from the current method with the value in `V0`, typically used in exception handling or special return paths.
+==== `XRet V0`
+Returns from the current method with the value in `V0`. It also marks the call
+as returning with an exception.
 
 === Blocks and Loops
 
-==== Loop length
-Begins a loop block of length instructions. Executing a `Cont` instruction
-referencings this block will cause execution to restart at the beginning of the
-enclosed instructions.
-
-==== Block V*, length
+==== `Block V*, length`
 Begins an execution block that expects to return values into `V*` and is
 followed by length instructions which considered to be part of the block. If the
 block is exited, then execution continues with the instruction immediately after
 the enclosed instructions.
 
-==== Break level
-Exits the current block or loop, breaking out of the block at `level`. Level
-here is an integer that indicates the number of nested blocks to break out of: a
-level of 0 will break out of the innermost `Block`.
+==== `Break level`
+Exits the current block or loop. `level` is an integer that indicates the number
+of nested blocks to break out of: a level of 0 will break out of the innermost
+`Block`.
 
-==== Result level, V*
+==== `Result level, V*`
 Returns the values in `V*` from the current block and breaks out of the block at `level`.
 
-==== Cont level
-Continues the next iteration of the loop, restarting the instructions of the
-loop identified by the `level`.
+==== `Cont level`
+Continues the next iteration of the loop, restarting execution at the beginning
+of the block identified by `level`.
 
 === Conditionals and Pattern Matching
 
-==== ICase V0, length
+==== `ICase V0, length`
 Performs a jump to the ``V0``th instruction within the next `length`
 instructions. It is required that these instructions are all either `Break`
 instructions or `Cont` instructions.
 
-==== Case V0, level
+==== `Case V0, level`
 Performs a term-based hash jump on `V0` within a block of length `level`.
 
-==== IxCase V0, level
+==== `IxCase V0, level`
 Performs a constructor index-based jump on `V0` within a block of length `level`.
 
-==== CLbl sym, level, V0
+==== `CLbl sym, level, V0`
 Compares the label of the term in `V0` with `sym`. If they do not match, it breaks out of the block at `level`.
 
-==== CInt lit, level, V0
-Compares the integer in `V0` with the literal `lit`. If they do not match, it breaks out of the block at `level`.
+==== `CInt lit, level, V0`
+Compares the integer in `V0` with the literal `lit`. If they do not match, it
+breaks out of the block at `level`.
 
-==== CChar lit, level, V0
+==== `CChar lit, level, V0`
 Compares the character in `V0` with the literal `lit`. If they do not match, it breaks out of the block at `level`.
 
-==== CFlt lit, level, V0
+==== `CFlt lit, level, V0`
 Compares the float in `V0` with the literal `lit`. If they do not match, it breaks out of the block at `level`.
 
-==== CLit lit, level, V0
+==== `CLit lit, level, V0`
 Compares the term in `V0` with the literal constant `lit`. If they do not match, it breaks out of the block at `level`.
 
 === Data Movement
 
-==== MC Vx, lit
+==== `MC Vx, lit`
 Moves the literal constant `lit` into variable `Vx`.
 
-==== Mv Vx, V0
+==== `Mv Vx, V0`
 Moves the value from variable `V0` into variable `Vx`.
 
-==== LG glb
+==== `LG glb`
 Loads the value of global variable `glb` into the result register (or prepares for a call if it's a thunk).
 
-==== SG glb, V0
+==== `SG glb, V0`
 Stores the value from `V0` into the global variable `glb`.
 
 === Variables and Memory
 
-==== Sav Vx
+==== `Sav Vx`
 Creates a new single-assignment variable (SAV) and stores it in `Vx`.
 
-==== LdSav Vx, level, V0
+==== `LdSav Vx, level, V0`
 Loads the value from SAV `V0` into `Vx`. If the SAV is not set, it breaks out of the block at `level`.
 
-==== TstSav Vx, V0
+==== `TstSav Vx, V0`
 Tests if SAV `V0` is set, storing a boolean result in `Vx`.
 
-==== StSav Vx, V0, V1
+==== `StSav Vx, V0, V1`
 Stores the value from `V1` into SAV `V0`. The result is also stored in `Vx`.
 
-==== Cell Vx, V0
+==== `Cell Vx, V0`
 Creates a new mutable cell initialized with the value in `V0` and stores it in `Vx`.
 
-==== Get Vx, V0
+==== `Get Vx, V0`
 Loads the current value from mutable cell `V0` into `Vx`.
 
-==== Assign V0, V1
+==== `Assign V0, V1`
 Updates the mutable cell in `V0` with the value in `V1`.
 
-==== Nth Vx, i32, V0
+==== `Nth Vx, i32, V0`
 Loads the `i32`-th element of the structure in `V0` into `Vx`.
 
-==== StNth V0, i32, V1
+==== `StNth V0, i32, V1`
 Updates the `i32`-th element of the structure in `V0` with the value in `V1`.
 
 === Integer Arithmetic
 
-==== IAdd Vx, V0, V1
+==== `IAdd Vx, V0, V1`
 Adds integers `V0` and `V1`, storing the result in `Vx`.
 
-==== ISub Vx, V0, V1
+==== `ISub Vx, V0, V1`
 Subtracts `V1` from `V0`, storing the result in `Vx`.
 
-==== IMul Vx, V0, V1
+==== `IMul Vx, V0, V1`
 Multiplies integers `V0` and `V1`, storing the result in `Vx`.
 
-==== IDiv level, Vx, V0, V1
-Divides `V0` by `V1`, storing the result in `Vx`. If `V1` is zero, it breaks out of the block at `level`.
+==== `IDiv level, Vx, V0, V1`
+Divides `V0` by `V1`, storing the result in `Vx`. If `V1` is zero, it breaks out
+of the block at `level`.
 
-==== IMod level, Vx, V0, V1
-Computes the remainder of `V0` divided by `V1`, storing it in `Vx`. If `V1` is zero, it breaks out of the block at `level`.
+==== `IMod level, Vx, V0, V1`
+Computes the remainder of `V0` divided by `V1`, storing it in `Vx`. If `V1` is
+zero, it breaks out of the block at `level`.
 
-==== IAbs Vx, V0
+==== `IAbs Vx, V0`
 Stores the absolute value of integer `V0` in `Vx`.
 
-==== IEq Vx, V0, V1
+==== `IEq Vx, V0, V1`
 Sets `Vx` to true if integers `V0` and `V1` are equal, false otherwise.
 
-==== ILt Vx, V0, V1
+==== `ILt Vx, V0, V1`
 Sets `Vx` to true if `V0` is less than `V1`, false otherwise.
 
-==== IGe Vx, V0, V1
+==== `IGe Vx, V0, V1`
 Sets `Vx` to true if `V0` is greater than or equal to `V1`, false otherwise.
 
 === Character Comparisons
 
-==== CEq Vx, V0, V1
+==== `CEq Vx, V0, V1`
 Sets `Vx` to true if characters `V0` and `V1` are equal.
 
-==== CLt Vx, V0, V1
+==== `CLt Vx, V0, V1`
 Sets `Vx` to true if character `V0` is less than `V1`.
 
-==== CGe Vx, V0, V1
+==== `CGe Vx, V0, V1`
 Sets `Vx` to true if character `V0` is greater than or equal to `V1`.
 
 === Bitwise Operations
 
-==== BAnd Vx, V0, V1
+==== `BAnd Vx, V0, V1`
 Bitwise AND of `V0` and `V1`, stored in `Vx`.
 
-==== BOr Vx, V0, V1
+==== `BOr Vx, V0, V1`
 Bitwise OR of `V0` and `V1`, stored in `Vx`.
 
-==== BXor Vx, V0, V1
+==== `BXor Vx, V0, V1`
 Bitwise XOR of `V0` and `V1`, stored in `Vx`.
 
-==== BLsl Vx, V0, V1
+==== `BLsl Vx, V0, V1`
 Bitwise logical shift left of `V0` by `V1` bits, stored in `Vx`.
 
-==== BLsr Vx, V0, V1
+==== `BLsr Vx, V0, V1`
 Bitwise logical shift right of `V0` by `V1` bits, stored in `Vx`.
 
-==== BAsr Vx, V0, V1
+==== `BAsr Vx, V0, V1`
 Bitwise arithmetic shift right of `V0` by `V1` bits, stored in `Vx`.
 
-==== BNot Vx, V0
+==== `BNot Vx, V0`
 Bitwise NOT of `V0`, stored in `Vx`.
 
 === Floating Point Arithmetic
 
-==== FAdd Vx, V0, V1
+==== `FAdd Vx, V0, V1`
 Adds floats `V0` and `V1`, storing the result in `Vx`.
 
-==== FSub Vx, V0, V1
+==== `FSub Vx, V0, V1`
 Subtracts float `V1` from `V0`, storing the result in `Vx`.
 
-==== FMul Vx, V0, V1
+==== `FMul Vx, V0, V1`
 Multiplies floats `V0` and `V1`, storing the result in `Vx`.
 
-==== FDiv level, Vx, V0, V1
+==== `FDiv level, Vx, V0, V1`
 Divides float `V0` by `V1`, storing the result in `Vx`. If `V1` is zero, it breaks out of the block at `level`.
 
-==== FMod level, Vx, V0, V1
+==== `FMod level, Vx, V0, V1`
 Computes the remainder of `V0` divided by `V1`, storing it in `Vx`. If `V1` is zero, it breaks out of the block at `level`.
 
-==== FAbs Vx, V0
+==== `FAbs Vx, V0`
 Stores the absolute value of float `V0` in `Vx`.
 
-==== FEq Vx, V0, V1
+==== `FEq Vx, V0, V1`
 Sets `Vx` to true if floats `V0` and `V1` are equal.
 
-==== FLt Vx, V0, V1
+==== `FLt Vx, V0, V1`
 Sets `Vx` to true if float `V0` is less than `V1`.
 
-==== FGe Vx, V0, V1
+==== `FGe Vx, V0, V1`
 Sets `Vx` to true if float `V0` is greater than or equal to `V1`.
 
-=== Objects and Closures
+=== Terms and Closures
 
-==== Alloc sym, Vx, V*
+==== `Alloc sym, Vx, V*`
 Allocates a new structure with label `sym` and elements `V*`, storing it in `Vx`.
 
-==== Closure sym, Vx, V0
+==== `Closure sym, Vx, V0`
 Allocates a new closure for the program `sym` with free variables in `V0`, storing it in `Vx`.
 
-==== Bump V0
+==== `Bump V0`
 (Reserved) Increments a reference count or memory pointer.
 
-==== Drop V0
+==== `Drop V0`
 (Reserved) Decrements a reference count or releases memory.
 
 === Concurrency and Fibers
 
-==== Fiber Vx, V0
+==== `Fiber Vx, V0`
 Creates a new fiber from the lambda in `V0` and stores the fiber handle in `Vx`.
 
-==== Suspend V0, V1
+==== `Suspend V0, V1`
 Suspends the execution of fiber `V0`, passing the event `V1` to the scheduler.
 
-==== Resume V0, V1
+==== `Resume V0, V1`
 Resumes the execution of fiber `V0`, passing the event `V1` into the fiber.
 
-==== Retire V0, V1
+==== `Retire V0, V1`
 Terminates the fiber `V0` and returns the event `V1`.
 
-==== Underflow
-Handles stack underflow by dropping the current stack and returning to the parent stack.
+==== `Underflow`
+Handles stack underflow by dropping the current stack and returning to the
+parent stack.
 
 === Miscellaneous and Debugging
 
-==== Line lit
+==== `Line lit`
 Source line mapping; used for debugging to associate the current PC with source location `lit`.
 
-==== Bind lit, V0
+==== `Bind lit, V0`
 Variable binding information; associates the name `lit` with the value in `V0` for debugging.
 
-==== dBug lit
-Enter the debugger or log a message associated with `lit`.
+==== `dBug loc`
+Enter the debugger with location `loc`. The next instruction should be one of
+`Abort`, `Call`, `TCall`, `OCall`, `TOCall`, `Ret`, `XRet`, `Rtn`, `Assign`,
+`LG`, `Fiber`, `Suspend`, `Resume`, or `Retire`.

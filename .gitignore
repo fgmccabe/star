@@ -1,5 +1,6 @@
 .idea/
 .cache/
+.vscode/
 .star
 .star-repo
 .DS_Store
