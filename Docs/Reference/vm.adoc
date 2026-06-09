@@ -293,12 +293,6 @@ Allocates a new structure with label `sym` and elements `V*`, storing it in `Vx`
 ==== `Closure sym, Vx, V0`
 Allocates a new closure for the program `sym` with free variables in `V0`, storing it in `Vx`.
 
-==== `Bump V0`
-(Reserved) Increments a reference count or memory pointer.
-
-==== `Drop V0`
-(Reserved) Decrements a reference count or releases memory.
-
 === Concurrency and Fibers
 
 ==== `Fiber Vx, V0`

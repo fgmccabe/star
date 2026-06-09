@@ -1557,13 +1557,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       pc += insSize;
       continue;
     }
-    case sBump:
-    case sDrop: {
-      int32 insSize = 2;
-      bailOut(state, pc, invalidOperationCode);
-      pc += insSize;
-      continue;
-    }
     case sFiber: {
       int32 insSize = 3;
       FlexOp lam = localFlex(state, pc, opand(2));

@@ -86,8 +86,6 @@ star.compiler.ssa{
     | .iFGe(varNm, varNm, varNm)
     | .iAlloc(termLbl, varNm, cons[varNm])
     | .iClosure(termLbl, varNm, varNm)
-    | .iBump(varNm)
-    | .iDrop(varNm)
     | .iFiber(varNm, varNm)
     | .iSuspend(varNm, varNm)
     | .iResume(varNm, varNm)
@@ -275,24 +273,22 @@ star.compiler.ssa{
     (Lt1, L1) = findLit(Lt0,.symb(V0)); 
     valis ([.intgr(67),.intgr(L1),findLocal(V1,Lcs),findLocal(V2,Lcs)],Pc+4,Lt1);
   }
-  mnem(.iBump(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(68),findLocal(V0,Lcs)],Pc+2,Lt0).
-  mnem(.iDrop(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(69),findLocal(V0,Lcs)],Pc+2,Lt0).
-  mnem(.iFiber(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(70),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iSuspend(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(71),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iResume(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(72),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iRetire(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(73),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iUnderflow, Pc,Lbls,Lt0,Lcs) => ([.intgr(74)],Pc+1,Lt0).
+  mnem(.iFiber(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(68),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iSuspend(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(69),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iResume(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(70),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iRetire(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(71),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iUnderflow, Pc,Lbls,Lt0,Lcs) => ([.intgr(72)],Pc+1,Lt0).
   mnem(.iLine(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(75),.intgr(L1)],Pc+2,Lt1);
+    valis ([.intgr(73),.intgr(L1)],Pc+2,Lt1);
   }
   mnem(.iBind(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(76),.intgr(L1),findLocal(V1,Lcs)],Pc+3,Lt1);
+    valis ([.intgr(74),.intgr(L1),findLocal(V1,Lcs)],Pc+3,Lt1);
   }
   mnem(.iDBug(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(77),.intgr(L1)],Pc+2,Lt1);
+    valis ([.intgr(75),.intgr(L1)],Pc+2,Lt1);
   }
 
   mnem(I,Pc,Lbls,Lts,Lcs) => valof{
@@ -440,8 +436,6 @@ star.compiler.ssa{
   showIns(.iFGe(V0, V1, V2), Pc, Sps) => ("#(showPc(Pc,Sps))FGe #(V0), #(V1), #(V2)",Pc+4).
   showIns(.iAlloc(V0, V1, V2), Pc, Sps) => ("#(showPc(Pc,Sps))Alloc $(V0), #(V1), #(showLocals(V2))",Pc+size(V0)+4).
   showIns(.iClosure(V0, V1, V2), Pc, Sps) => ("#(showPc(Pc,Sps))Closure $(V0), #(V1), #(V2)",Pc+4).
-  showIns(.iBump(V0), Pc, Sps) => ("#(showPc(Pc,Sps))Bump #(V0)",Pc+2).
-  showIns(.iDrop(V0), Pc, Sps) => ("#(showPc(Pc,Sps))Drop #(V0)",Pc+2).
   showIns(.iFiber(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Fiber #(V0), #(V1)",Pc+3).
   showIns(.iSuspend(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Suspend #(V0), #(V1)",Pc+3).
   showIns(.iResume(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Resume #(V0), #(V1)",Pc+3).
@@ -1033,16 +1027,6 @@ star.compiler.ssa{
      throw .exception("Var #(V2) in 'Closure' not inited");
     valis Lcls1
   }
-  validIns(.iBump(V0), Lcls0, Lbls) => valof{
-   if ~varInited(Lcls0, V0) then
-     throw .exception("Var #(V0) in 'Bump' not inited");
-    valis Lcls0
-  }
-  validIns(.iDrop(V0), Lcls0, Lbls) => valof{
-   if ~varInited(Lcls0, V0) then
-     throw .exception("Var #(V0) in 'Drop' not inited");
-    valis Lcls0
-  }
   validIns(.iFiber(V0, V1), Lcls0, Lbls) => valof{
    if varInited(Lcls0, V0) then
      throw .exception("Var #(V0) in 'Fiber' already inited");
@@ -1096,5 +1080,5 @@ star.compiler.ssa{
   hasEntryInstruction([_,..Ins]) => hasEntryInstruction(Ins).
   hasEntryInstruction([]) => .none.
 
-  public opcodeHash = 2289763149928813207.
+  public opcodeHash = 2096417289393624453.
 }

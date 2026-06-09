@@ -86,8 +86,6 @@ instr(FGe, oUt lcl lcl)
 
 instr(Alloc, sym oUt lcls)
 instr(Closure, sym oUt lcl)
-instr(Bump, lcl)
-instr(Drop, lcl)
 
 instr(Fiber, oUt lcl)
 instr(Suspend, lcl lcl)

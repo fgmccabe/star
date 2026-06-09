@@ -971,16 +971,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
       pc = nextPc;
       continue;
     }
-    case sDrop:
-    case sBump: {
-      int32 insSize = 2;
-      int32 srcVr = operand(1);
-      if (!initedLocal(&ctx, srcVr))
-        return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
-
-      pc += insSize;
-      continue;
-    }
     case sFiber: {
       int32 insSize = 3;
       int32 nextPc = pc + insSize;

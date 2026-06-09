@@ -76,16 +76,14 @@ typedef enum {
     sFGe = 65,
     sAlloc = 66,
     sClosure = 67,
-    sBump = 68,
-    sDrop = 69,
-    sFiber = 70,
-    sSuspend = 71,
-    sResume = 72,
-    sRetire = 73,
-    sUnderflow = 74,
-    sLine = 75,
-    sBind = 76,
-    sdBug = 77,
+    sFiber = 68,
+    sSuspend = 69,
+    sResume = 70,
+    sRetire = 71,
+    sUnderflow = 72,
+    sLine = 73,
+    sBind = 74,
+    sdBug = 75,
 
   sInval,
   maxCode = sInval
@@ -160,8 +158,6 @@ static char *ssaOpNames[] = {
       "FGe",
       "Alloc",
       "Closure",
-      "Bump",
-      "Drop",
       "Fiber",
       "Suspend",
       "Resume",
@@ -172,7 +168,7 @@ static char *ssaOpNames[] = {
       "dBug"};
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 2289763149928813207
+#define OPCODE_SIGNATURE 2096417289393624453
 #endif
 
 typedef enum {

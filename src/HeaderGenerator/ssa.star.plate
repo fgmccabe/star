@@ -230,8 +230,6 @@ star.compiler.ssa{
   showIns(.iFGe(V0, V1, V2), Pc, Sps) => ("\#(showPc(Pc,Sps))FGe \#(V0), \#(V1), \#(V2)",Pc+4).
   showIns(.iAlloc(V0, V1, V2), Pc, Sps) => ("\#(showPc(Pc,Sps))Alloc $(V0), \#(V1), \#(showLocals(V2))",Pc+size(V0)+4).
   showIns(.iClosure(V0, V1, V2), Pc, Sps) => ("\#(showPc(Pc,Sps))Closure $(V0), \#(V1), \#(V2)",Pc+4).
-  showIns(.iBump(V0), Pc, Sps) => ("\#(showPc(Pc,Sps))Bump \#(V0)",Pc+2).
-  showIns(.iDrop(V0), Pc, Sps) => ("\#(showPc(Pc,Sps))Drop \#(V0)",Pc+2).
   showIns(.iFiber(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))Fiber \#(V0), \#(V1)",Pc+3).
   showIns(.iSuspend(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))Suspend \#(V0), \#(V1)",Pc+3).
   showIns(.iResume(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))Resume \#(V0), \#(V1)",Pc+3).

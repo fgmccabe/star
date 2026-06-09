@@ -356,38 +356,32 @@ mnem([iClosure(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(67),intgr(L0), Off1, O
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
-mnem([iBump(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(68), Off0|Cd],Cdx) :-
-  findLocal(V0,LsMap,Off0),
-  mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iDrop(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(69), Off0|Cd],Cdx) :-
-  findLocal(V0,LsMap,Off0),
-  mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iFiber(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(70), Off0, Off1|Cd],Cdx) :-
+mnem([iFiber(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(68), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iSuspend(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(71), Off0, Off1|Cd],Cdx) :-
+mnem([iSuspend(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(69), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iResume(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(72), Off0, Off1|Cd],Cdx) :-
+mnem([iResume(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(70), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(73), Off0, Off1|Cd],Cdx) :-
+mnem([iRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(71), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(74)|Cd],Cdx) :-
+mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(72)|Cd],Cdx) :-
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(75),intgr(L0)|Cd],Cdx) :-
+mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(73),intgr(L0)|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
-mnem([iBind(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(76),intgr(L0), Off1|Cd],Cdx) :-
+mnem([iBind(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(74),intgr(L0), Off1|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
-mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(77),intgr(L0)|Cd],Cdx) :-
+mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(75),intgr(L0)|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
 
@@ -696,10 +690,6 @@ showMnem(iAlloc(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Alloc"),ss(" "),SS0,ss(" ")
 showMnem(iClosure(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Closure"),ss(" "),SS0,ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
   ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
-showMnem(iBump(V0),Pc,sq([PcDx,ss(": "),ss("Bump"),ss(" "),ss(V0)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iDrop(V0),Pc,sq([PcDx,ss(": "),ss("Drop"),ss(" "),ss(V0)])) :- !,
-  showPc(Pc,PcDx).
 showMnem(iFiber(V0, V1),Pc,sq([PcDx,ss(": "),ss("Fiber"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
 showMnem(iSuspend(V0, V1),Pc,sq([PcDx,ss(": "),ss("Suspend"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
@@ -727,7 +717,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(2289763149928813207).
+ssaHash(2096417289393624453).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

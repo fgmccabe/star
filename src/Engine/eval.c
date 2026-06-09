@@ -927,16 +927,6 @@ ValueReturn run(enginePo P) {
       PC += insSize;
       continue;
     }
-    case sDrop: {
-      logMsg(logFile, "Drop not implemented");
-      bail();
-      continue;
-    }
-    case sBump: {
-      logMsg(logFile, "Bump not implemented");
-      bail();
-      continue;
-    }
     case sFiber: {
       int32 insSize = 3;
       termPo fiberLambda = varble(operand(2));
