@@ -1,4 +1,4 @@
-/*@prefix location: <http://www.scalableknowledge.com/location.>.
+@prefix location: <http://www.scalableknowledge.com/location.>.
 @prefix genie: <http://www.scalableknowledge.com/genie.>.
 @prefix trade: <http://www.scalableknowledge.com/trade.>.
 @prefix verb: <http://www.scalableknowledge.com/verb.>.
@@ -17,7 +17,7 @@
 @prefix dc: <http://purl.org/dc/elements/1.1/>.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
 @prefix service: <http://www.scalableknowledge.com/service.>.
-*/
+
 feature:Yurt a feature:HomeFeature, feature:ExteriorFeature;
        rdfs:label "yurt".
 
