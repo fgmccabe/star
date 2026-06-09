@@ -20,12 +20,11 @@ implementation of loops.)
 Variables in the Star VM are one of three types: argument variables, local
 variables or phi variables.
 
-Argument variables derive their value on entry to
-the function, and may not be re-assigned to.
+Argument variables derive their value on entry to the function, and may not be
+re-assigned to.
 
-Local variables may only be
-assigned to once: each local variable has exactly one instruction that gives it
-a value.
+Local variables may only be assigned to once: each local variable has exactly
+one instruction that gives it a value.
 
 Phi variables are the 'output' of a `Block` instruction. Phi variables only get
 a variable when the `Block` that they are defined by is exited. There are two
@@ -39,7 +38,16 @@ re-assignable variables is achieved with a combination of reference values and
 the the `Assign` and `Get` instructions. Reference values are not variables
 within the Star VM.
 
+The combination of structured control flow and ssa means that it is
+straightfoward to analyse code sequences and to generate reasonable code on real
+architectures.
+
 == Individual Instructions
+
+In the descriptions of instructions that follow, references to variables are
+always references to local variable of a function. Variables may be numbered
+positively or negatively. Positive variables refer to arguments of the function
+and negative variables refer to so-called local variables of the function.
 
 === Control Flow
 
@@ -50,7 +58,8 @@ Terminates the current execution, returning the value in `V0` as the result.
 Aborts execution with an error code `lit` and a message or value in `V0`.
 
 ==== `Call sym, V*`
-Invokes the program labeled `sym` with the arguments in the variable list `V*`.
+Invokes the program labeled `sym` with the arguments in the variable list
+`V*`. `sym` is a literal label of a function.
 
 ==== `OCall V0, V*`
 Performs an "object call" (closure invocation) on the closure in `V0` with
@@ -147,7 +156,8 @@ Moves the literal constant `lit` into variable `Vx`.
 Moves the value from variable `V0` into variable `Vx`.
 
 ==== `LG glb`
-Loads the value of global variable `glb` into the result register (or prepares for a call if it's a thunk).
+Loads the value of global variable `glb` into the result register (or prepares
+for a call if it's a thunk).
 
 ==== `SG glb, V0`
 Stores the value from `V0` into the global variable `glb`.
@@ -275,7 +285,7 @@ Sets `Vx` to true if float `V0` is less than `V1`.
 ==== `FGe Vx, V0, V1`
 Sets `Vx` to true if float `V0` is greater than or equal to `V1`.
 
-=== Terms and Closures
+=== Data Values and Closures
 
 ==== `Alloc sym, Vx, V*`
 Allocates a new structure with label `sym` and elements `V*`, storing it in `Vx`.
@@ -303,11 +313,13 @@ Resumes the execution of fiber `V0`, passing the event `V1` into the fiber.
 ==== `Retire V0, V1`
 Terminates the fiber `V0` and returns the event `V1`.
 
+=== Miscellaneous
+
 ==== `Underflow`
 Handles stack underflow by dropping the current stack and returning to the
 parent stack.
 
-=== Miscellaneous and Debugging
+=== Debugging
 
 ==== `Line lit`
 Source line mapping; used for debugging to associate the current PC with source location `lit`.
