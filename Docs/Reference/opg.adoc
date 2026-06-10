@@ -115,8 +115,6 @@ predicate-level connectives and priorities in the range 1001..2000
 refer to entries that have a statement or program level
 interpretation.
 
-include::operators.adoc[]
-
 == The `quote` contract
 [#quoteContract]
 
