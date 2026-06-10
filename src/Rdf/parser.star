@@ -25,6 +25,9 @@ rdf.parser{
   symbolic >> .named(Pre,Id) --> [.tok(_,.idTok(Pre)),.tok(_,.pncTok(":")),.tok(_,.idTok(Id))].
   symbolic >> .named("",Id) --> [.tok(_,.idTok(Id))], ~[.tok(_,.pncTok(":"))].
   symbolic >> .uri(U) --> [.tok(_,.uriTok(U))].
+
+  prefix >> .prefix(Nm) --> [.tok(_,.pncTok("@")), .tok(_,.idTok(Id)),.tok(_,.pncTok(":"))].
+
   
   literal >> .int(Ix) --> [.tok(_,.intTok(Ix))].
   literal >> .flt(Fx) --> [.tok(_,.fltTok(Fx))].

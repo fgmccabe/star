@@ -4,6 +4,7 @@ rdf.triple{
   import star.location.
 
   public concept ::= .named(string,string)
+  | .prefix(string)
   | .anon(integer)
   | .existential(concept,set[triple])
   | .uri(string)
@@ -39,6 +40,7 @@ rdf.triple{
 
   public implementation display[concept] => {
     disp(.named("",S)) => S.
+    disp(.prefix(S)) => "$#(S)\:".
     disp(.anon(Ix)) => "_$(Ix)".
     disp(.named(P,S)) => "#(P)\:#(S)".
     disp(.existential(Ix,Ts)) => "[$(Ts)]".
@@ -56,6 +58,7 @@ rdf.triple{
 
   public implementation hashable[concept] => {
     hash(.named(P,S)) => ((hash(P)*37)+hash(S)*37)+hash("name").
+    hash(.prefix(S)) => hash(S)*37+hash("@").
     hash(.anon(Ix)) => hash(Ix)*37+hash("_").
     hash(.existential(.anon(Ix),_)) => hash(Ix)*37+hash("_").
     hash(.uri(U)) => hash(U)*37+hash("U").
