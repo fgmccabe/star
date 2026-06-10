@@ -448,8 +448,8 @@ stackPo glueOnStack(enginePo P, logical execJit, integer size, integer arity) {
   return P->stk = child;
 }
 
-void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 saveCnt) {
-  glueOnStack(P, execJit, (P->stk->sze * 3) / 2 + delta, saveCnt);
+void handleStackOverflow(enginePo P, integer delta, int32 saveCnt) {
+  glueOnStack(P, True, (P->stk->sze * 3) / 2 + delta, saveCnt);
 }
 
 stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size) {

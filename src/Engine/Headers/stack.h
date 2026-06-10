@@ -43,7 +43,7 @@ framePo pushFrame(stackPo stk, logical execJit, methodPo mtd);
 
 termPo stackVariable(stackPo stk, integer lclNo);
 
-void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 saveCnt);
+void handleStackOverflow(enginePo P, integer delta, int32 saveCnt);
 
 void pushStack(stackPo stk, termPo ptr);
 

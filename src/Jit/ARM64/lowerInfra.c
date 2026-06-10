@@ -483,7 +483,7 @@ void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   stashLiveLocals(state, pc, False);
 
   invokeIntrinsic(state, pc, pc + 1, (runtimeFn)handleStackOverflow,
-                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(arity)}, False, 0, (FlexOp[]){});
+                  3, (FlexOp[]){RG(PR), IM(delta), IM(arity)}, False, 0, (FlexOp[]){});
   bind(okLbl);
   releaseReg(jit, tmp);
 }

@@ -117,7 +117,6 @@ retCode recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32
 void markPhiVariable(analysisPo analysis, scopePo block, int32 phiNo) {
   assert(block->kind == sBlock);
   assert(block->phiCnt > phiNo);
-
 }
 
 static varDescPo newVar(analysisPo analysis, scopePo scope, int32 varNo, varKind kind, int32 pc, varAllocationState state) {

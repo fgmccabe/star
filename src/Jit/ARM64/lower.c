@@ -337,7 +337,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       localVarPo tgt = localTarget(state, pc, opand(1));
       storeVar(state, pc,RG(RTV), tgt);
 
-      if (!registerInUse(state, RG(RTS))) {
+      if (!registerInUse(state, RG(RTV))) {
         releaseReg(jit,RTS);
         releaseReg(jit,RTV);
       }
@@ -357,7 +357,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       localVarPo tgt = localTarget(state, pc, opand(2));
       storeVar(state, pc,RG(RTV), tgt);
-      if (!registerInUse(state, RG(RTS))) {
+      if (!registerInUse(state, RG(RTV))) {
         // Special case for the RTS/RTV registers
         releaseReg(jit,RTS);
         releaseReg(jit,RTV);
