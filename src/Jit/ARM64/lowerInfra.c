@@ -23,7 +23,6 @@ static localVarPo findLclByOffset(codeGenPo state, int32 pc, int32 offset);
 blockPo targetBlock(blockPo block, int32 tgt, ssaOp blockType) {
   while (block != Null) {
     if (block->startPc == tgt) {
-//      assert(block->blockType == blockType);
       return block;
     }
     block = block->parent;

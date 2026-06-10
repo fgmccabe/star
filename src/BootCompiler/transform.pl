@@ -337,8 +337,8 @@ liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
 liftPtn(v(Lc,Nm,Tp),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,Tp,A,Q,Qx,Map,Opts).
 liftPtn(anon(_,Tp),ann(Tp),Q,Q,_,_,Ex,Ex).
-liftPtn(enm(Lc,Nm,Tp),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarPtn(Lc,Nm,Tp,Ptn,Q,Qx,Map,Opts).
+liftPtn(enm(Lc,Nm,Tp),Ptn,Q,Q,Map,_Opts,Ex,Ex) :- !,
+  liftEnum(Lc,Nm,Tp,Ptn,Map).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
 liftPtn(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
@@ -373,7 +373,6 @@ trVarPtn(Lc,Nm,Tp,A,Q,Qx,Map,Opts) :-
 
 implementVarPtn(moduleVar(Vn,Tp),_,_,Lc,cll(Lc,lbl(Vn,0),[],Tp),_,_,Q,Q) :-
   reportError("not allowed to have globals in patterns: %s",[id(Vn)],Lc). % module variable
-
 implementVarPtn(labelArg(N,Ix,ThVr,_),_,Tp,Lc,
 		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix,Tp))),Map,Opts,Q,Qx) :- !, % argument from label
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
@@ -623,6 +622,24 @@ liftVar(_,Vr,Vr,Map,_Opts,Q,Qx):-
 liftVar(Lc,idnt(Nm,Tp),Vr,Map,Opts,Q,Qx) :-
   trVarExp(Lc,Nm,Tp,Vr,Map,Opts,Q,Qx).
 
+liftEnum(Lc,Nm,_Tp,Exp,Map) :-
+  lookupVar(Map,Nm,Reslt),
+  (Reslt = moduleCons(Mdl,_,0) ->
+   Exp = ctpl(lbl(Mdl,0),[]);
+   Reslt = localCons(_,_,0,ThV) ->
+   Exp = ctpl(lbl(Nm,1),[ThV]);
+   reportError("cannot handle constructor %s",[id(Nm)],Lc)).
+
+liftCons(Lc,Nm,_Tp,Args,Exp,Map) :-
+  lookupVar(Map,Nm,Reslt),
+  length(Args,Ar),
+  (Reslt = moduleCons(Mdl,_,Ar) ->
+   Exp = ctpl(lbl(Mdl,Ar),Args);
+   Reslt = localCons(_,_,Ar,ThV) ->
+   Arity is Ar+1,
+   Exp = ctpl(lbl(Nm,Arity),[ThV|Args]);
+   reportError("cannot handle constructor %s",[id(Nm)],Lc)).
+
 implementVarExp(moduleVar(V,_),_Lc,_,Tp,idnt(V,Tp),_,_,Qx,Qx).
 implementVarExp(labelArg(_N,Ix,ThVr,_),Lc,_,Tp,nth(Lc,ThV,Ix,Tp),Map,Opts,Q,Qx) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
@@ -651,14 +668,16 @@ trExpCallOp(Lc,v(_,Nm,_),Tp,Throwing,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupVar(Map,Nm,Reslt),
   Reslt\=notInMap,!,
   implementFunCall(Lc,Reslt,Nm,Args,Tp,Throwing,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(_Lc,enm(Lc,Nm,_Tp),_,_,Args,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
-  lookupVar(Map,Nm,Reslt),
-  (Reslt = moduleCons(Mdl,_,Ar) ->
-   Exp = ctpl(lbl(Mdl,Ar),Args);
-   Reslt = localCons(_,_,Ar,ThV) ->
-   Arity is Ar+1,
-   Exp = ctpl(lbl(Nm,Arity),[ThV|Args]);
-   reportError("cannot handle constructor %s",[id(Nm)],Lc)).
+trExpCallOp(_Lc,enm(Lc,Nm,Tp),_,_,As,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
+  liftCons(Lc,Nm,Tp,As,Exp,Map).
+% trExpCallOp(_Lc,enm(Lc,Nm,_Tp),_,_,Args,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
+%   lookupVar(Map,Nm,Reslt),
+%   (Reslt = moduleCons(Mdl,_,Ar) ->
+%    Exp = ctpl(lbl(Mdl,Ar),Args);
+%    Reslt = localCons(_,_,Ar,ThV) ->
+%    Arity is Ar+1,
+%    Exp = ctpl(lbl(Nm,Arity),[ThV|Args]);
+%    reportError("cannot handle constructor %s",[id(Nm)],Lc)).
 trExpCallOp(Lc,Op,Tp,nothrow,A,ocall(Lc,Rc,A,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,Op,Tp,throw(ErTp),A,xocall(Lc,Rc,A,Tp,ErTp),Q,Qx,Map,Opts,Ex,Exx) :-

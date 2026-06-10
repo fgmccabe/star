@@ -80,19 +80,19 @@ ValueReturn run(enginePo P) {
 #ifndef NOJIT
       if (hasJit(mtd)) {
 #ifdef TRACEJIT
-        if (traceJit) {
-          logMsg(logFile, "entering jitted code %T", mtd);
-        }
+      if (traceJit) {
+        logMsg(logFile, "entering jitted code %T", mtd);
+      }
 #endif
 
-        saveRegisters();
-        RSLT = invokeJitMethod(P, mtd);
-        restoreRegisters();
-        PC = nextPc;
+      saveRegisters();
+      RSLT = invokeJitMethod(P, mtd);
+      restoreRegisters();
+      PC = nextPc;
       }
       else
 #endif
-        PC = entryPoint(mtd);
+      PC = entryPoint(mtd);
       continue;
     }
 
@@ -388,7 +388,7 @@ ValueReturn run(enginePo P) {
     }
     case sCont: {
       PC += operand(1);
-      PC += 2; // Move to start of actual instructions
+      PC += operand(2); // Move to start of actual instructions
       continue;
     }
     case sICase: {
@@ -1065,11 +1065,11 @@ ValueReturn exec(enginePo P) {
   register methodPo PROG = STK->prog;
 
 #ifdef TRACEJIT
-  if (traceJit) {
-    logMsg(logFile, "entering jitted code %T", PROG);
-  }
+if (traceJit) {
+  logMsg(logFile, "entering jitted code %T", PROG);
+}
 #endif
 
-  return invokeJitMethod(P, PROG);
+return invokeJitMethod(P, PROG);
 }
 #endif

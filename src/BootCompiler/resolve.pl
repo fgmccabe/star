@@ -580,11 +580,6 @@ findUpdate(Tp,FldNm,Dict,AccTp,FunNm) :-
 findUpdate(_Tp,FldNm,Dict,AccTp,FunNm) :-
   is_member(update(FldNm,v(_,FunNm,AccTp)),Dict),!.
 
-resolveHead(Hd,[],Hd).
-resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
-resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs,Tpx)) :-
-  addExtra(CVars,Args,OArgs).
-
 addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
   concat(Extra,Els,EEls).
 

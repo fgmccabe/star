@@ -541,12 +541,6 @@ rewriteDisjunction(Lc,AQ,EX,DVrs,L,R,Dis) :-
   Dis = mtch(Lc,MTpl,
 	     cnd(Lc,Lx,LTpl,
 		 cnd(Lc,Rx,RTpl,Unit))).
-  % Dis = tryX(Lc,mtch(Lc,VTpl,
-  % 		     cnd(Lc,Lx,LTpl,
-  % 			 cnd(Lc,Rx,RTpl,
-  % 			     thrw(Lc,idnt("false",type("boolean")))))),
-  % 	     voyd,idnt("false",type("boolean"))),
-%  reportMsg("(disjunction rewritten to %s",[ltrm(Dis)]).
 
 makeVarTuple(Vrs,Tpl) :-
   map(Vrs,lterms:makeIdent,Args),
