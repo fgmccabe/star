@@ -1,3 +1,4 @@
+[appendix]
 = Source Catalogs
 
 Star source code is managed by means of _catalogs_. A catalog is

@@ -61,7 +61,7 @@ The `{}` action does nothing; and does not return a value.
 nullAction --> ["{", "}"].
 ----
 
-The `{}` does nothing. Useful when you don't want to do anything.
+The `{}` action is useful when you don't want to do anything.
 
 [#blockAction]
 === Block Action

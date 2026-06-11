@@ -11,7 +11,7 @@ parsers using a high level notation.
 
 == Grammar Rule Type
 
-The type of a grammar non-terminal written:
+The type of a grammar non-terminal is written:
 
 [source,star,subs="quotes"]
 ----
@@ -262,7 +262,7 @@ ident >> [F,..S]::string --> letter >> F, alphaNum * >> S.
 where `letter` and `alphaNum` have their expected definitions.
 
 Note that the value returned by `ident` above takes the
-`cons` list of `char`acters and creates a `string` from
+`cons` list of ``char``acters and creates a `string` from
 it using coercion.
 
 NOTE: The term _Kleene Star_ is a reference to regular expression

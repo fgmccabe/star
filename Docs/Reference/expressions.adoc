@@ -1405,7 +1405,6 @@ relative to other commonly used operators in type expressions.
 [#typeCoercion]
 === Type Coercion
 
-(((type coercion)))
 .Type Coercion
 [source,star]
 ----
@@ -1413,6 +1412,7 @@ typeCoercion --> expression, ["::"], type.
 typeCoercion --> expression, [":?"], type.
 ----
 
+(((type coercion)))
 A type coercion expression amounts to a call to convert a value of one type to
 that of another.  For example, coercing a `float` value to an `integer`
 value. In general, type coercions have the potential to change the value (for
@@ -1667,7 +1667,7 @@ rangeExpression --> expression, ["..<"], expression.
 rangeExpression --> expression, ["..<"], expression, [":"] expression.
 rangeExpression --> expression, ["..>"], expression.
 rangeExpression --> expression, ["..>"], expression, [":"] expression.
----
+----
 
 I.e., a range expression denotes a range of numbers. The range expression
 
@@ -1757,6 +1757,10 @@ work with any type for which the `arith` contract is implemented
 [#indexExpression]
 === Index Expression
 
+Index expressions are used to denote accessing elements of a collection. There
+are several variants of the notation -- corresponding to element selection,
+replacing an element in a collection and removing an element from a collection.
+
 [#indexExpressionFig]
 .Index Expressions
 [source,star]
@@ -1766,16 +1770,13 @@ indexExpression --> expression, ["["], expression, ["->"], expression, ["]"].
 indexExpression --> expression, ["[", "~"], expression, ["]"].
 ----
 
-Index expressions are used to denote accessing elements of a collection. There
-are several variants of the notation -- corresponding to element selection,
-replacing an element in a collection and removing an element from a collection.
-
 There is a related similar notation -- the <<Slice Notation>> --
 that is used to denote sub-sequences.
 
 The index notation is based on the `indexed` contract (see <<indexedContract>>).
 
 An expression of the form: 
+
 [source,star]
 ----
 C[E]

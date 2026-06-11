@@ -26,7 +26,7 @@ function(add_adoc nm)
   if(ASCIIDOCTORPDF)
     message("adding asciidoctor-pdf")
     add_custom_target(${nm}.pdf
-             COMMAND ${ASCIIDOCTORPDF} -a VERSION="${version}" -o ${out_pdf} ${info_adoc}
+             COMMAND ${ASCIIDOCTORPDF} -a pdf-theme=default-with-font-fallbacks -a VERSION="${version}" -o ${out_pdf} ${info_adoc}
              DEPENDS ${adoc_deps})
   endif(ASCIIDOCTORPDF)
 

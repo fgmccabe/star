@@ -63,7 +63,7 @@ Comparison between values is based on the standard `comp` contract.
 
 Comparison is _not_ automatically implemented for all types --
 the standard language provides implementations for the arithmetic
-types (`integer`'s, `float`'s etc.) and for the `string`
+types (``integer``'s, ``float``'s etc.) and for the `string`
 type.
 
 [#comparableContract]
@@ -291,7 +291,7 @@ public contract all t ~~ reversible[t] ::= {
 == The `concat` Contract
 
 The `concat` contract defines a single function (`++`) that is intended to mean
-`glue together' -- in a type specific way.
+'glue together' -- in a type specific way.
 
 [#concatContractProg]
 .The Standard `concat` Contract
@@ -575,11 +575,10 @@ contract all t ~~ sizeable[t] ::= {
 size : all t ~~ sizeable[t] |= (t)=>integer
 ----
 
-The `size` function returns the number of elements of a
-`sizeable` collection. The precise meaning of the `size`
-function is likely to be type-specific; for example, for
-`string`s, the `size` of a `string` is the number of
-characters in the string.
+The `size` function returns the number of elements of a `sizeable`
+collection. The precise meaning of the `size` function is likely to be
+type-specific; for example, for ``string``s, the ``size`` of a ``string`` is the
+number of characters (Unicode code points) in the string.
 
 === Is a `sizeable` Entity Empty
 
@@ -637,9 +636,9 @@ association):
 _put : all m,k,v ~~ indexed[m ->> k,v] |= (m,k,v) => m.
 ----
 
-NOTE: The `_put` function returns a new collection with the modified
+NOTE: The `_put`  function returns a new collection with the modified
 information in it. This supports but does not require that the
-implementation of `indexed` is _applicative_ in nature.
+implementation of `indexed` is __applicative__ in nature.
 
 The standard implementations of `indexed` for the standard
 `map` type is applicative.
@@ -966,6 +965,19 @@ public contract all c,e ~~ folding[c->>e] ::= {
 As the name suggests, the `foldRight` function is intended to denote a
 right-associative fold, and the `foldLeft` is intended to denote a
 left-associative fold.
+
+[NOTE]
+====
+Another way of differentiating left and right folds is by when the folding
+function is applied: in a `leftFold`, the function is applied during the
+recursive iteration of the sequence, whereas with a `rightFold` the function is
+applied on exit from the recursion.
+
+The distinction is not applicable to all the types that `folding` is
+implemented for. For example, `leftFold` and `rightFold` are equivalent for the
+`set` collection.
+====
+
 
 ===  The `foldLeft` Map Function
 

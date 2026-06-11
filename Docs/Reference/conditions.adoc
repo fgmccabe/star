@@ -191,7 +191,7 @@ A query expression such as:
 ----
 (P,_) in children && (P,X) in children *> X in male
 ----
-is effectively using the first ``(P,_) in children`' condition to
+is effectively using the first ``(P,_) in children`` condition to
 find a person who has children, where the second implies condition
 verifies that `P` only has sons.
 
@@ -241,7 +241,7 @@ it evaluates to `true`.] then only solutions from the _else_
 branch will be used for the overall query.
 
 For example, the conditional condition above defines the
-variable `S` in both the `then' and `else' branch. Depending on
+variable `S` in both the `then` and `else` branch. Depending on
 the `isManager` test, the result of the query will either contain
 the value of a `manager_salary` or an `employee_salary`.
 

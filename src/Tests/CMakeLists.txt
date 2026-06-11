@@ -26,8 +26,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/jit-new-test.in
   FILE_PERMISSIONS OWNER_EXECUTE OWNER_READ 
 )
 
-
-
 add_custom_target(unit DEPENDS ${STAREXEC} ${STARCOMPILER}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/testRunner.py --tester=${TESTDIR}/sc-test --all)

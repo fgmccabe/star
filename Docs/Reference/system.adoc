@@ -91,7 +91,7 @@ The return value from executing the command is returned by
 `shell`. By convention, a return value of zero means that the
 command succeeded.
 
-NOTE: The `shell`'ed command is executed to completion _before_
+NOTE: The ``shell``'ed command is executed to completion _before_
 the `shell` call returns. If it is desired to execute a
 sub-process concurrently then use the `pipe` function.
 

@@ -7,8 +7,8 @@ on the @code{string} type.
 == Text types
 
 === The Character Type
-(((type,char)))
 
+(((type,char)))
 The `char` type is the standard type that is used to denote character
 literals. A `char` value corresponds to a Unicode Code Point.
 
@@ -27,11 +27,11 @@ However, there are coercions available between string values and lists
 of characters.
 
 == Implemented Contracts
-(((contract, implemented for string)))
-(((string contracts)))
 
 === Sizeable for String
 
+(((contract, implemented for string)))
+(((string contracts)))
 <<sizeableContract>> is a specification of the `sizeable` contract.
 
 ==== The `isEmpty` function
