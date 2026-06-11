@@ -53,7 +53,7 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
     ValueReturn ret = run(p);
 #endif
     pauseTimer(runTimer);
-    return 0;
+    return integerVal(ret.value);
   }
   else {
     logMsg(logFile, "cannot find entry point %s\n", entry);

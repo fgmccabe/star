@@ -218,7 +218,7 @@ star.compiler{
     pkgLoop{
       for (P,Imps) in Pks do{
 	if traceDependencies! then
-	  showMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not" || "needs") recompiling");
+	  showMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not need" || "needs") recompiling");
 	if ~pkgOkInRepo(Repo,P,Imps) then{
 	  Repp := processPkg(P,Repp!,Cat);
 	  if ~errorFree() then{

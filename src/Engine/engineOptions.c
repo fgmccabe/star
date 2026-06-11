@@ -386,15 +386,15 @@ static retCode setDisplayDepth(char* option, OptionAction action) {
 static retCode setDefaultSize(char* option, OptionAction action) {
   integer size = parseQuantity(option);
   if (size < minStackSize) {
-    outMsg(logFile, "default size should be at least %d\n", minStackSize);
+    outMsg(logFile, "default size should be at least %ld\n", minStackSize);
     return Error;
   }
   else if (size > stackRegionSize / 2) {
-    outMsg(logFile, "size should no larger than %d\n", stackRegionSize / 2);
+    outMsg(logFile, "size should no larger than %ld\n", stackRegionSize / 2);
     return Error;
   }
   else if (size != (1 << lg2(size))) {
-    outMsg(logFile, "size should be a power of 2, suggesting %d\n", 1 << (lg2(size) + 1));
+    outMsg(logFile, "size should be a power of 2, suggesting %ld\n", 1 << (lg2(size) + 1));
     size = 1 << (lg2(size) + 1);
   }
 
@@ -410,7 +410,7 @@ static retCode setMinStackSize(char* option, OptionAction action) {
     minStackSize = MINMINSTACKSIZE;
   }
   else if (minStackSize != (1 << lg2(minStackSize))) {
-    outMsg(logFile, "minimum stack size should be a power of 2, suggesting %d\n", 1 << (lg2(minStackSize) + 1));
+    outMsg(logFile, "minimum stack size should be a power of 2, suggesting %ld\n", 1 << (lg2(minStackSize) + 1));
     minStackSize = 1 << (lg2(minStackSize) + 1);
   }
 
@@ -420,7 +420,7 @@ static retCode setMinStackSize(char* option, OptionAction action) {
 static retCode setStackRegionSize(char* option, OptionAction action) {
   stackRegionSize = parseQuantity(option);
   if (stackRegionSize != (1 << lg2(stackRegionSize))) {
-    outMsg(logFile, "maximum stack region size should be a power of 2, suggesting %d", 1 << lg2(stackRegionSize));
+    outMsg(logFile, "maximum stack region size should be a power of 2, suggesting %ld", 1 << lg2(stackRegionSize));
     stackRegionSize = 1 << lg2(stackRegionSize);
   }
   return Ok;

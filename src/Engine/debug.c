@@ -801,37 +801,65 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
   ssaInsPo pc = stk->pc;
   methodPo mtd = locateMethod((uinteger)stk->pc);
+  int root = gcAddRoot(p->heap, &lc);
+
+  DebugWaitFor reslt = moreDebug;
 
   switch (pc->op.op) {
-  case sAbort:
-    return abortDebug(p, lc);
-  case sCall:
-    return callDebug(p, sCall, lc, getConstant(operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
-  case sTCall:
-    return tcallDebug(p, lc, getConstant(operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
-  case sOCall:
-    return ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
-  case sTOCall:
-    return tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)), allocateCallArgs(p, mtd, pc + 2));
-  case sEntry:
-    return entryDebug(p, lc, mtdLabel(mtd));
-  case sRet:
-    return retDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
-  case sXRet:
-    return xretDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
-  case sAssign:
-    return assignDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
-  case sFiber:
-    return fiberDebug(p, lc, stackVariable(stk, operand(pc, 1)));
-  case sSuspend:
-    return suspendDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
-  case sResume:
-    return resumeDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
-  case sRetire:
-    return retireDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
-  default:
-    return stepOver;
+  case sAbort: {
+    reslt = abortDebug(p, lc);
+    break;
   }
+  case sCall: {
+    termPo args = allocateCallArgs(p, mtd, pc + 2);
+    reslt = callDebug(p, sCall, lc, getConstant(operand(pc, 1)), args);
+    break;
+  }
+  case sTCall: {
+    termPo args = allocateCallArgs(p, mtd, pc + 2);
+    reslt =  tcallDebug(p, lc, getConstant(operand(pc, 1)), args);
+    break;
+  }
+  case sOCall: {
+    termPo args = allocateCallArgs(p, mtd, pc + 2);
+    reslt =  ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)), args);
+    break;
+  }
+  case sTOCall: {
+    termPo args = allocateCallArgs(p, mtd, pc + 2);
+    reslt =  tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)), args);
+    break;
+  }
+  case sEntry:
+    reslt =  entryDebug(p, lc, mtdLabel(mtd));
+    break;
+  case sRet:
+    reslt =  retDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
+    break;
+  case sXRet:
+    reslt =  xretDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
+    break;
+  case sAssign:
+    reslt =  assignDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    break;
+  case sFiber:
+    reslt =  fiberDebug(p, lc, stackVariable(stk, operand(pc, 1)));
+    break;
+  case sSuspend:
+    reslt =  suspendDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    break;
+  case sResume:
+    reslt =  resumeDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+  case sRetire:
+    reslt =  retireDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    break;
+  default:
+    reslt =  stepOver;
+    break;
+  }
+
+  gcReleaseRoot(p->heap, root);
+  return reslt;
 }
 
 int32 operand(ssaInsPo pc, int32 ox) {

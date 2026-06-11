@@ -388,7 +388,7 @@ ValueReturn run(enginePo P) {
     }
     case sCont: {
       PC += operand(1);
-      PC += operand(2); // Move to start of actual instructions
+      PC += operand(1) + 3; // Move to start of actual instructions
       continue;
     }
     case sICase: {
