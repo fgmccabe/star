@@ -88,7 +88,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
   stk->stkMem = (ptrPo)allocateBuddy(stackRegion, sze);
 
   if (stk->stkMem == Null) {
-    stackTrace(P, logFile, P->stk, 5, showArguments, 25);
+    stackTrace(P, logFile, P->stk, 5, showPrognames, 25);
     star_exit(P, oomCode);
   }
 

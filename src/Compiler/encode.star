@@ -116,11 +116,15 @@ star.compiler.encode{
   findDelim(Chrs,[D,..Ds]) where {? D in Chrs ?} => findDelim(Chrs,Ds).
   findDelim(Chrs,[D,.._]) => D.
 
+  -- Iterate here because the list can be rather large
   encodeQuoted:(cons[char],char)=>multi[char].
-  encodeQuoted([],D) => [].
-  encodeQuoted([D,..Cs],D) => [`\\`,D,..encodeQuoted(Cs,D)].
-  encodeQuoted([`\\`,..Cs],D) => [`\\`,`\\`,..encodeQuoted(Cs,D)].
-  encodeQuoted([C,..Cs],D) => [C,..encodeQuoted(Cs,D)].
+  encodeQuoted(Lst,D) => valof{
+    Out := [];
+    for Ch in Lst do {
+      Out := Out!++encodeChar(Ch,D)
+    }
+    valis Out!
+  }
 
   encodeChar:(char,char)=>multi[char].
   encodeChar(`\\`,_) => [`\\`,`\\`].
