@@ -19,8 +19,6 @@ long gcGrow = 0;
 #define MAX_TABLE 2048
 #endif
 
-static logical hasMoved(termPo t);
-static termPo movedTo(termPo t);
 static void markMoved(termPo t, termPo where);
 static retCode extendHeap(heapPo H, integer hmin);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
@@ -193,12 +191,12 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
   }
 }
 
-static logical hasMoved(termPo t) {
+ logical hasMoved(termPo t) {
   uint32 token = t->space;
   return (logical)((token & 1) == 1);
 }
 
-static termPo movedTo(termPo t) {
+ termPo movedTo(termPo t) {
   assert(hasMoved(t));
 
   uint64 tgt = (((uint64)(t->lblIndex)) << 32) | (((uint32)t->space)&~1U);

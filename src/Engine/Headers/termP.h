@@ -13,9 +13,9 @@
 
 typedef long (*classSizeFun)(builtinClassPo class, termPo o);
 
-typedef retCode (*specialHelperFun)(ptrPo arg, void *c);
+typedef retCode (*specialHelperFun)(ptrPo arg, void* c);
 
-typedef termPo (*classScanFun)(builtinClassPo class, specialHelperFun helper, void *c, termPo o);
+typedef termPo (*classScanFun)(builtinClassPo class, specialHelperFun helper, void* c, termPo o);
 
 typedef termPo (*classCpyFun)(builtinClassPo class, termPo dst, termPo src);
 
@@ -28,7 +28,7 @@ typedef integer (*classHashFun)(builtinClassPo class, termPo t1);
 typedef termPo (*classFinalizerFun)(builtinClassPo class, termPo o);
 
 typedef struct builtin_class {
-  TermHead special;          // == specialClass
+  TermHead special;            // == specialClass
   classSizeFun sizeFun;        /* Function to compute size of object */
   classCpyFun copyFun;         /* Function to copy special object */
   classScanFun scanFun;        /* Function to scan object */
@@ -40,10 +40,13 @@ typedef struct builtin_class {
 
 //extern clssPo specialClass;
 
-extern integer displayDepth;   // Global limit on how deep to display things
+extern integer displayDepth; // Global limit on how deep to display things
 
 void initTerm();
 
 logical hasBuiltinType(termPo t);
+
+logical hasMoved(termPo t);
+termPo movedTo(termPo t);
 
 #endif //STAR_TERMP_H

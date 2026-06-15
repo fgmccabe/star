@@ -78,11 +78,15 @@ static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth
 
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   if (t == Null) {
-    return outMsg(out, "(null)");
+    return outMsg(out, RED_ESC_ON "‹null›" RED_ESC_OFF);
   }
   else if (hasBuiltinType(t)) {
     builtinClassPo spec = builtinClassOf(t);
     return spec->dispFun(out, t, precision, depth, alt);
+  }
+  else if (isPointer(t) && hasMoved(t)) {
+    outMsg(out,"-->");
+    return dispTerm(out, movedTo(t), precision, depth, alt);
   }
   else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
