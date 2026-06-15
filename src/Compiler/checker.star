@@ -998,6 +998,9 @@ star.compiler.checker{
     }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els,Bnd) ?= isLetRecDef(A) => valof{
+    if traceCanon! then
+      showMsg("theta env: $(Els)");
+
     (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env);
 
     if traceCanon! then

@@ -13,55 +13,41 @@ is highly personal. Here are some reasons to think about Star.
 
 === If you are already a Java (or C#) Programmer
 
-Most OO languages are embracing some of the simpler features of
-functional languages. Even modern Java with its lambda expressions and
-stream features represents a nod to the power of functional
-programming. However, at the same time, there is a substantial gap in
-the capabilities of most OO languages compared to modern functional
-programming languages.
+Most OO languages are embracing some of the simpler features of functional
+languages. Even modern Java with its lambda expressions and stream features
+represents a nod to the power of functional programming. However, at the same
+time, there is a substantial gap in the capabilities of most OO languages
+compared to modern functional programming languages.
 
-Fundamentally, OO languages revolve around _nouns_ rather than
-_verbs_. Verbs (methods) are relegated to being inside the scope
-of some noun (object): they are not first class.  In functional
-programming languages, like Star, there is more of an balance
-between nouns and verbs.
-
-It is possible to have functions that are about data; it is also quite
-straightforward in functional programming languages to have data
-structures with functions embedded in them. In fact, a simple
-definition of a _module_ is a record that contains functions in
-it.
-
-While OO languages like Java provide excellent _data abstraction_
-tools, the same cannot be said for _control abstractions_. The
-result is that OO languages are '`stuck` in the 1970s' when it comes to
-control abstractions. However, concepts such as map/reduce,
-computation expressions, and continuations bring a rich suite of new
-control possibilities that solve important problems in modern
+While OO languages like Java provide excellent _data abstraction_ tools, the
+same cannot be said for _control abstractions_. The result is that, to a large
+extent, Java's control features are '`stuck` in the 1970s'. However, concepts
+such as map/reduce, computation expressions, and coroutines bring a rich suite
+of new control possibilities that solve important problems in modern
 programming.
 
-Similarly, the type systems of languages like Java (or C# or C/C++)
-make are not as expressive or sensitive as modern type systems in
-functional languages can be. Professional programmers will recognize a
-typical symptom of insufficiently expressive types: lots of casting
-and dynamic meta-programming. But, while powerful, these techniques
-amount to giving up on types and their important
-advantages. Furthermore, contrary to many programmers' expectations, a
-modern type system is quite capable of dealing statically with
-scenarios that require dynamic programming in languages like Java.
+Similarly, the type systems of languages like Java (or C# or C/C++) make are not
+as expressive or sensitive as modern type systems in functional languages
+can be. Professional programmers will recognize a typical symptom of
+insufficiently expressive types: lots of casting and dynamic
+meta-programming. But, while powerful, the use of type casting amounts to giving
+up on types and their important advantages. Furthermore, contrary to many
+programmers' expectations, a modern type system is quite capable of dealing
+statically with scenarios that require dynamic programming in languages like
+Java.
 
 === If you are already a Python programmer
 
 The biggest difference between a language like Star and Python is the
 strict type system. All Star programs are strictly type checked. In
 addition, there is no escape from the type system: you cannot pretend
-that a variable has the right type: it either does or it doesnt.
+that a variable has the right type: it either does or it doesn't.
 
 That said, this could be viewed as an advantage to the serious Python
 programmer: all those type errors that you have to run your Python
 program to find out will be discovered by the compiler. Indeed, it is
 quite common that, once Star programs pass the compiler's type
-checking system, they 'just work™'.footnote:[Star is not speical here,
+checking system, they 'just work™'.footnote:[Star is not special here,
 it is true of many programming languages with similarly strict type
 systems.]
 
@@ -77,7 +63,7 @@ and enable the programmer to express quite subtle requirements. Star's
 type system is based on the concept of _constrained types_; and is
 able to express programming paradigms such as having records with
 generic functions in them, or to express the idea of a function that
-throws an exception, but the type of the exception is itself dependent
+throws an exception -- where the type of the exception is itself dependent
 on other types.
 
 In addition, Star uses _type inference_ to avoid the need to explicit type
@@ -94,13 +80,14 @@ function -- then, there too, the programmer needs to be explicit.
 Moving to a language like Star is a radically different programming
 experience for the C++ programmer. However, most of the differences
 are not because Star is a functional programming language. Rather,
-it is because Star does not abide by two of C's core principles:
+it is because Star does not abide by two of C++'s core principles:
 zero-cost abstractions and compatibility with C.
 
-While Star's compiler does not willfully make programs execute more
-slowly, strict CPU performance is not the primary driver for design
-features. This shows up in a desire to avoid the so-called premature
-optimization problem: of optimizing the wrong feature.
+While Star's compiler does not willfully make programs execute more slowly,
+strict CPU performance is not the primary driver for design features. On the
+other hand, Star has been designed to avoid many of the performance pitfalls
+that languages like Java, Python and JavaScript are prone to (for example, Star
+does not have features such as `eval` or generalized type reflection).
 
 In the case of Star vs C++, the most salient of these is likely to
 be the different ways that generic programs are compiled: C++ compiles
@@ -111,107 +98,92 @@ single -- type agnostic -- implementation of generic functions.
 This affects many aspects of one's day-to-day usage of the language
 and its tooling. One of which is that, for a compiler that has been in
 daily use for over 40 years, C++ compilers are still remarkably
-slow. C++ binaries can often be very large -- typically outclassed in
-performance by the Java compiler.
+slow.
 
-The compatibility with C requirement has meant that C++ has to support
-many programming paradigms (such as pointer arithmetic) that most
-modern programming languages -- Star included -- eschew.
+The requirement for compatibility with C has meant that C++ has to support many
+programming paradigms (such as pointer arithmetic) that most modern programming
+languages -- Java and Star included -- eschew.
 
-Pointer arithmetic is known to put applications at risk of severe
-security problems; and there are many modern safer alternatives (which
-C++ does also support).
+Pointer arithmetic is known to put applications at risk of severe security
+problems; and there are many modern safer alternatives (which C++ does also
+support).
 
-Beyond these, you will find Star to be a rich and expressive
-language; especilly if your focus is on applications rather than
-systems programming.
+Beyond these, you will find Star to be a rich and expressive language; especilly
+if your focus is on applications rather than systems programming.
 
 === If you are already a functional programmer
 
 You have many choices for functional programming languages that are
-excellent. The author considers two languages that are principal
-sources of inspiration for many of the functional features of Star:
-Haskell and Standard ML (SML) -- both of which are excellent; but not
-perfect.
+excellent. The author considers two languages that are principal sources of
+inspiration for many of the functional features of Star: Haskell and Standard ML
+(SML) -- both of which are excellent; but not perfect.
 
 For the functional programmer, the principal benefits of Star are
 _readability_, _modernity_ and _predictability_.
 
-One of the major drivers of the design of Haskell and (to a lesser
-extent) SML is conciseness. However, conciseness is not the same as
-readability. In modern software development environments there are
-many stakeholders beyond the developer. Having a language that is easy
-to follow by non-technical readers is a major benefit in mixed skill
-teams.
+One of the major drivers of the design of Haskell and (to a lesser extent) SML
+is conciseness. However, conciseness is not the same as readability. In modern
+software development environments there are many stakeholders beyond the
+developer. Having a language that is easy to follow by non-technical readers is
+a major benefit in mixed skill teams.
 
-Like Haskell, Star has a powerful type system. Star's type
-system has many features in common with Haskell's type system --
-features that typically go beyond the capabilities of many OO
-languages. In particular, Star's contract system is reminiscent of
-Haskell's type classes; and Star's existential and higher-kinded
-types give considerable expressive power to the programmer.
+Like Haskell, Star has a powerful type system. Star's type system has many
+features in common with Haskell's type system -- features that typically go
+beyond the capabilities of many OO languages. In particular, Star's contract
+system is reminiscent of Haskell's type classes; and Star's existential and
+higher-kinded types give considerable expressive power to the programmer.
 
-Star does not follow all of Haskell's type features; and some type
-concepts are rephrased into terminology that is more familiar to
-main-stream (sic) programmers.
+Star does not follow all of Haskell's type features; and some type concepts are
+rephrased into terminology that is more familiar to main-stream (sic)
+programmers.
 
-Like SML, Star has a powerful module system. However, unlike SML's
-functors, Star modules are first class values. This means that
-there is no artificial separation between '`ordinary`' programs and
-'`functor`' programs.
+Like SML, Star has a powerful module system. However, unlike SML's functors,
+Star modules are first class values. This means that there is no artificial
+separation between '`ordinary`' programs and '`functor`' programs.
 
-The result is a balanced set of type features that provides
-capabilities that scale well from small programs to large systems.
+The result is a balanced set of type features that provides capabilities that
+scale well from small programs to large systems.
 
-Star's evaluation is, like that of SML but unlike Haskell,
-strict. We believe that that makes it significantly easier to reason
-about the actual behavior and performance of programs. However,
-Star has a rich set of features that support productive concurrent
-and parallel programming.
+Star's evaluation is, like that of SML but unlike Haskell, strict. We believe
+that that makes it significantly easier to reason about the actual behavior and
+performance of programs. However, Star has a rich set of features that support
+productive concurrent and parallel programming.
 
-Like SML, Star is not a strictly '`pure`' language. This was neither
-an accident nor an afterthought. Computer systems are built to fulfill
-purposeful activity (although there may be many times when the actual
-purpose is hard to discern). For example, if I deposit a check into my
-bank account, I require that the bank's state is updated to reflect my
-new balance: the world has changed as a result of my action.
+Like SML, Star is not a strictly '`pure`' language. This was neither an accident
+nor an afterthought. Computer systems are built to fulfill purposeful
+activity. For example, if I deposit a check into my bank account, I require that
+the bank's state is updated to reflect my new balance: the world has changed as
+a result of my action.
 
-However, the converse does not follow: just because the world is
-stateful does not mean that all our programs should be needlessly
-stateful. Much, if not most, of a given application program can and
-should be crafted in a mathematical style -- the merits of functional
-programming are very great.
+However, the converse does not follow: just because the world is stateful does
+not mean that all our programs should be needlessly stateful. Much, if not most,
+of a given application program can and should be crafted in a mathematical style
+-- the merits of functional programming are very great.
 
-Overall, the primary rationale in the design of Star is to empower
-the programmer in making obviously correct programs.
+Overall, the primary rationale in the design of Star is to empower the
+programmer in making obviously correct programs.
 
 == Design goals for Star
 
-Star is a multi-paradigm high-level _symbolic_ language. It is
-designed to be scalable, readable, accurate, high performing and
-extensible.
-
-Paradoxically, scalability in a programming language is always about
-large and small chunks of code. Scalability in Star is fostered by
-a range of elements that facilitate composition, change and re-use.
+Star is a multi-paradigm high-level _symbolic_ language. It is designed to be
+scalable, readable, accurate, high performing and extensible.
 
 === Type System
 
-Star is a strongly, statically typed language. The purpose of a
-strong type system is to facilitate the communication of intent of the
-programmer. The purpose of static typing is to ensure that the
-compiler can rapidly '`fail`' incorrect programs without requiring the
-program to be run. Furthermore, static type checking minimizes any
-run-time penalty for imposing type constraints.
+Star is a strongly, statically typed language. The purpose of a strong type
+system is to facilitate the communication of intent of the programmer. The
+purpose of static typing is to ensure that the compiler can rapidly '`fail`'
+incorrect programs without requiring the program to be run. Furthermore, static
+type checking minimizes any run-time penalty for imposing type constraints.
 
-Although Star is strongly typed, it uses _type inference_ to
-eliminate much of the clutter that some type systems impose on the
-programmer -- which itself is a productivity sink of course.
+Although Star is strongly typed, it uses _type inference_ to eliminate much of
+the clutter that some type systems impose on the programmer -- which itself is a
+productivity sink of course.
 
-Generally, the _stronger_ the type system, the more the language
-system can detect errors before programs are run. In addition, the
-more _expressive_ the type system is, the less the temptation to
-try to subvert or bypass the type system.
+Generally, the _stronger_ the type system, the more the language system can
+detect errors before programs are run. In addition, the more _expressive_ the
+type system is, the less the temptation to try to subvert or bypass the type
+system.
 
 [NOTE]
 ****
@@ -219,10 +191,9 @@ Some features are missing from Star's type system -- by design:
 
 * There is no notion of subtyping, and by extension, no equivalent of an `any`
   type. In effect, the type system does _not_ have any escape hatch into the
-  untyped world.
-  Originally, this was an experiment: to see if it was
+  untyped world.footnote:[Originally, this was an experiment: to see if it was
   possible. However, today, the author is convinced that subtypes and both
-  unnecessary and confusing.
+  unnecessary and confusing.]
 * There is no equivalent of the type cast that one sees in languages like C, C++
   and Java.
 * There is no automatic conversion of values from one type to another. For
@@ -234,14 +205,11 @@ Some features are missing from Star's type system -- by design:
 
 === Readability
 
-The syntax of Star is oriented towards readability rather than
-strict conciseness. The reason for this is that the programmer is only
-one of the stake holders in a given program. A readable program is one
-that is more easily trusted by non-programmers.
-
-Experience also suggests that readability enhances programmer
-productivity also: much of team-based development involves
-comprehending and modifying other programmers' code.
+The syntax of Star is oriented towards readability rather than strict
+conciseness. The reason for this is that the author of a program is only one of
+the stake holders in a given program: other members of the team and code
+reviewers also need to be able to understand one's programs. A readable program
+is one that is more easily trusted by non-programmers.
 
 Readability is not just about using words instead of symbols. It is about making
 choices in the language that enhance the reader's ability to determine what the
@@ -290,17 +258,16 @@ For example, Star has a notation for expressing sequences of elements; such as:
 ----
 ["alpha", "beta", "gamma"]
 ----
-Rather than 'wasting' this notation on a particular representation type, the
-sequence notation is grounded in two contracts: `stream` and `sequence`. This
-allows the sequence notation to be used on a wide variety of types of
-collections.
+Rather than 'wasting' this notation on a specific implementation of sequences,
+the sequence notation is grounded in two contracts: `stream` and
+`sequence`. This allows the sequence notation to be used on a wide variety of
+types of collections -- including user-defined data types.
 
 == About this book
 
-This book acts as an introduction to the language and to its use. The
-basic features of the language are introduced; however, this is not a
-reference manual: it is not intended to be a complete description of
-the language.
+This book acts as an introduction to the Star language and to its use. The basic
+features of the language are introduced; however, this is not a reference
+manual: it is not intended to be a complete description of the language.
 
 That can be found in the Star Language Definition.
 
@@ -345,12 +312,11 @@ text. These notes are highlighted the way this note is.
 
 === Acknowledgements
 
-No-one is an island, and no project of this scale is one person's
-work. I have had the great fortune to be able to develop Star in
-the context of real world applications solving hard
-problems. Individuals have also played a large role; and it can be
-hard to ensure that all are properly acknowledged: please forgive any
-omissions.
+No-one is an island, and no project of this scale is one person's work. I have
+had the great fortune to be able to develop Star in the context of real world
+applications solving hard problems. Individuals have also played a large role;
+and it can be hard to ensure that all are properly acknowledged: please forgive
+any omissions.
 
 Of particular significance, I would like to thank Michael Sperber for
 our many discussions on the finer topics of language design; and for
@@ -365,5 +331,5 @@ Chris Gray, Mack Mackenzie, and Kevin Twidle for their help and advice. I would
 like to acknowledge the support of Thomas Sulzbacher who originated the project
 and Jerry Meerkatz for keeping the faith.
 
-Last, but definitely not least, I would like to acknowledge the love
-and support of my family; without whom none of this makes sense.
+Last, but definitely not least, I would like to acknowledge the love and support
+of my family; without whom none of this makes sense.
