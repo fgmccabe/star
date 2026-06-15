@@ -779,6 +779,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       localVarPo tgt = localTarget(state, pc, opand(1));
       storeVar(state, pc,RG(cell), tgt);
       releaseReg(jit, cell);
+
       pc = nextPc;
       continue;
     }
@@ -2133,8 +2134,7 @@ void retireExpiredVars(codeGenPo state, int32 pc) {
         }
 #endif
         lcl->inUse = False;
-        if (desc->varNo >= 0)
-          state->voided[state->argMark + desc->varNo] = False;
+        state->voided[state->argMark + desc->varNo] = False;
         if (isRegisterOp(lcl->src) && !registerInUse(state, lcl->src)) {
           releaseReg(state->jit, lcl->src.reg);
           lcl->src = RG(XZR);

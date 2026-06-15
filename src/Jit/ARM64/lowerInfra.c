@@ -254,6 +254,11 @@ void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset) {
   for (int32 ix = -1; ix > minOffset; ix--) {
     voidOutSlot(state, pc, ix);
   }
+  for (int32 ix=0; ix< mtdArity(state->mtd); ix++)
+    voidOutSlot(state, pc, ix);
+  for (int32 ix = 0; ix < state->argMark + minOffset; ix++) {
+    state->voided[ix] = False;
+  }
 }
 
 int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
@@ -274,7 +279,9 @@ int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
 }
 
 int32 flushArguments(codeGenPo state, int32 pc) {
-  return processLocals(state, pc, flushArg, Null);
+  int32 minOffset = processLocals(state, pc, flushArg, Null);
+  voidOutFrameLocals(state, pc, minOffset);
+  return minOffset;
 }
 
 int32 processLocals(codeGenPo state, int32 pc, localVarProc vProc, void* cl) {
@@ -463,7 +470,7 @@ void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   int32 delta = (arity + lcls + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
   armReg tmp = findFreeReg(jit);
 
-  if (mtdHasName(state->mtd, "test.dte@star.core$display!()8@over%1")) {
+  if (mtdHasName(state->mtd, "star.multi@star.core$sequence!star.multi*multi@Γ%283@_cons")) {
     installBkPt(state, pc);
   }
 
