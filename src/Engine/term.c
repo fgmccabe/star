@@ -84,10 +84,6 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     builtinClassPo spec = builtinClassOf(t);
     return spec->dispFun(out, t, precision, depth, alt);
   }
-  else if (isPointer(t) && hasMoved(t)) {
-    outMsg(out,"-->");
-    return dispTerm(out, movedTo(t), precision, depth, alt);
-  }
   else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = termLbl(nml);
