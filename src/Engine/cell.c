@@ -91,11 +91,11 @@ cellPo C_CELL(termPo t) {
   return (cellPo) t;
 }
 
-cellPo newCell(heapPo H, termPo content) {
-  int root = gcAddRoot(H, (ptrPo) (&content));
-  cellPo cell = (cellPo) allocateObject(H, cellIndex, CellCellCount);
+cellPo newCell(termPo content) {
+  int root = gcAddRoot((ptrPo) (&content));
+  cellPo cell = (cellPo) allocateObject(cellIndex, CellCellCount);
   cell->content = content;
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
   return cell;
 }
 
@@ -105,5 +105,6 @@ termPo getCell(cellPo cell) {
 
 termPo setCell(cellPo cell, termPo e) {
   cell->content = e;
+  recordTermUpdate((termPo)cell);
   return (termPo) cell;
 }

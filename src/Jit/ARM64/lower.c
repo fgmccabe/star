@@ -137,7 +137,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // Stop execution
       int32 insSize = 2;
       FlexOp src = localFlex(state, pc, opand(1));
-      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)star_exit, 2, (FlexOp[]){RG(PR), src}, False, 0,
+      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)star_exit, 1, (FlexOp[]){src}, False, 0,
                       (FlexOp[]){});
       pc += insSize;
       continue;
@@ -697,9 +697,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       armReg savReg = findARegister(state, pc);
 
-      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newSingleVar, 1, (FlexOp[]){
-                        OF(PR, OffsetOf(EngineRecord, heap))
-                      }, False, 1, (FlexOp[]){RG(savReg)});
+      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newSingleVar, 0, (FlexOp[]){}, False, 1, (FlexOp[]){RG(savReg)});
 
       localVarPo tgt = localTarget(state, pc, opand(1));
       storeVar(state, pc,RG(savReg), tgt);
@@ -772,8 +770,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       armReg cell = findARegister(state, pc);
 
-      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newCell, 2, (FlexOp[]){
-                        OF(PR, OffsetOf(EngineRecord, heap)), localFlex(state, pc, opand(2))
+      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newCell, 1, (FlexOp[]){
+                        localFlex(state, pc, opand(2))
                       }, False, 1, (FlexOp[]){RG(cell)});
 
       localVarPo tgt = localTarget(state, pc, opand(1));
@@ -1549,9 +1547,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       armReg cl = findARegister(state, pc);
       FlexOp freeTerm = localFlex(state, pc, opand(3));
 
-      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newClosure, 3, (FlexOp[]){
-                        OF(PR, OffsetOf(EngineRecord, heap)), constantFlex(key), freeTerm
-                      }, False, 1, (FlexOp[]){RG(cl)});
+      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newClosure,
+                      2, (FlexOp[]){constantFlex(key), freeTerm}, False, 1,
+                      (FlexOp[]){RG(cl)});
 
       storeVar(state, pc,RG(cl), localTarget(state, pc,opand(2)));
       releaseReg(jit, cl);
@@ -1700,8 +1698,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           armReg argReg = allocCallArgVector(state, nextPc + 2, nextPc);
           FlexOp lam = localFlex(state, pc, operand(state, nextPc, 1));
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)ocallDebug, 5, (FlexOp[]){
-                            RG(PR), IM(sOCall),
-                            constantFlex(locKey), lam, RG(argReg)
+                            RG(PR), IM(sOCall), constantFlex(locKey), lam, RG(argReg)
                           }, False, 0, (FlexOp[]){});
           releaseReg(jit, argReg);
           break;
@@ -1710,7 +1707,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           armReg argReg = allocCallArgVector(state, nextPc + 2, nextPc);
           FlexOp lam = localFlex(state, pc, operand(state, nextPc, 1));
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)tocallDebug, 4, (FlexOp[]){
-                            RG(PR), constantFlex(locKey), lam,RG(argReg)
+                            RG(PR), constantFlex(locKey), lam, RG(argReg)
                           }, False, 0, (FlexOp[]){});
           releaseReg(jit, argReg);
           break;
@@ -1797,20 +1794,20 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 }
 
 void allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt) {
-  invokeIntrinsic(state, pc, pc, (runtimeFn)allocateObject, 3, (FlexOp[]){
-                    OF(PR, OffsetOf(EngineRecord, heap)), IM(index), IM(amnt)
+  invokeIntrinsic(state, pc, pc, (runtimeFn)allocateObject, 2, (FlexOp[]){
+                    IM(index), IM(amnt)
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }
 
 void allocUnary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo arg) {
-  invokeIntrinsic(state, pc, livePc, (runtimeFn)allocateUnary, 3, (FlexOp[]){
-                    OF(PR, OffsetOf(EngineRecord, heap)), IM(index), arg->src,
+  invokeIntrinsic(state, pc, livePc, (runtimeFn)allocateUnary, 2, (FlexOp[]){
+                    IM(index), arg->src,
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }
 
 void allocBinary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo left, localVarPo right) {
-  invokeIntrinsic(state, pc, livePc, (runtimeFn)allocateBinary, 4, (FlexOp[]){
-                    OF(PR, OffsetOf(EngineRecord, heap)), IM(index), left->src, right->src
+  invokeIntrinsic(state, pc, livePc, (runtimeFn)allocateBinary, 3, (FlexOp[]){
+                    IM(index), left->src, right->src
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }
 
@@ -1979,7 +1976,6 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
 int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity) {
   ArgSpec operands[arity];
 
-  int32 regArgCnt = countBits(argRegs);
   int32 callerArity = mtdArity(state->jit->mtd);
   int32 tgtOff = callerArity - arity;
 
@@ -1991,7 +1987,6 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32
       operands[ix] = argSpec(arg, RG(rx));
     }
     else {
-      assert(ix >= regArgCnt);
       int32 argSlot = tgtOff + ix;
       operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
     }
@@ -2166,8 +2161,8 @@ armReg allocCallArgVector(codeGenPo state, int32 argPc, int32 livePc) {
   labelPo label = tplLbl(arity);
   armReg tplReg = findARegister(state, livePc);
 
-  invokeIntrinsic(state, argPc, livePc, (runtimeFn)allocateObject, 3, (FlexOp[]){
-                    OF(PR, OffsetOf(EngineRecord, heap)), IM(label->labelIndex), IM(NormalCellCount(arity))
+  invokeIntrinsic(state, argPc, livePc, (runtimeFn)allocateObject, 2, (FlexOp[]){
+                    IM(label->labelIndex), IM(NormalCellCount(arity))
                   }, True, 1, (FlexOp[]){RG(tplReg)});
 
   for (int32 ix = 0; ix < arity; ix++) {

@@ -9,21 +9,21 @@
 
 static long singleSize(builtinClassPo cl, termPo o);
 static termPo singleCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo singleScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo singleScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
 static logical singleCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer singleHash(builtinClassPo cl, termPo o);
 static retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static termPo singleFinalizer(builtinClassPo class, termPo o);
 
 BuiltinTerm SingleClass = {
-    .special = {},
-    .sizeFun = singleSize,
-    .copyFun = singleCopy,
-    .scanFun = singleScan,
-    .finalizer = singleFinalizer,
-    .compFun = singleCmp,
-    .hashFun = singleHash,
-    .dispFun = singleDisp
+  .special = {},
+  .sizeFun = singleSize,
+  .copyFun = singleCopy,
+  .scanFun = singleScan,
+  .finalizer = singleFinalizer,
+  .compFun = singleCmp,
+  .hashFun = singleHash,
+  .dispFun = singleDisp
 };
 
 builtinClassPo singleClass = &SingleClass;
@@ -37,11 +37,11 @@ void initSingle() {
 singlePo C_SINGLE(termPo t) {
   assert(hasIndex(t, singleIndex));
 
-  return (singlePo) t;
+  return (singlePo)t;
 }
 
-singlePo newSingleVar(heapPo H) {
-  singlePo single = (singlePo) allocateObject(H, singleIndex, SingleCellCount);
+singlePo newSingleVar(void) {
+  singlePo single = (singlePo)allocateObject(singleIndex, SingleCellCount);
 
   single->content = Null;
   return single;
@@ -55,7 +55,7 @@ logical singleCmp(builtinClassPo cl, termPo o1, termPo o2) {
   singlePo i1 = C_SINGLE(o1);
   singlePo i2 = C_SINGLE(o2);
 
-  return (logical) (i1==i2);
+  return (logical)(i1 == i2);
 }
 
 static integer singleHash(builtinClassPo cl, termPo o) {
@@ -64,15 +64,15 @@ static integer singleHash(builtinClassPo cl, termPo o) {
 }
 
 termPo singleCopy(builtinClassPo cl, termPo dst, termPo src) {
-  *((singlePo) dst) = *((singlePo) src);
+  *((singlePo)dst) = *((singlePo)src);
   return dst + SingleCellCount;
 }
 
-termPo singleScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo singleScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   singlePo single = C_SINGLE(o);
 
   if (single->content != Null)
-    helper((ptrPo) (&single->content), c);
+    helper((ptrPo)(&single->content), c);
 
   return o + SingleCellCount;
 }
@@ -103,7 +103,5 @@ termPo setSingle(singlePo v, termPo e) {
 }
 
 logical singleIsSet(singlePo single) {
-  return (logical) (single->content != Null);
+  return (logical)(single->content != Null);
 }
-
-

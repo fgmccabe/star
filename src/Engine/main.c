@@ -125,5 +125,5 @@ int main(int argc, char** argv) {
 
   setupSignals();
 
-  return bootstrap(globalHeap, mainEntry, rootWd);
+  return bootstrap(mainEntry, rootWd);
 }

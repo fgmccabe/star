@@ -15,7 +15,7 @@ static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, 
 static termPo futureFinalizer(builtinClassPo class, termPo o);
 
 BuiltinTerm FutureClass = {
-  .special = {0,0},
+  .special = {0, 0},
   .sizeFun = futureSize,
   .copyFun = futureCopy,
   .scanFun = futureScan,
@@ -38,28 +38,27 @@ futurePo C_FUTURE(termPo t) {
   return (futurePo)t;
 }
 
-
-futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void* cl, void* cl2) {
-  int root = gcAddRoot(H, &vl);
-  futurePo pr = (futurePo)allocateObject(H, futureIndex, FutureCellCount);
+futurePo makeFuture(termPo vl, futurePoll poll, void* cl, void* cl2) {
+  int root = gcAddRoot(&vl);
+  futurePo pr = (futurePo)allocateObject(futureIndex, FutureCellCount);
   pr->val = vl;
   pr->state = notResolved;
   pr->poller = poll;
   pr->cl = cl;
   pr->cl2 = cl2;
 
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
   return pr;
 }
 
-futurePo makeResolvedFuture(heapPo h, termPo val, futureState state) {
-  int root = gcAddRoot(h, &val);
-  futurePo ft = (futurePo)allocateObject(h, futureIndex, FutureCellCount);
+futurePo makeResolvedFuture(termPo val, futureState state) {
+  int root = gcAddRoot(&val);
+  futurePo ft = (futurePo)allocateObject(futureIndex, FutureCellCount);
   ft->state = state;
   ft->val = val;
   ft->poller = Null;
   ft->cl = ft->cl2 = Null;
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
   return ft;
 }
 
@@ -99,7 +98,7 @@ integer futureHash(builtinClassPo cl, termPo o) {
 }
 
 static char* stateName(futureState st) {
-  switch (st){
+  switch (st) {
   case notResolved:
     return "unset";
   case isAccepted:
@@ -116,9 +115,9 @@ static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, 
   return outMsg(out, "<<future:[%s]%T>>", stateName(ft->state), ft->val);
 }
 
-logical futureIsResolved(futurePo t, heapPo h) {
+logical futureIsResolved(futurePo t) {
   if (t->state == notResolved && t->poller != Null)
-    t->poller(t, h, t->cl, t->cl2);
+    t->poller(t, t->cl, t->cl2);
   return t->state != notResolved;
 }
 
@@ -131,9 +130,10 @@ logical futureIsRejected(futurePo t) {
 }
 
 retCode resolveFuture(futurePo p, termPo vl) {
-  if (p->state == notResolved){
+  if (p->state == notResolved) {
     p->state = isAccepted;
     p->val = vl;
+    recordTermUpdate( (termPo)p);
     return Ok;
   }
   else
@@ -141,7 +141,7 @@ retCode resolveFuture(futurePo p, termPo vl) {
 }
 
 retCode rejectFuture(futurePo p, termPo ex) {
-  if (p->state == notResolved){
+  if (p->state == notResolved) {
     p->state = isRejected;
     p->val = ex;
     return Ok;

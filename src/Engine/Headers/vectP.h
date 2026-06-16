@@ -17,8 +17,8 @@ void scanVect(gcSupportPo G);
 
 retCode dispVect(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
-typedef termPo (*makeCB)(heapPo h,integer ix,void *cl);
+typedef termPo (*makeCB)(integer ix,void *cl);
 
-termPo makeVector(heapPo h,integer ln,makeCB cb,void *cl);
+termPo makeVector(integer ln, makeCB cb, void *cl);
 
 #endif //STAR_VECTP_H

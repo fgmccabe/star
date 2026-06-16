@@ -75,21 +75,19 @@ stackPo C_STACK(termPo t) {
 
 stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJit, StackState state,
                       stackPo attachment) {
-  heapPo H = processHeap(P);
-
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
   sze = (1 << lg2Ceiling(sze)) - 1; // Adjust stack size to be just under a power of two
 
-  int root = gcAddRoot(H, (ptrPo)&attachment);
+  int root = gcAddRoot((ptrPo)&attachment);
 
-  stackPo stk = (stackPo)allocateObject(H, stackIndex, StackCellCount);
+  stackPo stk = (stackPo)allocateObject(stackIndex, StackCellCount);
   stk->stkMem = (ptrPo)allocateBuddy(stackRegion, sze);
 
   if (stk->stkMem == Null) {
     stackTrace(P, logFile, P->stk, 5, showPrognames, 25);
-    star_exit(P, oomCode);
+    star_exit(oomCode);
   }
 
   stk->sze = sze;
@@ -116,7 +114,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
   for (int32 lx = 0; lx < lclCount(stk->prog); lx++) {
     *--stk->sp = voidEnum;
   }
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
 
   return stk;
 }
@@ -206,7 +204,7 @@ void stackSanityCheck(stackPo stk) {
   assert(!inFreeBlock(stackRegion, stk->stkMem));
 }
 
-void verifyStack(stackPo stk, heapPo H) {
+void verifyStack(stackPo stk) {
   while (stk != Null) {
     assert(hasIndex((termPo) stk,stackIndex));
     assert(stk->fp >= stackFrameBase(stk) && (ptrPo)stk->fp < (ptrPo)stk->sp);
@@ -226,7 +224,7 @@ void verifyStack(stackPo stk, heapPo H) {
 
       // Walk the value stack...
       for (ptrPo p = stk->sp; p < spLimit; p++)
-        validPtr(H, *p);
+        validPtr(*p);
     }
     stk = stk->attachment;
   }
@@ -420,11 +418,10 @@ stackPo glueOnStack(enginePo P, logical execJit, integer size, integer arity) {
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
     outMsg(logFile, "glue on extension to %T\n", stk);
-    verifyStack(stk, globalHeap);
+    verifyStack(stk);
   }
 #endif
-  heapPo h = processHeap(P);
-  int root = gcAddRoot(h, (ptrPo)&stk);
+  int root = gcAddRoot((ptrPo)&stk);
 
   assert(size >= minStackSize && stackState(stk) != moribund);
   assert(validStkPtr(stk, stk->sp + arity));
@@ -444,7 +441,7 @@ stackPo glueOnStack(enginePo P, logical execJit, integer size, integer arity) {
   stk->sp += arity;
   dropFrame(stk);
   propagateHwm(child);
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
   return P->stk = child;
 }
 
@@ -452,19 +449,17 @@ void handleStackOverflow(enginePo P, integer delta, int32 saveCnt) {
   glueOnStack(P, True, (P->stk->sze * 3) / 2 + delta, saveCnt);
 }
 
-stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size) {
+stackPo spinupStack(enginePo P, logical execJit, integer size) {
   assert(size >= minStackSize);
 
   return allocateStack(P, size, underflowProg, execJit, suspended, Null);
 }
 
 stackPo newStack(enginePo P, logical execJit, termPo lam) {
-  heapPo H = processHeap(P);
-
-  int root = gcAddRoot(H, (ptrPo)&lam);
+  int root = gcAddRoot((ptrPo)&lam);
   integer size = minStackSize;
   stackPo child = allocateStack(P, size, underflowProg, execJit, suspended, Null);
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
 
   pushStack(child, lam);
   pushStack(child, (termPo)child);
@@ -507,7 +502,7 @@ void detachStack(enginePo P, stackPo top) {
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
     outMsg(logFile, "detach %T\n", base);
-    verifyStack(base, globalHeap);
+    verifyStack(base);
   }
 #endif
   assert(stackState(top) == active && top->bottom == Null);

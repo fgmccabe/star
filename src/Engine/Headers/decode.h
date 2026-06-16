@@ -13,7 +13,6 @@
 typedef struct encoding_support_ {
   char *errorMsg;  /* Place to put error messages */
   long msgSize;     /* How big is that buffer */
-  heapPo R;         /* Where should the roots go? */
 } EncodeSupport, *encodePo;
 
 typedef enum {
@@ -21,9 +20,9 @@ typedef enum {
   softDef
 } DefinitionMode;
 
-retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo strBuffer);
+retCode decode(ioPo in, encodePo S, termPo *tgt, strBufferPo strBuffer);
 
 retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize);
 
-retCode loadCode(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
+retCode loadCode(ioPo in, packagePo owner, char *errorMsg, long msgSize);
 #endif //STAR_ENCODED_H

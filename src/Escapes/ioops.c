@@ -17,7 +17,7 @@
 
 static poolPo asyncPool = Null;
 
-static retCode pollInput(futurePo ft, heapPo h, void *cl, void *cl2);
+static retCode pollInput(futurePo ft, void* cl, void* cl2);
 
 static retCode lineCleanup(asyncPo async, retCode ret);
 
@@ -29,7 +29,7 @@ void initIoOps() {
 
 asyncPo
 newAsyncTask(nextProc next, asyncAlloc alloc, asyncClose close, asyncCleanup cleanup, integer data, ioPo buffer) {
-  asyncPo async = (asyncPo) allocPool(asyncPool);
+  asyncPo async = (asyncPo)allocPool(asyncPool);
   async->next = next;
   async->buffer = buffer;
   async->data = data;
@@ -45,7 +45,8 @@ ValueReturn s__close(enginePo P, termPo i) {
   retCode ret = closeChannel(C_IO(i));
   if (ret == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(ioErrorCode(ret));
   }
 }
@@ -58,15 +59,15 @@ ValueReturn s__inchar(enginePo P, termPo i) {
   codePoint cp;
   retCode ret = inChar(ioChannel(C_IO(i)), &cp);
   switch (ret) {
-    case Ok: {
-      return normalReturn(makeChar(cp));
-    }
-    case Eof: {
-      return abnormalReturn(eEOF);
-    }
-    default: {
-      return abnormalReturn(eIOERROR);
-    }
+  case Ok: {
+    return normalReturn(makeChar(cp));
+  }
+  case Eof: {
+    return abnormalReturn(eEOF);
+  }
+  default: {
+    return abnormalReturn(eIOERROR);
+  }
   }
 }
 
@@ -80,14 +81,15 @@ static taskState oneChar(ioPo in, asyncPo async) {
   if (ret == Ok) {
     async->data = cp;
     return succeeded;
-  } else {
+  }
+  else {
     async->ret = ret;
     return failure;
   }
 }
 
-static termPo allocChar(heapPo h, asyncPo sync) {
-  codePoint cp = (codePoint) (sync->data);
+static termPo allocChar(asyncPo sync) {
+  codePoint cp = (codePoint)(sync->data);
   return makeChar(cp);
 }
 
@@ -98,7 +100,6 @@ static retCode oneCleanup(asyncPo sync, retCode ret) {
 ValueReturn s__inchar_async(enginePo P, termPo c) {
   ioChnnlPo chnl = C_IO(c);
   ioPo io = ioChannel(chnl);
-  heapPo h = processHeap(P);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
@@ -106,22 +107,24 @@ ValueReturn s__inchar_async(enginePo P, termPo c) {
     asyncPo async = newAsyncTask(oneChar, allocChar, asyncCloser, oneCleanup, -1, Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         return normalReturn((termPo)ft);
-      } else {
+      }
+      else {
         return abnormalReturn(ioErrorCode(ret));
       }
     }
     return abnormalReturn(eNOPERM);
-  } else {
+  }
+  else {
     codePoint cp;
     retCode ret = inChar(io, &cp);
     if (ret == Ok)
-      return normalReturn((termPo)makeResolvedFuture(h, makeChar(cp), isAccepted));
+      return normalReturn((termPo)makeResolvedFuture(makeChar(cp), isAccepted));
     else
-      return normalReturn((termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected));
+      return normalReturn((termPo) makeResolvedFuture(ioErrorCode(ret), isRejected));
   }
 }
 
@@ -140,10 +143,11 @@ ValueReturn s__inchars(enginePo P, termPo i, termPo l) {
   }
 
   if (ret == Ok) {
-    termPo text = allocateFromStrBuffer(processHeap(P), buffer);
+    termPo text = allocateFromStrBuffer(buffer);
     closeIo(O_IO(buffer));
     return normalReturn(text);
-  } else {
+  }
+  else {
     closeIo(O_IO(buffer));
     return abnormalReturn(ioErrorCode(ret));
   }
@@ -160,11 +164,13 @@ static taskState nextChars(ioPo in, asyncPo async) {
         return succeeded;
       else
         return running;
-    } else {
+    }
+    else {
       async->ret = ret;
       return failure;
     }
-  } else
+  }
+  else
     return succeeded;
 }
 
@@ -173,8 +179,8 @@ static void asyncStrCloser(ioPo io, asyncPo async) {
   freePool(asyncPool, async);
 }
 
-static termPo allocStr(heapPo h, asyncPo async) {
-  return allocateFromStrBuffer(h, O_BUFFER(async->buffer));
+static termPo allocStr(asyncPo async) {
+  return allocateFromStrBuffer(O_BUFFER(async->buffer));
 }
 
 ValueReturn s__inchars_async(enginePo P, termPo i, termPo l) {
@@ -192,14 +198,15 @@ ValueReturn s__inchars_async(enginePo P, termPo i, termPo l) {
     asyncPo async = newAsyncTask(nextChars, allocStr, asyncStrCloser, lineCleanup, limit, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         return normalReturn((termPo)ft);
       }
     }
     return abnormalReturn(ioErrorCode(ret));
-  } else {
+  }
+  else {
     retCode ret = Ok;
     while (limit-- > 0 && ret == Ok) {
       codePoint cp;
@@ -209,10 +216,11 @@ ValueReturn s__inchars_async(enginePo P, termPo i, termPo l) {
     }
 
     if (ret == Ok) {
-      termPo text = allocateFromStrBuffer(processHeap(P), buffer);
+      termPo text = allocateFromStrBuffer(buffer);
       closeIo(O_IO(buffer));
       return normalReturn(text);
-    } else {
+    }
+    else {
       closeIo(O_IO(buffer));
       return abnormalReturn(ioErrorCode(ret));
     }
@@ -224,18 +232,18 @@ ValueReturn s__inbyte(enginePo P, termPo i) {
 
   byte b;
   switch (inByte(io, &b)) {
-    case Ok:
-      return normalReturn(makeInteger(b));
-    case Eof:
-      return abnormalReturn(eEOF);
-    default:
-      return abnormalReturn(eIOERROR);
+  case Ok:
+    return normalReturn(makeInteger(b));
+  case Eof:
+    return abnormalReturn(eEOF);
+  default:
+    return abnormalReturn(eIOERROR);
   }
 }
 
-static termPo allocByte(heapPo h, asyncPo sync) {
-  codePoint cp = (codePoint) (sync->data);
-  return makeInteger((integer) cp);
+static termPo allocByte(asyncPo sync) {
+  codePoint cp = (codePoint)(sync->data);
+  return makeInteger((integer)cp);
 }
 
 static taskState oneByte(ioPo in, asyncPo async) {
@@ -244,7 +252,8 @@ static taskState oneByte(ioPo in, asyncPo async) {
   if (ret == Ok) {
     async->data = b;
     return succeeded;
-  } else {
+  }
+  else {
     async->ret = ret;
     return failure;
   }
@@ -259,31 +268,32 @@ ValueReturn s__inbyte_async(enginePo P, termPo i) {
     asyncPo async = newAsyncTask(oneByte, allocByte, asyncCloser, oneCleanup, -1, Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         return normalReturn((termPo)ft);
       }
     }
     return abnormalReturn(ioErrorCode(ret));
-  } else {
+  }
+  else {
     byte b;
     retCode ret = inByte(io, &b);
     switch (ret) {
-      case Ok: {
-        return normalReturn(makeInteger(b));
-      }
-      case Eof:
-        return abnormalReturn(eEOF);
-      default:
-        return abnormalReturn(eIOERROR);
+    case Ok: {
+      return normalReturn(makeInteger(b));
+    }
+    case Eof:
+      return abnormalReturn(eEOF);
+    default:
+      return abnormalReturn(eIOERROR);
     }
   }
 }
 
-termPo makeByte(heapPo h, integer ix, void *cl) {
-  char *str = (char *) cl;
-  integer ch = (byte) str[ix];
+termPo makeByte(integer ix, void* cl) {
+  char* str = (char*)cl;
+  integer ch = (byte)str[ix];
   return makeInteger(ch);
 }
 
@@ -306,11 +316,12 @@ ValueReturn s__inbytes(enginePo P, termPo i, termPo l) {
 
   if (ret == Ok) {
     integer length;
-    char *text = getTextFromBuffer(buffer, &length);
+    char* text = getTextFromBuffer(buffer, &length);
 
-    termPo vect = makeVector(processHeap(P), length, makeByte, (void *) text);
+    termPo vect = makeVector(length, makeByte, (void*)text);
     return normalReturn(vect);
-  } else {
+  }
+  else {
     closeIo(O_IO(buffer));
     return abnormalReturn(ioErrorCode(ret));
   }
@@ -327,30 +338,32 @@ static taskState nextBytes(ioPo in, asyncPo async) {
         return succeeded;
       else
         return running;
-    } else {
+    }
+    else {
       async->ret = ret;
       return failure;
     }
-  } else
+  }
+  else
     return succeeded;
 }
 
-static termPo allocBytes(heapPo h, asyncPo async) {
+static termPo allocBytes(asyncPo async) {
   integer length;
-  byte *bts = getBytesFromBuffer(O_BYTEBUFFER(async->buffer), &length);
+  byte* bts = getBytesFromBuffer(O_BYTEBUFFER(async->buffer), &length);
 
-  return makeVector(h, length, makeByte, (void *) bts);
+  return makeVector(length, makeByte, (void*)bts);
 }
 
 static retCode bytesCleanup(asyncPo async, retCode ret) {
   switch (ret) {
-    case Eof:
-      if (byteBufferLength(O_BYTEBUFFER(async->buffer)) > 0)
-        return Ok;
-      else
-        return Eof;
-    default:
-      return ret;
+  case Eof:
+    if (byteBufferLength(O_BYTEBUFFER(async->buffer)) > 0)
+      return Ok;
+    else
+      return Eof;
+  default:
+    return ret;
   }
 }
 
@@ -369,22 +382,24 @@ ValueReturn s__inbytes_async(enginePo P, termPo i, termPo l) {
     asyncPo async = newAsyncTask(nextBytes, allocBytes, asyncStrCloser, bytesCleanup, limit, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         return normalReturn((termPo)ft);
-      } else {
+      }
+      else {
         return abnormalReturn(ioErrorCode(ret));
       }
     }
     return abnormalReturn(eNOPERM);
-  } else {
+  }
+  else {
     return abnormalReturn(eINVAL);
   }
 }
 
 static retCode grabLine(ioPo io, strBufferPo buffer) {
-  const char *match = "\n\r";
+  const char* match = "\n\r";
   integer mlen = uniStrLen(match);
 
   retCode ret = Ok;
@@ -395,7 +410,8 @@ static retCode grabLine(ioPo io, strBufferPo buffer) {
     if (ret == Ok) {
       if (uniIndexOf(match, mlen, 0, cp) >= 0) {
         break;
-      } else
+      }
+      else
         ret = outChar(O_IO(buffer), cp);
     }
   }
@@ -410,22 +426,22 @@ ValueReturn s__inline(enginePo P, termPo i) {
   retCode ret = grabLine(io, buffer);
 
   switch (ret) {
-    case Ok: {
-      integer length;
-      char *text = getTextFromBuffer(buffer, &length);
+  case Ok: {
+    integer length;
+    char* text = getTextFromBuffer(buffer, &length);
 
-      termPo line = allocateString(processHeap(P), text, length);
-      closeIo(O_IO(buffer));
-      return normalReturn(line);
-    }
-    case Eof: {
-      closeIo(O_IO(buffer));
-      return abnormalReturn(eEOF);
-    }
-    default: {
-      closeIo(O_IO(buffer));
-      return abnormalReturn(eIOERROR);
-    }
+    termPo line = allocateString(text, length);
+    closeIo(O_IO(buffer));
+    return normalReturn(line);
+  }
+  case Eof: {
+    closeIo(O_IO(buffer));
+    return abnormalReturn(eEOF);
+  }
+  default: {
+    closeIo(O_IO(buffer));
+    return abnormalReturn(eIOERROR);
+  }
   }
 }
 
@@ -433,14 +449,15 @@ static taskState lineChar(ioPo in, asyncPo async) {
   codePoint cp;
   retCode ret = inChar(in, &cp);
   if (ret == Ok) {
-    const char *match = "\n\r";
+    const char* match = "\n\r";
     if (uniIndexOf(match, 2, 0, cp) >= 0)
       return succeeded;
     else {
       outChar(async->buffer, cp);
       return running;
     }
-  } else if (ret == Eof) // Special case of line at end of file
+  }
+  else if (ret == Eof) // Special case of line at end of file
     return succeeded;
   else {
     async->ret = ret;
@@ -450,13 +467,13 @@ static taskState lineChar(ioPo in, asyncPo async) {
 
 static retCode lineCleanup(asyncPo async, retCode ret) {
   switch (ret) {
-    case Eof:
-      if (strBufferLength(O_BUFFER(async->buffer)) > 0)
-        return Ok;
-      else
-        return Eof;
-    default:
-      return ret;
+  case Eof:
+    if (strBufferLength(O_BUFFER(async->buffer)) > 0)
+      return Ok;
+    else
+      return Eof;
+  default:
+    return ret;
   }
 }
 
@@ -472,14 +489,15 @@ ValueReturn s__inline_async(enginePo P, termPo i) {
     asyncPo async = newAsyncTask(lineChar, allocStr, asyncStrCloser, lineCleanup, -1, O_IO(newStringBuffer()));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         return normalReturn((termPo) ft);
       }
     }
     return abnormalReturn(ioErrorCode(ret));
-  } else {
+  }
+  else {
     return abnormalReturn(eINVAL);
   }
 }
@@ -510,14 +528,16 @@ ValueReturn s__get_file(enginePo P, termPo f, termPo e) {
     retCode ret = grabText(io, O_IO(buffer));
 
     if (ret == Eof) {
-      termPo text = allocateFromStrBuffer(processHeap(P), buffer);
+      termPo text = allocateFromStrBuffer(buffer);
       closeIo(O_IO(buffer));
       return normalReturn(text);
-    } else {
+    }
+    else {
       closeIo(O_IO(buffer));
       return abnormalReturn(ioErrorCode(ret));
     }
-  } else {
+  }
+  else {
     return abnormalReturn(eNOTFND);
   }
 }
@@ -528,7 +548,8 @@ static taskState fileChar(ioPo in, asyncPo async) {
   if (ret == Ok) {
     outChar(async->buffer, cp);
     return running;
-  } else if (ret == Eof)
+  }
+  else if (ret == Eof)
     return succeeded; // Signal that we are done
   else {
     async->ret = ret;
@@ -544,9 +565,9 @@ static void asyncFileCloser(ioPo io, asyncPo async) {
 
 ValueReturn s__logmsg(enginePo P, termPo m) {
   integer length;
-  const char *text = strVal(m, &length);
+  const char* text = strVal(m, &length);
 
-  logMsg(logFile, "%S", (char *) text, length);
+  logMsg(logFile, "%S", (char*)text, length);
   return normalReturn(unitEnum);
 }
 
@@ -557,15 +578,14 @@ ValueReturn s__display_depth(enginePo P) {
 ValueReturn s__stdfile(enginePo P, termPo i) {
   integer fNo = integerVal(i);
 
-  heapPo h = processHeap(P);
   switch (fNo) {
-    case 0:
-      return normalReturn((termPo) stdInChnl(h));
-    case 1:
-      return normalReturn((termPo) stdOutChnl(h));
-    case 2:
-    default:
-      return normalReturn((termPo) stdErrChnl(h));
+  case 0:
+    return normalReturn((termPo) stdInChnl());
+  case 1:
+    return normalReturn((termPo) stdOutChnl());
+  case 2:
+  default:
+    return normalReturn((termPo) stdErrChnl());
   }
 }
 
@@ -582,7 +602,8 @@ ValueReturn s__fseek(enginePo P, termPo i, termPo p) {
 
   if (ret == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(ioErrorCode(ret));
   }
 }
@@ -590,13 +611,13 @@ ValueReturn s__fseek(enginePo P, termPo i, termPo p) {
 ValueReturn s__fname(enginePo P, termPo i) {
   ioPo io = ioChannel(C_IO(i));
 
-  return normalReturn(allocateCString(processHeap(P), fileName(io)));
+  return normalReturn(allocateCString(fileName(io)));
 }
 
 ValueReturn s__setfileencoding(enginePo P, termPo f, termPo e) {
   ioPo io = ioChannel(C_IO(f));
   integer enc = integerVal(e);
-  setEncoding(io, (ioEncoding) enc);
+  setEncoding(io, (ioEncoding)enc);
   return normalReturn(unitEnum);
 }
 
@@ -604,7 +625,8 @@ ValueReturn s__flush(enginePo P, termPo f) {
   ioPo io = ioChannel(C_IO(f));
   if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(eIOERROR);
   }
 }
@@ -614,11 +636,11 @@ ValueReturn s__flushall(enginePo P) {
   return normalReturn(unitEnum);
 }
 
-static retCode countIoChnnls(termPo t, void *cl) {
+static retCode countIoChnnls(termPo t, void* cl) {
   if (isIoChannel(t)) {
     filePo f = O_FILE(ioChannel(C_IO(t)));
     if (isInAsync(f)) {
-      integer *ix = (integer *) cl;
+      integer* ix = (integer*)cl;
       (*ix)++;
     }
   }
@@ -627,14 +649,14 @@ static retCode countIoChnnls(termPo t, void *cl) {
 
 typedef struct {
   integer ix;
-  filePo *files;
+  filePo* files;
 } FileData;
 
-static retCode populateFiles(termPo t, void *cl) {
+static retCode populateFiles(termPo t, void* cl) {
   if (isIoChannel(t)) {
     filePo f = O_FILE(ioChannel(C_IO(t)));
     if (isInAsync(f)) {
-      FileData *data = (FileData *) cl;
+      FileData* data = (FileData*)cl;
       data->files[data->ix++] = f;
     }
   }
@@ -645,7 +667,7 @@ ValueReturn s__waitIo(enginePo P, termPo list, termPo t) {
   // First count the length of the list
   integer count = 0;
   integer timeOut = integerVal(t);
-  walkNormal(list, countIoChnnls, (void *) &count);
+  walkNormal(list, countIoChnnls, (void*)&count);
 
   if (count > 0) {
     filePo files[count];
@@ -659,78 +681,80 @@ ValueReturn s__waitIo(enginePo P, termPo list, termPo t) {
 
     if (ret == Ok) {
       return normalReturn(trueEnum);
-    } else {
+    }
+    else {
       return normalReturn(falseEnum);
     }
-  } else {
+  }
+  else {
     return normalReturn(trueEnum);
   }
 }
 
-static retCode grabAsync(ioPo io, AsyncStruct *async) {
+static retCode grabAsync(ioPo io, AsyncStruct* async) {
   retCode ret = Ok;
   while (ret == Ok) {
     switch ((ret = isInputReady(io, 1))) {
-      case Ok: {
-        switch (async->next(io, async)) {
-          case running:
-            continue;
-          case succeeded:
-            return Ok;
-          case failure:
-            return async->ret;
-          case waiting:
-            enqueueRead(O_FILE(io), Null, Null);
-            return Fail;
-          case notStarted:
-            return Fail;
-        }
-      }
-      case Fail: {
-        // We have to re-enqueue the input
+    case Ok: {
+      switch (async->next(io, async)) {
+      case running:
+        continue;
+      case succeeded:
+        return Ok;
+      case failure:
+        return async->ret;
+      case waiting:
         enqueueRead(O_FILE(io), Null, Null);
         return Fail;
+      case notStarted:
+        return Fail;
       }
-      default:
-        return async->cleanup(async, ret);
+    }
+    case Fail: {
+      // We have to re-enqueue the input
+      enqueueRead(O_FILE(io), Null, Null);
+      return Fail;
+    }
+    default:
+      return async->cleanup(async, ret);
     }
   }
   return ret;
 }
 
-retCode pollInput(futurePo ft, heapPo h, void *cl, void *cl2) {
+retCode pollInput(futurePo ft, void* cl, void* cl2) {
   filePo f = O_FILE(cl);
-  asyncPo async = (asyncPo) cl2;
+  asyncPo async = (asyncPo)cl2;
   switch (asyncRdStatus(f)) {
-    case inProgress:
-      return Fail;
-    case completed: {
-      retCode ret = grabAsync(O_IO(f), async);
+  case inProgress:
+    return Fail;
+  case completed: {
+    retCode ret = grabAsync(O_IO(f), async);
 
-      switch (ret) {
-        case Ok: {
-          int root = gcAddRoot(h, (ptrPo) &ft);
+    switch (ret) {
+    case Ok: {
+      int root = gcAddRoot((ptrPo)&ft);
 
-          termPo line = async->alloc(h, async);
-          gcReleaseRoot(h, root);
+      termPo line = async->alloc(async);
+      gcReleaseRoot(root);
 
-          async->close(O_IO(f), async);
-          return resolveFuture(ft, line);
-        }
-        default:
-          async->close(O_IO(f), async);
-          return rejectFuture(ft, ioErrorCode(ret));
-        case Fail:
-          return Ok;
-      }
-    }
-    case canceled: {
       async->close(O_IO(f), async);
-      return rejectFuture(ft, canceledEnum);
+      return resolveFuture(ft, line);
     }
-    case failed: {
+    default:
       async->close(O_IO(f), async);
-      return rejectFuture(ft, eIOERROR);
+      return rejectFuture(ft, ioErrorCode(ret));
+    case Fail:
+      return Ok;
     }
+  }
+  case canceled: {
+    async->close(O_IO(f), async);
+    return rejectFuture(ft, canceledEnum);
+  }
+  case failed: {
+    async->close(O_IO(f), async);
+    return rejectFuture(ft, eIOERROR);
+  }
   }
 }

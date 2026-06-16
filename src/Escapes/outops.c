@@ -16,7 +16,7 @@
 #include "escape.h"
 #include "fileops.h"
 
-static retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2);
+static retCode pollOutput(futurePo ft, void* cl, void* cl2);
 
 ValueReturn s__outchar(enginePo P, termPo i, termPo c) {
   ioPo io = ioChannel(C_IO(i));
@@ -24,13 +24,14 @@ ValueReturn s__outchar(enginePo P, termPo i, termPo c) {
 
   if (outChar(io, cp) == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(eIOERROR);
   }
 }
 
 static taskState wrChar(ioPo out, asyncPo async) {
-  codePoint cp = (codePoint) async->data;
+  codePoint cp = (codePoint)async->data;
   assert(async->state == notStarted);
   retCode ret = outChar(out, cp);
   async->state = succeeded;
@@ -43,7 +44,7 @@ static taskState wrChar(ioPo out, asyncPo async) {
   }
 }
 
-static termPo allocUnit(heapPo h, asyncPo async) {
+static termPo allocUnit(asyncPo async) {
   return unitEnum;
 }
 
@@ -62,7 +63,7 @@ ValueReturn s__outchar_async(enginePo P, termPo o, termPo c) {
     asyncPo async = newAsyncTask(wrChar, allocUnit, asyncCloser, wrCleanup, charVal(c), Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollOutput, io, async);
       return normalReturn((termPo) ft);
     }
     return abnormalReturn(eNOPERM);
@@ -76,13 +77,14 @@ ValueReturn s__outbyte(enginePo P, termPo i, termPo c) {
 
   if (outByte(io, cp) == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(eIOERROR);
   }
 }
 
 static taskState wrByte(ioPo out, asyncPo async) {
-  byte by = (byte) async->data;
+  byte by = (byte)async->data;
   assert(async->state == notStarted);
   retCode ret = outByte(out, by);
   async->state = succeeded;
@@ -106,7 +108,7 @@ ValueReturn s__outbyte_async(enginePo P, termPo o, termPo b) {
     asyncPo async = newAsyncTask(wrByte, allocUnit, asyncCloser, wrCleanup, integerVal(b), Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollOutput, io, async);
       return normalReturn((termPo) ft);
     }
     return abnormalReturn(eNOPERM);
@@ -120,14 +122,15 @@ ValueReturn s__outbytes(enginePo P, termPo i, termPo list) {
   retCode ret = Ok;
 
   while (ret == Ok && isCons(list)) {
-    byte b = (byte) integerVal(consHead(C_NORMAL(list)));
+    byte b = (byte)integerVal(consHead(C_NORMAL(list)));
     ret = outByte(io, b);
     list = consTail(C_NORMAL(list));
   }
 
   if (ret == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(eIOERROR);
   }
 }
@@ -135,20 +138,21 @@ ValueReturn s__outbytes(enginePo P, termPo i, termPo list) {
 ValueReturn s__outtext(enginePo P, termPo i, termPo t) {
   ioPo io = ioChannel(C_IO(i));
   integer length;
-  const char *text = strVal(t, &length);
+  const char* text = strVal(t, &length);
   retCode ret = Ok;
 
   integer pos = 0;
 
   while (ret == Ok && pos < length) {
     integer actual = length;
-    ret = outBytes(io, (byte *) &text[pos], length, &actual);
+    ret = outBytes(io, (byte*)&text[pos], length, &actual);
     pos += actual;
   }
 
   if (ret == Ok) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(eIOERROR);
   }
 }
@@ -158,7 +162,8 @@ static taskState wrText(ioPo out, asyncPo async) {
   if (isFileAtEof(O_IO(buffer)) == Eof) {
     async->state = succeeded;
     return waiting;
-  } else {
+  }
+  else {
     codePoint cp;
     retCode ret = inChar(O_IO(buffer), &cp);
     if (ret == Ok) {
@@ -176,7 +181,7 @@ static taskState wrText(ioPo out, asyncPo async) {
 }
 
 static void textCloser(ioPo io, asyncPo async) {
-  free((void *) async->data);
+  free((void*)async->data);
   closeIo(async->buffer);
   asyncCloser(io, async);
 }
@@ -190,15 +195,15 @@ ValueReturn s__outtext_async(enginePo P, termPo o, termPo a2) {
     retCode ret = enableASynch(f);
 
     integer len;
-    const char *text = strVal(a2, &len);
-    char *copy = malloc(len + 1);
+    const char* text = strVal(a2, &len);
+    char* copy = malloc(len + 1);
     uniNCpy(copy, len + 1, text, len);
     strBufferPo buffer = newReadStringBuffer(copy, len);
 
-    asyncPo async = newAsyncTask(wrText, allocUnit, textCloser, wrCleanup, (integer) copy, O_IO(buffer));
+    asyncPo async = newAsyncTask(wrText, allocUnit, textCloser, wrCleanup, (integer)copy, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
+      futurePo ft = makeFuture(voidEnum, pollOutput, io, async);
       return normalReturn((termPo) ft);
     }
     return abnormalReturn(eNOPERM);
@@ -208,7 +213,7 @@ ValueReturn s__outtext_async(enginePo P, termPo o, termPo a2) {
 
 ValueReturn s__show(enginePo P, termPo t) {
   integer length;
-  const char *text = strVal(t, &length);
+  const char* text = strVal(t, &length);
 
   outMsg(logFile, "%S\n%_", text, length);
 
@@ -224,7 +229,7 @@ ValueReturn s__put_file(enginePo P, termPo f, termPo e, termPo l) {
   ioPo io = openOutFile(fn, enc);
   if (io != Null) {
     integer tLen;
-    const char *txt = strVal(l, &tLen);
+    const char* txt = strVal(l, &tLen);
 
     retCode ret = outText(io, txt, tLen);
     closeIo(O_IO(io));
@@ -237,66 +242,66 @@ ValueReturn s__put_file(enginePo P, termPo f, termPo e, termPo l) {
   return abnormalReturn(eNOPERM);
 }
 
-static taskState pushAsync(ioPo io, AsyncStruct *async) {
+static taskState pushAsync(ioPo io, AsyncStruct* async) {
   retCode ret = Ok;
   while (ret == Ok) {
     switch ((ret = isOutputReady(io, 1))) {
-      case Ok: {
-        switch (async->next(io, async)) {
-          case running:
-            continue;
-          case succeeded:
-            return succeeded;
-          case failure:
-            return failure;
-          case waiting:
-            enqueueWrite(O_FILE(io), Null, Null);
-            return running;
-          case notStarted:
-            return failure;
-        }
-      }
-      case Fail: {
-        // We have to re-enqueue the output
+    case Ok: {
+      switch (async->next(io, async)) {
+      case running:
+        continue;
+      case succeeded:
+        return succeeded;
+      case failure:
+        return failure;
+      case waiting:
         enqueueWrite(O_FILE(io), Null, Null);
         return running;
+      case notStarted:
+        return failure;
       }
-      default:
-        async->ret = async->cleanup(async, ret);
-        return (async->ret == Ok ? succeeded : failure);
+    }
+    case Fail: {
+      // We have to re-enqueue the output
+      enqueueWrite(O_FILE(io), Null, Null);
+      return running;
+    }
+    default:
+      async->ret = async->cleanup(async, ret);
+      return (async->ret == Ok ? succeeded : failure);
     }
   }
   return failure;
 }
 
-retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2) {
+retCode pollOutput(futurePo ft, void* cl, void* cl2) {
   filePo f = O_FILE(cl);
-  asyncPo async = (asyncPo) cl2;
+  asyncPo async = (asyncPo)cl2;
   switch (asyncWrStatus(f)) {
-    case inProgress:
-      return Fail;
-    case completed: {
-      taskState ret = (async->state != succeeded ? pushAsync(O_IO(f), async) : succeeded);
+  case inProgress:
+    return Fail;
+  case completed: {
+    taskState ret = (async->state != succeeded ? pushAsync(O_IO(f), async) : succeeded);
 
-      switch (ret) {
-        case succeeded: {
-          async->close(O_IO(f), async);
-          return resolveFuture(ft, unitEnum);
-        }
-        default:
-          async->close(O_IO(f), async);
-          return rejectFuture(ft, ioErrorCode(async->ret));
-        case running:
-          return Ok;
-      }
-    }
-    case canceled: {
+    switch (ret) {
+    case succeeded: {
       async->close(O_IO(f), async);
-      return rejectFuture(ft, canceledEnum);
+      return resolveFuture(ft, unitEnum);
     }
-    case failed: {
+    default:
       async->close(O_IO(f), async);
-      return rejectFuture(ft, eIOERROR);
+      return rejectFuture(ft, ioErrorCode(async->ret));
+    case running:
+      return Ok;
     }
+  }
+  case canceled: {
+    async->close(O_IO(f), async);
+    return rejectFuture(ft, canceledEnum);
+  }
+  case failed: {
+    async->close(O_IO(f), async);
+    return rejectFuture(ft, eIOERROR);
+  }
   }
 }

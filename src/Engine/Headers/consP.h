@@ -9,7 +9,7 @@
 #include "heap.h"
 #include "normalP.h"
 
-normalPo allocateCons(heapPo H, termPo lhs, termPo rhs);
+normalPo allocateCons(termPo lhs, termPo rhs);
 
 void initCons();
 

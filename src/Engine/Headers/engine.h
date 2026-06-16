@@ -26,7 +26,7 @@ typedef enum {
   dead
 } ProcessState;
 
-enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo rootArg);
+enginePo newEngine(logical execJit, methodPo mtd, char *rootWd, termPo rootArg);
 void switchProcessState(enginePo p, ProcessState state);
 void setProcessRunnable(enginePo p);
 integer processNo(enginePo p);
@@ -35,12 +35,10 @@ typedef retCode (*procProc)(enginePo p, void *cl);
 retCode processProcesses(procProc p, void *cl);
 enginePo getProcessOfThread(void);
 
-heapPo processHeap(enginePo p);
-
 char *processWd(enginePo p);
 retCode setProcessWd(enginePo p, char *wd, integer len);
 
-termPo commandLine(heapPo h);
+termPo commandLine(void);
 
 extern __thread enginePo currentProcess;
 #endif

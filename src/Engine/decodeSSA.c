@@ -111,7 +111,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32* pc, int32* count, int32* st
 
 #include "instructions.h"
 
-        default: {
+    default: {
       strMsg(brk->errorMsg, brk->msgSize, "invalid instruction");
       return Error;
     }
@@ -297,7 +297,7 @@ int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
     return 0;
 }
 
-retCode decodePolicies(ioPo in, heapPo H, DefinitionMode* redefine, char* errorMsg, long msgSize) {
+retCode decodePolicies(ioPo in, DefinitionMode* redefine, char* errorMsg, long msgSize) {
   int32 policyCount;
   retCode ret = decodeTplCount(in, &policyCount, errorMsg, msgSize);
   for (integer ix = 0; ret == Ok && ix < policyCount; ix++) {
@@ -316,7 +316,7 @@ retCode decodePolicies(ioPo in, heapPo H, DefinitionMode* redefine, char* errorM
   return ret;
 }
 
-retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSize) {
+retCode loadCode(ioPo in, packagePo owner, char* errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
   int32 arity;
   int32 lclCount = 0;
@@ -331,7 +331,7 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSiz
 #endif
 
   if (ret == Ok)
-    ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
+    ret = decodePolicies(in, &redefine, errorMsg, msgSize);
 
   if (ret == Ok)
     ret = decodeI32(in, &sigIndex);
@@ -341,11 +341,11 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSiz
 
   if (ret == Ok) {
     termPo pool = voidEnum;
-    int root = gcAddRoot(H, &pool);
-    EncodeSupport support = {errorMsg, msgSize, H};
+    int root = gcAddRoot(&pool);
+    EncodeSupport support = {errorMsg, msgSize};
     strBufferPo tmpBuffer = newStringBuffer();
 
-    ret = decode(in, &support, H, &pool, tmpBuffer);
+    ret = decode(in, &support, &pool, tmpBuffer);
 
     if (ret == Ok) {
       int32 insCount = 0;
@@ -355,8 +355,8 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSiz
 
       if (ret == Ok) {
         termPo locals = voidEnum;
-        gcAddRoot(H, &locals);
-        ret = decode(in, &support, H, &locals, tmpBuffer);
+        gcAddRoot(&locals);
+        ret = decode(in, &support, &locals, tmpBuffer);
 
         if (ret == Ok) {
           labelPo lbl = declareLbl(prgName, arity, -1);
@@ -368,10 +368,10 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSiz
             } // Otherwise don't redefine
           }
           else {
-            gcAddRoot(H, (ptrPo)&lbl);
+            gcAddRoot((ptrPo)&lbl);
 
-            methodPo mtd = defineMtd(H, insCount, instructions, lclCount,
-                                     stackHeight + lclCount + (int32)FrameCellCount, lbl);
+            methodPo mtd = defineMtd(insCount, instructions, lclCount, stackHeight + lclCount + (int32)FrameCellCount,
+                                     lbl);
             if (enableVerify) {
               char errMsg[MAXLINE];
               if (verifyMethod(mtd, errMsg, NumberOf(errMsg)) != Ok) {
@@ -389,7 +389,7 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSiz
           }
         }
       }
-      gcReleaseRoot(H, root);
+      gcReleaseRoot(root);
     }
   }
 

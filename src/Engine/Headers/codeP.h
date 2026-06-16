@@ -68,7 +68,7 @@ void recordMethodJitCode(methodPo mtd);
 void rebalanceCodeTree();
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
-methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackDelta, labelPo lbl);
+methodPo defineMtd(int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackDelta, labelPo lbl);
 
 labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       ssaInsPo instructions, int32 lcls, int32 stkLimit);

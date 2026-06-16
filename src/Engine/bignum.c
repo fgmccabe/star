@@ -9,7 +9,7 @@
 
 static long bigSize(builtinClassPo cl, termPo o);
 static termPo bigCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo bigScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo bigScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
 static logical bigCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer bigHash(builtinClassPo cl, termPo o);
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -33,29 +33,29 @@ void initBignum() {
 }
 
 logical isBignum(termPo t) {
-  return (logical) hasIndex(t, bignumIndex);
+  return (logical)hasIndex(t, bignumIndex);
 }
 
 bignumPo C_BIGNUM(termPo t) {
   assert(isBignum(t));
-  return (bignumPo) t;
+  return (bignumPo)t;
 }
 
 uint32 bigCount(bignumPo b) {
   return b->count;
 }
 
-uint32 *bigDigits(bignumPo b) {
+uint32* bigDigits(bignumPo b) {
   return b->data;
 }
 
-termPo allocateBignum(heapPo H, uint32 count, uint32 data[]) {
-  bignumPo big = (bignumPo) allocateObject(H, bignumIndex, BignumCellCount(count));
+termPo allocateBignum(uint32 count, uint32 data[]) {
+  bignumPo big = (bignumPo)allocateObject(bignumIndex, BignumCellCount(count));
   big->count = count;
 
   wordMove(big->data, count, data, count);
 
-  return (termPo) big;
+  return (termPo)big;
 }
 
 long bigSize(builtinClassPo cl, termPo o) {
@@ -64,16 +64,16 @@ long bigSize(builtinClassPo cl, termPo o) {
 
 termPo bigCopy(builtinClassPo cl, termPo dst, termPo src) {
   bignumPo si = C_BIGNUM(src);
-  bignumPo di = (bignumPo) dst;
+  bignumPo di = (bignumPo)dst;
   *di = *si;
 
   uint32 bCount = si->count;
   wordMove(di->data, bCount, si->data, bCount);
 
-  return ((termPo) di) + BignumCellCount(si->count);
+  return ((termPo)di) + BignumCellCount(si->count);
 }
 
-termPo bigScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo bigScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   bignumPo big = C_BIGNUM(o);
 
   return o + BignumCellCount(big->count);
@@ -102,14 +102,14 @@ static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, log
   return showLong(out, big->data, big->count);
 }
 
-termPo bignumFromString(heapPo h, char *text, integer tLen) {
+termPo bignumFromString(char* text, integer tLen) {
   integer dS = tLen * 2 + 1;
   uint32 data[dS];
   integer dLen = longFromText(text, tLen, data, dS);
 
-  return allocateBignum(h, dLen, data);
+  return allocateBignum(dLen, data);
 }
 
 integer bignumHash(bignumPo bg) {
-  return wordHash(bg->data,bg->count);
+  return wordHash(bg->data, bg->count);
 }

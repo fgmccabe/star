@@ -10,15 +10,15 @@ termPo noneEnum;
 labelPo someCons;
 
 void initOption() {
-  noneEnum = declareEnum("none", 0, globalHeap);
+  noneEnum = declareEnum("none", 0);
   someCons = declareLbl("some", 1, 1);
 }
 
-normalPo wrapSome(heapPo H, termPo lhs) {
-  int root = gcAddRoot(H, &lhs);
-  normalPo tpl = allocateStruct(H, someCons);
+normalPo wrapSome(termPo lhs) {
+  int root = gcAddRoot(&lhs);
+  normalPo tpl = allocateStruct(someCons);
   setArg(tpl, 0, lhs);
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
   return tpl;
 }
 
@@ -26,6 +26,7 @@ logical isSome(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
     return sameLabel(termLbl(c), someCons);
-  } else
+  }
+  else
     return False;
 }

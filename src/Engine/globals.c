@@ -82,34 +82,34 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
-  divZero = declareEnum("divZero", 0, globalHeap);
+  divZero = declareEnum("divZero", 0);
   divZeroIndex = defineConstantLiteral(divZero);
-  eCONNECT = declareEnum("eCONNECT", 1, globalHeap);
-  eDEAD = declareEnum("eDEAD", 2, globalHeap);
-  eFAIL = declareEnum("eFAIL", 3, globalHeap);
-  eINTRUPT = declareEnum("eINTRUPT", 4, globalHeap);
-  eIOERROR = declareEnum("eIOERROR", 5, globalHeap);
-  eNOFILE = declareEnum("eNOFILE", 6, globalHeap);
-  eNOPERM = declareEnum("eNOPERM", 7, globalHeap);
-  eNOTDIR = declareEnum("eNOTDIR", 8, globalHeap);
-  eNOTFND = declareEnum("eNOTFND", 9, globalHeap);
-  eINVAL = declareEnum("eINVAL", 10, globalHeap);
-  eRANGE = declareEnum("eRANGE", 11, globalHeap);
-  eEOF = declareEnum("eEOF", 12, globalHeap);
-  hasValue = declareEnum("hasValue", 13, globalHeap);
-  noValue = declareEnum("noValue", 14, globalHeap);
+  eCONNECT = declareEnum("eCONNECT", 1);
+  eDEAD = declareEnum("eDEAD", 2);
+  eFAIL = declareEnum("eFAIL", 3);
+  eINTRUPT = declareEnum("eINTRUPT", 4);
+  eIOERROR = declareEnum("eIOERROR", 5);
+  eNOFILE = declareEnum("eNOFILE", 6);
+  eNOPERM = declareEnum("eNOPERM", 7);
+  eNOTDIR = declareEnum("eNOTDIR", 8);
+  eNOTFND = declareEnum("eNOTFND", 9);
+  eINVAL = declareEnum("eINVAL", 10);
+  eRANGE = declareEnum("eRANGE", 11);
+  eEOF = declareEnum("eEOF", 12);
+  hasValue = declareEnum("hasValue", 13);
+  noValue = declareEnum("noValue", 14);
 
-  falseEnum = declareEnum("false", 0, globalHeap);
+  falseEnum = declareEnum("false", 0);
   falseIndex = defineConstantLiteral(falseEnum); // Ensure unique reference to false and true enums
-  trueEnum = declareEnum("true", 1, globalHeap);
+  trueEnum = declareEnum("true", 1);
   trueIndex = defineConstantLiteral(trueEnum);
 
-  voidEnum = declareEnum("void", 0, globalHeap);
+  voidEnum = declareEnum("void", 0);
   voidIndex = defineConstantLiteral(voidEnum);
 
-  canceledEnum = declareEnum("canceled", -1, globalHeap);
+  canceledEnum = declareEnum("canceled", -1);
 
-  unitEnum = (termPo)allocateTpl(globalHeap, 0);
+  unitEnum = (termPo)allocateTpl(0);
 }
 
 globalPo C_GLOB(termPo t) {
@@ -122,8 +122,8 @@ globalPo globalVar(const char* nm) {
   GlobalRecord tst = {.name = (char*)nm, .hash = uniHash(nm)};
   globalPo glb = hashGet(globals, &tst);
 
-  if (glb == Null){
-    if (numGlbVars >= glbVarTblSize){
+  if (glb == Null) {
+    if (numGlbVars >= glbVarTblSize) {
       int32 newTblSize = glbVarTblSize * 2;
       globalPo newTbl = (globalPo)malloc(sizeof(GlobalRecord) * newTblSize);
       memcpy(newTbl, glbVars, sizeof(GlobalRecord) * numGlbVars);
@@ -275,11 +275,12 @@ termPo setGlobalVar(globalPo v, termPo e) {
 
   termPo prev = v->content;
   v->content = e;
+  recordTermUpdate((termPo)v);
   return prev;
 }
 
 termPo ioErrorCode(retCode ret) {
-  switch (ret){
+  switch (ret) {
   case Ok:
     return voidEnum;
   case Error:

@@ -18,7 +18,7 @@ ValueReturn s__big_plus(enginePo P, termPo l, termPo r) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longAdd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum(cC, sum));
 }
 
 ValueReturn s__big_minus(enginePo P, termPo l, termPo r) {
@@ -27,7 +27,7 @@ ValueReturn s__big_minus(enginePo P, termPo l, termPo r) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longSubtract(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum(cC, sum));
 }
 
 ValueReturn s__big_bitand(enginePo P, termPo l, termPo r) {
@@ -36,7 +36,7 @@ ValueReturn s__big_bitand(enginePo P, termPo l, termPo r) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitAnd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum( cC, sum));
 }
 
 ValueReturn s__big_bitor(enginePo P, termPo l, termPo r) {
@@ -45,7 +45,7 @@ ValueReturn s__big_bitor(enginePo P, termPo l, termPo r) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum( cC, sum));
 }
 
 ValueReturn s__big_bitxor(enginePo P, termPo l, termPo r) {
@@ -54,7 +54,7 @@ ValueReturn s__big_bitxor(enginePo P, termPo l, termPo r) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum(cC, sum));
 }
 
 ValueReturn s__big_bitnot(enginePo P, termPo l) {
@@ -62,7 +62,7 @@ ValueReturn s__big_bitnot(enginePo P, termPo l) {
   integer cS = bigCount(lhs) + 1;
   uint32 sum[cS];
   integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum(cC, sum));
 }
 
 ValueReturn s__big_times(enginePo P, termPo l, termPo r) {
@@ -71,7 +71,7 @@ ValueReturn s__big_times(enginePo P, termPo l, termPo r) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longMultiply(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+  return normalReturn(allocateBignum(cC, sum));
 }
 
 ValueReturn s__big_div(enginePo P, termPo l, termPo r) {
@@ -87,16 +87,16 @@ ValueReturn s__big_div(enginePo P, termPo l, termPo r) {
 
   retCode ret = longDivide(quot, &qC, rem, &rC, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   if (ret == Ok) {
-    heapPo h = processHeap(P);
-    termPo Qt = allocateBignum(h, qC, quot);
-    int root = gcAddRoot(h, &Qt);
+    termPo Qt = allocateBignum(qC, quot);
+    int root = gcAddRoot(&Qt);
 
-    termPo Rt = allocateBignum(h, rC, rem);
-    gcAddRoot(h, &Rt);
-    termPo Rs = (termPo) allocateTplPair(h, Qt, Rt);
-    gcReleaseRoot(h, root);
+    termPo Rt = allocateBignum(rC, rem);
+    gcAddRoot(&Rt);
+    termPo Rs = (termPo)allocateTplPair(Qt, Rt);
+    gcReleaseRoot(root);
     return normalReturn(Rs);
-  } else {
+  }
+  else {
     return abnormalReturn(divZero);
   }
 }
@@ -111,8 +111,9 @@ ValueReturn s__big_gcd(enginePo P, termPo l, termPo r) {
 
   integer gC = longGCD(gcd, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   if (gC > 0) {
-    return normalReturn(allocateBignum(processHeap(P), (uint32) gC, gcd));
-  } else {
+    return normalReturn(allocateBignum( (uint32) gC, gcd));
+  }
+  else {
     return abnormalReturn(divZero);
   }
 }
@@ -120,10 +121,10 @@ ValueReturn s__big_gcd(enginePo P, termPo l, termPo r) {
 ValueReturn s__big_format(enginePo P, termPo b, termPo fmt) {
   bignumPo bg = C_BIGNUM(b);
   uint32 bgCount = bigCount(bg);
-  uint32 *bgData = bigDigits(bg);
+  uint32* bgData = bigDigits(bg);
 
   integer fmtLen;
-  const char *format = strVal(fmt, &fmtLen);
+  const char* format = strVal(fmt, &fmtLen);
 
   integer bufLen = bgCount * 16;
   char buff[bufLen];
@@ -131,34 +132,35 @@ ValueReturn s__big_format(enginePo P, termPo b, termPo fmt) {
   integer resLen = longFormat(bgData, bgCount, format, fmtLen, buff, bufLen);
 
   if (resLen >= 0) {
-    return normalReturn(allocateString(processHeap(P), buff, resLen));
-  } else
+    return normalReturn(allocateString(buff, resLen));
+  }
+  else
     return abnormalReturn(eINVAL);
 }
 
 ValueReturn s__big2str(enginePo P, termPo b) {
   bignumPo bg = C_BIGNUM(b);
   uint32 bgCount = bigCount(bg);
-  uint32 *bgData = bigDigits(bg);
+  uint32* bgData = bigDigits(bg);
 
   integer bufLen = bgCount * 16;
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
-  return normalReturn(allocateString(processHeap(P), buff, actual));
+  return normalReturn(allocateString(buff, actual));
 }
 
 ValueReturn s__str2big(enginePo P, termPo st) {
   integer len;
-  const char *text = strVal(st, &len);
+  const char* text = strVal(st, &len);
   integer gSize = ((len + 7) / 8) + 1;
   uint32 digits[gSize];
 
   integer bgSize = longFromText(text, len, digits, gSize);
 
   if (bgSize > 0) {
-    heapPo h = processHeap(P);
-    return normalReturn(allocateBignum(h, bgSize, digits));
-  } else {
+    return normalReturn(allocateBignum( bgSize, digits));
+  }
+  else {
     return abnormalReturn(eINVAL);
   }
 }
@@ -178,10 +180,10 @@ ValueReturn s__big_lt(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
   switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
-    case smaller:
-      return normalReturn(trueEnum);
-    default:
-      return normalReturn(falseEnum);
+  case smaller:
+    return normalReturn(trueEnum);
+  default:
+    return normalReturn(falseEnum);
   }
 }
 
@@ -189,18 +191,18 @@ ValueReturn s__big_ge(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
   switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
-    case smaller:
-      return normalReturn(falseEnum);
-    default:
-      return normalReturn(trueEnum);
+  case smaller:
+    return normalReturn(falseEnum);
+  default:
+    return normalReturn(trueEnum);
   }
 }
 
 ValueReturn s__int2big(enginePo P, integer ix) {
-  uint64 U = (uint64) ix;
+  uint64 U = (uint64)ix;
 
   uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
-  return normalReturn(allocateBignum(processHeap(P), NumberOf(uu), uu));
+  return normalReturn(allocateBignum( NumberOf(uu), uu));
 }
 
 ValueReturn s__big2ints(enginePo P, termPo b) {
@@ -212,18 +214,17 @@ ValueReturn s__big2ints(enginePo P, termPo b) {
 
   termPo list = nilEnum;
   termPo el = voidEnum;
-  heapPo h = processHeap(P);
-  int root = gcAddRoot(h, (ptrPo) &list);
-  gcAddRoot(h, &el);
+  int root = gcAddRoot((ptrPo)&list);
+  gcAddRoot(&el);
 
   for (integer ix = 0; ix < count; ix++) {
     uint32 segment = digits[ix];
 
     el = makeInteger(segment);
-    list = (termPo) allocateCons(h, el, list);
+    list = (termPo)allocateCons(el, list);
   }
 
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
 
   return normalReturn(list);
 }
@@ -238,26 +239,26 @@ ValueReturn s__ints2big(enginePo P, termPo list) {
     list = consTail(pr);
   }
 
-  return normalReturn(allocateBignum(processHeap(P), count, digits));
+  return normalReturn(allocateBignum(count, digits));
 }
 
 ValueReturn s__big2int(enginePo P, termPo b) {
   bignumPo bg = C_BIGNUM(b);
   uint32 count = bigCount(bg);
-  uint32 *digits = bigDigits(bg);
+  uint32* digits = bigDigits(bg);
 
   switch (count) {
-    case 0: {
-      return normalReturn(makeInteger(0));
-    }
-    case 1: {
-      return normalReturn(makeInteger((integer) digits[0]));
-    }
-    case 2: {
-      uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
-      return normalReturn(makeInteger((integer) lge));
-    }
-    default:
-      return abnormalReturn(eRANGE);
+  case 0: {
+    return normalReturn(makeInteger(0));
+  }
+  case 1: {
+    return normalReturn(makeInteger((integer) digits[0]));
+  }
+  case 2: {
+    uinteger lge = ((uint64)digits[0]) | (((uint64)digits[1]) << 32);
+    return normalReturn(makeInteger((integer) lge));
+  }
+  default:
+    return abnormalReturn(eRANGE);
   }
 }

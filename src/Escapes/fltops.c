@@ -33,19 +33,19 @@ ValueReturn s__flt_lt(enginePo P, termPo l, termPo r) {
 ValueReturn s__flt_plus(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
-  return normalReturn(makeFloat(processHeap(P),lhs+rhs));
+  return normalReturn(makeFloat(lhs+rhs));
 }
 
 ValueReturn s__flt_minus(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
-  return normalReturn(makeFloat(processHeap(P),lhs-rhs));
+  return normalReturn(makeFloat(lhs-rhs));
 }
 
 ValueReturn s__flt_times(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
-  return normalReturn(makeFloat(processHeap(P),lhs*rhs));
+  return normalReturn(makeFloat(lhs*rhs));
 }
 
 ValueReturn s__flt_div(enginePo P, termPo l, termPo r) {
@@ -54,8 +54,9 @@ ValueReturn s__flt_div(enginePo P, termPo l, termPo r) {
 
   if (denom == 0.0) {
     return abnormalReturn(divZero);
-  } else {
-    return normalReturn(makeFloat(processHeap(P),numer/denom));
+  }
+  else {
+    return normalReturn(makeFloat(numer/denom));
   }
 }
 
@@ -65,8 +66,9 @@ ValueReturn s__flt_mod(enginePo P, termPo l, termPo r) {
 
   if (denom == 0.0) {
     return abnormalReturn(divZero);
-  } else {
-    return normalReturn(makeFloat(processHeap(P),fmod(numer,denom)));
+  }
+  else {
+    return normalReturn(makeFloat(fmod(numer,denom)));
   }
 }
 
@@ -74,29 +76,31 @@ ValueReturn s__flt_pwr(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
 
-  return normalReturn(makeFloat(processHeap(P),pow(lhs,rhs)));
+  return normalReturn(makeFloat(pow(lhs,rhs)));
 }
 
 ValueReturn s__flt_abs(enginePo P, termPo l) {
   double lhs = floatVal(l);
 
-  return normalReturn(lhs < 0 ? makeFloat(processHeap(P),-lhs) : l);
+  return normalReturn(lhs < 0 ? makeFloat(-lhs) : l);
 }
 
 ValueReturn s__exp(enginePo P, termPo l) {
   double x = floatVal(l);
 
-  errno = 0; /* clear errno prior to computation */
+  errno = 0;           /* clear errno prior to computation */
   double ans = exp(x); /* allow for checks of the answer */
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE) {
       return abnormalReturn(eRANGE);
-    } else {
+    }
+    else {
       return abnormalReturn(eINVAL);
     }
-  } else {
-    return normalReturn(makeFloat(processHeap(P),ans));
+  }
+  else {
+    return normalReturn(makeFloat(ans));
   }
 }
 
@@ -104,21 +108,20 @@ ValueReturn s__ldexp(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   integer rhs = integerVal(r);
 
-  return normalReturn(makeFloat(processHeap(P),ldexp(lhs,rhs)));
+  return normalReturn(makeFloat(ldexp(lhs,rhs)));
 }
 
 ValueReturn s__frexp(enginePo P, termPo l) {
   double lhs = floatVal(l);
   int exp;
   double frac = frexp(lhs, &exp);
-  termPo man = makeFloat(processHeap(P), frac);
+  termPo man = makeFloat(frac);
 
-  heapPo h = processHeap(P);
-  int root = gcAddRoot(h, &man);
-  termPo ex = makeInteger((integer) exp);
-  gcAddRoot(h, &ex);
-  termPo Rs = (termPo) allocateTplPair(h, man, ex);
-  gcReleaseRoot(h, root);
+  int root = gcAddRoot(&man);
+  termPo ex = makeInteger((integer)exp);
+  gcAddRoot(&ex);
+  termPo Rs = (termPo)allocateTplPair(man, ex);
+  gcReleaseRoot(root);
   return normalReturn(Rs);
 }
 
@@ -127,13 +130,12 @@ ValueReturn s__modf(enginePo P, termPo l) {
   double intgrl;
   double frac = modf(Arg, &intgrl);
 
-  termPo man = makeFloat(processHeap(P), frac);
-  heapPo h = processHeap(P);
-  int root = gcAddRoot(h, &man);
-  termPo ex = makeInteger((integer) intgrl);
-  gcAddRoot(h, &ex);
-  termPo Rs = (termPo) allocateTplPair(h, man, ex);
-  gcReleaseRoot(h, root);
+  termPo man = makeFloat(frac);
+  int root = gcAddRoot(&man);
+  termPo ex = makeInteger((integer)intgrl);
+  gcAddRoot(&ex);
+  termPo Rs = (termPo)allocateTplPair(man, ex);
+  gcReleaseRoot(root);
 
   return normalReturn(Rs);
 }
@@ -142,13 +144,15 @@ ValueReturn s__flt2int(enginePo P, termPo l) {
   double dx = floatVal(l);
 
   if (floor(dx) == dx) {
-    integer ix = (integer) dx;
-    if ((double) ix == dx) {
+    integer ix = (integer)dx;
+    if ((double)ix == dx) {
       return normalReturn(makeInteger(ix));
-    } else {
+    }
+    else {
       return abnormalReturn(eRANGE);
     }
-  } else {
+  }
+  else {
     return abnormalReturn(eINVAL);
   }
 }
@@ -159,7 +163,7 @@ ValueReturn s__bits_float(enginePo P, termPo l) {
     double Dx;
   } Arg;
   Arg.Ix = integerVal(l);
-  return normalReturn(makeFloat(processHeap(P),Arg.Dx));
+  return normalReturn(makeFloat(Arg.Dx));
 }
 
 ValueReturn s__float_bits(enginePo P, termPo l) {
@@ -174,25 +178,25 @@ ValueReturn s__float_bits(enginePo P, termPo l) {
 ValueReturn s__flt2str(enginePo P, termPo l, termPo r, termPo s, termPo a) {
   double Arg = floatVal(l);
 
-  int precision = (int) integerVal(r);
+  int precision = (int)integerVal(r);
   codePoint mdc = charVal(s);
   FloatDisplayMode mode = (mdc == 'f' ? fractional : mdc == 's' ? scientific : general);
   char buff[64];
 
   formatDouble(buff, NumberOf(buff), Arg, mode, precision, a == trueEnum ? True : False);
 
-  return normalReturn((termPo) allocateString(processHeap(P), buff, uniStrLen(buff)));
+  return normalReturn((termPo) allocateString( buff, uniStrLen(buff)));
 }
 
 ValueReturn s__flt_format(enginePo P, termPo l, termPo r) {
   double arg = floatVal(l);
   integer length;
-  const char *fmt = strVal(r, &length);
+  const char* fmt = strVal(r, &length);
   char buff[64];
   integer pos = 0;
 
   if (formattedFloat(arg, buff, &pos, NumberOf(buff), fmt, length) == Ok)
-    return normalReturn((termPo) allocateString(processHeap(P), buff, uniStrLen(buff)));
+    return normalReturn((termPo) allocateString(buff, uniStrLen(buff)));
   else
     return abnormalReturn(eINVAL);
 }
@@ -203,47 +207,47 @@ ValueReturn s__flt_hash(enginePo P, termPo l) {
 
 ValueReturn s_cos(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),cos(Arg)));
+  return normalReturn(makeFloat(cos(Arg)));
 }
 
 ValueReturn s_sin(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),sin(Arg)));
+  return normalReturn(makeFloat(sin(Arg)));
 }
 
 ValueReturn s_tan(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),tan(Arg)));
+  return normalReturn(makeFloat(tan(Arg)));
 }
 
 ValueReturn s_acos(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),acos(Arg)));
+  return normalReturn(makeFloat(acos(Arg)));
 }
 
 ValueReturn s_asin(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),asin(Arg)));
+  return normalReturn(makeFloat(asin(Arg)));
 }
 
 ValueReturn s_atan(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),atan(Arg)));
+  return normalReturn(makeFloat(atan(Arg)));
 }
 
 ValueReturn s_floor(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),floor(Arg)));
+  return normalReturn(makeFloat(floor(Arg)));
 }
 
 ValueReturn s_ceil(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),ceil(Arg)));
+  return normalReturn(makeFloat(ceil(Arg)));
 }
 
 ValueReturn s_trunc(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),trunc(Arg)));
+  return normalReturn(makeFloat(trunc(Arg)));
 }
 
 ValueReturn s_integral(enginePo P, termPo l) {
@@ -253,22 +257,22 @@ ValueReturn s_integral(enginePo P, termPo l) {
 
 ValueReturn s__ln(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),log(Arg)));
+  return normalReturn(makeFloat(log(Arg)));
 }
 
 ValueReturn s__lg10(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(processHeap(P),log10(Arg)));
+  return normalReturn(makeFloat(log10(Arg)));
 }
 
 ValueReturn s__sqrt(enginePo P, termPo l) {
   double Arg = floatVal(l);
   if (Arg >= 0.0)
-    return normalReturn(makeFloat(processHeap(P),sqrt(Arg)));
+    return normalReturn(makeFloat(sqrt(Arg)));
   else
     return abnormalReturn(eRANGE);
 }
 
 ValueReturn s_pi(enginePo P) {
-  return normalReturn(makeFloat(processHeap(P),M_PI));
+  return normalReturn(makeFloat(M_PI));
 }

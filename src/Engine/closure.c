@@ -66,11 +66,11 @@ retCode closureDisp(ioPo out, termPo t, integer precision, integer depth, logica
   closurePo closure = C_CLOSURE(t);
 
   retCode ret = outStr(out, "<");
-  if (ret == Ok){
-    if (depth > 0){
+  if (ret == Ok) {
+    if (depth > 0) {
       ret = showLbl(out, closure->lbl, 0, depth - 1, alt);
 
-      if (ret == Ok){
+      if (ret == Ok) {
         ret = outStr(out, ":");
       }
 
@@ -90,12 +90,12 @@ void initClosure() {
   closureIndex = standardIndex(closureClass);
 }
 
-closurePo newClosure(heapPo H, labelPo lbl, termPo free) {
-  int root = gcAddRoot(H, (ptrPo)(&free));
-  closurePo closure = (closurePo)allocateObject(H, closureIndex, ClosureCellCount);
+closurePo newClosure(labelPo lbl, termPo free) {
+  int root = gcAddRoot(&free);
+  closurePo closure = (closurePo)allocateObject(closureIndex, ClosureCellCount);
   closure->free = free;
   closure->lbl = lbl;
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
   return closure;
 }
 

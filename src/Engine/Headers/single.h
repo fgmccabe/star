@@ -13,7 +13,7 @@ typedef struct single_rec_ *singlePo;
 
 singlePo C_SINGLE(termPo t);
 
-singlePo newSingleVar(heapPo H);
+singlePo newSingleVar(void);
 termPo singleVal(singlePo v);
 termPo setSingle(singlePo v, termPo e);
 logical singleIsSet(singlePo single);

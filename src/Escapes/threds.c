@@ -35,13 +35,12 @@ void *forkThread(void *arg) {
 
 ValueReturn s__fork(enginePo P, termPo l) {
   labelPo fn = C_LBL(l);
-  heapPo h = processHeap(P);
 #ifndef NOJIT
-  enginePo np = newEngine(h, jitOnLoad, labelMtd(fn), P->wd, unitEnum);
+  enginePo np = newEngine(jitOnLoad, labelMtd(fn), P->wd, unitEnum);
 #else
-  enginePo np = newEngine(h, False, labelMtd(fn), P->wd, unitEnum);
+  enginePo np = newEngine(False, labelMtd(fn), P->wd, unitEnum);
 #endif
-  threadPo thread = newThread(np, globalHeap);
+  threadPo thread = newThread(np);
 
   pthread_attr_t detach;
 
@@ -81,9 +80,9 @@ ValueReturn s__thread_state(enginePo P, termPo t) {
   termPo st;
 
   if (tgt == NULL)
-    st = declareEnum(state_names[dead], dead, globalHeap);
+    st = declareEnum(state_names[dead], dead);
   else
-    st = declareEnum(state_names[tgt->state], tgt->state, globalHeap);
+    st = declareEnum(state_names[tgt->state], tgt->state);
   setProcessRunnable(P);
   return normalReturn(st);
 }

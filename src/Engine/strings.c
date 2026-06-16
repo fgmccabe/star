@@ -45,8 +45,8 @@ const char* strVal(termPo o, integer* size) {
   return str->txt;
 }
 
-termPo allocateString(heapPo H, const char* txt, long length) {
-  stringPo str = (stringPo)allocateObject(H, strIndex, StringCellCount(length));
+termPo allocateString(const char* txt, long length) {
+  stringPo str = (stringPo)allocateObject(strIndex, StringCellCount(length));
   str->hash = 0;
   str->length = length;
 
@@ -55,15 +55,15 @@ termPo allocateString(heapPo H, const char* txt, long length) {
   return (termPo)str;
 }
 
-termPo allocateCString(heapPo H, const char* txt) {
-  return allocateString(H, txt, uniStrLen(txt));
+termPo allocateCString(const char* txt) {
+  return allocateString(txt, uniStrLen(txt));
 }
 
-termPo allocateFromStrBuffer(heapPo H, strBufferPo bffr) {
+termPo allocateFromStrBuffer(strBufferPo bffr) {
   integer oLen;
   const char* buff = getTextFromBuffer(bffr, &oLen);
 
-  return allocateString(H, buff, oLen);
+  return allocateString(buff, oLen);
 }
 
 long strSize(builtinClassPo cl, termPo o) {

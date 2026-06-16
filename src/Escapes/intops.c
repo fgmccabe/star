@@ -50,7 +50,8 @@ ValueReturn s__int_gcd(enginePo P, termPo l, termPo r) {
 
   if (gC > 0) {
     return normalReturn(makeInteger(gC));
-  } else {
+  }
+  else {
     return abnormalReturn(divZero);
   }
 }
@@ -75,7 +76,8 @@ ValueReturn s__int_pow(enginePo P, termPo l, termPo r) {
 
   if (rhs < 0) {
     return abnormalReturn(noValue);
-  } else {
+  }
+  else {
     return normalReturn(makeInteger(intPow(lhs,rhs)));
   }
 }
@@ -102,28 +104,28 @@ ValueReturn s__blsl(enginePo P, termPo l, termPo r) {
 }
 
 ValueReturn s__blsr(enginePo P, termPo l, termPo r) {
-  uint64 lhs = (uint64) integerVal(l);
-  uint64 rhs = (uint64) integerVal(r);
+  uint64 lhs = (uint64)integerVal(l);
+  uint64 rhs = (uint64)integerVal(r);
 
   return normalReturn(makeInteger((integer)(lhs >> rhs)));
 }
 
 ValueReturn s__bor(enginePo P, termPo l, termPo r) {
-  uint64 lhs = (uint64) integerVal(l);
-  uint64 rhs = (uint64) integerVal(r);
+  uint64 lhs = (uint64)integerVal(l);
+  uint64 rhs = (uint64)integerVal(r);
 
   return normalReturn(makeInteger((integer)(lhs | rhs)));
 }
 
 ValueReturn s__bxor(enginePo P, termPo l, termPo r) {
-  uint64 lhs = (uint64) integerVal(l);
-  uint64 rhs = (uint64) integerVal(r);
+  uint64 lhs = (uint64)integerVal(l);
+  uint64 rhs = (uint64)integerVal(r);
 
   return normalReturn(makeInteger((integer)(lhs ^ rhs)));
 }
 
 ValueReturn s__bnot(enginePo P, termPo l) {
-  uint64 lhs = (uint64) integerVal(l);
+  uint64 lhs = (uint64)integerVal(l);
 
   return normalReturn(makeInteger((integer)(~lhs)));
 }
@@ -189,31 +191,32 @@ ValueReturn s__int2str(enginePo P, termPo l) {
   char buff[64];
 
   integer len = int2StrByBase(buff, lhs, 0, 10);
-  return normalReturn(allocateString(processHeap(P), buff, len));
+  return normalReturn(allocateString( buff, len));
 }
 
 ValueReturn s__int_format(enginePo P, termPo l, termPo r) {
   integer ix = integerVal(l);
   integer length;
-  const char *fmt = strVal(r, &length);
+  const char* fmt = strVal(r, &length);
   char buff[64];
   integer pos = 0;
 
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    return normalReturn(allocateString(processHeap(P), buff, pos));
-  } else {
+    return normalReturn(allocateString( buff, pos));
+  }
+  else {
     return abnormalReturn(eINVAL);
   }
 }
 
 ValueReturn s__int2flt(enginePo P, termPo l) {
   integer ix = integerVal(l);
-  double dx = (double) ix;
-  if ((integer) dx == ix) {
+  double dx = (double)ix;
+  if ((integer)dx == ix) {
     // Check coercion was safe
-    return normalReturn(makeFloat(processHeap(P),dx));
+    return normalReturn(makeFloat(dx));
   }
   return abnormalReturn(eRANGE);
 }
@@ -225,11 +228,11 @@ ValueReturn s__irand(enginePo P, termPo l) {
 }
 
 ValueReturn s__random(enginePo P) {
-  return normalReturn(makeFloat(processHeap(P),((double) random()) / LARGE_INT32));
+  return normalReturn(makeFloat(((double) random()) / LARGE_INT32));
 }
 
 ValueReturn s__seed(enginePo P, termPo l) {
-  unsigned int ix = (unsigned int) integerVal(l);
+  unsigned int ix = (unsigned int)integerVal(l);
 
   srandom(ix);
   return normalReturn(unitEnum);

@@ -15,26 +15,57 @@ typedef enum {
 #define MAX_ROOT 128
 #endif
 
+/* Used for recording old->new pointers */
+#ifndef CARDSHIFT
+#define CARDSHIFT 6		/* 64 bits in an integer */
+#define CARDWIDTH  (1<<CARDSHIFT)
+#define CARDMASK  (CARDWIDTH-1)
+#endif
+
+typedef uint64 cardMap;
+
+extern cardMap masks[CARDWIDTH];
+
+/*
+ * | base                                                              outerLimit |
+ * | old .... oldLimit                 split                                      |
+ * |          start    ... curr(a) ... limit(a)
+ * |                                              curr(b) ... limit(b)
+ */
+
 typedef struct heap_ {
+  termPo base;
+  termPo outerLimit; /* The real */
+
   termPo start;
+  termPo split;
+
   termPo curr;
   termPo limit;
-  termPo base;
-  termPo split;
-  termPo outerLimit;      /* The real */
-  termPo old;
+
   allocMode allocMode;
+
+  termPo old;      // base of the old term space (== start)
+  termPo oldLimit; // Current end of old term space.
+
+  cardMap* cards; /* this is a table of cards */
+  long ncards;
+
   ptrPo roots[MAX_ROOT];
   int topRoot;
   enginePo owner;
-} HeapRecord;
+} HeapRecord, *heapPo;
 
 extern HeapRecord heap;
 
-typedef struct stack_frame_ *framePo;
+typedef struct stack_frame_* framePo;
 
-extern long initHeapSize;        /* How much memory to give the heap */
-extern long maxHeapSize;         // Maximum permitted size of heap
+extern long initHeapSize; /* How much memory to give the heap */
+extern long maxHeapSize;  // Maximum permitted size of heap
+
+retCode setupHeap(heapPo heap, int64 cellCount);
+
+void recordTermUpdate(termPo t);
 
 #ifdef TRACEMEM
 extern tracingLevel traceMemory; /* memory tracing */
@@ -43,25 +74,24 @@ extern logical traceAllocs;      // trace allocations
 void showMemoryStats(ioPo out);  // Show memory statistics
 #endif
 
-extern retCode gcCollect(heapPo H, long amount);
+retCode gcCollect(long amount);
 
 typedef struct gc_support_ {
-  heapPo H;
   long oCnt;
   termPo oldBase;
   termPo oldLimit;
 } GCSupport, *gcSupportPo;
 
-extern void setupGCSupport(heapPo H, gcSupportPo G);
+extern void setupGCSupport(gcSupportPo G);
 
-extern void validPtr(heapPo H, termPo t);
-extern void verifyHeap(heapPo H);
+extern void validPtr(termPo t);
+extern void verifyHeap(void);
 
 extern termPo markPtr(gcSupportPo G, ptrPo p);
 extern termPo scanTerm(gcSupportPo G, termPo x);
 
-static inline logical inHeap(heapPo P, const termPo x) {
-  return (logical) (x >= P->base && x < P->curr);
+static inline logical inHeap(const termPo x) {
+  return (logical)((x >= heap.base && x < heap.curr) || (x >= heap.old && x < heap.oldLimit));
 }
 
 extern void lockHeap(heapPo H);

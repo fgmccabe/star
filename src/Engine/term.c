@@ -44,6 +44,7 @@ termPo lastArg(normalPo term) {
 
 void setArg(normalPo term, int64 ix, termPo arg) {
   check(ix >= 0 && ix < termArity(term), "out of bounds");
+  recordTermUpdate((termPo)term);
   term->args[ix] = arg;
 }
 
@@ -221,21 +222,21 @@ integer termSize(normalPo t) {
   return NormalCellCount(lblArity(termLbl(t)));
 }
 
-normalPo allocateTpl(heapPo H, int32 arity) {
+normalPo allocateTpl(int32 arity) {
   labelPo lbl = tplLbl(arity);
-  int root = gcAddRoot(H, (ptrPo)&lbl);
-  normalPo tpl = allocateStruct(H, lbl);
-  gcReleaseRoot(H, root);
+  int root = gcAddRoot((ptrPo)&lbl);
+  normalPo tpl = allocateStruct(lbl);
+  gcReleaseRoot(root);
   return tpl;
 }
 
-normalPo allocateTplPair(heapPo H, termPo lhs, termPo rhs) {
-  int root = gcAddRoot(H, &lhs);
-  gcAddRoot(H, &rhs);
-  normalPo tpl = allocateTpl(H, 2);
+normalPo allocateTplPair(termPo lhs, termPo rhs) {
+  int root = gcAddRoot(&lhs);
+  gcAddRoot(&rhs);
+  normalPo tpl = allocateTpl(2);
   setArg(tpl, 0, lhs);
   setArg(tpl, 1, rhs);
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
   return tpl;
 }
 

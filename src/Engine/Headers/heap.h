@@ -7,25 +7,22 @@
 #include "labels.h"
 #include "normal.h"
 
-typedef struct heap_ *heapPo;
 
 void initHeap(long heapSize);
-
-extern heapPo globalHeap;
 
 extern integer numAllocated;
 extern integer totalAllocated;
 
-termPo allocateObject(heapPo H, int32 index, integer amnt);
-normalPo allocateUnary(heapPo h, int32 index, termPo arg);
-normalPo allocateBinary(heapPo h, int32 index, termPo left, termPo right);
+termPo allocateObject(int32 index, integer amnt);
+normalPo allocateUnary(int32 index, termPo arg);
+normalPo allocateBinary(int32 index, termPo left, termPo right);
 
-normalPo allocateStruct(heapPo H, labelPo lbl);
-retCode enoughRoom(heapPo H, labelPo lbl);
-retCode reserveSpace(heapPo H, integer amnt);
+normalPo allocateStruct(labelPo lbl);
+retCode enoughRoom(labelPo lbl);
+retCode reserveSpace(integer amnt);
 
-int gcAddRoot(heapPo H, ptrPo addr);
-void gcReleaseRoot(heapPo H, int mark);
+int gcAddRoot(ptrPo addr);
+void gcReleaseRoot(int mark);
 
 #define PTRSZE (sizeof(void*))
 

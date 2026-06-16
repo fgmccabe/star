@@ -50,7 +50,7 @@ ValueReturn s__date2time(enginePo P, termPo tpl) {
 
   time_t when = mktime(&now);
 
-  return normalReturn(makeFloat(processHeap(P),(double) when + fraction));
+  return normalReturn(makeFloat((double) when + fraction));
 }
 
 ValueReturn s__utc2time(enginePo P, termPo tpl) {
@@ -81,7 +81,7 @@ ValueReturn s__utc2time(enginePo P, termPo tpl) {
 
   time_t when = timegm(&now);
 
-  return normalReturn(makeFloat(processHeap(P),(double) when + fraction));
+  return normalReturn(makeFloat((double) when + fraction));
 }
 
 ValueReturn s__time2date(enginePo P, termPo t) {
@@ -89,9 +89,8 @@ ValueReturn s__time2date(enginePo P, termPo t) {
   time_t when = (time_t)time;
 
   struct tm* now = localtime(&when);
-  heapPo h = processHeap(P);
-  normalPo dte = allocateTpl(h, DATE_LEN);
-  int root = gcAddRoot(h, (ptrPo)&dte);
+  normalPo dte = allocateTpl(DATE_LEN);
+  int root = gcAddRoot((ptrPo)&dte);
 
   double sec;
   double fraction = modf(time, &sec);
@@ -114,13 +113,13 @@ ValueReturn s__time2date(enginePo P, termPo t) {
   termPo min = makeInteger(now->tm_min);
   setArg(dte, DATE_MIN, min);
 
-  termPo sc = makeFloat(processHeap(P), now->tm_sec + fraction);
+  termPo sc = makeFloat(now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
   termPo tmOffset = makeInteger(now->tm_gmtoff);
   setArg(dte, DATE_UTC, tmOffset);
 
-  gcReleaseRoot(h, root);
+  gcReleaseRoot( root);
   return normalReturn((termPo) dte);
 }
 
@@ -129,9 +128,8 @@ ValueReturn s__time2utc(enginePo P, termPo t) {
   time_t when = (time_t)time;
 
   struct tm* now = gmtime(&when);
-  heapPo h = processHeap(P);
-  normalPo dte = allocateTpl(h, DATE_LEN);
-  int root = gcAddRoot(h, (ptrPo)&dte);
+  normalPo dte = allocateTpl( DATE_LEN);
+  int root = gcAddRoot((ptrPo)&dte);
 
   double sec;
   double fraction = modf(time, &sec);
@@ -154,13 +152,13 @@ ValueReturn s__time2utc(enginePo P, termPo t) {
   termPo min = makeInteger(now->tm_min);
   setArg(dte, DATE_MIN, min);
 
-  termPo sc = makeFloat(processHeap(P), now->tm_sec + fraction);
+  termPo sc = makeFloat(now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
   termPo tmOffset = makeInteger(now->tm_gmtoff);
   setArg(dte, DATE_UTC, tmOffset);
 
-  gcReleaseRoot(h, root);
+  gcReleaseRoot( root);
   return normalReturn((termPo) dte);
 }
 
@@ -178,7 +176,7 @@ ValueReturn s__formattime(enginePo P, termPo w, termPo f) {
   retCode ret = formatDate(O_IO(buff), fmt, fmtLen, now);
 
   if (ret == Ok) {
-    termPo result = allocateFromStrBuffer(processHeap(P), buff);
+    termPo result = allocateFromStrBuffer( buff);
     closeIo(O_IO(buff));
     return normalReturn(result);
   }
@@ -599,7 +597,7 @@ ValueReturn s__parsetime(enginePo P, termPo s, termPo f) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return normalReturn(makeFloat(processHeap(P),(double) tm));
+    return normalReturn(makeFloat((double) tm));
   }
   else {
     return abnormalReturn(eINVAL);

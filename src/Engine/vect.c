@@ -12,7 +12,7 @@ labelPo lf1, lf2, lf3, lf4;
 labelPo vct1, vct2, vct3, vct4, vectorLbl;
 
 void initVect() {
-  eVect = declareEnum("star.vector#e", 0, globalHeap);
+  eVect = declareEnum("star.vector#e", 0);
   lf1 = declareLbl("star.vector#lf1", 1, 1);
   lf2 = declareLbl("star.vector#lf2", 2, 2);
   lf3 = declareLbl("star.vector#lf3", 3, 3);
@@ -35,8 +35,9 @@ static logical isEVect(termPo t) {
 static logical isVLbl(termPo t, labelPo lbl) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (termLbl(c) == lbl);
-  } else
+    return (logical)(termLbl(c) == lbl);
+  }
+  else
     return False;
 }
 
@@ -76,7 +77,7 @@ logical isVector(termPo t) {
   return isVLbl(t, vectorLbl);
 }
 
-static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, logical alt, char **sep) {
+static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, logical alt, char** sep) {
   if (isEVect(t))
     return Ok;
   else if (depth <= 0)
@@ -86,7 +87,8 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
     if (ret == Ok)
       ret = dispTerm(out, nthElem(C_NORMAL(t), 0), precision, depth - 1, alt);
     return ret;
-  } else if (isLf2(t)) {
+  }
+  else if (isLf2(t)) {
     normalPo v = C_NORMAL(t);
     retCode ret = outStr(out, *sep);
     if (ret == Ok)
@@ -98,7 +100,8 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
         ret = dispTerm(out, nthElem(v, 1), precision, depth - 1, alt);
     }
     return ret;
-  } else if (isLf3(t)) {
+  }
+  else if (isLf3(t)) {
     normalPo v = C_NORMAL(t);
     retCode ret = outStr(out, *sep);
     if (ret == Ok)
@@ -115,7 +118,8 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
         ret = dispTerm(out, nthElem(v, 2), precision, depth - 1, alt);
     }
     return ret;
-  } else if (isLf4(t)) {
+  }
+  else if (isLf4(t)) {
     normalPo v = C_NORMAL(t);
     retCode ret = outStr(out, *sep);
     if (ret == Ok)
@@ -137,16 +141,19 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
         ret = dispTerm(out, nthElem(v, 3), precision, depth - 1, alt);
     }
     return ret;
-  } else if (isVct1(t)) {
+  }
+  else if (isVct1(t)) {
     normalPo v = C_NORMAL(t);
     return dispVct(out, nthElem(v, 0), precision, depth - 1, alt, sep);
-  } else if (isVct2(t)) {
+  }
+  else if (isVct2(t)) {
     normalPo v = C_NORMAL(t);
     retCode ret = dispVct(out, nthElem(v, 0), precision, depth - 1, alt, sep);
     if (ret == Ok)
       ret = dispVct(out, nthElem(v, 1), precision, depth - 1, alt, sep);
     return ret;
-  } else if (isVct3(t)) {
+  }
+  else if (isVct3(t)) {
     normalPo v = C_NORMAL(t);
     retCode ret = dispVct(out, nthElem(v, 0), precision, depth - 1, alt, sep);
     if (ret == Ok)
@@ -154,7 +161,8 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
     if (ret == Ok)
       ret = dispVct(out, nthElem(v, 2), precision, depth - 1, alt, sep);
     return ret;
-  } else if (isVct4(t)) {
+  }
+  else if (isVct4(t)) {
     normalPo v = C_NORMAL(t);
     retCode ret = dispVct(out, nthElem(v, 0), precision, depth - 1, alt, sep);
     if (ret == Ok)
@@ -164,7 +172,8 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
     if (ret == Ok)
       ret = dispVct(out, nthElem(v, 3), precision, depth - 1, alt, sep);
     return ret;
-  } else {
+  }
+  else {
     return outStr(out, "illegal vector element");
   }
 }
@@ -173,18 +182,19 @@ retCode dispVect(ioPo out, termPo t, integer precision, integer depth, logical a
   assert(isVector(t));
 
   if (depth > 0) {
-    char *sep = "";
+    char* sep = "";
     retCode ret = outChar(out, '[');
     if (ret == Ok)
       ret = dispVct(out, nthElem(C_NORMAL(t), 1), precision, depth, alt, &sep);
     if (ret == Ok)
       ret = outStr(out, "]");
     return ret;
-  } else
+  }
+  else
     return outMsg(out, "...");
 }
 
-static void splitKey(integer key, integer dp, integer *fst, integer *rest) {
+static void splitKey(integer key, integer dp, integer* fst, integer* rest) {
   integer s2 = dp - 2;
   *fst = (key >> s2) & 3;
   *rest = key & ((1 << s2) - 1);
@@ -197,180 +207,188 @@ static termPo lookup(normalPo v, integer key, integer dp) {
     integer fst, rest;
     splitKey(key, dp, &fst, &rest);
     return pick(v, fst, rest, dp - 2);
-  } else
+  }
+  else
     return Null;
 }
 
 static termPo pick(normalPo v, integer ix, integer key, integer dp) {
-  termPo t = (termPo) v;
+  termPo t = (termPo)v;
   switch (ix) {
-    case 0:
-      if (isVct1(t) || isVct2(t) || isVct3(t) || isVct4(t))
-        return lookup(C_NORMAL(nthElem(v, 0)), key, dp);
-      else if (isLf1(t) || isLf2(t) || isLf3(t) || isLf4(t))
-        return nthElem(v, 0);
-      else
-        return Null;
-    case 1:
-      if (isVct2(t) || isVct3(t) || isVct4(t))
-        return lookup(C_NORMAL(nthElem(v, 1)), key, dp);
-      else if (isLf2(t) || isLf3(t) || isLf4(t))
-        return nthElem(v, 1);
-      else
-        return Null;
-    case 2:
-      if (isVct3(t) || isVct4(t))
-        return lookup(C_NORMAL(nthElem(v, 2)), key, dp);
-      else if (isLf3(t) || isLf4(t))
-        return nthElem(v, 2);
-      else
-        return Null;
-    case 3:
-      if (isVct4(t))
-        return lookup(C_NORMAL(nthElem(v, 3)), key, dp);
-      else if (isLf4(t))
-        return nthElem(v, 3);
-      else
-        return Null;
-    default:
+  case 0:
+    if (isVct1(t) || isVct2(t) || isVct3(t) || isVct4(t))
+      return lookup(C_NORMAL(nthElem(v, 0)), key, dp);
+    else if (isLf1(t) || isLf2(t) || isLf3(t) || isLf4(t))
+      return nthElem(v, 0);
+    else
       return Null;
+  case 1:
+    if (isVct2(t) || isVct3(t) || isVct4(t))
+      return lookup(C_NORMAL(nthElem(v, 1)), key, dp);
+    else if (isLf2(t) || isLf3(t) || isLf4(t))
+      return nthElem(v, 1);
+    else
+      return Null;
+  case 2:
+    if (isVct3(t) || isVct4(t))
+      return lookup(C_NORMAL(nthElem(v, 2)), key, dp);
+    else if (isLf3(t) || isLf4(t))
+      return nthElem(v, 2);
+    else
+      return Null;
+  case 3:
+    if (isVct4(t))
+      return lookup(C_NORMAL(nthElem(v, 3)), key, dp);
+    else if (isLf4(t))
+      return nthElem(v, 3);
+    else
+      return Null;
+  default:
+    return Null;
   }
 }
 
 termPo vectElement(normalPo v, integer ix) {
-  if (isVector((termPo) v)) {
+  if (isVector((termPo)v)) {
     integer dp = integerVal(nthElem(v, 0));
     return lookup(C_NORMAL(nthElem(v, 1)), ix, dp);
-  } else
+  }
+  else
     return Null;
 }
 
-static termPo allocateV1(heapPo H, labelPo lbl, termPo x0) {
-  int root = gcAddRoot(H, &x0);
-  normalPo v = allocateStruct(H, lbl);
+static termPo allocateV1(labelPo lbl, termPo x0) {
+  int root = gcAddRoot(&x0);
+  normalPo v = allocateStruct(lbl);
   setArg(v, 0, x0);
-  gcReleaseRoot(H, root);
-  return (termPo) v;
+  gcReleaseRoot(root);
+  return (termPo)v;
 }
 
-static termPo allocateV2(heapPo H, labelPo lbl, termPo x0, termPo x1) {
-  int root = gcAddRoot(H, &x0);
-  gcAddRoot(H, &x1);
-  normalPo v = allocateStruct(H, lbl);
+static termPo allocateV2(labelPo lbl, termPo x0, termPo x1) {
+  int root = gcAddRoot(&x0);
+  gcAddRoot(&x1);
+  normalPo v = allocateStruct(lbl);
   setArg(v, 0, x0);
   setArg(v, 1, x1);
-  gcReleaseRoot(H, root);
-  return (termPo) v;
+  gcReleaseRoot(root);
+  return (termPo)v;
 }
 
-static termPo allocateV3(heapPo H, labelPo lbl, termPo x0, termPo x1, termPo x2) {
-  int root = gcAddRoot(H, &x0);
-  gcAddRoot(H, &x1);
-  gcAddRoot(H, &x2);
-  normalPo v = allocateStruct(H, lbl);
+static termPo allocateV3(labelPo lbl, termPo x0, termPo x1, termPo x2) {
+  int root = gcAddRoot(&x0);
+  gcAddRoot(&x1);
+  gcAddRoot(&x2);
+  normalPo v = allocateStruct(lbl);
   setArg(v, 0, x0);
   setArg(v, 1, x1);
   setArg(v, 2, x2);
-  gcReleaseRoot(H, root);
-  return (termPo) v;
+  gcReleaseRoot(root);
+  return (termPo)v;
 }
 
-static termPo allocateV4(heapPo H, labelPo lbl, termPo x0, termPo x1, termPo x2, termPo x3) {
-  int root = gcAddRoot(H, &x0);
-  gcAddRoot(H, &x1);
-  gcAddRoot(H, &x2);
-  gcAddRoot(H, &x3);
-  normalPo v = allocateStruct(H, lbl);
+static termPo allocateV4(labelPo lbl, termPo x0, termPo x1, termPo x2, termPo x3) {
+  int root = gcAddRoot(&x0);
+  gcAddRoot(&x1);
+  gcAddRoot(&x2);
+  gcAddRoot(&x3);
+  normalPo v = allocateStruct(lbl);
   setArg(v, 0, x0);
   setArg(v, 1, x1);
   setArg(v, 2, x2);
   setArg(v, 3, x3);
-  gcReleaseRoot(H, root);
-  return (termPo) v;
+  gcReleaseRoot(root);
+  return (termPo)v;
 }
 
-static termPo grab(heapPo h, integer *ix, integer ln, integer dp, makeCB cb, void *cl);
-static termPo grab1(heapPo h, termPo x0, termPo x1, termPo x2, integer *ix, integer ln, makeCB cb, void *cl);
-static termPo grab2(heapPo h, termPo x0, termPo x1, integer *ix, integer ln, makeCB cb, void *cl);
-static termPo grab3(heapPo h, termPo x0, integer *ix, integer ln, makeCB cb, void *cl);
-static termPo grab4(heapPo h, integer *ix, integer ln, makeCB cb, void *cl);
+static termPo grab(integer* ix, integer ln, integer dp, makeCB cb, void* cl);
+static termPo grab1(termPo x0, termPo x1, termPo x2, integer* ix, integer ln, makeCB cb, void* cl);
+static termPo grab2(termPo x0, termPo x1, integer* ix, integer ln, makeCB cb, void* cl);
+static termPo grab3(termPo x0, integer* ix, integer ln, makeCB cb, void* cl);
+static termPo grab4(integer* ix, integer ln, makeCB cb, void* cl);
 
-termPo grab1(heapPo h, termPo x0, termPo x1, termPo x2, integer *ix, integer ln, makeCB cb, void *cl) {
+termPo grab1(termPo x0, termPo x1, termPo x2, integer* ix, integer ln, makeCB cb, void* cl) {
   if (*ix < ln) {
-    termPo el = cb(h, (*ix)++, cl);
-    return allocateV4(h, lf4, x0, x1, x2, el);
-  } else {
-    return allocateV3(h, lf3, x0, x1, x2);
+    termPo el = cb((*ix)++, cl);
+    return allocateV4(lf4, x0, x1, x2, el);
+  }
+  else {
+    return allocateV3(lf3, x0, x1, x2);
   }
 }
 
-termPo grab2(heapPo h, termPo x0, termPo x1, integer *ix, integer ln, makeCB cb, void *cl) {
+termPo grab2(termPo x0, termPo x1, integer* ix, integer ln, makeCB cb, void* cl) {
   if (*ix < ln) {
-
-    termPo el = cb(h, (*ix)++, cl);
-    return grab1(h, x0, x1, el, ix, ln, cb, cl);
-  } else {
-    return allocateV2(h, lf2, x0, x1);
+    termPo el = cb((*ix)++, cl);
+    return grab1(x0, x1, el, ix, ln, cb, cl);
+  }
+  else {
+    return allocateV2(lf2, x0, x1);
   }
 }
 
-termPo grab3(heapPo h, termPo x0, integer *ix, integer ln, makeCB cb, void *cl) {
+termPo grab3(termPo x0, integer* ix, integer ln, makeCB cb, void* cl) {
   if (*ix < ln) {
-    termPo el = cb(h, (*ix)++, cl);
-    return grab2(h, x0, el, ix, ln, cb, cl);
-  } else {
-    return allocateV1(h, lf1, x0);
+    termPo el = cb((*ix)++, cl);
+    return grab2(x0, el, ix, ln, cb, cl);
+  }
+  else {
+    return allocateV1(lf1, x0);
   }
 }
 
-termPo grab4(heapPo h, integer *ix, integer ln, makeCB cb, void *cl) {
+termPo grab4(integer* ix, integer ln, makeCB cb, void* cl) {
   if (*ix < ln) {
-    termPo el = cb(h, (*ix)++, cl);
-    return grab3(h, el, ix, ln, cb, cl);
-  } else {
+    termPo el = cb((*ix)++, cl);
+    return grab3(el, ix, ln, cb, cl);
+  }
+  else {
     return eVect;
   }
 }
 
-termPo grab(heapPo h, integer *ix, integer ln, integer dp, makeCB cb, void *cl) {
+termPo grab(integer* ix, integer ln, integer dp, makeCB cb, void* cl) {
   if (*ix < ln) {
     if (dp == 2)
-      return grab4(h, ix, ln, cb, cl);
+      return grab4(ix, ln, cb, cl);
     else {
       assert(dp > 2);
-      termPo t0 = grab(h, ix, ln, dp - 2, cb, cl);
+      termPo t0 = grab(ix, ln, dp - 2, cb, cl);
       if (*ix >= ln)
-        return allocateV1(h, vct1, (termPo) t0);
+        return allocateV1(vct1, (termPo)t0);
       else {
-        int root = gcAddRoot(h, &t0);
-        termPo t1 = grab(h, ix, ln, dp - 2, cb, cl);
+        int root = gcAddRoot(&t0);
+        termPo t1 = grab(ix, ln, dp - 2, cb, cl);
         if (*ix >= ln) {
-          gcReleaseRoot(h, root);
-          return allocateV2(h, vct2, t0, t1);
-        } else {
-          gcAddRoot(h, &t1);
-          termPo t2 = grab(h, ix, ln, dp - 2, cb, cl);
+          gcReleaseRoot(root);
+          return allocateV2(vct2, t0, t1);
+        }
+        else {
+          gcAddRoot(&t1);
+          termPo t2 = grab(ix, ln, dp - 2, cb, cl);
           if (*ix >= ln) {
-            gcReleaseRoot(h, root);
-            return allocateV3(h, vct3, t0, t1, t2);
-          } else {
-            gcAddRoot(h, &t2);
-            termPo t3 = grab(h, ix, ln, dp - 2, cb, cl);
-            gcReleaseRoot(h, root);
-            return allocateV4(h, vct4, t0, t1, t2, t3);
+            gcReleaseRoot(root);
+            return allocateV3(vct3, t0, t1, t2);
+          }
+          else {
+            gcAddRoot(&t2);
+            termPo t3 = grab(ix, ln, dp - 2, cb, cl);
+            gcReleaseRoot(root);
+            return allocateV4(vct4, t0, t1, t2, t3);
           }
         }
       }
     }
-  } else
+  }
+  else
     return eVect;
 }
 
-termPo makeVector(heapPo h, integer ln, makeCB cb, void *cl) {
+termPo makeVector(integer ln, makeCB cb, void* cl) {
   integer dp = ((lg2(ln * 2) + 1) >> 1) * 2;
   integer ix = 0;
-  termPo v = grab(h, &ix, ln, dp, cb, cl);
+  termPo v = grab(&ix, ln, dp, cb, cl);
 
   assert(ix == ln);
-  return allocateV2(h, vectorLbl, makeInteger(dp), (termPo) v);
+  return allocateV2(vectorLbl, makeInteger(dp), (termPo)v);
 }

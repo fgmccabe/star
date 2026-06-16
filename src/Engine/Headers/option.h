@@ -9,7 +9,7 @@
 #include "heap.h"
 #include "labelsP.h"
 
-normalPo wrapSome(heapPo H, termPo lhs);
+normalPo wrapSome(termPo lhs);
 termPo unwrapSome(normalPo p);
 
 extern termPo noneEnum;

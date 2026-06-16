@@ -2,7 +2,6 @@
 // Created by Francis McCabe on 3/11/18.
 //
 
-
 #include <assert.h>
 
 #include "labelsP.h"
@@ -84,13 +83,13 @@ enginePo getThreadProcess(threadPo t) {
   return t->process;
 }
 
-threadPo allocateThread(heapPo H, enginePo pr) {
-  threadPo thr = (threadPo)allocateObject(H, threadIndex, ThreadCellCount);
+threadPo allocateThread(enginePo pr) {
+  threadPo thr = (threadPo)allocateObject(threadIndex, ThreadCellCount);
   thr->process = pr;
 
   return thr;
 }
 
-threadPo newThread(enginePo p, heapPo h) {
-  return allocateThread(h, p);
+threadPo newThread(enginePo p) {
+  return allocateThread(p);
 }

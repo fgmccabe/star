@@ -24,7 +24,7 @@ static char *exitCodes[] = {
   "execution aborted"
 };
 
-void star_exit(enginePo p,ExitCode code) {
+void star_exit(ExitCode code) {
   if (code != successCode)
     outMsg(logFile, "Terminating with code %s (%d)\n", (code <= abortCode ? exitCodes[code] : "unknown exit code"),
            code);

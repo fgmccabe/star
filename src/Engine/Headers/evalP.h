@@ -14,24 +14,24 @@
 
 #ifdef TRACESTACK
 #define checkAlloc(Count) STMT_WRAP({  \
-  if (reserveSpace(H, Count) != Ok) {  \
+  if (reserveSpace(Count) != Ok) {     \
     saveRegisters();                   \
-    retCode ret = gcCollect(H, Count); \
+    retCode ret = gcCollect(Count);    \
     if (ret != Ok)                     \
       return ((ValueReturn){.value=voidEnum,.status=Abnormal});                 \
     if (traceStack > noTracing){       \
-      verifyStack(P->stk, H);          \
-      verifyHeap(H);                   \
+      verifyStack(P->stk);             \
+      verifyHeap();                    \
     }                                  \
     restoreRegisters();                \
-    check(reserveSpace(H,Count)==Ok,"could not reserve space");\
+    check(reserveSpace(Count)==Ok,"could not reserve space");\
   }                                    \
 })
 #else
 #define checkAlloc(Count) STMT_WRAP({  \
-  if (reserveSpace(H, Count) != Ok) {  \
+  if (reserveSpace(Count) != Ok) {     \
     saveRegisters();                   \
-    retCode ret = gcCollect(H, Count); \
+    retCode ret = gcCollect(Count); \
     if (ret != Ok)                     \
       return ((ValueReturn){.value=voidEnum,.status=Abnormal});                 \
     restoreRegisters();                \

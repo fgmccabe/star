@@ -22,6 +22,6 @@ typedef enum {
   abortCode, // abort operation
 } ExitCode;
 
-void star_exit(enginePo p,ExitCode code);
+void star_exit(ExitCode code);
 
 #endif //STAR_ABORT_H

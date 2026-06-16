@@ -132,11 +132,11 @@ int32 standardIndex(builtinClassPo clss) {
   return -stdIndex;
 }
 
-termPo declareEnum(const char* name, int32 index, heapPo H) {
+termPo declareEnum(const char* name, int32 index) {
   labelPo lbl = declareLbl(name, 0, index);
-  int root = gcAddRoot(H, (ptrPo)&lbl);
-  normalPo tpl = allocateStruct(H, lbl);
-  gcReleaseRoot(H, root);
+  int root = gcAddRoot((ptrPo)&lbl);
+  normalPo tpl = allocateStruct( lbl);
+  gcReleaseRoot(root);
   return (termPo)tpl;
 }
 

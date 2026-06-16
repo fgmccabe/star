@@ -343,13 +343,16 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   assert(rsCnt >=0 && rsCnt<=2);
 
   argRegs = systemArgRegs();
+
+  ArgSpec rsltOps[rsCnt];
+
   for (int32 ix = 0; ix < rsCnt; ix++) {
     armReg ax = nxtAvailReg(argRegs);
     argRegs = dropReg(argRegs, ax);
     assert(ax!=XZR);
-    operands[ix] = argSpec(RG(ax), results[ax]);
+    rsltOps[ix] = argSpec(RG(ax), results[ax]);
   }
-  shuffleVars(state->jit, operands, rsCnt, &tmpMap);
+  shuffleVars(state->jit, rsltOps, rsCnt, &tmpMap);
   restoreStashedLocals(state, livePc);
 }
 

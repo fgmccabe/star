@@ -97,7 +97,7 @@ static inline logical stackHasSpace(stackPo stk, integer amount) {
 framePo dropFrame(stackPo stk);
 
 void stackSanityCheck(stackPo stk);
-void verifyStack(stackPo stk, heapPo H);
+void verifyStack(stackPo stk);
 logical isAttachedStack(stackPo base, stackPo tgt);
 
 static inline ptrPo stackVarble(ptrPo args, integer arg) {

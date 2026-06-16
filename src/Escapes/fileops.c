@@ -18,19 +18,17 @@
 #include "fileops.h"
 #include "tpl.h"
 
-ValueReturn s__cwd(enginePo P)
-{
+ValueReturn s__cwd(enginePo P) {
   char cwBuffer[MAXFILELEN];
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(P));
-  return normalReturn(allocateString(processHeap(P), cwBuffer, uniStrLen(cwBuffer)));
+  return normalReturn(allocateString(cwBuffer, uniStrLen(cwBuffer)));
 }
 
-ValueReturn s__cd(enginePo P, termPo dir)
-{
+ValueReturn s__cd(enginePo P, termPo dir) {
   integer len;
   const char* cd = strVal(dir, &len);
 
-  switch (setProcessWd(P, (char*)cd, len)){
+  switch (setProcessWd(P, (char*)cd, len)) {
   case Ok:
     return normalReturn(unitEnum);
   default:
@@ -38,8 +36,7 @@ ValueReturn s__cd(enginePo P, termPo dir)
   }
 }
 
-ValueReturn s__rm(enginePo P, termPo f)
-{
+ValueReturn s__rm(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -49,13 +46,13 @@ ValueReturn s__rm(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (unlink(acFn) != -1){
+  if (unlink(acFn) != -1) {
     setProcessRunnable(P);
     return normalReturn(unitEnum);
   }
-  else{
+  else {
     setProcessRunnable(P);
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case EACCES:
@@ -70,8 +67,7 @@ tryAgain:
   }
 }
 
-ValueReturn s__rmdir(enginePo P, termPo f)
-{
+ValueReturn s__rmdir(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -81,13 +77,13 @@ ValueReturn s__rmdir(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (rmdir(acFn) != -1){
+  if (rmdir(acFn) != -1) {
     setProcessRunnable(P);
     return normalReturn(unitEnum);
   }
-  else{
+  else {
     setProcessRunnable(P);
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case EACCES:
@@ -102,8 +98,7 @@ tryAgain:
   }
 }
 
-ValueReturn s__mkdir(enginePo P, termPo f, termPo mde)
-{
+ValueReturn s__mkdir(enginePo P, termPo f, termPo mde) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -115,13 +110,13 @@ ValueReturn s__mkdir(enginePo P, termPo f, termPo mde)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (mkdir(acFn, mode) != -1){
+  if (mkdir(acFn, mode) != -1) {
     setProcessRunnable(P);
     return normalReturn(unitEnum);
   }
-  else{
+  else {
     setProcessRunnable(P);
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case EACCES:
@@ -136,8 +131,7 @@ tryAgain:
   }
 }
 
-ValueReturn s__mv(enginePo P, termPo f, termPo t)
-{
+ValueReturn s__mv(enginePo P, termPo f, termPo t) {
   integer sLen;
   const char* fn = strVal(f, &sLen);
   char srcBuff[MAXFILELEN];
@@ -152,13 +146,13 @@ ValueReturn s__mv(enginePo P, termPo f, termPo t)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (rename(srcFn, dstFn) != -1){
+  if (rename(srcFn, dstFn) != -1) {
     setProcessRunnable(P);
     return normalReturn(unitEnum);
   }
-  else{
+  else {
     setProcessRunnable(P);
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case EACCES:
@@ -173,8 +167,7 @@ tryAgain:
   }
 }
 
-ValueReturn s__ls(enginePo P, termPo f)
-{
+ValueReturn s__ls(enginePo P, termPo f) {
   integer sLen;
   const char* fn = strVal(f, &sLen);
   char srcBuff[MAXFILELEN];
@@ -186,9 +179,9 @@ ValueReturn s__ls(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if ((directory = opendir(dir)) == NULL){
+  if ((directory = opendir(dir)) == NULL) {
     setProcessRunnable(P);
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case EACCES:
@@ -206,33 +199,31 @@ tryAgain:
       return abnormalReturn(eIOERROR);
     }
   }
-  else{
+  else {
     termPo list = nilEnum;
     termPo name = voidEnum;
-    heapPo h = processHeap(P);
-    int root = gcAddRoot(h, &list);
-    gcAddRoot(h, &name);
+    int root = gcAddRoot(&list);
+    gcAddRoot(&name);
 
     struct dirent* ent;
 
-    while ((ent = readdir(directory)) != NULL){
+    while ((ent = readdir(directory)) != NULL) {
       /* skip special entries "." and ".." */
-      if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0){
-        name = (termPo)allocateString(h, ent->d_name, uniStrLen(ent->d_name));
-        list = (termPo)allocateCons(h, name, list);
+      if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+        name = (termPo)allocateString(ent->d_name, uniStrLen(ent->d_name));
+        list = (termPo)allocateCons(name, list);
       }
     }
     closedir(directory); /* Close the directory stream */
 
-    gcReleaseRoot(h, root);
+    gcReleaseRoot(root);
     setProcessRunnable(P);
 
     return normalReturn(list);
   }
 }
 
-ValueReturn s__file_mode(enginePo P, termPo f)
-{
+ValueReturn s__file_mode(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -244,10 +235,10 @@ ValueReturn s__file_mode(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1){
+  if (stat(acFn, &buf) == -1) {
     setProcessRunnable(P);
 
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case ENOTDIR:
@@ -266,14 +257,13 @@ tryAgain:
       return abnormalReturn(eNOTFND);
     }
   }
-  else{
+  else {
     setProcessRunnable(P);
     return normalReturn(makeInteger(buf.st_mode));
   }
 }
 
-ValueReturn s__file_chmod(enginePo P, termPo f, termPo m)
-{
+ValueReturn s__file_chmod(enginePo P, termPo f, termPo m) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -285,9 +275,9 @@ ValueReturn s__file_chmod(enginePo P, termPo f, termPo m)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (chmod(acFn, acmode) == -1){
+  if (chmod(acFn, acmode) == -1) {
     setProcessRunnable(P);
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain; /* A mega hack */
     case EACCES:
@@ -300,8 +290,7 @@ tryAgain:
   return normalReturn(unitEnum);
 }
 
-ValueReturn s__file_present(enginePo P, termPo f)
-{
+ValueReturn s__file_present(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -314,8 +303,7 @@ ValueReturn s__file_present(enginePo P, termPo f)
   return normalReturn(present);
 }
 
-ValueReturn s__isdir(enginePo P, termPo d)
-{
+ValueReturn s__isdir(enginePo P, termPo d) {
   integer fnLen;
   const char* fn = strVal(d, &fnLen);
   char buff[MAXFILELEN];
@@ -333,8 +321,7 @@ ValueReturn s__isdir(enginePo P, termPo d)
  * file_type check out the type of the file
  */
 
-typedef enum
-{
+typedef enum {
   fifoFile = 0,
   directory = 1,
   charfile = 2,
@@ -347,8 +334,7 @@ typedef enum
 static char* const FILE_DATE = "__file_date";
 static char* const FILE_MODIFIED = "__file_modified";
 
-ValueReturn s__file_type(enginePo P, termPo f)
-{
+ValueReturn s__file_type(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -360,10 +346,10 @@ ValueReturn s__file_type(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1){
+  if (stat(acFn, &buf) == -1) {
     setProcessRunnable(P);
 
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case ENOTDIR:
@@ -401,14 +387,13 @@ tryAgain:
     type = makeInteger(symLink);
   else if (S_ISSOCK(buf.st_mode))
     type = makeInteger(fileSocket);
-  else{
+  else {
     return abnormalReturn(eINVAL);
   }
   return normalReturn(type);
 }
 
-ValueReturn s__file_size(enginePo P, termPo f)
-{
+ValueReturn s__file_size(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -420,10 +405,10 @@ ValueReturn s__file_size(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1){
+  if (stat(acFn, &buf) == -1) {
     setProcessRunnable(P);
 
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case ENOTDIR:
@@ -442,7 +427,7 @@ tryAgain:
       return abnormalReturn(eNOTFND);
     }
   }
-  else{
+  else {
     termPo details = makeInteger(buf.st_size);
 
     setProcessRunnable(P);
@@ -450,8 +435,7 @@ tryAgain:
   }
 }
 
-ValueReturn s__file_date(enginePo P, termPo f)
-{
+ValueReturn s__file_date(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -463,10 +447,10 @@ ValueReturn s__file_date(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1){
+  if (stat(acFn, &buf) == -1) {
     setProcessRunnable(P);
 
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case ENOTDIR:
@@ -485,28 +469,26 @@ tryAgain:
       return abnormalReturn(eNOTFND);
     }
   }
-  else{
-    heapPo h = processHeap(P);
+  else {
     termPo atime = makeInteger(buf.st_atime);
-    int root = gcAddRoot(h, &atime);
+    int root = gcAddRoot(&atime);
     termPo ctime = makeInteger(buf.st_ctime);
-    gcAddRoot(h, &ctime);
+    gcAddRoot(&ctime);
     termPo mtime = makeInteger(buf.st_mtime);
-    gcAddRoot(h, &mtime);
-    normalPo triple = allocateTpl(h, 3);
+    gcAddRoot(&mtime);
+    normalPo triple = allocateTpl(3);
 
     setArg(triple, 0, atime);
     setArg(triple, 1, ctime);
     setArg(triple, 2, mtime);
-    gcReleaseRoot(h, root);
+    gcReleaseRoot(root);
 
     setProcessRunnable(P);
     return normalReturn((termPo)triple);
   }
 }
 
-ValueReturn s__file_modified(enginePo P, termPo f)
-{
+ValueReturn s__file_modified(enginePo P, termPo f) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
@@ -518,10 +500,10 @@ ValueReturn s__file_modified(enginePo P, termPo f)
 tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1){
+  if (stat(acFn, &buf) == -1) {
     setProcessRunnable(P);
 
-    switch (errno){
+    switch (errno) {
     case EINTR:
       goto tryAgain;
     case ENOTDIR:
@@ -540,7 +522,7 @@ tryAgain:
       return abnormalReturn(eNOTFND);
     }
   }
-  else{
+  else {
     termPo mtime = makeInteger(buf.st_mtime);
 
     setProcessRunnable(P);
@@ -548,8 +530,7 @@ tryAgain:
   }
 }
 
-ValueReturn s__openInFile(enginePo P, termPo f, termPo e)
-{
+ValueReturn s__openInFile(enginePo P, termPo f, termPo e) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
 
@@ -559,18 +540,16 @@ ValueReturn s__openInFile(enginePo P, termPo f, termPo e)
   char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInFile(acFn, enc);
-  heapPo h = processHeap(P);
 
-  if (file != Null){
-    return normalReturn((termPo)allocateIOChnnl(h, file));
+  if (file != Null) {
+    return normalReturn((termPo)allocateIOChnnl(file));
   }
-  else{
+  else {
     return abnormalReturn(eNOTFND);
   }
 }
 
-ValueReturn s__openOutFile(enginePo P, termPo f, termPo e)
-{
+ValueReturn s__openOutFile(enginePo P, termPo f, termPo e) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
 
@@ -581,16 +560,15 @@ ValueReturn s__openOutFile(enginePo P, termPo f, termPo e)
 
   ioPo file = openOutFile(acFn, enc);
 
-  if (file != Null){
-    return normalReturn((termPo)allocateIOChnnl(processHeap(P), file));
+  if (file != Null) {
+    return normalReturn((termPo)allocateIOChnnl( file));
   }
-  else{
+  else {
     return abnormalReturn(eNOTFND);
   }
 }
 
-ValueReturn s__openAppendFile(enginePo P, termPo f, termPo e)
-{
+ValueReturn s__openAppendFile(enginePo P, termPo f, termPo e) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
 
@@ -601,16 +579,15 @@ ValueReturn s__openAppendFile(enginePo P, termPo f, termPo e)
 
   ioPo file = openAppendFile(acFn, enc);
 
-  if (file != Null){
-    return normalReturn((termPo)allocateIOChnnl(processHeap(P), file));
+  if (file != Null) {
+    return normalReturn((termPo)allocateIOChnnl( file));
   }
-  else{
+  else {
     return abnormalReturn(eNOTFND);
   }
 }
 
-ValueReturn s__openAppendIOFile(enginePo P, termPo f, termPo e)
-{
+ValueReturn s__openAppendIOFile(enginePo P, termPo f, termPo e) {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
 
@@ -621,17 +598,16 @@ ValueReturn s__openAppendIOFile(enginePo P, termPo f, termPo e)
 
   ioPo file = openInOutAppendFile(acFn, enc);
 
-  if (file != Null){
-    return normalReturn((termPo)allocateIOChnnl(processHeap(P), file));
+  if (file != Null) {
+    return normalReturn((termPo)allocateIOChnnl( file));
   }
-  else{
+  else {
     return abnormalReturn(eNOTFND);
   }
 }
 
-ioEncoding pickEncoding(integer k)
-{
-  switch (k){
+ioEncoding pickEncoding(integer k) {
+  switch (k) {
   case 0:
     return rawEncoding;
   case 3:

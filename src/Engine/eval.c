@@ -23,7 +23,6 @@ logical collectStats = False;
  * Execute program on a given engine structure
  */
 ValueReturn run(enginePo P) {
-  heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
   register ssaInsPo PC = STK->pc; /* Program counter */
@@ -80,19 +79,19 @@ ValueReturn run(enginePo P) {
 #ifndef NOJIT
       if (hasJit(mtd)) {
 #ifdef TRACEJIT
-      if (traceJit) {
-        logMsg(logFile, "entering jitted code %T", mtd);
-      }
+        if (traceJit) {
+          logMsg(logFile, "entering jitted code %T", mtd);
+        }
 #endif
 
-      saveRegisters();
-      RSLT = invokeJitMethod(P, mtd);
-      restoreRegisters();
-      PC = nextPc;
+        saveRegisters();
+        RSLT = invokeJitMethod(P, mtd);
+        restoreRegisters();
+        PC = nextPc;
       }
       else
 #endif
-      PC = entryPoint(mtd);
+        PC = entryPoint(mtd);
       continue;
     }
 
@@ -151,7 +150,7 @@ ValueReturn run(enginePo P) {
 
       escapePo esc = getEscape(escNo);
       saveRegisters();
-      assert(H->topRoot == 0);
+      assert(heap.topRoot == 0);
 
       switch (arity) {
       case 6:
@@ -184,7 +183,7 @@ ValueReturn run(enginePo P) {
       }
 
       restoreRegisters();
-      assert(H->topRoot == 0);
+      assert(heap.topRoot == 0);
       PC += insSize;
       continue;
     }
@@ -302,7 +301,7 @@ ValueReturn run(enginePo P) {
 
 #ifdef TRACESTACK
         if (traceStack > noTracing)
-          verifyStack(STK, H);
+          verifyStack(STK);
 #endif
       }
       for (int32 lx = 1; lx <= lclCount; lx++) {
@@ -533,7 +532,7 @@ ValueReturn run(enginePo P) {
       int32 insSize = 2;
       // Create a new single assignment variable
       checkAlloc(SingleCellCount);
-      singlePo sav = newSingleVar(H);
+      singlePo sav = newSingleVar();
       varble(operand(1)) = (termPo)sav;
       PC += insSize;
       continue;
@@ -581,7 +580,7 @@ ValueReturn run(enginePo P) {
     case sCell: {
       int32 insSize = 3;
       checkAlloc(CellCellCount);
-      varble(operand(1)) = (termPo)newCell(H, varble(operand(2)));
+      varble(operand(1)) = (termPo)newCell(varble(operand(2)));
       PC += insSize;
       continue;
     }
@@ -594,7 +593,7 @@ ValueReturn run(enginePo P) {
     case sAssign: {
       int32 insSize = 3;
       cellPo cell = C_CELL(varble(operand(1)));
-      setCell(cell, varble(operand(2)));
+      setCell(cell,varble(operand(2)));
       PC += insSize;
       continue;
     }
@@ -802,7 +801,7 @@ ValueReturn run(enginePo P) {
       double Lhs = floatVal(varble(operand(2)));
       double Rhs = floatVal(varble(operand(3)));
 
-      varble(operand(1)) = makeFloat(H, Lhs + Rhs);
+      varble(operand(1)) = makeFloat(Lhs + Rhs);
       PC += insSize;
       continue;
     }
@@ -813,7 +812,7 @@ ValueReturn run(enginePo P) {
       double Lhs = floatVal(varble(operand(2)));
       double Rhs = floatVal(varble(operand(3)));
 
-      varble(operand(1)) = makeFloat(H, Lhs - Rhs);
+      varble(operand(1)) = makeFloat(Lhs - Rhs);
       PC += insSize;
       continue;
     }
@@ -824,7 +823,7 @@ ValueReturn run(enginePo P) {
       double Lhs = floatVal(varble(operand(2)));
       double Rhs = floatVal(varble(operand(3)));
 
-      varble(operand(1)) = makeFloat(H, Lhs * Rhs);
+      varble(operand(1)) = makeFloat(Lhs * Rhs);
       PC += insSize;
       continue;
     }
@@ -840,7 +839,7 @@ ValueReturn run(enginePo P) {
         continue;
       }
       else {
-        varble(operand(2)) = makeFloat(H, Lhs / Rhs);
+        varble(operand(2)) = makeFloat(Lhs / Rhs);
       }
       PC += insSize;
       continue;
@@ -857,7 +856,7 @@ ValueReturn run(enginePo P) {
         continue;
       }
       else {
-        varble(operand(2)) = makeFloat(H, fmod(Lhs, Rhs));
+        varble(operand(2)) = makeFloat(fmod(Lhs, Rhs));
       }
       PC += insSize;
       continue;
@@ -868,7 +867,7 @@ ValueReturn run(enginePo P) {
 
       double Rhs = floatVal(varble(operand(2)));
 
-      varble(operand(1)) = makeFloat(H, Rhs < 0.0 ? -Rhs : Rhs);
+      varble(operand(1)) = makeFloat(Rhs < 0.0 ? -Rhs : Rhs);
       PC += insSize;
       continue;
     }
@@ -906,7 +905,7 @@ ValueReturn run(enginePo P) {
       int32 arity = lblArity(lbl);
 
       checkAlloc(NormalCellCount(arity));
-      normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
+      normalPo cl = allocateStruct(lbl); /* allocate a closure on the heap */
       for (int32 ix = 0; ix < arity; ix++)
         cl->args[ix] = varble(operand(ix+4)); /* fill in free variables by getting from locals */
       varble(operand(2)) = (termPo)cl;        /* put the structure back on the stack */
@@ -922,7 +921,7 @@ ValueReturn run(enginePo P) {
         logMsg(logFile, "label %A not defined", lbl);
         bail();
       }
-      closurePo cl = newClosure(H, lbl, varble(operand(3)));
+      closurePo cl = newClosure(lbl, varble(operand(3)));
       varble(operand(2)) = (termPo)cl; /* put the structure back on the stack */
       PC += insSize;
       continue;
@@ -994,7 +993,7 @@ ValueReturn run(enginePo P) {
         RSLT.status = Normal;
 #ifdef TRACESTACK
         if (traceStack > noTracing)
-          verifyStack(STK, H);
+          verifyStack(STK);
 #endif
         continue;
       }
@@ -1065,11 +1064,11 @@ ValueReturn exec(enginePo P) {
   register methodPo PROG = STK->prog;
 
 #ifdef TRACEJIT
-if (traceJit) {
-  logMsg(logFile, "entering jitted code %T", PROG);
-}
+  if (traceJit) {
+    logMsg(logFile, "entering jitted code %T", PROG);
+  }
 #endif
 
-return invokeJitMethod(P, PROG);
+  return invokeJitMethod(P, PROG);
 }
 #endif

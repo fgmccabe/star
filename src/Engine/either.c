@@ -11,7 +11,7 @@ labelPo orConstructor;
 termPo neitherEnum;
 
 void initEither() {
-  neitherEnum = declareEnum("star.either#neither", 1, globalHeap);
+  neitherEnum = declareEnum("star.either#neither", 1);
 
   eitherConstructor = declareLbl("star.either#either", 1, 0);
   orConstructor = declareLbl("star.either#other", 1, 2);

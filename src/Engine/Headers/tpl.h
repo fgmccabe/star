@@ -8,8 +8,8 @@
 #include "engine.h"
 #include "term.h"
 
-extern normalPo allocateTplPair(heapPo H, termPo lhs, termPo rhs);
+extern normalPo allocateTplPair(termPo lhs, termPo rhs);
 
-extern normalPo allocateTpl(heapPo H, int32 arity);
+extern normalPo allocateTpl(int32 arity);
 
 #endif //STAR_TPL_H

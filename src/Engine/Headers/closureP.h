@@ -18,6 +18,6 @@ typedef struct closure_record_ {
 
 void initClosure();
 
-closurePo newClosure(heapPo H, labelPo code, termPo free);
+closurePo newClosure(labelPo code, termPo free);
 
 #endif //STAR_CLOSUREP_H

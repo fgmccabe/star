@@ -15,7 +15,6 @@
 
 typedef struct engineRecord_ {
   stackPo stk; // Current stack
-  heapPo heap; // Local heap for this process
   pthread_t threadID; /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.
   ProcessState state; /* What is the status of this process? */
@@ -31,7 +30,7 @@ extern void initEngine();
 ValueReturn run(enginePo P);
 ValueReturn exec(enginePo P);
 
-int32 bootstrap(heapPo h, char *entry, char *rootWd);
+int32 bootstrap(char *entry, char *rootWd);
 
 extern pthread_key_t processKey;
 
@@ -39,10 +38,10 @@ void ps_kill(enginePo p); /* kill process */
 
 extern timerPo runTimer;
 
-void verifyProc(enginePo P, heapPo H);
-void verifyProcesses(heapPo H);
+void verifyProc(enginePo P);
+void verifyProcesses(void);
 retCode markProcess(enginePo P, gcSupportPo G);
-void markProcesses(enginePo owner, gcSupportPo G);
+void markProcesses(gcSupportPo G);
 void verifyEngine(enginePo p);
 
 void abort_star(enginePo P, termPo lc, termPo msg);

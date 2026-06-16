@@ -8,14 +8,14 @@
 
 static long ioSize(builtinClassPo cl, termPo o);
 static termPo ioCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo ioScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo ioScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
 static logical ioCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer ioHash(builtinClassPo cl, termPo o);
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static termPo ioFinalizer(builtinClassPo class, termPo o);
 
 BuiltinTerm IOChnnlClass = {
-  .special = {0,0},
+  .special = {0, 0},
   .sizeFun = ioSize,
   .copyFun = ioCopy,
   .scanFun = ioScan,
@@ -33,8 +33,8 @@ void initIoChnnl() {
   iochnlIndex = standardIndex(ioChnnlClass);
 }
 
-ioChnnlPo allocateIOChnnl(heapPo H, ioPo io) {
-  ioChnnlPo t = (ioChnnlPo) allocateObject(H, iochnlIndex, IOChnnlCellCount);
+ioChnnlPo allocateIOChnnl(ioPo io) {
+  ioChnnlPo t = (ioChnnlPo)allocateObject(iochnlIndex, IOChnnlCellCount);
   t->io = io;
   return t;
 }
@@ -45,13 +45,13 @@ long ioSize(builtinClassPo cl, termPo o) {
 
 termPo ioCopy(builtinClassPo cl, termPo dst, termPo src) {
   ioChnnlPo si = C_IO(src);
-  ioChnnlPo di = (ioChnnlPo) (dst);
+  ioChnnlPo di = (ioChnnlPo)(dst);
   *di = *si;
-  return (termPo) di + IOChnnlCellCount;
+  return (termPo)di + IOChnnlCellCount;
 }
 
-termPo ioScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return (termPo) (o + IOChnnlCellCount);
+termPo ioScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+  return (termPo)(o + IOChnnlCellCount);
 }
 
 termPo ioFinalizer(builtinClassPo class, termPo o) {
@@ -61,19 +61,19 @@ termPo ioFinalizer(builtinClassPo class, termPo o) {
   if (chnl->io != Null)
     closeIo(chnl->io);
 
-  return (termPo) (o + IOChnnlCellCount);
+  return (termPo)(o + IOChnnlCellCount);
 }
 
 logical ioCmp(builtinClassPo cl, termPo o1, termPo o2) {
   ioChnnlPo i1 = C_IO(o1);
   ioChnnlPo i2 = C_IO(o2);
 
-  return (logical) (i1->io == i2->io);
+  return (logical)(i1->io == i2->io);
 }
 
 integer ioHash(builtinClassPo cl, termPo o) {
   ioChnnlPo io = C_IO(o);
-  return hash61((integer) io->io);
+  return hash61((integer)io->io);
 }
 
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -83,7 +83,7 @@ static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logi
 
 ioChnnlPo C_IO(termPo t) {
   assert(hasIndex(t, iochnlIndex));
-  return (ioChnnlPo) t;
+  return (ioChnnlPo)t;
 }
 
 ioPo ioChannel(ioChnnlPo chnnl) {
@@ -95,7 +95,8 @@ retCode closeChannel(ioChnnlPo chnnl) {
     retCode ret = closeIo(chnnl->io);
     chnnl->io = Null;
     return ret;
-  } else
+  }
+  else
     return Ok;
 }
 
@@ -107,23 +108,23 @@ static ioChnnlPo inChnl = Null;
 static ioChnnlPo outChnl = Null;
 static ioChnnlPo errChnl = Null;
 
-ioChnnlPo stdInChnl(heapPo h) {
+ioChnnlPo stdInChnl(void) {
   if (inChnl == Null) {
-    inChnl = allocateIOChnnl(h, Stdin());
+    inChnl = allocateIOChnnl(Stdin());
   }
   return inChnl;
 }
 
-ioChnnlPo stdOutChnl(heapPo h) {
+ioChnnlPo stdOutChnl(void) {
   if (outChnl == Null) {
-    outChnl = allocateIOChnnl(h, Stdout());
+    outChnl = allocateIOChnnl(Stdout());
   }
   return outChnl;
 }
 
-ioChnnlPo stdErrChnl(heapPo h) {
+ioChnnlPo stdErrChnl(void) {
   if (errChnl == Null) {
-    errChnl = allocateIOChnnl(h, Stderr());
+    errChnl = allocateIOChnnl(Stderr());
   }
   return errChnl;
 }

@@ -17,23 +17,24 @@
 
 tracingLevel tracePkg = noTracing;
 
-static retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen);
+static retCode decodePkgName(ioPo in, packagePo pkg, char* errorMsg, integer msgLen);
 
-static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
+static retCode decodeImportsSig(strBufferPo sigBuffer, char* errorMsg, long msgLen, pickupPkg pickup, void* cl);
 
-static retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen);
+static retCode loadDefs(ioPo in, packagePo owner, char* errorMsg, long msgLen);
 
 static char stringSig[] = {strTrm, 0};
-static char *pkgSig = "n6o6\1()6\1";
+static char* pkgSig = "n6o6\1()6\1";
 
-static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
+static retCode ldPackage(packagePo pkg, char* errorMsg, long msgSize, pickupPkg pickup, void* cl) {
   char codeName[MAXFILELEN];
   retCode ret = manifestResource(pkg, "code", codeName, NumberOf(codeName));
 
   if (ret != Ok) {
     strMsg(errorMsg, msgSize, "cannot determine code for %P%_", pkg);
     return Error;
-  } else {
+  }
+  else {
     char codeFlNm[MAXFILELEN];
     strMsg(codeFlNm, NumberOf(codeFlNm), "%s/%s", repoDir, codeName);
 
@@ -56,7 +57,8 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         if (ret != Ok) {
           closeIo(O_IO(sigBuffer));
           strMsg(errorMsg, msgSize, "invalid package text %P\n", &lddPkg, pkg);
-        } else {
+        }
+        else {
           rewindStrBuffer(sigBuffer);
           ioPo pkgIn = O_IO(sigBuffer);
 
@@ -95,8 +97,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
               ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
 
             if (ret == Ok)
-              ret = loadDefs(O_IO(sigBuffer), globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
-                             msgSize);
+              ret = loadDefs(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
           }
           closeIo(O_IO(sigBuffer));
         }
@@ -108,15 +109,16 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         logMsg(logFile, "package %P not loaded", pkg);
       }
       return ret;
-    } else {
+    }
+    else {
       strMsg(errorMsg, msgSize, "package %P not found", pkg);
       return Eof;
     }
   }
 }
 
-retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl) {
-  char *version = loadedVersion(p->packageName);
+retCode loadPackage(packagePo p, char* errorMsg, long msgSize, void* cl) {
+  char* version = loadedVersion(p->packageName);
 
   if (version != NULL) {
     if (!compatiblVersion(p->version, version)) {
@@ -124,13 +126,15 @@ retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl) {
              "invalid version of package already loaded: %P,"
              "version %s expected", p->version);
       return Error;
-    } else
+    }
+    else
       return Ok; // already loaded correct version
-  } else
+  }
+  else
     return ldPackage(p, errorMsg, msgSize, loadPackage, cl);
 }
 
-retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
+retCode installPackage(char* pkgText, long pkgTxtLen, char* errorMsg, long msgSize, pickupPkg pickup, void* cl) {
   strBufferPo inBuff = newReadStringBuffer(pkgText, pkgTxtLen);
 
   retCode ret;
@@ -158,7 +162,7 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
         ret = skipEncoded(pkgIn, errorMsg, msgSize); // Skip local declarations
 
       if (ret == Ok)
-        ret = loadDefs(pkgIn, globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+        ret = loadDefs(pkgIn, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
     else if (tracePkg >= generalTracing)
@@ -180,7 +184,7 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
     return ret;
 }
 
-static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl) {
+static retCode decodeImportsSig(strBufferPo sigBuffer, char* errorMsg, long msgLen, pickupPkg pickup, void* cl) {
   rewindStrBuffer(sigBuffer);
   ioPo in = O_IO(sigBuffer);
 
@@ -212,17 +216,19 @@ static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgL
           return ret;
       }
       return ret;
-    } else {
+    }
+    else {
       strMsg(errorMsg, msgLen, "invalid package encoding");
       return Error;
     }
-  } else {
+  }
+  else {
     strMsg(errorMsg, msgLen, "invalid package signature encoding");
     return Error;
   }
 }
 
-retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
+retCode decodePkgName(ioPo in, packagePo pkg, char* errorMsg, integer msgLen) {
   if (isLookingAt(in, "n2o2\1pkg\1s") == Ok) {
     strBufferPo pkgB = fixedStringBuffer(pkg->packageName, NumberOf(pkg->packageName));
     strBufferPo vrB = fixedStringBuffer(pkg->version, NumberOf(pkg->version));
@@ -234,7 +240,8 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
         outStr(O_IO(vrB), "*");
       else if (isLookingAt(in, "s") == Ok) {
         ret = decodeText(O_IO(in), vrB);
-      } else {
+      }
+      else {
         strMsg(errorMsg, msgLen, "expecting a package name");
         return Error;
       }
@@ -246,44 +253,44 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
     closeIo(O_IO(pkgB));
     closeIo(O_IO(vrB));
     return ret;
-  } else {
+  }
+  else {
     strMsg(errorMsg, msgLen, "invalid package name encoding");
     return Error;
   }
 }
 
-static char *structPreamble = "n3o3\1struct\1";
-static char *consPreamble = "n3o3\1cons\1";
-static char *typePreamble = "n3o3\1type\1";
-static char *fieldPreamble = "n2o2\1()2\1";
-static char *codePreamble = "n7o7\1code\1";
+static char* structPreamble = "n3o3\1struct\1";
+static char* consPreamble = "n3o3\1cons\1";
+static char* typePreamble = "n3o3\1type\1";
+static char* fieldPreamble = "n2o2\1()2\1";
+static char* codePreamble = "n7o7\1code\1";
 
-static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
-static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadType(ioPo in, packagePo owner, char* errorMsg, long msgSize);
+static retCode loadCtor(ioPo in, packagePo owner, char* errorMsg, long msgSize);
 
-retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen) {
+retCode loadDefs(ioPo in, packagePo owner, char* errorMsg, long msgLen) {
   int32 count;
   if (decodeTplCount(in, &count, errorMsg, msgLen) == Ok) {
     retCode ret = Ok;
 
     for (int32 ix = 0; ret == Ok && ix < count; ix++) {
       if (isLookingAt(in, codePreamble) == Ok)
-        ret = loadCode(in, h, owner, errorMsg, msgLen);
+        ret = loadCode(in, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
-        ret = loadType(in, h, owner, errorMsg, msgLen);
+        ret = loadType(in, owner, errorMsg, msgLen);
       else if (isLookingAt(in, structPreamble) == Ok || isLookingAt(in, consPreamble) == Ok)
-        ret = loadCtor(in, h, owner, errorMsg, msgLen);
+        ret = loadCtor(in, owner, errorMsg, msgLen);
       else {
         strMsg(errorMsg, msgLen, "invalid code stream");
         return Error;
       }
     }
     return ret;
-  } else
+  }
+  else
     return Error;
 }
-
-
 
 // Decode a code segment.
 // Each segment consists of
@@ -294,13 +301,12 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
 // d. A tuple of variable specifications
 // All wrapped up as a tuple structure.
 
-
 // Each variable specification consists of
 // a. The pool constant for the variable name
 // c. The variable number
 // d. The block which defines its range
 
-retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
+retCode loadType(ioPo in, packagePo owner, char* errorMsg, long msgSize) {
   char typeName[MAX_SYMB_LEN];
   integer typeNameLen;
 
@@ -313,12 +319,11 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
 
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Type rule signature
-  if (ret == Ok) {                             // Type index
+  if (ret == Ok) {                            // Type index
     int32 count;
     ret = decodeTplCount(in, &count, errorMsg, msgSize);
 
     if (ret == Ok) {
-
       for (integer ix = 0; ret == Ok && ix < count; ix++) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
           char lblName[MAX_SYMB_LEN];
@@ -338,13 +343,12 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
           }
         }
       }
-
     }
   }
   return ret;
 }
 
-retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
+retCode loadCtor(ioPo in, packagePo owner, char* errorMsg, long msgSize) {
   char lblName[MAX_SYMB_LEN];
   int32 arity;
 

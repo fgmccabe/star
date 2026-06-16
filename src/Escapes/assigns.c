@@ -8,7 +8,7 @@
 
 ValueReturn s__cell(enginePo P, termPo vl)
 {
-  return normalReturn((termPo)newCell(processHeap(P),vl));
+  return normalReturn((termPo)newCell(vl));
 }
 
 ValueReturn s__get(enginePo P, termPo cl)

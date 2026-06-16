@@ -52,7 +52,7 @@ int32 standardIndex(builtinClassPo clss);
 
 logical labelDefined(labelPo lbl);
 
-termPo declareEnum(const char *name, int32 index, heapPo H);
+termPo declareEnum(const char *name, int32 index);
 
 static inline int32 lblArity(labelPo lbl) {
   return lbl->lbl.arity;

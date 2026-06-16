@@ -11,7 +11,7 @@ termPo hNilEnum;
 labelPo hLeafLbl, hNodeLbl;
 
 void initIdeal() {
-  hNilEnum = declareEnum("star.ideal#ihNil", 1, globalHeap);
+  hNilEnum = declareEnum("star.ideal#ihNil", 1);
   hLeafLbl = declareLbl("star.ideal#ihLeaf", 2, 0);
   hNodeLbl = declareLbl("star.ideal#ihNode", 4, 2);
 }

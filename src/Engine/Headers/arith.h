@@ -48,7 +48,7 @@ static inline double bits_float(uinteger i) {
   return U.dx;
 }
 
-termPo makeFloat(heapPo H, double dx);
+termPo makeFloat(double dx);
 
 double floatVal(termPo flt);
 

@@ -23,7 +23,7 @@ static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore
 static void showRtn(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignore);
 static void showAssign(ioPo out, stackPo stk, termPo lc, termPo dst, termPo vl);
 static void showResume(ioPo out, stackPo stk, termPo lc, termPo cont, termPo evt);
-static void showRegisters(enginePo p, heapPo h);
+static void showRegisters(enginePo p);
 static void showAllLocals(ioPo out, stackPo stk);
 static void showGlb(ioPo out, stackPo stk, termPo lc, termPo g, termPo ignore);
 
@@ -323,7 +323,7 @@ static DebugWaitFor dbgSetDepth(char* line, enginePo p, termPo lc, void* cl) {
 }
 
 static DebugWaitFor dbgShowRegisters(char* line, enginePo p, termPo lc, void* cl) {
-  showRegisters(p, p->heap);
+  showRegisters(p);
 
   resetDeflt("n");
   return moreDebug;
@@ -503,7 +503,7 @@ static DebugWaitFor dbgSymbolDebug(char* line, enginePo p, termPo lc, void* cl) 
 
 static DebugWaitFor dbgVerifyProcess(char* line, enginePo p, termPo lc, void* cl) {
   resetDeflt("n");
-  verifyProc(p, processHeap(p));
+  verifyProc(p);
   return moreDebug;
 }
 
@@ -801,7 +801,7 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
   ssaInsPo pc = stk->pc;
   methodPo mtd = locateMethod((uinteger)stk->pc);
-  int root = gcAddRoot(p->heap, &lc);
+  int root = gcAddRoot(&lc);
 
   DebugWaitFor reslt = moreDebug;
 
@@ -817,48 +817,48 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   }
   case sTCall: {
     termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt =  tcallDebug(p, lc, getConstant(operand(pc, 1)), args);
+    reslt = tcallDebug(p, lc, getConstant(operand(pc, 1)), args);
     break;
   }
   case sOCall: {
     termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt =  ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)), args);
+    reslt = ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)), args);
     break;
   }
   case sTOCall: {
     termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt =  tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)), args);
+    reslt = tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)), args);
     break;
   }
   case sEntry:
-    reslt =  entryDebug(p, lc, mtdLabel(mtd));
+    reslt = entryDebug(p, lc, mtdLabel(mtd));
     break;
   case sRet:
-    reslt =  retDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
+    reslt = retDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
     break;
   case sXRet:
-    reslt =  xretDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
+    reslt = xretDebug(p, lc, (termPo)locateMethod((uinteger)pc), stackVariable(stk, operand(pc, 1)));
     break;
   case sAssign:
-    reslt =  assignDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    reslt = assignDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
     break;
   case sFiber:
-    reslt =  fiberDebug(p, lc, stackVariable(stk, operand(pc, 1)));
+    reslt = fiberDebug(p, lc, stackVariable(stk, operand(pc, 1)));
     break;
   case sSuspend:
-    reslt =  suspendDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    reslt = suspendDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
     break;
   case sResume:
-    reslt =  resumeDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    reslt = resumeDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
   case sRetire:
-    reslt =  retireDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
+    reslt = retireDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
     break;
   default:
-    reslt =  stepOver;
+    reslt = stepOver;
     break;
   }
 
-  gcReleaseRoot(p->heap, root);
+  gcReleaseRoot(root);
   return reslt;
 }
 
@@ -869,7 +869,7 @@ int32 operand(ssaInsPo pc, int32 ox) {
 termPo allocateCallArgs(enginePo p, methodPo mtd, ssaInsPo argPc) {
   int32 arity = argPc->op.ltrl;
   labelPo lbl = tplLbl(arity);
-  normalPo argTpl = allocateStruct(p->heap, lbl); /* allocate a tuple for the call arguments */
+  normalPo argTpl = allocateStruct(lbl); /* allocate a tuple for the call arguments */
   stackPo stk = p->stk;
 
   for (int32 ix = 0; ix < arity; ix++) {
@@ -1106,7 +1106,7 @@ static void showEscCall(ioPo out, int32 escNo) {
   outMsg(out, " %s/%d", esc->name, esc->arity);
 }
 
-void showRegisters(enginePo p, heapPo h) {
+void showRegisters(enginePo p) {
   stackPo stk = p->stk;
   methodPo mtd = locateMethod((uinteger)stk->pc);
   ptrPo limit = stackVarble(stk->args, -lclCount(mtd));

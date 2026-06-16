@@ -26,11 +26,11 @@ integer strLength(stringPo str);
 
 integer stringHash(stringPo str);
 
-termPo allocateString(heapPo H, const char *txt, long length);
+termPo allocateString(const char *txt, long length);
 
-termPo allocateFromStrBuffer(heapPo H, strBufferPo bffr);
+termPo allocateFromStrBuffer(strBufferPo bffr);
 
-termPo allocateCString(heapPo H, const char *txt);
+termPo allocateCString(const char *txt);
 
 retCode copyChars2Buff(stringPo str, char *buffer, integer buffLen);
 

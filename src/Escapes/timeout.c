@@ -10,24 +10,24 @@
 #include "globals.h"
 #include "escape.h"
 
-static void reportTimeout(void *cl);
-static retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2);
+static void reportTimeout(void* cl);
+static retCode checkTimeOut(futurePo ft, void* cl, void* cl2);
 
 ValueReturn s__settimeout(enginePo P, termPo d) {
   double delta = floatVal(d);
 
-  futurePo ft = makeFuture(processHeap(P), voidEnum, checkTimeOut, Null, Null);
+  futurePo ft = makeFuture(voidEnum, checkTimeOut, Null, Null);
 
-  setTimer(delta, reportTimeout, (void *) ft);
+  setTimer(delta, reportTimeout, (void*)ft);
   return normalReturn(unitEnum);
 }
 
-void reportTimeout(void *cl) {
+void reportTimeout(void* cl) {
   futurePo fut = C_FUTURE(cl);
   resolveFuture(fut, unitEnum);
 }
 
-retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2) {
+retCode checkTimeOut(futurePo ft, void* cl, void* cl2) {
   // Polling a timeout does nothing
   return Ok;
 }

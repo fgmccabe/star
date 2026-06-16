@@ -18,8 +18,8 @@ extern logical isIoChannel(termPo t);
 extern ioPo ioChannel(ioChnnlPo chnnl);
 extern retCode closeChannel(ioChnnlPo chnnl);
 
-extern ioChnnlPo stdInChnl(heapPo h);
-extern ioChnnlPo stdOutChnl(heapPo h);
-extern ioChnnlPo stdErrChnl(heapPo h);
+extern ioChnnlPo stdInChnl(void);
+extern ioChnnlPo stdOutChnl(void);
+extern ioChnnlPo stdErrChnl(void);
 
 #endif //STAR_IO_CHNNL_H

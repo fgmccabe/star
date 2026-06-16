@@ -314,8 +314,8 @@ int32 codeSize(methodPo mtd) {
   return mtd->insCount;
 }
 
-methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
-  int root = gcAddRoot(H, (ptrPo)&lbl);
+methodPo defineMtd(int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
+  int root = gcAddRoot((ptrPo)&lbl);
 
   methodPo mtd = (methodPo)allocPool(mtdPool);
 
@@ -334,7 +334,7 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
 
   lbl->mtd = mtd;
 
-  gcReleaseRoot(H, root);
+  gcReleaseRoot( root);
 
   return mtd;
 }
@@ -342,7 +342,7 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
 labelPo specialMethod(const char* name, int32 arity, int32 insCx, ssaInsPo instructions, int32 lcls, int32 stkLimit) {
   labelPo lbl = declareLbl(name, arity, 0);
 
-  methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, stkLimit, lbl);
+  methodPo mtd = defineMtd(insCx, instructions, lcls, stkLimit, lbl);
 
 #ifndef NOJIT
   char errMsg[MAXLINE];
@@ -381,18 +381,18 @@ termPo locateMethodLocation(methodPo mtd, uinteger pc) {
   }
 
 #ifdef NOJIT
-  int32 offset =  codeOffset(mtd,(ssaInsPo)pc);
+  int32 offset = codeOffset(mtd, (ssaInsPo)pc);
 #else
-  int32 offset = pc-(uinteger)jitCode(mtd);
+  int32 offset = pc - (uinteger)jitCode(mtd);
 #endif
 
   int32 minOffset = -1;
   termPo minLoc = Null;
 
-  for (int32 lx=0;lx<arrayCount(mtd->locations);lx++) {
+  for (int32 lx = 0; lx < arrayCount(mtd->locations); lx++) {
     codeLocationPo loc = nthEntry(mtd->locations, lx);
     if (loc->offset < offset) {
-      if (loc->offset>minOffset) {
+      if (loc->offset > minOffset) {
         minOffset = loc->offset;
         minLoc = loc->loc;
       }

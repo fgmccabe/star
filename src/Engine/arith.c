@@ -22,7 +22,6 @@ BuiltinTerm IntegerClass = {
 builtinClassPo integerClass = &IntegerClass;
 int32 integerIndex;
 
-
 logical intCmp(builtinClassPo cl, termPo t1, termPo t2) {
   integer ix1 = integerVal(t1);
   integer ix2 = integerVal(t2);
@@ -116,8 +115,8 @@ logical isFloat(termPo t) {
   return hasIndex(t, floatIndex);
 }
 
-termPo makeFloat(heapPo H, double dx) {
-  floatPo flt = (floatPo)allocateObject(H, floatIndex, FloatCellCount);
+termPo makeFloat(double dx) {
+  floatPo flt = (floatPo)allocateObject(floatIndex, FloatCellCount);
   flt->dx = dx;
   return (termPo)flt;
 }

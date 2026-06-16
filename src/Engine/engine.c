@@ -35,19 +35,19 @@ void initEngine() {
   runTimer = newTimer("running");
 }
 
-int32 bootstrap(heapPo h, char* entry, char* rootWd) {
+int32 bootstrap(char* entry, char* rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelMtd(umain);
 
   if (mainMtd != Null) {
-    termPo cmdLine = commandLine(h);
+    termPo cmdLine = commandLine();
 #ifndef NOJIT
-    enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
+    enginePo p = newEngine(jitOnLoad, mainMtd, rootWd, cmdLine);
 
     resumeTimer(runTimer);
     ValueReturn ret = (jitOnLoad ? exec(p) : run(p));
 #else
-    enginePo p = newEngine(h, False, mainMtd, rootWd, cmdLine);
+    enginePo p = newEngine(False, mainMtd, rootWd, cmdLine);
 
     resumeTimer(runTimer);
     ValueReturn ret = run(p);
@@ -61,10 +61,9 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
   }
 }
 
-enginePo newEngine(heapPo h, int execJit, methodPo mtd, char* rootWd, termPo rootArg) {
+enginePo newEngine(logical execJit, methodPo mtd, char* rootWd, termPo rootArg) {
   enginePo P = (enginePo)allocPool(prPool);
 
-  P->heap = h;
   P->state = quiescent;
   if (insDebugging || (lineDebugging > noTracing)) {
     if (interactive) {
@@ -109,10 +108,6 @@ void ps_kill(enginePo p) {
     hashRemove(prTble, (void*)p->processNo);
     freePool(prPool, p);
   }
-}
-
-heapPo processHeap(enginePo P) {
-  return P->heap;
 }
 
 void switchProcessState(enginePo p, ProcessState state) {
@@ -183,24 +178,18 @@ retCode markProcess(enginePo P, gcSupportPo G) {
   return Ok;
 }
 
-void markProcesses(enginePo owner, gcSupportPo G) {
-  if (owner != Null)
-    markProcess(owner, G);
-  else
-    processProcesses((procProc)markProcess, G);
+void markProcesses(gcSupportPo G) {
+  processProcesses((procProc)markProcess, G);
 }
 
-void verifyProc(enginePo P, heapPo H) {
-  verifyStack(P->stk, H);
+void verifyProc(enginePo P) {
+  verifyStack(P->stk);
 }
 
-void verifyProcesses(heapPo H) {
-  if (H->owner != Null)
-    verifyProc(H->owner, H);
-  else
-    processProcesses((procProc)verifyProc, H);
+void verifyProcesses(void) {
+  processProcesses((procProc)verifyProc, Null);
 }
 
 void verifyEngine(enginePo p) {
-  verifyStack(p->stk, p->heap);
+  verifyStack(p->stk);
 }

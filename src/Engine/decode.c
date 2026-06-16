@@ -16,174 +16,176 @@
  Warning: caller assumes responsibility for ensuring that tgt is a valid root
  */
 
-static retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, strBufferPo tmpBuffer);
+static retCode decodeList(ioPo in, encodePo S, integer count, termPo* tgt, strBufferPo tmpBuffer);
 
-retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer) {
+retCode decode(ioPo in, encodePo S, termPo* tgt, strBufferPo tmpBuffer) {
   codePoint ch;
   retCode res = inChar(in, &ch);
 
   if (res == Eof)
     return Eof;
-  switch ((starDecodeKey) ch) {
-    case vodTrm: {
-      *tgt = (termPo) voidEnum;
-      return Ok;
-    }
-    case intTrm: {
-      integer i;
-      if ((res = decInt(in, &i)) != Ok)
-        return res;
-      *tgt = makeInteger(i);
-      return Ok;
-    }
-    case bigTrm: {
-      if ((res = decodeText(in, tmpBuffer)) == Ok) {
-        integer len;
-        char *txt = getTextFromBuffer(tmpBuffer, &len);
-        *tgt = bignumFromString(H, txt, len);
-        return Ok;
-      } else
-        return res;
-    }
-    case fltTrm: {
-      double dx;
-      if ((res = decFlt(in, &dx)) != Ok)
-        return res;
-      *tgt = makeFloat(H, dx);
-      return Ok;
-    }
-    case enuTrm: {
-      if ((res = decodeText(in, tmpBuffer)) == Ok) {
-        integer len;
-        *tgt = (termPo) declareEnum(getTextFromBuffer(tmpBuffer, &len), -1, H);
-      }
+  switch ((starDecodeKey)ch) {
+  case vodTrm: {
+    *tgt = (termPo)voidEnum;
+    return Ok;
+  }
+  case intTrm: {
+    integer i;
+    if ((res = decInt(in, &i)) != Ok)
       return res;
+    *tgt = makeInteger(i);
+    return Ok;
+  }
+  case bigTrm: {
+    if ((res = decodeText(in, tmpBuffer)) == Ok) {
+      integer len;
+      char* txt = getTextFromBuffer(tmpBuffer, &len);
+      *tgt = bignumFromString(txt, len);
+      return Ok;
     }
-    case lblTrm: {
-      int32 arity;
-
-      if ((res = decI32(in, &arity)) != Ok) /* How many arguments in the class */
-        return res;
-
-      if ((res = decodeText(in, tmpBuffer)) == Ok) {
-        integer len;
-        *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), arity, -1);
-      }
+    else
       return res;
+  }
+  case fltTrm: {
+    double dx;
+    if ((res = decFlt(in, &dx)) != Ok)
+      return res;
+    *tgt = makeFloat(dx);
+    return Ok;
+  }
+  case enuTrm: {
+    if ((res = decodeText(in, tmpBuffer)) == Ok) {
+      integer len;
+      *tgt = (termPo)declareEnum(getTextFromBuffer(tmpBuffer, &len), -1);
     }
-    case chrTrm: {
-      codePoint cp;
+    return res;
+  }
+  case lblTrm: {
+    int32 arity;
+
+    if ((res = decI32(in, &arity)) != Ok) /* How many arguments in the class */
+      return res;
+
+    if ((res = decodeText(in, tmpBuffer)) == Ok) {
+      integer len;
+      *tgt = (termPo)declareLbl(getTextFromBuffer(tmpBuffer, &len), arity, -1);
+    }
+    return res;
+  }
+  case chrTrm: {
+    codePoint cp;
+    tryRet(inChar(in, &cp));
+    if (cp == '\\') {
       tryRet(inChar(in, &cp));
-      if (cp == '\\') {
-        tryRet(inChar(in, &cp));
-      }
-      *tgt = makeChar(cp);
-      return Ok;
     }
-    case strTrm: {
-      if ((res = decodeText(in, tmpBuffer)) == Ok) {
-        integer len;
-        const char *txt = getTextFromBuffer(tmpBuffer, &len);
-        *tgt = (termPo) allocateString(H, txt, len);
-      }
+    *tgt = makeChar(cp);
+    return Ok;
+  }
+  case strTrm: {
+    if ((res = decodeText(in, tmpBuffer)) == Ok) {
+      integer len;
+      const char* txt = getTextFromBuffer(tmpBuffer, &len);
+      *tgt = (termPo)allocateString(txt, len);
+    }
+    return res;
+  }
+  case dtaTrm: {
+    termPo lbl;
+    int32 arity;
+
+    if ((res = decI32(in, &arity)) != Ok) /* How many arguments in the class */
       return res;
+
+    if ((res = decode(in, S, &lbl, tmpBuffer)) != Ok)
+      return res;
+
+    if (lblArity(C_LBL(lbl)) != arity) {
+      strMsg(S->errorMsg, S->msgSize, "invalid label arity: expecting %d", arity);
+      res = Error;
     }
-    case dtaTrm: {
-      termPo lbl;
-      int32 arity;
 
-      if ((res = decI32(in, &arity)) != Ok) /* How many arguments in the class */
-        return res;
+    if (res == Ok) {
+      int root = gcAddRoot(&lbl);
+      normalPo obj = allocateStruct(C_LBL(lbl));
+      *tgt = (termPo)(obj);
 
-      if ((res = decode(in, S, H, &lbl, tmpBuffer)) != Ok)
-        return res;
+      termPo el = voidEnum;
+      gcAddRoot(&el);
+      gcAddRoot((ptrPo)&obj);
 
-      if (lblArity(C_LBL(lbl)) != arity) {
-        strMsg(S->errorMsg, S->msgSize, "invalid label arity: expecting %d", arity);
-        res = Error;
+      // In case of GC, we mark all the elements as void before doing any decoding
+      for (integer ix = 0; ix < arity; ix++)
+        setArg(obj, ix, voidEnum);
+
+      for (integer i = 0; res == Ok && i < arity; i++) {
+        res = decode(in, S, &el, tmpBuffer); /* read each element of term */
+        if (res == Ok)
+          setArg(obj, i, el);
       }
 
-      if (res == Ok) {
-        int root = gcAddRoot(H, &lbl);
-        normalPo obj = allocateStruct(H, C_LBL(lbl));
-        *tgt = (termPo) (obj);
+      gcReleaseRoot(root);
+    }
 
-        termPo el = voidEnum;
-        gcAddRoot(H, &el);
-        gcAddRoot(H, (ptrPo) &obj);
+    return res;
+  }
 
-        // In case of GC, we mark all the elements as void before doing any decoding
-        for (integer ix = 0; ix < arity; ix++)
-          setArg(obj, ix, voidEnum);
+  case lstTrm: {
+    integer count;
 
-        for (integer i = 0; res == Ok && i < arity; i++) {
-          res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
-          if (res == Ok)
-            setArg(obj, i, el);
-        }
-
-        gcReleaseRoot(H, root);
-      }
-
+    if ((res = decInt(in, &count)) != Ok) /* How many elements in the list */
       return res;
-    }
 
-    case lstTrm: {
-      integer count;
+    return decodeList(in, S, count, tgt, tmpBuffer);
+  }
 
-      if ((res = decInt(in, &count)) != Ok) /* How many elements in the list */
-        return res;
-
-      return decodeList(in, S, count, H, tgt, tmpBuffer);
-    }
-
-    case cloTrm: {
-      labelPo lbl = Null;
-      termPo t = Null;
-      int root = gcAddRoot(H, &t);
-      gcAddRoot(H, (ptrPo) (&lbl));
-      res = decode(in, S, H, &t, tmpBuffer);
-      if (res != Ok || !isALabel(t))
-        return Error;
-      else
-        lbl = C_LBL(t);
-      res = decode(in, S, H, &t, tmpBuffer); /* read the free term */
-      if (res == Ok)
-        *tgt = (termPo) newClosure(H, lbl, t);
-      char sigText[MAX_SYMB_LEN];
-      res = decodeString(in, sigText, NumberOf(sigText));
-
-      gcReleaseRoot(H, root);
-      return res;
-    }
-
-    default: {
-      strMsg(S->errorMsg, S->msgSize, "invalid encoding");
+  case cloTrm: {
+    labelPo lbl = Null;
+    termPo t = Null;
+    int root = gcAddRoot(&t);
+    gcAddRoot((ptrPo)(&lbl));
+    res = decode(in, S, &t, tmpBuffer);
+    if (res != Ok || !isALabel(t))
       return Error;
-    }
+    else
+      lbl = C_LBL(t);
+    res = decode(in, S, &t, tmpBuffer); /* read the free term */
+    if (res == Ok)
+      *tgt = (termPo)newClosure(lbl, t);
+    char sigText[MAX_SYMB_LEN];
+    res = decodeString(in, sigText, NumberOf(sigText));
+
+    gcReleaseRoot(root);
+    return res;
+  }
+
+  default: {
+    strMsg(S->errorMsg, S->msgSize, "invalid encoding");
+    return Error;
+  }
   }
 }
 
-retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, strBufferPo tmpBuffer) {
+retCode decodeList(ioPo in, encodePo S, integer count, termPo* tgt, strBufferPo tmpBuffer) {
   if (count == 0) {
-    *tgt = (termPo) nilEnum;
+    *tgt = (termPo)nilEnum;
     return Ok;
-  } else {
-    retCode res = decodeList(in, S, count - 1, H, tgt, tmpBuffer);
+  }
+  else {
+    retCode res = decodeList(in, S, count - 1, tgt, tmpBuffer);
 
     if (res == Ok) {
       termPo el;
-      int root = gcAddRoot(H, &el);
-      res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
+      int root = gcAddRoot(&el);
+      res = decode(in, S, &el, tmpBuffer); /* read each element of term */
       if (res == Ok)
-        *tgt = (termPo) allocateCons(H, el, *tgt);
-      gcReleaseRoot(H, root);
+        *tgt = (termPo)allocateCons(el, *tgt);
+      gcReleaseRoot(root);
     }
     return res;
   }
 }
 
-retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize) {
+retCode decodeTplCount(ioPo in, int32* count, char* errorMsg, integer msgSize) {
   if (isLookingAt(in, "n") == Ok) {
     char nm[MAXLINE];
     int32 ar;
@@ -198,6 +200,7 @@ retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize) {
       }
     }
     return ret;
-  } else
+  }
+  else
     return Fail;
 }

@@ -5,7 +5,7 @@
 #include "heapP.h"
 #include "stack.h"
 
-retCode gcCollect(heapPo H, long amount) {
+retCode gcCollect(long amount) {
   syserr("no gc in tests");
   return Error;
 }

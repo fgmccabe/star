@@ -35,7 +35,7 @@ ValueReturn s__chr_quote(enginePo P, termPo c) {
   strBufferPo strb = newStringBuffer();
   qtChar(O_IO(strb), charVal(c));
 
-  termPo s = allocateFromStrBuffer(processHeap(P), strb);
+  termPo s = allocateFromStrBuffer(strb);
 
   closeIo(O_IO(strb));
   return normalReturn(s);
@@ -45,40 +45,42 @@ ValueReturn s__chr_quote(enginePo P, termPo c) {
 ValueReturn s__chr_format(enginePo P, termPo c, termPo f) {
   codePoint cp = charVal(c);
   integer fLen;
-  const char *fmt = strVal(f, &fLen);
+  const char* fmt = strVal(f, &fLen);
   strBufferPo strb = newStringBuffer();
   retCode ret;
 
   // Allowed formats are q, c, x, 0, 9
   if (fLen == 1) {
     switch (fmt[0]) {
-      case 'q': {
-        ret = qtChar(O_IO(strb), cp);
-        break;
-      }
-      case 'c': {
-        ret = outChar(O_IO(strb), cp);
-        break;
-      }
-      case 'x': {
-        ret = outMsg(O_IO(strb), "%x", (integer) cp);
-        break;
-      }
-      default: {
-        ret = outMsg(O_IO(strb), "%d", (integer) cp);
-        break;
-      }
+    case 'q': {
+      ret = qtChar(O_IO(strb), cp);
+      break;
+    }
+    case 'c': {
+      ret = outChar(O_IO(strb), cp);
+      break;
+    }
+    case 'x': {
+      ret = outMsg(O_IO(strb), "%x", (integer)cp);
+      break;
+    }
+    default: {
+      ret = outMsg(O_IO(strb), "%d", (integer)cp);
+      break;
+    }
     }
 
     if (ret == Ok) {
-      termPo r = allocateFromStrBuffer(processHeap(P), strb);
+      termPo r = allocateFromStrBuffer(strb);
       closeIo(O_IO(strb));
       return normalReturn(r);
-    } else {
+    }
+    else {
       closeIo(O_IO(strb));
       return abnormalReturn(eINVAL);
     }
-  } else {
+  }
+  else {
     return abnormalReturn(eINVAL);
   }
 }
@@ -94,8 +96,8 @@ ValueReturn s__str_eq(enginePo P, termPo l, termPo r) {
 // Lexicographic comparison
 ValueReturn s__str_lt(enginePo P, termPo l, termPo r) {
   integer llen, rlen;
-  const char *lhs = strVal(l, &llen);
-  const char *rhs = strVal(r, &rlen);
+  const char* lhs = strVal(l, &llen);
+  const char* rhs = strVal(r, &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -106,7 +108,8 @@ ValueReturn s__str_lt(enginePo P, termPo l, termPo r) {
 
     if (chl < ch2) {
       return normalReturn(trueEnum);
-    } else if (chl > ch2) {
+    }
+    else if (chl > ch2) {
       return normalReturn(falseEnum);
     }
   }
@@ -119,8 +122,8 @@ ValueReturn s__str_lt(enginePo P, termPo l, termPo r) {
 
 ValueReturn s__str_ge(enginePo P, termPo l, termPo r) {
   integer llen, rlen;
-  const char *lhs = strVal(l, &llen);
-  const char *rhs = strVal(r, &rlen);
+  const char* lhs = strVal(l, &llen);
+  const char* rhs = strVal(r, &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -131,14 +134,16 @@ ValueReturn s__str_ge(enginePo P, termPo l, termPo r) {
 
     if (chl < ch2) {
       return normalReturn(falseEnum);
-    } else if (chl > ch2) {
+    }
+    else if (chl > ch2) {
       return normalReturn(trueEnum);
     }
   }
   if (li <= llen) {
     // There is more on the left, so it counts as being bigger
     return normalReturn(trueEnum);
-  } else {
+  }
+  else {
     return normalReturn(falseEnum);
   }
 }
@@ -148,7 +153,7 @@ ValueReturn s__str_hash(enginePo P, termPo s) {
 
   if (lhs->hash == 0) {
     integer len;
-    const char *str = strVal(s, &len);
+    const char* str = strVal(s, &len);
     lhs->hash = uniNHash(str, len);
   }
 
@@ -159,12 +164,12 @@ ValueReturn s__str_len(enginePo P, termPo s) {
   stringPo lhs = C_STR(s);
 
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
 
   return normalReturn(makeInteger(len));
 }
 
-static retCode skipBlanks(const char *txt, integer len, integer *pos) {
+static retCode skipBlanks(const char* txt, integer len, integer* pos) {
   while ((*pos) < len && isspace(txt[*pos])) (*pos)++;
   if (*pos == len)
     return Ok;
@@ -174,47 +179,49 @@ static retCode skipBlanks(const char *txt, integer len, integer *pos) {
 
 ValueReturn s__str2flt(enginePo P, termPo s) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   double flt;
 
   switch (parseDouble(str, len, &flt)) {
-    case Ok:
-      return normalReturn(makeFloat(processHeap(P),flt));
-    default:
-    case Error:
-      return abnormalReturn(eINVAL);
+  case Ok:
+    return normalReturn(makeFloat(flt));
+  default:
+  case Error:
+    return abnormalReturn(eINVAL);
   }
 }
 
 ValueReturn s__str2int(enginePo P, termPo s) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   integer ix;
 
   integer pos = 0;
   switch (parseInteger(str, &pos, len, &ix)) {
-    case Ok:
-      if (skipBlanks(str, len, &pos) == Ok) {
-        return normalReturn(makeInteger(ix));
-      }
-    default:
-      return abnormalReturn(eINVAL);
+  case Ok:
+    if (skipBlanks(str, len, &pos) == Ok) {
+      return normalReturn(makeInteger(ix));
+    }
+  default:
+    return abnormalReturn(eINVAL);
   }
 }
 
 ValueReturn s__str_charat(enginePo P, termPo s, termPo i) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   integer ix = integerVal(i);
 
   if (ix < 0 || ix >= len) {
     return abnormalReturn(eRANGE);
-  } else {
+  }
+  else {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
     if (ret == Ok) {
       return normalReturn(makeChar(cp));
-    } else {
+    }
+    else {
       return abnormalReturn(eRANGE);
     }
   }
@@ -222,12 +229,12 @@ ValueReturn s__str_charat(enginePo P, termPo s, termPo i) {
 
 ValueReturn s__str_gen(enginePo P, termPo s) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   char rnd[MAXLINE];
 
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
-  return normalReturn(allocateString(processHeap(P), rnd, uniStrLen(rnd)));
+  return normalReturn(allocateString( rnd, uniStrLen(rnd)));
 }
 
 ValueReturn s__stringOf(enginePo P, termPo t, termPo d) {
@@ -237,9 +244,9 @@ ValueReturn s__stringOf(enginePo P, termPo t, termPo d) {
   dispTerm(O_IO(strb), t, 0, depth, False);
 
   integer oLen;
-  const char *buff = getTextFromBuffer(strb, &oLen);
+  const char* buff = getTextFromBuffer(strb, &oLen);
 
-  termPo text = allocateString(processHeap(P), buff, oLen);
+  termPo text = allocateString(buff, oLen);
 
   closeIo(O_IO(strb));
   return normalReturn(text);
@@ -250,9 +257,9 @@ ValueReturn s__str_quote(enginePo P, termPo s) {
   quoteStrg(O_IO(strb), C_STR(s));
 
   integer oLen;
-  const char *buff = getTextFromBuffer(strb, &oLen);
+  const char* buff = getTextFromBuffer(strb, &oLen);
 
-  termPo text = allocateString(processHeap(P), buff, oLen);
+  termPo text = allocateString(buff, oLen);
   closeIo(O_IO(strb));
   return normalReturn(text);
 }
@@ -270,7 +277,7 @@ typedef enum {
 
 ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
   integer fLen;
-  const char *fmt = strVal(f, &fLen);
+  const char* fmt = strVal(f, &fLen);
   Alignment alignment = alignLeft;
   SrcAlign sourceAlign = leftToRight;
   integer width = 0;
@@ -290,19 +297,19 @@ ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
   // What is the output alignment?
   codePoint fc = nextCodePoint(fmt, &fPos, fLen);
   switch (fc) {
-    case 'l':
-    case 'L':
-      alignment = alignLeft;
-      break;
-    case 'c':
-    case 'C':
-      alignment = alignCenter;
-      break;
-    case 'r':
-    case 'R':
-      alignment = alignRight;
-      break;
-    default: ;
+  case 'l':
+  case 'L':
+    alignment = alignLeft;
+    break;
+  case 'c':
+  case 'C':
+    alignment = alignCenter;
+    break;
+  case 'r':
+  case 'R':
+    alignment = alignRight;
+    break;
+  default: ;
   }
 
   // What is the output width?
@@ -319,7 +326,7 @@ ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
   strBufferPo strb = newStringBuffer();
 
   integer txtLen = 0;
-  const char *txt = strVal(s, &txtLen);
+  const char* txt = strVal(s, &txtLen);
   integer txtPos = 0;
 
   integer txtQ = (width == 0 ? txtLen : minimum(width, txtLen));
@@ -328,44 +335,44 @@ ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
     txtQ = minimum(txtQ, srcWidth);
 
   switch (sourceAlign) {
-    default:
-    case leftToRight:
-      txtPos = 0;
-      break;
-    case rightToLeft:
-      txtPos = maximum(txtLen - txtQ, 0);
-      break;
+  default:
+  case leftToRight:
+    txtPos = 0;
+    break;
+  case rightToLeft:
+    txtPos = maximum(txtLen - txtQ, 0);
+    break;
   }
 
   switch (alignment) {
-    default:
-    case alignLeft: {
-      for (integer cx = 0; cx < txtQ; cx++)
-        appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
-      for (integer cx = txtQ; cx < width; cx++)
-        appendCodePointToStrBuffer(strb, pad);
-      break;
-    }
-    case alignCenter: {
-      integer space = (width - txtQ) / 2;
-      for (integer cx = 0; cx < space; cx++)
-        appendCodePointToStrBuffer(strb, pad);
-      for (integer cx = 0; cx < txtQ; cx++)
-        appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
-      for (integer cx = space + txtQ; cx < width; cx++)
-        appendCodePointToStrBuffer(strb, pad);
-      break;
-    }
-    case alignRight: {
-      for (integer cx = 0; cx < width - txtQ; cx++)
-        appendCodePointToStrBuffer(strb, pad);
-      for (integer cx = 0; cx < txtQ; cx++)
-        appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
-      break;
-    }
+  default:
+  case alignLeft: {
+    for (integer cx = 0; cx < txtQ; cx++)
+      appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
+    for (integer cx = txtQ; cx < width; cx++)
+      appendCodePointToStrBuffer(strb, pad);
+    break;
+  }
+  case alignCenter: {
+    integer space = (width - txtQ) / 2;
+    for (integer cx = 0; cx < space; cx++)
+      appendCodePointToStrBuffer(strb, pad);
+    for (integer cx = 0; cx < txtQ; cx++)
+      appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
+    for (integer cx = space + txtQ; cx < width; cx++)
+      appendCodePointToStrBuffer(strb, pad);
+    break;
+  }
+  case alignRight: {
+    for (integer cx = 0; cx < width - txtQ; cx++)
+      appendCodePointToStrBuffer(strb, pad);
+    for (integer cx = 0; cx < txtQ; cx++)
+      appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
+    break;
+  }
   }
 
-  termPo text = allocateFromStrBuffer(processHeap(P), strb);
+  termPo text = allocateFromStrBuffer(strb);
 
   closeIo(O_IO(strb));
   return normalReturn(text);
@@ -377,11 +384,10 @@ ValueReturn s__explode(enginePo P, termPo s) {
   char buffer[len + 1];
 
   copyChars2Buff(str, buffer, len + 1);
-  heapPo h = processHeap(P);
-  termPo list = (termPo) nilEnum;
+  termPo list = (termPo)nilEnum;
   termPo el = voidEnum;
-  int root = gcAddRoot(h, (ptrPo) &list);
-  gcAddRoot(h, &el);
+  int root = gcAddRoot((ptrPo)&list);
+  gcAddRoot(&el);
 
   integer pos = len;
   retCode ret = Ok;
@@ -390,11 +396,11 @@ ValueReturn s__explode(enginePo P, termPo s) {
     ret = prevPoint(buffer, &pos, &cp);
     if (ret == Ok) {
       el = makeChar(cp);
-      list = (termPo) allocateCons(h, el, list);
+      list = (termPo)allocateCons(el, list);
     }
   }
 
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
 
   assert(consLength(list) == countCodePoints(buffer, 0, len));
 
@@ -406,7 +412,7 @@ void dS(termPo w) {
 
   while (isCons(s)) {
     integer cp = integerVal(consHead(C_NORMAL(s)));
-    outChar(logFile, (codePoint) cp);
+    outChar(logFile, (codePoint)cp);
     s = consTail(C_NORMAL(s));
   }
   outStr(logFile, "\n");
@@ -421,7 +427,7 @@ ValueReturn s__implode(enginePo P, termPo list) {
   }
 
   char buff[MAXLINE];
-  char *buffer = (size > MAXLINE ? (char *) malloc(sizeof(char) * size) : buff);
+  char* buffer = (size > MAXLINE ? (char*)malloc(sizeof(char) * size) : buff);
   integer pos = 0;
 
   while (isCons(list)) {
@@ -431,7 +437,7 @@ ValueReturn s__implode(enginePo P, termPo list) {
     list = consTail(pr);
   }
 
-  termPo result = (termPo) allocateString(processHeap(P), buffer, pos);
+  termPo result = (termPo)allocateString(buffer, pos);
 
   if (buffer != buff)
     free(buffer);
@@ -440,9 +446,9 @@ ValueReturn s__implode(enginePo P, termPo list) {
 
 ValueReturn s__str_find(enginePo P, termPo s, termPo t, termPo f) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   integer tlen;
-  const char *tgt = strVal(t, &tlen);
+  const char* tgt = strVal(t, &tlen);
   integer start = integerVal(f);
 
   integer found = uniSearch(str, len, start, tgt, tlen);
@@ -451,7 +457,7 @@ ValueReturn s__str_find(enginePo P, termPo s, termPo t, termPo f) {
 
 ValueReturn s__sub_str(enginePo P, termPo s, termPo f, termPo c) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   integer start = integerVal(f);
   integer count = integerVal(c);
 
@@ -459,7 +465,7 @@ ValueReturn s__sub_str(enginePo P, termPo s, termPo f, termPo c) {
 
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
-  return normalReturn(allocateString(processHeap(P), buff, count));
+  return normalReturn(allocateString(buff, count));
 }
 
 ValueReturn s__str_hdtl(enginePo P, termPo s) {
@@ -471,19 +477,19 @@ ValueReturn s__str_hdtl(enginePo P, termPo s) {
   integer offset = 0;
   codePoint ch;
   retCode ret = nxtPoint(str, &offset, len, &ch);
-  heapPo h = processHeap(P);
 
   if (ret == Ok) {
     termPo chCode = makeChar(ch);
-    int mark = gcAddRoot(h, &chCode);
-    termPo rest = allocateString(h, &str[offset], len - offset);
-    gcAddRoot(h, &rest);
-    normalPo pair = allocateTpl(h, 2);
+    int mark = gcAddRoot(&chCode);
+    termPo rest = allocateString(&str[offset], len - offset);
+    gcAddRoot(&rest);
+    normalPo pair = allocateTpl(2);
     setArg(pair, 0, chCode);
     setArg(pair, 1, rest);
-    gcReleaseRoot(h, mark);
-    return normalReturn((termPo)wrapSome(h, (termPo)pair));
-  } else {
+    gcReleaseRoot(mark);
+    return normalReturn((termPo)wrapSome((termPo)pair));
+  }
+  else {
     return normalReturn(noneEnum);
   }
 }
@@ -496,16 +502,16 @@ ValueReturn s__str_cons(enginePo P, termPo c, termPo s) {
   char str[len + 16];
   appendCodePoint(str, &offset, len + 16, ch);
   copyChars2Buff(src, &str[offset], len + 16);
-  return normalReturn(allocateString(processHeap(P), str, offset + len));
+  return normalReturn(allocateString(str, offset + len));
 }
 
 ValueReturn s__code2str(enginePo P, termPo c) {
   codePoint ch = charVal(c);
   integer codeLength = 0;
   char str[16];
-  appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
+  appendCodePoint(str, &codeLength, NumberOf(str), (codePoint)ch);
 
-  return normalReturn(allocateString(processHeap(P), str, codeLength));
+  return normalReturn(allocateString(str, codeLength));
 }
 
 ValueReturn s__str_apnd(enginePo P, termPo s, termPo c) {
@@ -517,12 +523,12 @@ ValueReturn s__str_apnd(enginePo P, termPo s, termPo c) {
   copyChars2Buff(src, str, len + 16);
 
   appendCodePoint(str, &offset, len + 16, ch);
-  return normalReturn(allocateString(processHeap(P), str, offset));
+  return normalReturn(allocateString(str, offset));
 }
 
 ValueReturn s__str_set(enginePo P, termPo s, termPo o, termPo c) {
   integer len;
-  const char *src = strVal(s, &len);
+  const char* src = strVal(s, &len);
   integer off = integerVal(o);
   codePoint ch = charVal(c);
   integer offset = minimum(off, len + 2);
@@ -533,12 +539,12 @@ ValueReturn s__str_set(enginePo P, termPo s, termPo o, termPo c) {
   nextCodePoint(src, &srcOffset, len);
   uniNCpy(&str[offset], len + 16 - offset, &src[srcOffset], len - srcOffset);
 
-  return normalReturn(allocateCString(processHeap(P), str));
+  return normalReturn(allocateCString(str));
 }
 
 ValueReturn s__str_drop(enginePo P, termPo s, termPo o) {
   integer len;
-  const char *src = strVal(s, &len);
+  const char* src = strVal(s, &len);
   integer offset = integerVal(o);
   char str[len + 16];
   uniNCpy(str, len + 16, src, offset);
@@ -546,7 +552,7 @@ ValueReturn s__str_drop(enginePo P, termPo s, termPo o) {
   nextCodePoint(src, &offset, len);
   uniNCpy(&str[srcOffset], len + 16 - srcOffset, &src[offset], len - offset);
 
-  return normalReturn(allocateCString(processHeap(P), str));
+  return normalReturn(allocateCString(str));
 }
 
 ValueReturn s__str_back(enginePo P, termPo s) {
@@ -561,62 +567,61 @@ ValueReturn s__str_back(enginePo P, termPo s) {
 
   if (ret == Ok) {
     termPo chCode = makeChar(ch);
-    heapPo h = processHeap(P);
-    int mark = gcAddRoot(h, (ptrPo) &chCode);
-    termPo rest = allocateString(h, str, offset);
-    gcAddRoot(h, &rest);
-    normalPo pair = allocateTpl(h, 2);
+    int mark = gcAddRoot((ptrPo)&chCode);
+    termPo rest = allocateString(str, offset);
+    gcAddRoot(&rest);
+    normalPo pair = allocateTpl(2);
     setArg(pair, 0, rest);
     setArg(pair, 1, chCode);
-    gcReleaseRoot(h, mark);
+    gcReleaseRoot(mark);
     return normalReturn((termPo)pair);
-  } else {
+  }
+  else {
     return abnormalReturn(eNOTFND);
   }
 }
 
 ValueReturn s__str_split(enginePo P, termPo s, termPo o) {
   integer len;
-  const char *str = strVal(s, &len);
+  const char* str = strVal(s, &len);
   integer start = integerVal(o);
 
   char buff[len];
   uniMove(buff, len, str, len);
-  heapPo h = processHeap(P);
-  normalPo pair = allocateTpl(h, 2);
-  int root = gcAddRoot(h, (ptrPo) &pair);
+  normalPo pair = allocateTpl(2);
+  int root = gcAddRoot((ptrPo)&pair);
 
-  termPo lhs = (termPo) allocateString(h, buff, start);
+  termPo lhs = (termPo)allocateString(buff, start);
   setArg(pair, 0, lhs);
 
-  termPo rhs = (termPo) allocateString(h, &buff[start], len - start);
+  termPo rhs = (termPo)allocateString(&buff[start], len - start);
   setArg(pair, 1, rhs);
 
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
   return normalReturn((termPo)pair);
 }
 
 ValueReturn s__str_concat(enginePo P, termPo f, termPo s) {
   integer llen;
-  const char *lhs = strVal(f, &llen);
+  const char* lhs = strVal(f, &llen);
   integer rlen;
-  const char *rhs = strVal(s, &rlen);
+  const char* rhs = strVal(s, &rlen);
 
   integer len = llen + rlen + 1;
   char buff[len];
   uniMove(buff, len, lhs, llen);
   uniMove(&buff[llen], len - llen, rhs, rlen);
 
-  return normalReturn(allocateString(processHeap(P), buff, llen + rlen));
+  return normalReturn(allocateString(buff, llen + rlen));
 }
 
 ValueReturn s__str_splice(enginePo P, termPo l, termPo f, termPo c, termPo r) {
   integer llen;
-  const char *lhs = strVal(l, &llen);
+  const char* lhs = strVal(l, &llen);
   integer from = integerVal(f);
   integer cnt = integerVal(c);
   integer rlen;
-  const char *rhs = strVal(r, &rlen);
+  const char* rhs = strVal(r, &rlen);
 
   // Clamp the from and cnt values
   if (from < 0)
@@ -634,22 +639,22 @@ ValueReturn s__str_splice(enginePo P, termPo l, termPo f, termPo c, termPo r) {
   uniMove(&buff[from], len - from, rhs, rlen);
   uniMove(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
 
-  return normalReturn(allocateString(processHeap(P), buff, len));
+  return normalReturn(allocateString(buff, len));
 }
 
 ValueReturn s__str_start(enginePo P, termPo s, termPo p) {
   integer llen;
-  const char *lhs = strVal(s, &llen);
+  const char* lhs = strVal(s, &llen);
   integer rlen;
-  const char *rhs = strVal(p, &rlen);
+  const char* rhs = strVal(p, &rlen);
   return normalReturn(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum);
 }
 
 ValueReturn s__str_end(enginePo P, termPo l, termPo r) {
   integer llen;
-  const char *lhs = strVal(l, &llen);
+  const char* lhs = strVal(l, &llen);
   integer rlen;
-  const char *rhs = strVal(r, &rlen);
+  const char* rhs = strVal(r, &rlen);
 
   return normalReturn(uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum);
 }
@@ -661,25 +666,25 @@ ValueReturn s__str_multicat(enginePo P, termPo t) {
   while (ret == Ok && isCons(t)) {
     normalPo c = C_NORMAL(t);
     integer len;
-    const char *elTxt = strVal(consHead(c), &len);
+    const char* elTxt = strVal(consHead(c), &len);
     ret = outText(O_IO(strb), elTxt, len);
     t = consTail(c);
   }
   integer oLen;
-  const char *buff = getTextFromBuffer(strb, &oLen);
-  termPo text = allocateString(processHeap(P), buff, oLen);
+  const char* buff = getTextFromBuffer(strb, &oLen);
+  termPo text = allocateString(buff, oLen);
   closeIo(O_IO(strb));
   return normalReturn(text);
 }
 
 ValueReturn s__str_reverse(enginePo P, termPo s) {
   integer len;
-  const char *lhs = strVal(s, &len);
+  const char* lhs = strVal(s, &len);
 
   char buff[len];
   uniMove(buff, len, lhs, len);
 
   uniReverse(buff, len);
 
-  return normalReturn(allocateString(processHeap(P), buff, len));
+  return normalReturn(allocateString(buff, len));
 }

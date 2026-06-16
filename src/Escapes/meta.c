@@ -18,7 +18,7 @@ ValueReturn s__abort(enginePo P, termPo lc, termPo msg) {
 void abort_star(enginePo P, termPo lc, termPo msg) {
   outMsg(logFile, "Abort %T at %L\n", msg, lc);
   stackTrace(P, logFile, P->stk, displayDepth, showPrognames, 32);
-  star_exit(P,abortCode);
+  star_exit(abortCode);
 }
 
 ValueReturn s__stackTrace(enginePo P) {
@@ -26,7 +26,7 @@ ValueReturn s__stackTrace(enginePo P) {
 
   stackTrace(P, O_IO(str), P->stk, displayDepth, showArguments, MAX_INT32);
 
-  termPo trace = allocateFromStrBuffer(processHeap(P), str);
+  termPo trace = allocateFromStrBuffer( str);
   closeIo(O_IO(str));
 
   return normalReturn(trace);
@@ -35,7 +35,7 @@ ValueReturn s__stackTrace(enginePo P) {
 ValueReturn s__gc(enginePo P, termPo a) {
   if (isDebugging()) {
     integer amnt = integerVal(a);
-    retCode ret = gcCollect(processHeap(P), amnt);
+    retCode ret = gcCollect(amnt);
     if (ret == Ok) {
       return normalReturn(unitEnum);
     }

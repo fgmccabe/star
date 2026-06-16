@@ -21,6 +21,6 @@ enginePo getThreadProcess(threadPo t);
 
 void clearProcess(threadPo t);
 
-threadPo newThread(enginePo p, heapPo h);
+threadPo newThread(enginePo p);
 
 #endif //STAR_THR_H

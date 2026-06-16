@@ -12,7 +12,7 @@ void initIoOps();
 
 typedef struct asyncStruct_ *asyncPo;
 typedef taskState (*nextProc)(ioPo in, asyncPo async);
-typedef termPo (*asyncAlloc)(heapPo h, asyncPo async);
+typedef termPo (*asyncAlloc)(asyncPo async);
 typedef void (*asyncClose)(ioPo io, asyncPo async);
 typedef retCode (*asyncCleanup)(asyncPo async, retCode ret);
 

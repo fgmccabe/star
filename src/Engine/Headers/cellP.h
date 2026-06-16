@@ -17,6 +17,6 @@ typedef struct _cell_record_ {
 
 void initCell();
 
-cellPo newCell(heapPo H, termPo content);
+cellPo newCell(termPo content);
 
 #endif //STAR_CELLP_H

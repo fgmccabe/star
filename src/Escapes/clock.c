@@ -120,12 +120,12 @@ ValueReturn s__sleep(enginePo P,termPo d) {
 
 /* Return the current time */
 ValueReturn s__now(enginePo P){
-  return normalReturn(makeFloat(processHeap(P),get_time()));
+  return normalReturn(makeFloat(get_time()));
 }
 
 /* Return the time at midnight */
 ValueReturn s__today(enginePo P){
-  return normalReturn(makeFloat(processHeap(P),get_date()));
+  return normalReturn(makeFloat(get_date()));
 }
 
 ValueReturn s__ticks(enginePo P){

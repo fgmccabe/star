@@ -24,32 +24,32 @@
 
 ValueReturn s__exit(enginePo P, termPo c) {
   integer ix = integerVal(c);
-  exit((int) ix);
+  exit((int)ix);
 }
 
-static char **argsv = NULL; /* Store the command line list */
+static char** argsv = NULL; /* Store the command line list */
 static int argcnt = 0;
 
-void init_args(char **argv, int argc, int start) {
+void init_args(char** argv, int argc, int start) {
   argsv = &argv[start];
   argcnt = argc - start;
 }
 
-termPo commandLine(heapPo h) {
-  termPo list = (termPo) nilEnum;
-  termPo el = (termPo) voidEnum;
-  int root = gcAddRoot(h, &list);
-  gcAddRoot(h, &el);
+termPo commandLine(void) {
+  termPo list = (termPo)nilEnum;
+  termPo el = (termPo)voidEnum;
+  int root = gcAddRoot(&list);
+  gcAddRoot(&el);
 
   for (integer ix = argcnt - 1; ix >= 0; ix--) {
-    el = (termPo) allocateString(h, argsv[ix], uniStrLen(argsv[ix]));
-    list = (termPo) allocateCons(h, el, list);
+    el = (termPo)allocateString(argsv[ix], uniStrLen(argsv[ix]));
+    list = (termPo)allocateCons(el, list);
   }
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
   return list;
 }
 
-extern char **environ;
+extern char** environ;
 
 integer countEnviron() {
   integer ix = 0;
@@ -61,29 +61,28 @@ ValueReturn s__envir(enginePo P) {
   integer cnt = countEnviron();
   termPo list = nilEnum;
 
-  heapPo h = processHeap(P);
-  int root = gcAddRoot(h, (ptrPo) &list);
+  int root = gcAddRoot((ptrPo)&list);
   termPo ky = voidEnum;
   termPo vl = voidEnum;
   termPo pair = voidEnum;
-  gcAddRoot(h, &ky);
-  gcAddRoot(h, &vl);
-  gcAddRoot(h, &pair);
+  gcAddRoot(&ky);
+  gcAddRoot(&vl);
+  gcAddRoot(&pair);
 
   switchProcessState(P, in_exclusion);
 
   for (integer ix = 0; ix < cnt; ix++) {
-    char *envPair = environ[ix];
-    char *pt = strchr(environ[ix], '=');
+    char* envPair = environ[ix];
+    char* pt = strchr(environ[ix], '=');
 
     if (pt != NULL) {
-      ky = (termPo) allocateString(h, envPair, pt - envPair);
-      vl = (termPo) allocateString(h, pt + 1, uniStrLen(pt + 1));
-      pair = (termPo) allocateTplPair(h, ky, vl);
-      list = (termPo) allocateCons(h, pair, list);
+      ky = (termPo)allocateString(envPair, pt - envPair);
+      vl = (termPo)allocateString(pt + 1, uniStrLen(pt + 1));
+      pair = (termPo)allocateTplPair(ky, vl);
+      list = (termPo)allocateCons(pair, list);
     }
   }
-  gcReleaseRoot(h, root);
+  gcReleaseRoot(root);
   setProcessRunnable(P);
   return normalReturn(list);
 }
@@ -93,12 +92,12 @@ ValueReturn s__getenv(enginePo P, termPo k) {
 
   copyChars2Buff(C_STR(k), key, NumberOf(key));
 
-  char *val = getenv((char *) key);
+  char* val = getenv((char*)key);
 
   if (val != NULL) {
-    heapPo h = processHeap(P);
-    return normalReturn((termPo) wrapSome(h, allocateCString(h, val)));
-  } else
+    return normalReturn((termPo) wrapSome(allocateCString( val)));
+  }
+  else
     return normalReturn(noneEnum);
 }
 
@@ -109,9 +108,10 @@ ValueReturn s__setenv(enginePo P, termPo k, termPo v) {
   copyChars2Buff(C_STR(k), key, NumberOf(key));
   copyChars2Buff(C_STR(v), val, NumberOf(val));
 
-  if (setenv((char *) key, val, 1) == 0) {
+  if (setenv((char*)key, val, 1) == 0) {
     return normalReturn(unitEnum);
-  } else {
+  }
+  else {
     return abnormalReturn(eFAIL);
   }
 }
@@ -119,7 +119,7 @@ ValueReturn s__setenv(enginePo P, termPo k, termPo v) {
 ValueReturn s__repo(enginePo P) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
-  return normalReturn(allocateString(processHeap(P), repoBuffer, uniStrLen(repoBuffer)));
+  return normalReturn(allocateString( repoBuffer, uniStrLen(repoBuffer)));
 }
 
 ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
@@ -132,15 +132,17 @@ ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
   integer argCnt = consLength(args);
   integer envCnt = consLength(env);
 
-  if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
+  if (access((char*)cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(P);
     return abnormalReturn(eNOTFND);
-  } else if (!isExecutableFile(cmd)) {
+  }
+  else if (!isExecutableFile(cmd)) {
     setProcessRunnable(P);
     return abnormalReturn(eNOPERM);
-  } else {
-    char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
-    char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
+  }
+  else {
+    char** argv = (char**)calloc((size_t)(argCnt + 2), sizeof(char*));
+    char** envp = (char**)calloc((size_t)(envCnt + 1), sizeof(char*));
     int pid;
 
     argv[0] = cmd;
@@ -161,14 +163,14 @@ ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
       strBufferPo lineBf = newStringBuffer();
 
       integer klen, vlen;
-      const char *key = strVal(nthArg(pair, 0), &klen);
-      const char *val = strVal(nthArg(pair, 1), &vlen);
+      const char* key = strVal(nthArg(pair, 0), &klen);
+      const char* val = strVal(nthArg(pair, 1), &vlen);
 
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
-      const char *line = getTextFromBuffer(lineBf, &lineLen);
-      envp[ix] = strndup(line, (size_t) lineLen);
+      const char* line = getTextFromBuffer(lineBf, &lineLen);
+      envp[ix] = strndup(line, (size_t)lineLen);
       closeIo(O_IO(lineBf));
     }
 
@@ -178,10 +180,11 @@ ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
 
     if ((pid = fork()) == 0) {
       // child process, terminating after execve
-      execve((char *) cmd, argv, envp);
+      execve((char*)cmd, argv, envp);
       // abnormal termination -- should never get here
       _exit(127);
-    } else {
+    }
+    else {
       // parent process (agent)
       for (integer ix = 1; argv[ix] != NULL; ix++) // argv[0] is a local string
         free(argv[ix]);
@@ -200,21 +203,24 @@ ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
 
         if (res < 0) {
           switch (errno) {
-            case ECHILD:
-              return abnormalReturn(eNOTFND);
-            case EFAULT:
-              return abnormalReturn(eINVAL);
-            case EINTR:
-            default:
-              continue;
+          case ECHILD:
+            return abnormalReturn(eNOTFND);
+          case EFAULT:
+            return abnormalReturn(eINVAL);
+          case EINTR:
+          default:
+            continue;
           }
-        } else if (WIFEXITED(childStatus)) {
+        }
+        else if (WIFEXITED(childStatus)) {
           /* exited normally */
           return normalReturn(makeInteger(WEXITSTATUS(childStatus)));
-        } else if (WIFSIGNALED(childStatus)) {
+        }
+        else if (WIFSIGNALED(childStatus)) {
           return abnormalReturn(eINTRUPT);
         }
-      } while (True);
+      }
+      while (True);
     }
   }
 }
@@ -229,16 +235,18 @@ ValueReturn s__popen(enginePo P, termPo c, termPo args, termPo environment) {
   integer argCnt = consLength(args);
   integer envCnt = consLength(environment);
 
-  if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
+  if (access((char*)cmd, ((unsigned)F_OK) | ((unsigned)R_OK) | ((unsigned)X_OK)) != 0) {
     setProcessRunnable(P);
 
     return abnormalReturn(eNOTFND);
-  } else if (!isExecutableFile(cmd)) {
+  }
+  else if (!isExecutableFile(cmd)) {
     setProcessRunnable(P);
     return abnormalReturn(eNOPERM);
-  } else {
-    char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
-    char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
+  }
+  else {
+    char** argv = (char**)calloc((size_t)(argCnt + 2), sizeof(char*));
+    char** envp = (char**)calloc((size_t)(envCnt + 1), sizeof(char*));
 
     argv[0] = cmd;
     for (integer ix = 0; ix < argCnt; ix++) {
@@ -258,52 +266,51 @@ ValueReturn s__popen(enginePo P, termPo c, termPo args, termPo environment) {
       env = consTail(envTerm);
 
       integer klen, vlen;
-      const char *key = strVal(nthArg(pair, 0), &klen);
-      const char *val = strVal(nthArg(pair, 1), &vlen);
+      const char* key = strVal(nthArg(pair, 0), &klen);
+      const char* val = strVal(nthArg(pair, 1), &vlen);
 
       rewindStrBuffer(lineBf);
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
-      const char *line = getTextFromBuffer(lineBf, &lineLen);
-      envp[ix] = strndup(line, (size_t) lineLen);
+      const char* line = getTextFromBuffer(lineBf, &lineLen);
+      envp[ix] = strndup(line, (size_t)lineLen);
     }
     closeIo(O_IO(lineBf));
 
     envp[envCnt] = NULL;
-    heapPo h = processHeap(P);
     ioPo inPipe, outPipe, errPipe;
 
     switch (openPipe(argv[0], argv, envp, &inPipe, &outPipe, &errPipe, utf8Encoding)) {
-      case Ok: {
-        ioChnnlPo in = allocateIOChnnl(h, inPipe);
-        int root = gcAddRoot(h, (ptrPo) &in);
+    case Ok: {
+      ioChnnlPo in = allocateIOChnnl(inPipe);
+      int root = gcAddRoot((ptrPo)&in);
 
-        ioChnnlPo out = allocateIOChnnl(h, outPipe);
-        gcAddRoot(h, (ptrPo) &out);
+      ioChnnlPo out = allocateIOChnnl(outPipe);
+      gcAddRoot((ptrPo)&out);
 
-        ioChnnlPo err = allocateIOChnnl(h, errPipe);
-        gcAddRoot(h, (ptrPo) &err);
+      ioChnnlPo err = allocateIOChnnl(errPipe);
+      gcAddRoot((ptrPo)&err);
 
-        setProcessRunnable(P);
+      setProcessRunnable(P);
 
-        normalPo triple = allocateTpl(h, 3);
-        setArg(triple, 0, (termPo) in);
-        setArg(triple, 1, (termPo) out);
-        setArg(triple, 2, (termPo) err);
+      normalPo triple = allocateTpl(3);
+      setArg(triple, 0, (termPo)in);
+      setArg(triple, 1, (termPo)out);
+      setArg(triple, 2, (termPo)err);
 
-        gcReleaseRoot(h, root);
-        return normalReturn((termPo)triple);
-      }
-      default: {
-        for (integer ix = 0; ix < argCnt; ix++)
-          free(argv[ix + 1]); /* release the strings we allocated */
-        for (integer ix = 0; ix < envCnt; ix++)
-          free(envp[ix]); /* release the strings we allocated */
+      gcReleaseRoot(root);
+      return normalReturn((termPo)triple);
+    }
+    default: {
+      for (integer ix = 0; ix < argCnt; ix++)
+        free(argv[ix + 1]); /* release the strings we allocated */
+      for (integer ix = 0; ix < envCnt; ix++)
+        free(envp[ix]); /* release the strings we allocated */
 
-        setProcessRunnable(P);
-        return abnormalReturn(eIOERROR);
-      }
+      setProcessRunnable(P);
+      return abnormalReturn(eIOERROR);
+    }
     }
   }
 }

@@ -14,26 +14,27 @@ termPo nilEnum;
 labelPo consCons;
 
 void initCons() {
-  nilEnum = declareEnum("nil", 1, globalHeap);
+  nilEnum = declareEnum("nil", 1);
   // defineConstantLiteral(nilEnum); // Ensure unique reference to nil
   consCons = declareLbl("cons", 2, 0);
 }
 
-normalPo allocateCons(heapPo H, termPo lhs, termPo rhs) {
-  int root = gcAddRoot(H, &lhs);
-  gcAddRoot(H, &rhs);
-  normalPo tpl = allocateStruct(H, consCons);
+normalPo allocateCons(termPo lhs, termPo rhs) {
+  int root = gcAddRoot(&lhs);
+  gcAddRoot(&rhs);
+  normalPo tpl = allocateStruct(consCons);
   setArg(tpl, 0, lhs);
   setArg(tpl, 1, rhs);
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(root);
   return tpl;
 }
 
 logical isCons(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (termLbl(c) == consCons);
-  } else
+    return (logical)(termLbl(c) == consCons);
+  }
+  else
     return False;
 }
 
@@ -62,7 +63,7 @@ integer consLength(termPo t) {
 }
 
 retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  char *sep = "";
+  char* sep = "";
   retCode ret = outChar(out, '[');
   if (depth > 1) {
     while (isCons(t) && ret == Ok) {
@@ -74,11 +75,13 @@ retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical a
       sep = ", ";
       t = consTail(pr);
     }
-  } else {
+  }
+  else {
     return outMsg(out, " ... ]");
   }
   if (ret == Ok && isConsNil(t)) {
     return outMsg(out, "]");
-  } else
+  }
+  else
     return outMsg(out, "!%,*T!", displayDepth);
 }

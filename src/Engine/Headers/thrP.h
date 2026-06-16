@@ -19,6 +19,6 @@ typedef struct _thread_record_ {
 
 void initThreads(void);
 
-extern threadPo allocateThread(heapPo H, enginePo pr);
+extern threadPo allocateThread(enginePo pr);
 
 #endif //STAR_THRP_H
