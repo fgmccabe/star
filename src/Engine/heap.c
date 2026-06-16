@@ -1,9 +1,10 @@
 #include "config.h"
 #include <unistd.h>
 #include <stdlib.h>
-#include <threds.h>
 
 #include "abort.h"
+#include "heapP.h"
+#include "labelsP.h"
 #include "normalP.h"
 
 long initHeapSize = 4 * 1024 * 1024;   /* How much memory to give the heap */

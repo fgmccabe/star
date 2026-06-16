@@ -10,7 +10,6 @@
 #include "pkgP.h"
 #include "codeP.h"
 #include "heapP.h"
-#include "thr.h"
 #include "timers.h"
 
 typedef struct engineRecord_ {
@@ -18,7 +17,6 @@ typedef struct engineRecord_ {
   pthread_t threadID; /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.
   ProcessState state; /* What is the status of this process? */
-  threadPo thread; // What is the thread associated with this process
   integer processNo; // What number process is this
   DebugWaitFor waitFor;
   logical tracing;

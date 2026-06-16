@@ -94,7 +94,6 @@ int main(int argc, char** argv) {
   initTerm();
   initStacks();
   initIoChnnl();
-  initThr();
   initTime();
   initIoOps();
 

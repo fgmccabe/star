@@ -40,7 +40,6 @@ set(HEADER_FILES
         Headers/local.h Headers/engineOptions.h
         Headers/labels.h Headers/labelsP.h
         Headers/arithP.h Headers/stringsP.h
-        Headers/thr.h Headers/thrP.h
         Headers/verify.h Headers/verifyP.h
         Headers/debugP.h
         Headers/consP.h Headers/option.h Headers/optionP.h
@@ -97,7 +96,6 @@ set(SOURCE_FILES
         stack.c
         strings.c
         term.c
-        thr.c
         verify.c
         vect.c
         constants.c

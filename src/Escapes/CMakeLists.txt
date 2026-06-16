@@ -18,7 +18,6 @@ set(HEADER_FILES
         Headers/netfile.h
         Headers/stringops.h
         Headers/datentime.h
-        Headers/threds.h
         Headers/lblops.h
         Headers/pkgops.h
         Headers/listops.h
@@ -31,6 +30,7 @@ set(SOURCE_FILES
         bigintops.c
         clock.c
         datentime.c
+        fiberops.c
         fileops.c
         fltops.c
         intops.c
@@ -39,8 +39,7 @@ set(SOURCE_FILES
         system.c
         netfile.c
         stringops.c
-        threds.c
-        unicode.c fiberops.c
+        unicode.c
         timeout.c
         futops.c
         outops.c

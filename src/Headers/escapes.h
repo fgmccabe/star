@@ -6,8 +6,6 @@
 
 /* Declare standard types used in escapes */
 
-#define processState "t'star.thread*threadState'"
-#define thread "t'star.thread*thread'"
 #define io "t'ioHandle'"
 #define option(T) "Uz1'option'" T
 #define either(E, O) "UUz2'star.either*either'" E O
@@ -326,12 +324,6 @@ escape(_setenv, throws(strng strng, unit, ERR), "set an environment variable")
 escape(_envir, func(/**/, lst(tpl(strng strng))), "return entire environment")
 
 // Process manipulation
-escape(_fork, func(func(/**/, unit), thread), "fork new process")
-escape(_thread, func(/**/, thread), "report thread of current process")
-escape(_kill, throws(thread, unit, ERR), "kill off a process")
-escape(_thread_state, func(thread, processState), "state of process")
-escape(_waitfor, throws(thread, unit, ERR), "wait for other thread to terminate")
-
 escape(_shell, throws(strng lst(strng) lst(tpl(strng strng)), int, ERR), "Run a shell cmd")
 
 escape(_stackTrace, func(/**/, strng), "Print a stack trace")
@@ -340,8 +332,6 @@ escape(_break, proc(strng), "break")
 
 escape(_jit_compile,throws(strng int, unit, ERR),"Jit compile function")
 
-#undef processState
-#undef thread
 #undef io
 #undef ERR
 #undef option

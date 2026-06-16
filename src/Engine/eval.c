@@ -15,7 +15,6 @@
 #include "escapeP.h"
 #include "evalP.h"
 #include "normalP.h"
-#include "threds.h"
 
 logical collectStats = False;
 

@@ -233,11 +233,6 @@ escapeType("_str_format",funType(tplType([type("string"),type("string")]),type("
 escapeType("_getenv",funType(tplType([type("string")]),tpExp(tpFun("option",1),type("string")),voidType)).
 escapeType("_setenv",funType(tplType([type("string"),type("string")]),tplType([]),type("errorCode"))).
 escapeType("_envir",funType(tplType([]),tpExp(tpFun("cons",1),tplType([type("string"),type("string")])),voidType)).
-escapeType("_fork",funType(tplType([funType(tplType([]),tplType([]),voidType)]),type("star.thread*thread"),voidType)).
-escapeType("_thread",funType(tplType([]),type("star.thread*thread"),voidType)).
-escapeType("_kill",funType(tplType([type("star.thread*thread")]),tplType([]),type("errorCode"))).
-escapeType("_thread_state",funType(tplType([type("star.thread*thread")]),type("star.thread*threadState"),voidType)).
-escapeType("_waitfor",funType(tplType([type("star.thread*thread")]),tplType([]),type("errorCode"))).
 escapeType("_shell",funType(tplType([type("string"),tpExp(tpFun("cons",1),type("string")),tpExp(tpFun("cons",1),tplType([type("string"),type("string")]))]),type("integer"),type("errorCode"))).
 escapeType("_stackTrace",funType(tplType([]),type("string"),voidType)).
 escapeType("_gc",funType(tplType([type("integer")]),tplType([]),type("errorCode"))).
@@ -476,11 +471,6 @@ isEscape("_str_format").
 isEscape("_getenv").
 isEscape("_setenv").
 isEscape("_envir").
-isEscape("_fork").
-isEscape("_thread").
-isEscape("_kill").
-isEscape("_thread_state").
-isEscape("_waitfor").
 isEscape("_shell").
 isEscape("_stackTrace").
 isEscape("_gc").

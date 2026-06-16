@@ -3,8 +3,6 @@
   Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
  */
 
-#define processState "t'star.thread*threadState'"
-#define thread "t'star.thread*thread'"
 #define io "t'ioHandle'"
 #define option(T) "Uz1'option'" T
 #define either(E,O) "UUz2'star.either*either'" E O
@@ -71,8 +69,6 @@ intrinsic(_bnot,func(int,int),"BNot",True,"bitwise negate number")
 
 intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r),fiber(r,s)))),"Fiber",True,"create a new fiber")
 
-#undef processState
-#undef thread
 #undef io
 #undef ERR
 #undef option
