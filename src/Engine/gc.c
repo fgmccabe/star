@@ -1,5 +1,5 @@
 /*
-  Garbage collection program
+  Garbage collection
   Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
 */
 #include "config.h"
@@ -15,10 +15,6 @@
 long gcCount = 0; /* Number of times GC is invoked */
 long gcGrow = 0;
 
-#ifndef MAX_TABLE
-#define MAX_TABLE 2048
-#endif
-
 static void markMoved(termPo t, termPo where);
 static retCode extendHeap(integer hmin);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
@@ -29,8 +25,7 @@ timerPo gcTimer = Null;
    heap is a compacting garbage collector, O(n) in time and space
    although the space overhead can often be shared */
 
-static void swapHeap(gcSupportPo G) {
-
+static void swapHeap(void) {
   switch (heap.allocMode) {
   case lowerHalf:
     assert(heap.outerLimit - heap.split >= heap.curr - heap.start);
@@ -92,7 +87,7 @@ retCode gcCollect(long amount) {
   setupGCSupport(G);
 
   gcCount++;
-  swapHeap(G);
+  swapHeap();
 
   for (int i = 0; i < heap.topRoot; i++) /* mark the external roots */
     *heap.roots[i] = markPtr(G, heap.roots[i]);

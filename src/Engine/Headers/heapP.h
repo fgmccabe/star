@@ -36,10 +36,9 @@ extern cardMap masks[CARDWIDTH];
 typedef struct heap_ {
   termPo base;
   termPo outerLimit; /* The real */
-
-  termPo start;
   termPo split;
 
+  termPo start;
   termPo curr;
   termPo limit;
 
@@ -63,9 +62,11 @@ typedef struct stack_frame_* framePo;
 extern long initHeapSize; /* How much memory to give the heap */
 extern long maxHeapSize;  // Maximum permitted size of heap
 
-retCode setupHeap(heapPo heap, int64 cellCount);
-
+logical isHeapRef(termPo t);
+logical isNewRef(termPo t);
+logical isOldRef(termPo t);
 void recordTermUpdate(termPo t);
+logical hasCard(termPo t);
 
 #ifdef TRACEMEM
 extern tracingLevel traceMemory; /* memory tracing */

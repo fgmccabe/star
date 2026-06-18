@@ -27,9 +27,24 @@ void initHeap(long heapSize) {
     for (int32 ix = 0; ix < CARDWIDTH; ix++)
       masks[ix] = 1 << ix; /* compute 2**i for i=0 to i=63 */
 
-    if (setupHeap(&heap, heapSize) != Ok) {
+    int64 cellCount = heapSize;
+    heap.curr = heap.old = heap.base = heap.start =
+      (termPo)malloc(sizeof(ptrPo) * cellCount); /* Allocate heap */
+    if (heap.curr == Null) {
       outMsg(logFile, "Unable to create heap of %ld cells", heapSize);
       star_exit(oomCode);
+    }
+    else {
+      heap.outerLimit = heap.base + cellCount; /* The actual outer limit */
+      heap.limit = heap.split = heap.base + cellCount / 2;
+      heap.allocMode = lowerHalf;
+
+      heap.oldLimit = heap.start; // Nothing in the old generation at start.
+      heap.ncards = (cellCount + CARDWIDTH - 1) / CARDWIDTH;
+      heap.cards = (cardMap*)malloc(heap.ncards * sizeof(cardMap));
+
+      for (int32 ix = 0; ix < heap.ncards; ix++)
+        heap.cards[ix] = 0; /* clear the card table */
     }
 
 #ifdef TRACEMEM
@@ -46,27 +61,6 @@ void initHeap(long heapSize) {
 retCode heapSummary(ioPo out, heapPo H) {
   return outMsg(out, ", H:0x%x(%s)%5.2g%%", heap.curr, heap.allocMode == lowerHalf ? "lower" : "upper",
                 (double)(heap.curr - heap.start) * 100.0 / (double)(heap.limit - heap.start));
-}
-
-retCode setupHeap(heapPo heap, int64 cellCount) {
-  heap->curr = heap->old = heap->base = heap->start =
-    (termPo)malloc(sizeof(ptrPo) * cellCount); /* Allocate heap */
-
-  if (heap->curr == Null)
-    return Space;
-  else {
-    heap->outerLimit = heap->base + cellCount; /* The actual outer limit */
-    heap->limit = heap->split = heap->base + cellCount / 2;
-    heap->allocMode = lowerHalf;
-
-    heap->oldLimit = heap->start; // Nothing in the old generation at start.
-    heap->ncards = (cellCount + CARDWIDTH - 1) / CARDWIDTH;
-    heap->cards = (cardMap*)malloc(heap->ncards * sizeof(cardMap));
-
-    for (int32 ix = 0; ix < heap->ncards; ix++)
-      heap->cards[ix] = 0; /* clear the card table */
-    return Ok;
-  }
 }
 
 int gcAddRoot(ptrPo addr) {
@@ -86,6 +80,36 @@ retCode reserveSpace(integer amnt) {
     return Ok;
   else
     return Error;
+}
+
+void recordTermUpdate(termPo t) {
+  if (t >= heap.old && t < heap.oldLimit) {
+    uint64 add = t - heap.old;
+
+    heap.cards[add >> CARDSHIFT] |= masks[add & CARDMASK];
+  }
+}
+
+logical hasCard(termPo t) {
+  if (t >= heap.old && t < heap.oldLimit) {
+    uint64 add = t - heap.old;
+
+    return heap.cards[add >> CARDSHIFT] & masks[add & CARDMASK];
+  }
+  else
+    return False;
+}
+
+logical isOldRef(termPo t) {
+  return t >= heap.old && t < heap.oldLimit;
+}
+
+logical isNewRef(termPo t) {
+  return t >= heap.start && t < heap.curr;
+}
+
+logical isHeapRef(termPo t) {
+  return t>=heap.base && t<heap.outerLimit;
 }
 
 termPo allocateObject(int32 index, integer amnt) {
@@ -109,15 +133,8 @@ termPo allocateObject(int32 index, integer amnt) {
     allocationHeaps[lg2(amnt)]++;
   }
 #endif
+
   return t;
-}
-
-void recordTermUpdate(termPo t) {
-  if (t >= heap.old && t < heap.oldLimit) {
-    uint64 add = t - heap.old;
-
-    heap.cards[add >> CARDSHIFT] |= masks[add & CARDMASK];
-  }
 }
 
 normalPo allocateUnary(int32 index, termPo arg) {
@@ -149,12 +166,18 @@ retCode enoughRoom(labelPo lbl) {
 }
 
 void validPtr(termPo t) {
-  if (isPointer(t))
-    assert((t >= heap.start && t < heap.limit) || !(t >= heap.base && t < heap.outerLimit));
+  if (isPointer(t)) {
+    assert(isNewRef(t) || isOldRef(t) || !isHeapRef(t));
+  }
 }
 
 static retCode verifyScanHelper(ptrPo arg, void* c) {
-  validPtr(*arg);
+  termPo t = *arg;
+  validPtr(t);
+  logical* inNewHeap = (logical*)c;
+  if (inNewHeap != Null) {
+    *inNewHeap |= isNewRef(t);
+  }
   return Ok;
 }
 
@@ -167,10 +190,35 @@ void verifyHeap(void) {
     else {
       normalPo trm = C_NORMAL(t);
       labelPo lbl = termLbl(trm);
+
       for (int32 ix = 0; ix < lblArity(lbl); ix++) {
         validPtr(trm->args[ix]);
       }
       t = t + termSize(trm);
+    }
+  }
+
+  for (termPo t = heap.old; t < heap.oldLimit; t++) {
+    logical hasNewRef = False;
+    termPo term = t;
+
+    if (hasBuiltinType(t)) {
+      builtinClassPo sClass = builtinClassOf(t);
+      t = sClass->scanFun(sClass, verifyScanHelper, &hasNewRef, t);
+    }
+    else {
+      normalPo trm = C_NORMAL(t);
+      labelPo lbl = termLbl(trm);
+      for (int32 ix = 0; ix < lblArity(lbl); ix++) {
+        termPo arg = trm->args[ix];
+        validPtr(arg);
+        hasNewRef |= isNewRef(arg);
+      }
+      t = t + termSize(trm);
+    }
+
+    if (hasNewRef) {
+      check(hasCard(term), "old term not in card table");
     }
   }
 }
