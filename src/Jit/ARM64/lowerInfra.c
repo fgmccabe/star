@@ -254,7 +254,7 @@ void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset) {
   for (int32 ix = -1; ix > minOffset; ix--) {
     voidOutSlot(state, pc, ix);
   }
-  for (int32 ix=0; ix< mtdArity(state->mtd); ix++)
+  for (int32 ix = 0; ix < mtdArity(state->mtd); ix++)
     voidOutSlot(state, pc, ix);
   for (int32 ix = 0; ix < state->argMark + minOffset; ix++) {
     state->voided[ix] = False;
@@ -473,9 +473,9 @@ void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   int32 delta = (arity + lcls + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
   armReg tmp = findFreeReg(jit);
 
-  if (mtdHasName(state->mtd, "star.multi@star.core$sequence!star.multi*multi@Γ%283@_cons")) {
-    installBkPt(state, pc);
-  }
+  // if (mtdHasName(state->mtd, "star.multi@star.core$sequence!star.multi*multi@Γ%283@_cons")) {
+  //   installBkPt(state, pc);
+  // }
 
   if (is16bit(delta))
     sub(tmp, AG, IM(delta));
@@ -597,6 +597,49 @@ void verifyState(codeGenPo state, int32 pc) {
       assert(v->stashed ? (v->stkOff>=-state->numLocals && v->stkOff<mtdArity(state->mtd)):True);
     }
   }
+}
+
+// Implement write barrier
+/*
+if (t >= heap.old && t < heap.oldLimit) {
+uint64 add = t - heap.old;
+
+heap.cards[add >> CARDSHIFT] |= masks[add & CARDMASK];
+}
+*/
+void writeBarrier(codeGenPo state, int32 pc, FlexOp src) {
+  assemCtxPo ctx = assemCtx(state->jit);
+  armReg trm = findARegister(state, pc);
+  armReg hpReg = findARegister(state, pc);
+  armReg tmp = findARegister(state, pc);
+  armReg tmp2 = findARegister(state, pc);
+  codeLblPo okLbl = newLabel(ctx);
+
+  loadRegister(state, trm, src);
+  mov(hpReg, IM((uinteger)&heap));
+  ldp(tmp, tmp2, OF(hpReg,OffsetOf(HeapRecord,old)));
+  cmp(trm, RG(tmp));
+  ccmp(trm, RG(tmp2), 2, HI);
+  bhi(okLbl);
+
+  installBkPt(state, pc);
+
+  sub(trm, trm, RG(tmp)); // relative address in old space
+  lsr(trm, trm, IM(3));   // convert addr difference to cell number
+
+  mov(tmp, IM(1));
+  and(tmp2, trm, IM(63));
+  lsl(tmp2, tmp, RG(tmp2)); // 1<<cell&0x1f
+  ldr(hpReg, OF(hpReg,OffsetOf(HeapRecord,cards)));
+  asr(trm, trm, IM(6));
+  ldr(tmp, EX2(hpReg,trm,U_XTX, 3)); // Get card table entry
+  orr(tmp, tmp, RG(tmp2));
+  str(tmp, EX2(hpReg, trm, U_XTX, 3));
+  bind(okLbl);
+  releaseReg(state->jit, tmp);
+  releaseReg(state->jit, hpReg);
+  releaseReg(state->jit, trm);
+  releaseReg(state->jit, tmp2);
 }
 
 void breakPt() {}

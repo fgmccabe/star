@@ -10,14 +10,17 @@
 #include "debug.h"
 #include <memory.h>
 #include <globalsP.h>
+
+#include "abort.h"
 #include "normalP.h"
 
-long gcCount = 0; /* Number of times GC is invoked */
-long gcGrow = 0;
+static long gcCnt = 0; /* Number of times GC is invoked */
+static long gcGrow = 0;
 
 static void markMoved(termPo t, termPo where);
-static retCode extendHeap(integer hmin);
+static void extendHeap(integer hmin);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
+static termPo scanTerm(gcSupportPo G, termPo x);
 
 timerPo gcTimer = Null;
 
@@ -27,17 +30,17 @@ timerPo gcTimer = Null;
 
 static void swapHeap(void) {
   switch (heap.allocMode) {
-  case lowerHalf:
+  case lowerPhase1:
     assert(heap.outerLimit - heap.split >= heap.curr - heap.start);
     heap.start = heap.curr = heap.split;
     heap.limit = heap.outerLimit; /* shift to the upper half */
-    heap.allocMode = upperHalf; /* It is guaranteed to have enough room */
+    heap.allocMode = upperPhase1; /* It is guaranteed to have enough room */
     break;
-  case upperHalf: /* Shift to the lower half */
+  case upperPhase1: /* Shift to the lower half */
     assert(heap.split - heap.base >= heap.curr - heap.start);
     heap.limit = heap.split;
     heap.start = heap.curr = heap.base;
-    heap.allocMode = lowerHalf;
+    heap.allocMode = lowerPhase1;
   default: ;
   }
 }
@@ -53,10 +56,10 @@ void setupGCSupport(gcSupportPo G) {
   G->oCnt = 0;
 }
 
-retCode gcCollect(long amount) {
+retCode gcCollectOld(long amount) {
 #ifdef TRACEMEM
   if (traceMemory > noTracing) {
-    outMsg(logFile, "GC #%d\n%_", gcCount);
+    outMsg(logFile, "GC #%d\n%_", gcCnt);
   }
 #endif
 
@@ -86,7 +89,7 @@ retCode gcCollect(long amount) {
 
   setupGCSupport(G);
 
-  gcCount++;
+  gcCnt++;
   swapHeap();
 
   for (int i = 0; i < heap.topRoot; i++) /* mark the external roots */
@@ -94,7 +97,7 @@ retCode gcCollect(long amount) {
 
   markLabels(G);
   markGlobals(G);
-  markProcesses( G);
+  markProcesses(G);
 
 #ifdef TRACEMEM
   if (traceMemory > noTracing) {
@@ -120,10 +123,7 @@ retCode gcCollect(long amount) {
 #endif
 
   if (heap.limit - heap.curr <= amount + 100) {
-    if (extendHeap(amount) != Ok) {
-      syserr("Unable to grow process heap");
-      return Space;
-    }
+    extendHeap(amount);
   }
 
 #ifdef TRACEMEM
@@ -175,7 +175,7 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
       }
     }
     else {
-      assert(!inHeap(t));
+      assert(isOldRef(t) || !inHeap(t));
       return t;
     }
   }
@@ -184,15 +184,15 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
   }
 }
 
- logical hasMoved(termPo t) {
+logical hasMoved(termPo t) {
   uint32 token = t->space;
   return (logical)((token & 1) == 1);
 }
 
- termPo movedTo(termPo t) {
+termPo movedTo(termPo t) {
   assert(hasMoved(t));
 
-  uint64 tgt = (((uint64)(t->lblIndex)) << 32) | (((uint32)t->space)&~1U);
+  uint64 tgt = (((uint64)(t->lblIndex)) << 32) | (((uint32)t->space) & ~1U);
   return (termPo)tgt;
 }
 
@@ -245,14 +245,25 @@ termPo finalizeTerm(gcSupportPo G, termPo x) {
 }
 
 void dumpGcStats(ioPo out) {
-  logMsg(out, "%d gc collections, %d heap grows", gcCount, gcGrow);
+  logMsg(out, "%d gc collections, %d heap grows", gcCnt, gcGrow);
 #ifdef TRACEMEM
   showMemoryStats(out);
 #endif
 }
 
-retCode extendHeap(integer hmin) {
+void extendHeap(integer hmin) {
   integer newSize = (heap.outerLimit - heap.base) * 2 + hmin;
+
+  if (newSize > maxHeapSize) {
+    outMsg(logFile, "Maximum heap size (%ld) exceeded", maxHeapSize);
+    star_exit(oomCode);
+  }
+
+  termPo newHeap = (termPo)malloc(sizeof(ptrPo) * newSize);
+  if (newHeap == Null) {
+    outMsg(logFile, "Unable to allocate space (%ld cells) for heap", newSize);
+    star_exit(oomCode);
+  }
 
   gcGrow++;
 
@@ -261,10 +272,6 @@ retCode extendHeap(integer hmin) {
     outMsg(logFile, "extending heap to %ld\n%_", newSize);
 #endif
 
-  if (newSize > maxHeapSize)
-    return Error;
-
-  termPo newHeap = (termPo)malloc(sizeof(ptrPo) * newSize);
   termPo oldHeap = heap.base;
 
   GCSupport GCSRec;
@@ -275,7 +282,7 @@ retCode extendHeap(integer hmin) {
   heap.curr = heap.old = heap.base = heap.start = newHeap;
   heap.outerLimit = newHeap + newSize;
   heap.limit = heap.split = heap.base + newSize / 2;
-  heap.allocMode = lowerHalf;
+  heap.allocMode = lowerPhase1;
 
 #ifdef TRACEMEM
   if (traceMemory > noTracing)
@@ -306,16 +313,10 @@ retCode extendHeap(integer hmin) {
 
   free(oldHeap);
 
-  if (heap.limit - heap.curr <= hmin) {
-    syserr("Unable to grow process heap");
-    return Space;
-  }
-
 #ifdef TRACEMEM
   if (traceMemory > noTracing) {
     outMsg(logFile, "%d bytes used\n", heap.curr - heap.start);
     outMsg(logFile, "%d bytes available\n%_", heap.limit - heap.curr);
   }
 #endif
-  return Ok;
 }

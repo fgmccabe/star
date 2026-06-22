@@ -8,8 +8,10 @@
 
 // Are we allocating from the lower or upper half?
 typedef enum {
-  lowerHalf, upperHalf
+  lowerPhase1, upperPhase1, lowerPhase2, upperPhase2
 } allocMode;
+
+static char *allocModeNames[] = {"lP1", "uP1", "lP2","uP2"};
 
 #ifndef MAX_ROOT
 #define MAX_ROOT 128
@@ -17,14 +19,12 @@ typedef enum {
 
 /* Used for recording old->new pointers */
 #ifndef CARDSHIFT
-#define CARDSHIFT 6		/* 64 bits in an integer */
-#define CARDWIDTH  (1<<CARDSHIFT)
-#define CARDMASK  (CARDWIDTH-1)
+#define CARDSHIFT 6u		/* 2>>6 bits in an integer */
+#define CARDWIDTH  (1u<<CARDSHIFT)
+#define CARDMASK  (CARDWIDTH-1u)
 #endif
 
 typedef uint64 cardMap;
-
-extern cardMap masks[CARDWIDTH];
 
 /*
  * | base                                                              outerLimit |
@@ -81,6 +81,8 @@ typedef struct gc_support_ {
   long oCnt;
   termPo oldBase;
   termPo oldLimit;
+  termPo oldOld;
+  termPo oldOldLimit;
 } GCSupport, *gcSupportPo;
 
 extern void setupGCSupport(gcSupportPo G);
@@ -89,16 +91,12 @@ extern void validPtr(termPo t);
 extern void verifyHeap(void);
 
 extern termPo markPtr(gcSupportPo G, ptrPo p);
-extern termPo scanTerm(gcSupportPo G, termPo x);
 
 static inline logical inHeap(const termPo x) {
   return (logical)((x >= heap.base && x < heap.curr) || (x >= heap.old && x < heap.oldLimit));
 }
 
-extern void lockHeap(heapPo H);
-extern void releaseHeapLock(heapPo H);
-
-extern retCode heapSummary(ioPo out, heapPo H);
+void heapSummary(ioPo out);
 
 extern void dumpGcStats(ioPo out);
 

@@ -494,6 +494,7 @@ void attachStack(enginePo P, stackPo top) {
   top->attachment = stk;
   top->bottom = Null;
   P->stk = bottom;
+  recordTermUpdate((termPo)top); // We must mark resumed stacks
 }
 
 // Get the stack immediately below the identified parent
@@ -545,6 +546,7 @@ stackPo dropStack(stackPo tsk) {
   releaseBlock(stackRegion, (voidPtr)tsk->stkMem);
   tsk->stkMem = Null;
   tsk->sze = -1;
+  recordTermUpdate((termPo)previous);
   return previous;
 }
 

@@ -99,6 +99,7 @@ set(SOURCE_FILES
         verify.c
         vect.c
         constants.c
+        generation.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

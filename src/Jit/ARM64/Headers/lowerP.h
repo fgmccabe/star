@@ -121,6 +121,8 @@ void storeElement(jitCompPo jit, armReg src, armReg base, int32 ix);
 void loadVarble(jitCompPo jit, armReg tgt, int32 varNo);
 void storeVarble(jitCompPo jit, armReg src, int32 varNo);
 
+void writeBarrier(codeGenPo state, int32 pc, FlexOp src);
+
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 retCode showStackSlot(ioPo f, void* data, long depth, long precision, logical alt);

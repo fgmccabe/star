@@ -20,13 +20,8 @@ integer numAllocated = 0;
 integer totalAllocated = 0;
 integer allocationHeaps[64];
 
-cardMap masks[CARDWIDTH];
-
 void initHeap(long heapSize) {
   if (heap.base == NULL) {
-    for (int32 ix = 0; ix < CARDWIDTH; ix++)
-      masks[ix] = 1 << ix; /* compute 2**i for i=0 to i=63 */
-
     int64 cellCount = heapSize;
     heap.curr = heap.old = heap.base = heap.start =
       (termPo)malloc(sizeof(ptrPo) * cellCount); /* Allocate heap */
@@ -37,7 +32,7 @@ void initHeap(long heapSize) {
     else {
       heap.outerLimit = heap.base + cellCount; /* The actual outer limit */
       heap.limit = heap.split = heap.base + cellCount / 2;
-      heap.allocMode = lowerHalf;
+      heap.allocMode = lowerPhase1;
 
       heap.oldLimit = heap.start; // Nothing in the old generation at start.
       heap.ncards = (cellCount + CARDWIDTH - 1) / CARDWIDTH;
@@ -58,9 +53,20 @@ void initHeap(long heapSize) {
   }
 }
 
-retCode heapSummary(ioPo out, heapPo H) {
-  return outMsg(out, ", H:0x%x(%s)%5.2g%%", heap.curr, heap.allocMode == lowerHalf ? "lower" : "upper",
-                (double)(heap.curr - heap.start) * 100.0 / (double)(heap.limit - heap.start));
+void heapSummary(ioPo out) {
+  outMsg(out, BLUE_ESC_ON"Heap: |0x%lx..old..0x%lx|"BLUE_ESC_OFF, heap.old, heap.oldLimit);
+  switch (heap.allocMode) {
+  case lowerPhase1:
+  case lowerPhase2:
+    outMsg(out,GREEN_ESC_ON"%s 0x%lx..0x%lx..0x%lx|\n"GREEN_ESC_OFF,
+           allocModeNames[heap.allocMode], heap.start, heap.curr, heap.limit);
+    break;
+  default:
+
+    outMsg(out,YELLOW_ESC_ON"%s0x%lx..0x%lx..0x%lx|\n"YELLOW_ESC_OFF,
+           allocModeNames[heap.allocMode], heap.start, heap.curr, heap.limit);
+    break;
+  }
 }
 
 int gcAddRoot(ptrPo addr) {
@@ -82,11 +88,22 @@ retCode reserveSpace(integer amnt) {
     return Error;
 }
 
+void showCards() {
+  outMsg(logFile, "%d cards in table\n",heap.ncards);
+  for (int ix = 0; ix < heap.ncards; ix++) {
+    if (heap.cards[ix]!=0) {
+      outMsg(logFile, "card 0x%lx: %lb\n", heap.old+ix, heap.cards[ix]);
+    }
+  }
+}
+
 void recordTermUpdate(termPo t) {
   if (t >= heap.old && t < heap.oldLimit) {
     uint64 add = t - heap.old;
 
-    heap.cards[add >> CARDSHIFT] |= masks[add & CARDMASK];
+    assert((add>>CARDSHIFT) < heap.ncards);
+
+    heap.cards[add >> CARDSHIFT] |= (1ull << (add & CARDMASK));
   }
 }
 
@@ -94,7 +111,7 @@ logical hasCard(termPo t) {
   if (t >= heap.old && t < heap.oldLimit) {
     uint64 add = t - heap.old;
 
-    return heap.cards[add >> CARDSHIFT] & masks[add & CARDMASK];
+    return heap.cards[add >> CARDSHIFT] & (1ull << (add & CARDMASK));
   }
   else
     return False;
@@ -109,7 +126,7 @@ logical isNewRef(termPo t) {
 }
 
 logical isHeapRef(termPo t) {
-  return t>=heap.base && t<heap.outerLimit;
+  return t >= heap.base && t < heap.outerLimit;
 }
 
 termPo allocateObject(int32 index, integer amnt) {
@@ -174,10 +191,6 @@ void validPtr(termPo t) {
 static retCode verifyScanHelper(ptrPo arg, void* c) {
   termPo t = *arg;
   validPtr(t);
-  logical* inNewHeap = (logical*)c;
-  if (inNewHeap != Null) {
-    *inNewHeap |= isNewRef(t);
-  }
   return Ok;
 }
 
@@ -198,7 +211,34 @@ void verifyHeap(void) {
     }
   }
 
-  for (termPo t = heap.old; t < heap.oldLimit; t++) {
+    integer max = ((heap.oldLimit - heap.old) + CARDMASK) >> CARDSHIFT;
+
+    for (integer ix = 0; ix < max; ix++) {
+      uint64 card = heap.cards[ix];
+      if (card != 0) {
+        for (integer jx = 0; jx < CARDWIDTH; jx++)
+          if ((card & (1ull << jx)) != 0) {
+            termPo t = heap.old+(ix << CARDSHIFT)+jx;
+
+            if (hasBuiltinType(t)) {
+              builtinClassPo sClass = builtinClassOf(t);
+              sClass->scanFun(sClass, verifyScanHelper, Null, t);
+            }
+            else {
+              normalPo trm = C_NORMAL(t);
+              labelPo lbl = termLbl(trm);
+              for (int32 ax = 0; ax < lblArity(lbl); ax++) {
+                termPo arg = trm->args[ax];
+                validPtr(arg);
+              }
+            }
+          }
+
+      }
+    }
+
+
+  for (termPo t = heap.old; t < heap.oldLimit;) {
     logical hasNewRef = False;
     termPo term = t;
 
@@ -217,7 +257,7 @@ void verifyHeap(void) {
       t = t + termSize(trm);
     }
 
-    if (hasNewRef) {
+    if (hasNewRef && !hasCard(term)) {
       check(hasCard(term), "old term not in card table");
     }
   }

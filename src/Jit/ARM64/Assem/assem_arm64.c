@@ -368,7 +368,7 @@ void ccmn_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ct
 }
 
 void ccmp_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"ccmp%s %R, %F\n%_",armCondNames[cnd],Rn, &S2));
+  TRACE(outMsg(logFile,"ccmp%s %R, 0x%x, %F, %s\n%_",(w?"l":"w"),Rn, nzcv, &S2,armCondNames[cnd]));
   switch (S2.mode) {
   case imm: {
     uint32 ins = one_bt(w, 31) | two_bt(3, 29) | ayt_bt(0xd2, 21) | fiv_bt(imm, 16) |

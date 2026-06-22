@@ -687,6 +687,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // Assign to the global var's content field
       storeFlex(state, pc, src->src, OF(glbReg, OffsetOf(GlobalRecord, content)));
       releaseReg(jit, glbReg);
+
       pc += insSize;
       continue;
     }
@@ -744,6 +745,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // store a value into a single assignment
       int32 insSize = 4;
       FlexOp sng = localFlex(state, pc, opand(2));
+      writeBarrier(state, pc, sng);
       armReg sngReg = findARegister(state, pc);
       loadFlex(state, pc, sng,RG(sngReg));
       localVarPo val = localSource(state, pc, opand(3));
@@ -799,6 +801,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // assign to a R/W cell
       int32 insSize = 3;
       FlexOp cel = localFlex(state, pc, opand(1));
+      writeBarrier(state, pc, cel);
       FlexOp vl = localFlex(state, pc, opand(2));
       armReg tmp = findARegister(state, pc);
       armReg tmp2 = findARegister(state, pc);
@@ -828,10 +831,11 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sStNth: {
       // T el --> store in nth element
       int32 insSize = 4;
+      FlexOp trm = localFlex(state, pc, opand(1));
+      writeBarrier(state, pc, trm);
+      FlexOp vl = localFlex(state, pc, opand(3));
       armReg tmp = findARegister(state, pc);
       armReg tmp2 = findARegister(state, pc);
-      FlexOp trm = localFlex(state, pc, opand(1));
-      FlexOp vl = localFlex(state, pc, opand(3));
       loadRegister(state, tmp, trm);
       loadRegister(state, tmp2, vl);
       storeElement(jit, tmp2, tmp, opand(2) + 1);

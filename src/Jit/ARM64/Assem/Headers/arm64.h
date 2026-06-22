@@ -308,7 +308,10 @@ void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
 #define cbz_w(Rt, Lbl) cbz_(0, Rt, Lbl, ctx)
 
 void ccmn_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx);
+
 void ccmp_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx);
+#define ccmp(Rn, S, Flg, Cnd) ccmp_(1, Rn, Cnd, Flg, S, ctx)
+#define ccmpw(Rn, S, Flg, Cnd) ccmp_(0, Rn, Cnd, Flg, S, ctx)
 
 void cinc_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
 #define cinc(Rd, Rn, Cond) cinc_(1, Rd, Cond, Rn, ctx)
