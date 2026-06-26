@@ -20,7 +20,7 @@ integer stackRegionSize = (1 << 26);    /* 64M cells is default stack region */
 
 static long stkSize(builtinClassPo cl, termPo o);
 static termPo stkCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo stkScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode stkScan(termHelper helper, void* c, termPo o);
 static logical stkCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer stkHash(builtinClassPo cl, termPo o);
 static retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -272,29 +272,44 @@ static void moveStack2Stack(stackPo totsk, stackPo fromtsk, logical execJit, int
   fromtsk->sp += count;
 }
 
-termPo stkScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+retCode stkScan(termHelper helper, void* c, termPo o) {
   stackPo stk = C_STACK(o);
-
   assert(stk != Null);
+  retCode ret = Ok;
 
   if (stk->stkMem != Null) {
     // Walk the value stack...
     ptrPo spLimit = stackLimit(stk);
-    for (ptrPo sp = stk->sp; sp < spLimit; sp++)
-      helper(sp, c);
+    for (ptrPo sp = stk->sp; ret == Ok && sp < spLimit; sp++)
+      ret = helper(sp, c);
 
-    if (stk->attachment != Null)
-      helper((ptrPo)&stk->attachment, c);
-    if (stk->bottom != Null)
-      helper((ptrPo)&stk->bottom, c);
+    if (ret == Ok && stk->attachment != Null)
+      ret = helper((ptrPo)&stk->attachment, c);
+    if (ret == Ok && stk->bottom != Null)
+      ret = helper((ptrPo)&stk->bottom, c);
 
 #ifdef TRACESTACK
     if (traceStack > noTracing)
       stackSanityCheck(stk);
 #endif
   }
+  return ret;
+}
 
-  return o + StackCellCount;
+retCode scanStack(stackPo stk, termHelper helper, void* cl) {
+  retCode ret = Ok;
+  if (stk->stkMem != Null && stk->state != moribund) {
+    // Walk the value stack...
+    ptrPo spLimit = stackLimit(stk);
+    for (ptrPo sp = stk->sp; ret == Ok && sp < spLimit; sp++)
+      ret = helper(sp, cl);
+
+    if (ret == Ok && stk->attachment != Null)
+      ret = helper((ptrPo)&stk->attachment, cl);
+    if (ret == Ok && stk->bottom != Null)
+      ret = helper((ptrPo)&stk->bottom, cl);
+  }
+  return ret;
 }
 
 termPo stkFinalizer(builtinClassPo class, termPo o) {
@@ -334,7 +349,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
   methodPo callProg = locateMethod((uinteger)pc);
 
   if (callProg != Null) {
-    termPo loc = locateMethodLocation(callProg, (uinteger)pc);
+    codeLocationPo loc = locateMethodLocation(callProg, (uinteger)pc);
 
     if (loc != Null)
       outMsg(out, "[%d] %L: %T", frameNo, loc, callProg);

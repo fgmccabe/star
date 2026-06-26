@@ -20,7 +20,7 @@ static long gcGrow = 0;
 static void markMoved(termPo t, termPo where);
 static void extendHeap(integer hmin);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
-static termPo scanTerm(gcSupportPo G, termPo x);
+static termPo scanHpTerm(gcSupportPo G, termPo x);
 
 timerPo gcTimer = Null;
 
@@ -108,7 +108,7 @@ retCode gcCollectOld(long amount) {
   termPo t = heap.start;
   while (t < heap.curr) {
     assert(t >= heap.start && t < heap.curr);
-    t = scanTerm(G, t);
+    t = scanHpTerm(G, t);
     assert(heap.curr <= heap.limit);
   }
 
@@ -208,10 +208,11 @@ static retCode markScanHelper(ptrPo arg, void* c) {
   return Ok;
 }
 
-termPo scanTerm(gcSupportPo G, termPo x) {
+termPo scanHpTerm(gcSupportPo G, termPo x) {
   if (hasBuiltinType(x)) {
     builtinClassPo sClass = builtinClassOf(x);
-    return sClass->scanFun(sClass, markScanHelper, G, x);
+    sClass->scanFun(markScanHelper, G, x);
+    return x + sClass->sizeFun(sClass, x);
   }
   else {
     normalPo nml = C_NORMAL(x);
@@ -304,7 +305,7 @@ void extendHeap(integer hmin) {
 
   termPo t = heap.start;
   while (t < heap.curr)
-    t = scanTerm(G, t);
+    t = scanHpTerm(G, t);
 
 #ifdef TRACEMEM
   if (traceMemory > noTracing)

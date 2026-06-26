@@ -20,7 +20,9 @@ set(HEADER_FILES
         Headers/bignum.h Headers/bignumP.h
         Headers/bkpoint.h
         Headers/cell.h Headers/cellP.h
-        Headers/code.h Headers/codeP.h
+        Headers/code.h
+        Headers/codeP.h
+        Headers/compact.h
         Headers/cons.h
         Headers/engine.h
         ../Infra/Headers/encoding.h
@@ -100,6 +102,7 @@ set(SOURCE_FILES
         vect.c
         constants.c
         generation.c
+        compact.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

@@ -29,7 +29,9 @@ termPo getConstant(int32 key) {
 
 int32 lookupConstant(termPo t) {
   constAnts[0] = t;
-  return (int32)(integer)hashGet(constantKeys, (void*)(integer)0);
+  int32 constNo = (int32)(integer)hashGet(constantKeys, (void*)(integer)0);
+  constAnts[0] = Null;
+  return constNo;
 }
 
 int32 defineConstantLiteral(termPo t) {
@@ -66,6 +68,14 @@ void markConstants(gcSupportPo G) {
   for (int32 ix = 0; ix < nextConstant; ix++) {
     constAnts[ix] = markPtr(G, &constAnts[ix]);
   }
+}
+
+retCode scanConstants(termHelper helper, void *cl) {
+  retCode ret = Ok;
+  for (int32 ix = 0; ret==Ok && ix < nextConstant; ix++) {
+    ret = helper(&constAnts[ix], cl);
+  }
+  return ret;
 }
 
 void dumpConstants() {

@@ -632,26 +632,17 @@ DebugWaitFor insDebug(enginePo p) {
 }
 
 retCode showLoc(ioPo f, void* data, long depth, long precision, logical alt) {
-  termPo ln = (termPo)data;
+  codeLocationPo ln = (codeLocationPo)data;
 
   if (ln != Null) {
-    if (isNormalPo(ln)) {
-      normalPo line = C_NORMAL(ln);
-      char pkgNm[MAX_SYMB_LEN];
-      copyChars2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
+    if (alt && showPkgFile) {
+      char srcName[MAXFILELEN];
 
-      if (alt && showPkgFile) {
-        char srcName[MAXFILELEN];
-        packagePo pkg = loadedPackage(pkgNm);
-        retCode ret = manifestResource(pkg, "source", srcName, NumberOf(srcName));
-        if (ret == Ok)
-          return outMsg(f, "%s(%T:%T@%T,%T)%_", srcName, nthArg(line, 1), nthArg(line, 2), nthArg(line, 3),
-                        nthArg(line, 4));
-      }
-      return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+      retCode ret = manifestResource(ln->pkg, "source", srcName, NumberOf(srcName));
+      if (ret == Ok)
+        return outMsg(f, "%s(%d:%d@%d,%d)%_", srcName, ln->line, ln->col, ln->from, ln->size);
     }
-    else
-      return outMsg(f, "%,*T", displayDepth, ln);
+    return outMsg(f, "%s:%T:%T(%T)", pkgName(ln->pkg), ln->line, ln->col, ln->from, ln->size);
   }
   else
     return outStr(f, "?unknown loc?");

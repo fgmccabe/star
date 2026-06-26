@@ -118,4 +118,6 @@ void
 showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, ssaInsPo pc);
 void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
 
+retCode scanStack(stackPo stk, termHelper helper, void *cl);
+
 #endif //STAR_STACKP_H

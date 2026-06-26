@@ -9,7 +9,7 @@
 
 static long strSize(builtinClassPo cl, termPo o);
 static termPo strCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo strScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode strScan(termHelper helper, void* c, termPo o);
 static logical strCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer strHash(builtinClassPo cl, termPo o);
 static retCode strDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -72,18 +72,16 @@ long strSize(builtinClassPo cl, termPo o) {
 
 termPo strCopy(builtinClassPo cl, termPo dst, termPo src) {
   stringPo si = C_STR(src);
-  stringPo di = (stringPo)dst;
-  *di = *si;
+  int32 count = StringCellCount(si->length);
+  for (int32 ix=0;ix<count;ix++) {
+    *dst++ = *src++;
+  }
 
-  uniMove(di->txt, si->length, si->txt, si->length);
-
-  return ((termPo)di) + StringCellCount(si->length);
+  return dst;
 }
 
-termPo strScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
-  stringPo str = C_STR(o);
-
-  return o + StringCellCount(str->length);
+retCode strScan(termHelper helper, void* c, termPo o) {
+  return Ok;
 }
 
 termPo strFinalizer(builtinClassPo class, termPo o) {

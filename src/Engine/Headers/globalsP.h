@@ -22,4 +22,6 @@ typedef struct global_rec_ {
 
 void markGlobals(gcSupportPo G);
 
+retCode scanGlobals(termHelper helper, void* cl);
+
 #endif //STAR_GLOBALSP_H

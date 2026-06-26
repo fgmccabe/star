@@ -42,6 +42,8 @@ retCode markProcess(enginePo P, gcSupportPo G);
 void markProcesses(gcSupportPo G);
 void verifyEngine(enginePo p);
 
+retCode scanProcesses(termHelper helper, void *cl);
+
 void abort_star(enginePo P, termPo lc, termPo msg);
 
 extern logical collectStats;

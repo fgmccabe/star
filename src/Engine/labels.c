@@ -27,7 +27,7 @@ builtinClassPo specialClass = &Special;
 
 static long lblSize(builtinClassPo cl, termPo o);
 static termPo lblCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo lblScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode lblScan(termHelper helper, void* c, termPo o);
 static logical lblCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer lblHash(builtinClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -135,7 +135,7 @@ int32 standardIndex(builtinClassPo clss) {
 termPo declareEnum(const char* name, int32 index) {
   labelPo lbl = declareLbl(name, 0, index);
   int root = gcAddRoot((ptrPo)&lbl);
-  normalPo tpl = allocateStruct( lbl);
+  normalPo tpl = allocateStruct(lbl);
   gcReleaseRoot(root);
   return (termPo)tpl;
 }
@@ -169,6 +169,16 @@ void markLabels(gcSupportPo G) {
   }
 }
 
+retCode scanLabels(termHelper helper, void* cl) {
+  retCode ret = Ok;
+  for (int32 ix = 0; ret == Ok && ix < lblTableTop; ix++) {
+    labelPo lbl = &labelTable[ix];
+    if (lbl->mtd != Null)
+      ret = scanMethod(lbl->mtd, helper, cl);
+  }
+  return ret;
+}
+
 long lblSize(builtinClassPo cl, termPo o) {
   return LabelCellCount;
 }
@@ -179,14 +189,14 @@ termPo lblCopy(builtinClassPo cl, termPo dst, termPo src) {
   return dst + LabelCellCount;
 }
 
-termPo lblScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
-  syserr("Should not be scanning labels");
+retCode lblScan(termHelper helper, void* c, termPo o) {
+  // syserr("Should not be scanning labels");
   labelPo lbl = C_LBL(o);
 
   if (lbl->mtd != Null)
     helper((ptrPo)(&lbl->mtd), c);
 
-  return o + LabelCellCount;
+  return Ok;
 }
 
 termPo lblFinalizer(builtinClassPo class, termPo o) {
@@ -285,7 +295,7 @@ logical isTplLabel(const char* nm) {
   return False;
 }
 
-logical isLabel(labelPo lbl, char *name) {
+logical isLabel(labelPo lbl, char* name) {
   return uniIsLit(lbl->lbl.name, name);
 }
 

@@ -13,9 +13,8 @@
 
 typedef long (*classSizeFun)(builtinClassPo class, termPo o);
 
-typedef retCode (*specialHelperFun)(ptrPo arg, void* c);
-
-typedef termPo (*classScanFun)(builtinClassPo class, specialHelperFun helper, void* c, termPo o);
+typedef retCode (*termHelper)(ptrPo t, void *cl);
+typedef retCode (*classScanFun)(termHelper helper, void* c, termPo o);
 
 typedef termPo (*classCpyFun)(builtinClassPo class, termPo dst, termPo src);
 

@@ -8,7 +8,7 @@
 
 static long ioSize(builtinClassPo cl, termPo o);
 static termPo ioCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo ioScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode ioScan(termHelper helper, void* c, termPo o);
 static logical ioCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer ioHash(builtinClassPo cl, termPo o);
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -50,8 +50,8 @@ termPo ioCopy(builtinClassPo cl, termPo dst, termPo src) {
   return (termPo)di + IOChnnlCellCount;
 }
 
-termPo ioScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
-  return (termPo)(o + IOChnnlCellCount);
+retCode ioScan(termHelper helper, void* c, termPo o) {
+  return Ok;
 }
 
 termPo ioFinalizer(builtinClassPo class, termPo o) {

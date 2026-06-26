@@ -194,3 +194,18 @@ void verifyProcesses(void) {
 void verifyEngine(enginePo p) {
   verifyStack(p->stk);
 }
+
+typedef struct {
+  termHelper helper;
+  void* cl;
+} EngineScanInfo;
+
+static retCode scanEngine(enginePo P, void* cl) {
+  EngineScanInfo* info = (EngineScanInfo*)cl;
+  return info->helper((ptrPo)&P->stk, info->cl);
+}
+
+retCode scanProcesses(termHelper helper, void* cl) {
+  EngineScanInfo h = {.helper = helper, .cl = cl};
+  return processProcesses(scanEngine, &h);
+}

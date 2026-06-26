@@ -9,16 +9,17 @@
 #include "heapP.h"
 
 extern termPo eVect;
-extern labelPo lf1,lf2,lf3,lf4;
-extern labelPo vct1,vct2,vct3,vct4,vectorLbl;
+extern labelPo lf1, lf2, lf3, lf4;
+extern labelPo vct1, vct2, vct3, vct4, vectorLbl;
 
 void initVect();
-void scanVect(gcSupportPo G);
+void markVect(gcSupportPo G);
+retCode scanVect(termHelper helper, void* cl);
 
 retCode dispVect(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
-typedef termPo (*makeCB)(integer ix,void *cl);
+typedef termPo (*makeCB)(integer ix, void* cl);
 
-termPo makeVector(integer ln, makeCB cb, void *cl);
+termPo makeVector(integer ln, makeCB cb, void* cl);
 
 #endif //STAR_VECTP_H

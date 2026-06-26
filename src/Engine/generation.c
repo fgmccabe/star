@@ -12,18 +12,19 @@
 #include "globalsP.h"
 #include "normalP.h"
 
-static long gcCount = 0; /* Number of times GC is invoked */
+static long gcCount = 0;        /* Number of times GC is invoked */
+static long gcCompactCount = 0; // Number of heap compactions
 static long gcGrow = 0;
 
 static timerPo gcTimer = Null;
 
 static void markOldGen(gcSupportPo G);
-static termPo scanTerm(gcSupportPo G, termPo x);
+static termPo markHeapTerm(gcSupportPo G, termPo x);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
 static void extendHeap(integer hmin);
 
 static void swapHeap(void) {
-  assert(heap.outerLimit - heap.split >= heap.curr - heap.start);
+  // assert(heap.outerLimit - heap.split >= heap.curr - heap.start);
   switch (heap.allocMode) {
   case lowerPhase1: {
     heap.start = heap.curr = heap.split;
@@ -70,7 +71,7 @@ static void gC(gcSupportPo G) {
   termPo t = heap.start;
   while (t < heap.curr) {
     assert(t >= heap.start && t < heap.curr);
-    t = scanTerm(G, t);
+    t = markHeapTerm(G, t);
     assert(heap.curr <= heap.limit);
   }
 
@@ -88,7 +89,7 @@ retCode gcCollect(long amount) {
 #endif
 
   GCSupport GCSRec = {
-    .oldBase = heap.start, .oldLimit = heap.curr, .oldOld = heap.old, .oldOldLimit = heap.oldLimit, .oCnt = 0
+    .oldBase = heap.start, .oldLimit = heap.curr, .oCnt = 0
   };
   gcSupportPo G = &GCSRec;
 
@@ -126,8 +127,18 @@ retCode gcCollect(long amount) {
       heap.cards[ix] = 0; /* clear the card table */
   }
 
-  if (heap.limit - heap.curr <= amount + 100) {
-    extendHeap(amount);
+  if (heap.limit - heap.curr < (heap.outerLimit - heap.start) / 10) {
+    gcCompactCount++;
+#ifdef TRACEMEM
+    if (traceMemory > noTracing) {
+      outMsg(logFile, "GC compaction #%d\n%_", gcCompactCount);
+    }
+#endif
+
+    compactHeap();
+    if (heap.limit - heap.curr + amount < (heap.outerLimit - heap.start) / 10) {
+      extendHeap(amount);
+    }
   }
 
 #ifdef TRACEMEM
@@ -157,7 +168,7 @@ void markOldGen(gcSupportPo G) {
     if (heap.cards[ix] != 0) {
       for (integer jx = 0; jx < CARDWIDTH; jx++)
         if ((heap.cards[ix] & (1ull << jx)) != 0)
-          scanTerm(G, heap.old + (ix << CARDSHIFT) + jx);
+          markHeapTerm(G, heap.old + (ix << CARDSHIFT) + jx);
     }
   }
 }
@@ -167,10 +178,11 @@ static retCode markScanHelper(ptrPo arg, void* c) {
   return Ok;
 }
 
-termPo scanTerm(gcSupportPo G, termPo x) {
+termPo markHeapTerm(gcSupportPo G, termPo x) {
   if (hasBuiltinType(x)) {
     builtinClassPo sClass = builtinClassOf(x);
-    return sClass->scanFun(sClass, markScanHelper, G, x);
+    sClass->scanFun(markScanHelper, G, x);
+    return x + sClass->sizeFun(sClass, x);
   }
   else {
     normalPo nml = C_NORMAL(x);
@@ -209,12 +221,12 @@ void extendHeap(integer hmin) {
     outMsg(logFile, "Maximum heap size (%ld) exceeded", maxHeapSize);
     star_exit(oomCode);
   }
-
-  termPo newHeap = (termPo)malloc(sizeof(ptrPo) * newSize);
-  if (newHeap == Null) {
-    outMsg(logFile, "Unable to allocate space (%ld cells) for heap", newSize);
-    star_exit(oomCode);
-  }
+  assert(heap.allocMode==lowerPhase1);
+  termPo oldHeap = heap.base;
+  GCSupport GCSRec = {.oldBase = oldHeap, .oldLimit = heap.curr};
+  gcSupportPo G = &GCSRec;
+  free(heap.cards);
+  createHeap(newSize);
 
   gcGrow++;
 
@@ -223,39 +235,7 @@ void extendHeap(integer hmin) {
     outMsg(logFile, "extending heap to %ld\n%_", newSize);
 #endif
 
-  termPo oldHeap = heap.base;
-
-  GCSupport GCSRec = {.oldBase = heap.base, .oldLimit = heap.outerLimit};
-  gcSupportPo G = &GCSRec;
-
-  setupGCSupport(G);
-
-  heap.curr = heap.old = heap.oldLimit = heap.base = heap.start = newHeap;
-  heap.outerLimit = newHeap + newSize;
-  heap.limit = heap.split = heap.base + newSize / 2;
-  heap.allocMode = lowerPhase1;
-
-#ifdef TRACEMEM
-  if (traceMemory > noTracing)
-    verifyProcesses();
-#endif
-
-  for (int i = 0; i < heap.topRoot; i++) /* mark the external roots */
-    *heap.roots[i] = markPtr(G, heap.roots[i]);
-
-  markLabels(G);
-  markGlobals(G);
-  markProcesses(G);
-
-#ifdef TRACEMEM
-  if (traceMemory > noTracing) {
-    outMsg(logFile, "%d objects found in mark phase\n%_", G->oCnt);
-  }
-#endif
-
-  termPo t = heap.start;
-  while (t < heap.curr)
-    t = scanTerm(G, t);
+  gC(G);
 
 #ifdef TRACEMEM
   if (traceMemory > noTracing)

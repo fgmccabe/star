@@ -9,7 +9,7 @@
 
 static long cellSize(builtinClassPo cl, termPo o);
 static termPo cellCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo cellScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static retCode cellScan(termHelper helper, void *c, termPo o);
 static logical cellCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer hashCell(builtinClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -40,13 +40,13 @@ termPo cellCopy(builtinClassPo cl, termPo dst, termPo src) {
   return (termPo) di + CellCellCount;
 }
 
-termPo cellScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
+retCode cellScan(termHelper helper, void *c, termPo o) {
   cellPo cell = C_CELL(o);
 
   if(cell->content!=Null)
-    helper(&cell->content, c);
+    return helper(&cell->content, c);
 
-  return o + CellCellCount;
+  return Ok;
 }
 
 termPo cellFinalizer(builtinClassPo class, termPo o) {

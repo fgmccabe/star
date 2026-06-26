@@ -9,7 +9,7 @@
 
 static long bigSize(builtinClassPo cl, termPo o);
 static termPo bigCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo bigScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode bigScan(termHelper helper, void* c, termPo o);
 static logical bigCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer bigHash(builtinClassPo cl, termPo o);
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -73,10 +73,8 @@ termPo bigCopy(builtinClassPo cl, termPo dst, termPo src) {
   return ((termPo)di) + BignumCellCount(si->count);
 }
 
-termPo bigScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
-  bignumPo big = C_BIGNUM(o);
-
-  return o + BignumCellCount(big->count);
+retCode bigScan(termHelper helper, void* c, termPo o) {
+  return Ok;
 }
 
 termPo bigFinalizer(builtinClassPo class, termPo o) {

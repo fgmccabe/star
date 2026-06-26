@@ -11,7 +11,7 @@ typedef enum {
   lowerPhase1, upperPhase1, lowerPhase2, upperPhase2
 } allocMode;
 
-static char *allocModeNames[] = {"lP1", "uP1", "lP2","uP2"};
+static char* allocModeNames[] = {"lP1", "uP1", "lP2", "uP2"};
 
 #ifndef MAX_ROOT
 #define MAX_ROOT 128
@@ -62,6 +62,8 @@ typedef struct stack_frame_* framePo;
 extern long initHeapSize; /* How much memory to give the heap */
 extern long maxHeapSize;  // Maximum permitted size of heap
 
+void createHeap(long cellCount);
+
 logical isHeapRef(termPo t);
 logical isNewRef(termPo t);
 logical isOldRef(termPo t);
@@ -76,28 +78,29 @@ void showMemoryStats(ioPo out);  // Show memory statistics
 #endif
 
 retCode gcCollect(long amount);
+void compactHeap();
 
 typedef struct gc_support_ {
   long oCnt;
   termPo oldBase;
   termPo oldLimit;
-  termPo oldOld;
-  termPo oldOldLimit;
 } GCSupport, *gcSupportPo;
 
-extern void setupGCSupport(gcSupportPo G);
+void setupGCSupport(gcSupportPo G);
 
-extern void validPtr(termPo t);
-extern void verifyHeap(void);
+void validPtr(termPo t);
+void verifyHeap(void);
 
-extern termPo markPtr(gcSupportPo G, ptrPo p);
+termPo markPtr(gcSupportPo G, ptrPo p);
 
 static inline logical inHeap(const termPo x) {
   return (logical)((x >= heap.base && x < heap.curr) || (x >= heap.old && x < heap.oldLimit));
 }
 
-void heapSummary(ioPo out);
+retCode scanTerm(ptrPo p, termHelper helper, void* cl);
+retCode scanHeap(termHelper helper, void *cl);
 
-extern void dumpGcStats(ioPo out);
+void heapSummary(ioPo out);
+void dumpGcStats(ioPo out);
 
 #endif

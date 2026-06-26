@@ -10,6 +10,7 @@
 #include "heapP.h"
 #include "jit.h"
 #include "labelsP.h"
+#include "pkg.h"
 #include "termP.h"
 #include "ssaOps.h"
 
@@ -22,7 +23,11 @@ typedef struct instruction_ {
 
 typedef struct codeLocation_ {
   int32 offset;
-  termPo loc;
+  packagePo pkg;
+  int32 line;
+  int32 col;
+  int32 from;
+  int32 size;
 } CodeLocation, *codeLocationPo;
 
 typedef struct method_ {
@@ -82,5 +87,7 @@ void showMethodCode(ioPo out, char *msg, methodPo mtd);
 
 void recordMethodLocation(methodPo mtd, termPo loc, uint32 offset);
 
-termPo locateMethodLocation(methodPo mtd, uinteger offset);
+codeLocationPo locateMethodLocation(methodPo mtd, uinteger offset);
+
+retCode scanMethod(methodPo mtd, termHelper helper, void *cl);
 #endif

@@ -7,7 +7,7 @@
 
 static long closureSize(builtinClassPo cl, termPo o);
 static termPo closureCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo closureScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode closureScan(termHelper helper, void* c, termPo o);
 static logical closureCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer closureHash(builtinClassPo cl, termPo o);
 static retCode closureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -39,12 +39,10 @@ termPo closureCopy(builtinClassPo cl, termPo dst, termPo src) {
   return (termPo)di + ClosureCellCount;
 }
 
-termPo closureScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+retCode closureScan(termHelper helper, void* c, termPo o) {
   closurePo list = C_CLOSURE(o);
 
-  helper(&list->free, c);
-
-  return o + ClosureCellCount;
+  return helper(&list->free, c);
 }
 
 termPo closureFinalizer(builtinClassPo class, termPo o) {

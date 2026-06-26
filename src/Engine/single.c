@@ -9,7 +9,7 @@
 
 static long singleSize(builtinClassPo cl, termPo o);
 static termPo singleCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo singleScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode singleScan(termHelper helper, void* c, termPo o);
 static logical singleCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer singleHash(builtinClassPo cl, termPo o);
 static retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -68,13 +68,13 @@ termPo singleCopy(builtinClassPo cl, termPo dst, termPo src) {
   return dst + SingleCellCount;
 }
 
-termPo singleScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+retCode singleScan(termHelper helper, void* c, termPo o) {
   singlePo single = C_SINGLE(o);
 
   if (single->content != Null)
-    helper((ptrPo)(&single->content), c);
+    return helper((ptrPo)(&single->content), c);
 
-  return o + SingleCellCount;
+  return Ok;
 }
 
 termPo singleFinalizer(builtinClassPo class, termPo o) {

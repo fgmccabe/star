@@ -15,7 +15,16 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
   return Null;
 }
 
-retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
+retCode scanGlobals(termHelper helper, void* cl) {
+  syserr("no gc in tests");
+  return Ok;
+}
+retCode scanProcesses(termHelper helper, void* cl) {
+  syserr("no gc in tests");
+  return Ok;
+}
+
+retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen) {
   return Error;
 }
 
@@ -23,8 +32,6 @@ retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen) {
   return Error;
 }
 
-
 ssaInsPo showIns(ioPo out, methodPo mtd, stackPo stk, ssaInsPo pc) {
   return Null;
 }
-

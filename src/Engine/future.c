@@ -8,7 +8,7 @@
 
 static long futureSize(builtinClassPo cl, termPo o);
 static termPo futureCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo futureScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode futureScan(termHelper helper, void* c, termPo o);
 static logical futureCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer futureHash(builtinClassPo cl, termPo o);
 static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -73,11 +73,10 @@ termPo futureCopy(builtinClassPo cl, termPo dst, termPo src) {
   return (termPo)di + FutureCellCount;
 }
 
-termPo futureScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+retCode futureScan(termHelper helper, void* c, termPo o) {
   futurePo ft = C_FUTURE(o);
 
-  helper(&ft->val, c);
-  return (termPo)(o + FutureCellCount);
+  return helper(&ft->val, c);
 }
 
 termPo futureFinalizer(builtinClassPo class, termPo o) {

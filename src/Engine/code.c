@@ -10,9 +10,11 @@
 #include "abort.h"
 #include "analyse.h"
 #include "analyseP.h"
+#include "arith.h"
 #include "quick.h"
 #include "disass.h"
 #include "pkgP.h"
+#include "strings.h"
 #include "tree.h"
 #include "verify.h"
 
@@ -23,7 +25,7 @@ static hashPo packages;
 
 static long mtdSize(builtinClassPo cl, termPo o);
 static termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode mtdScan(termHelper helper, void* c, termPo o);
 static logical mtdCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer mtdHash(builtinClassPo cl, termPo o);
 static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -134,30 +136,17 @@ termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src) {
   return ((termPo)di) + mtdSize(cl, src);
 }
 
-typedef struct {
-  specialHelperFun scan;
-  void* cl;
-} LocScanInfoRec;
-
-static retCode scanLocEntry(void* entry, int32 ix, void* cl) {
-  LocScanInfoRec* info = (LocScanInfoRec*)cl;
-  codeLocationPo loc = (codeLocationPo)entry;
-
-  info->scan(&loc->loc, info->cl);
-  return Ok;
-}
-
-termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+retCode mtdScan(termHelper helper, void* c, termPo o) {
   syserr("Should not be scanning code objects");
   methodPo mtd = C_MTD(o);
 
   helper((ptrPo)&mtd->lbl, c);
-  if (mtd->locations != Null) {
-    LocScanInfoRec info = {.scan = helper, .cl = cl};
-    processArray(mtd->locations, scanLocEntry, &info);
-  }
 
-  return ((termPo)o) + mtdSize(cl, o);
+  return Ok;
+}
+
+retCode scanMethod(methodPo mtd, termHelper helper, void* cl) {
+  return Ok;
 }
 
 void markMethod(methodPo mtd, gcSupportPo G) {}
@@ -334,7 +323,7 @@ methodPo defineMtd(int32 insCount, ssaInsPo instructions, int32 lclCount, int32 
 
   lbl->mtd = mtd;
 
-  gcReleaseRoot( root);
+  gcReleaseRoot(root);
 
   return mtd;
 }
@@ -371,11 +360,22 @@ void recordMethodLocation(methodPo mtd, termPo loc, uint32 offset) {
   if (mtd->locations == Null) {
     mtd->locations = allocArray(sizeof(CodeLocation), 16, True);
   }
-  CodeLocation locn = {.loc = loc, .offset = offset};
-  appendEntry(mtd->locations, &locn);
+
+  if (isNormalPo(loc)) {
+    normalPo line = C_NORMAL(loc);
+    char pkgNm[MAX_SYMB_LEN];
+    copyChars2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
+
+    packagePo pkg = loadedPackage(pkgNm);
+    CodeLocation locn = {
+      .pkg = pkg, .line = (int32)integerVal(nthArg(line, 1)), (int32)integerVal(nthArg(line, 2)),
+      .from = (int32)integerVal(nthArg(line, 3)), .size = (int32)integerVal(nthArg(line, 4)), .offset = offset
+    };
+    appendEntry(mtd->locations, &locn);
+  }
 }
 
-termPo locateMethodLocation(methodPo mtd, uinteger pc) {
+codeLocationPo locateMethodLocation(methodPo mtd, uinteger pc) {
   if (mtd->locations == Null) {
     return Null;
   }
@@ -387,14 +387,14 @@ termPo locateMethodLocation(methodPo mtd, uinteger pc) {
 #endif
 
   int32 minOffset = -1;
-  termPo minLoc = Null;
+  codeLocationPo minLoc = Null;
 
   for (int32 lx = 0; lx < arrayCount(mtd->locations); lx++) {
     codeLocationPo loc = nthEntry(mtd->locations, lx);
     if (loc->offset < offset) {
       if (loc->offset > minOffset) {
         minOffset = loc->offset;
-        minLoc = loc->loc;
+        minLoc = loc;
       }
       else
         break;

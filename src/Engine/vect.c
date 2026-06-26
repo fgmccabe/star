@@ -24,8 +24,12 @@ void initVect() {
   vectorLbl = declareLbl("star.vector#vector", 2, 0);
 }
 
-void scanVect(gcSupportPo G) {
+void markVect(gcSupportPo G) {
   eVect = markPtr(G, &eVect);
+}
+
+retCode scanVect(termHelper helper, void* cl) {
+  return helper(&eVect, cl);
 }
 
 static logical isEVect(termPo t) {

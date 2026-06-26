@@ -3,6 +3,8 @@
 #include <stdlib.h>
 
 #include "abort.h"
+#include "engineP.h"
+#include "globalsP.h"
 #include "heapP.h"
 #include "labelsP.h"
 #include "normalP.h"
@@ -22,6 +24,7 @@ integer allocationHeaps[64];
 
 void initHeap(long heapSize) {
   if (heap.base == NULL) {
+    createHeap(heapSize);
     int64 cellCount = heapSize;
     heap.curr = heap.old = heap.base = heap.start =
       (termPo)malloc(sizeof(ptrPo) * cellCount); /* Allocate heap */
@@ -53,18 +56,44 @@ void initHeap(long heapSize) {
   }
 }
 
+void createHeap(long cellCount) {
+  heap.curr = heap.old = heap.base = heap.start =
+    (termPo)malloc(sizeof(ptrPo) * cellCount); /* Allocate heap */
+  if (heap.curr == Null) {
+    outMsg(logFile, "Unable to create heap of %ld cells", cellCount);
+    star_exit(oomCode);
+  }
+
+  assert(sizeof(cardMap)==sizeof(termPo));
+
+  heap.ncards = (cellCount + CARDWIDTH - 1) / CARDWIDTH;
+  heap.cards = (cardMap*)malloc(heap.ncards * sizeof(cardMap));
+
+  heap.outerLimit = heap.base + cellCount - heap.ncards; /* Put the card table at the end */
+  heap.limit = heap.split = heap.base + cellCount / 2;
+  heap.allocMode = lowerPhase1;
+
+  heap.oldLimit = heap.old = heap.start; // Nothing in the old generation at start.
+
+  for (int32 ix = 0; ix < heap.ncards; ix++)
+    heap.cards[ix] = 0; /* clear the card table */
+}
+
 void heapSummary(ioPo out) {
-  outMsg(out, BLUE_ESC_ON"Heap: |0x%lx..old..0x%lx|"BLUE_ESC_OFF, heap.old, heap.oldLimit);
+  outMsg(out, BLUE_ESC_ON"Heap: |0x%lx..old..0x%lx(%ld)|"BLUE_ESC_OFF, heap.old, heap.oldLimit,
+         heap.oldLimit - heap.old);
   switch (heap.allocMode) {
   case lowerPhase1:
   case lowerPhase2:
-    outMsg(out,GREEN_ESC_ON"%s 0x%lx..0x%lx..0x%lx|\n"GREEN_ESC_OFF,
-           allocModeNames[heap.allocMode], heap.start, heap.curr, heap.limit);
+    outMsg(out,GREEN_ESC_ON"%s 0x%lx..0x%lx(%d%%)..0x%lx|\n"GREEN_ESC_OFF,
+           allocModeNames[heap.allocMode], heap.start, heap.curr,
+           (heap.curr - heap.start) * 100 / (heap.limit - heap.start), heap.limit);
     break;
   default:
 
-    outMsg(out,YELLOW_ESC_ON"%s0x%lx..0x%lx..0x%lx|\n"YELLOW_ESC_OFF,
-           allocModeNames[heap.allocMode], heap.start, heap.curr, heap.limit);
+    outMsg(out,YELLOW_ESC_ON"%s 0x%lx..0x%lx(%d%%)..0x%lx|\n"YELLOW_ESC_OFF,
+           allocModeNames[heap.allocMode], heap.start, heap.curr,
+           (heap.curr - heap.start) * 100 / (heap.limit - heap.start), heap.limit);
     break;
   }
 }
@@ -89,10 +118,10 @@ retCode reserveSpace(integer amnt) {
 }
 
 void showCards() {
-  outMsg(logFile, "%d cards in table\n",heap.ncards);
+  outMsg(logFile, "%d cards in table\n", heap.ncards);
   for (int ix = 0; ix < heap.ncards; ix++) {
-    if (heap.cards[ix]!=0) {
-      outMsg(logFile, "card 0x%lx: %lb\n", heap.old+ix, heap.cards[ix]);
+    if (heap.cards[ix] != 0) {
+      outMsg(logFile, "card 0x%lx: %0lb\n", heap.old + ix, heap.cards[ix]);
     }
   }
 }
@@ -194,11 +223,49 @@ static retCode verifyScanHelper(ptrPo arg, void* c) {
   return Ok;
 }
 
+retCode scanTerm(ptrPo p, termHelper helper, void* cl) {
+  termPo t = *p;
+  if (hasBuiltinType(t)) {
+    builtinClassPo sClass = builtinClassOf(t);
+    return sClass->scanFun(helper, cl, t);
+  }
+  else {
+    normalPo trm = C_NORMAL(t);
+    labelPo lbl = termLbl(trm);
+
+    retCode ret = Ok;
+    for (int32 ix = 0; ret == Ok && ix < lblArity(lbl); ix++) {
+      ret = helper(&trm->args[ix], cl);
+    }
+    return ret;
+  }
+}
+
+retCode scanHeap(termHelper helper, void* cl) {
+  retCode ret = Ok;
+  for (int32 ix = 0; ret == Ok && ix < heap.topRoot; ix++) {
+    ret = scanTerm(heap.roots[ix], helper, cl);
+  }
+
+  if (ret == Ok) {
+    ret = scanLabels(helper, cl);
+  }
+  if (ret == Ok) {
+    ret = scanGlobals(helper, cl);
+  }
+
+  if (ret == Ok) {
+    ret = scanProcesses(helper, cl);
+  }
+  return ret;
+}
+
 void verifyHeap(void) {
   for (termPo t = heap.start; t < heap.curr;) {
     if (hasBuiltinType(t)) {
       builtinClassPo sClass = builtinClassOf(t);
-      t = sClass->scanFun(sClass, verifyScanHelper, Null, t);
+      sClass->scanFun(verifyScanHelper, Null, t);
+      t += sClass->sizeFun(sClass, t);
     }
     else {
       normalPo trm = C_NORMAL(t);
@@ -211,32 +278,30 @@ void verifyHeap(void) {
     }
   }
 
-    integer max = ((heap.oldLimit - heap.old) + CARDMASK) >> CARDSHIFT;
+  integer max = ((heap.oldLimit - heap.old) + CARDMASK) >> CARDSHIFT;
 
-    for (integer ix = 0; ix < max; ix++) {
-      uint64 card = heap.cards[ix];
-      if (card != 0) {
-        for (integer jx = 0; jx < CARDWIDTH; jx++)
-          if ((card & (1ull << jx)) != 0) {
-            termPo t = heap.old+(ix << CARDSHIFT)+jx;
+  for (integer ix = 0; ix < max; ix++) {
+    uint64 card = heap.cards[ix];
+    if (card != 0) {
+      for (integer jx = 0; jx < CARDWIDTH; jx++)
+        if ((card & (1ull << jx)) != 0) {
+          termPo t = heap.old + (ix << CARDSHIFT) + jx;
 
-            if (hasBuiltinType(t)) {
-              builtinClassPo sClass = builtinClassOf(t);
-              sClass->scanFun(sClass, verifyScanHelper, Null, t);
-            }
-            else {
-              normalPo trm = C_NORMAL(t);
-              labelPo lbl = termLbl(trm);
-              for (int32 ax = 0; ax < lblArity(lbl); ax++) {
-                termPo arg = trm->args[ax];
-                validPtr(arg);
-              }
+          if (hasBuiltinType(t)) {
+            builtinClassPo sClass = builtinClassOf(t);
+            sClass->scanFun(verifyScanHelper, Null, t);
+          }
+          else {
+            normalPo trm = C_NORMAL(t);
+            labelPo lbl = termLbl(trm);
+            for (int32 ax = 0; ax < lblArity(lbl); ax++) {
+              termPo arg = trm->args[ax];
+              validPtr(arg);
             }
           }
-
-      }
+        }
     }
-
+  }
 
   for (termPo t = heap.old; t < heap.oldLimit;) {
     logical hasNewRef = False;
@@ -244,7 +309,8 @@ void verifyHeap(void) {
 
     if (hasBuiltinType(t)) {
       builtinClassPo sClass = builtinClassOf(t);
-      t = sClass->scanFun(sClass, verifyScanHelper, &hasNewRef, t);
+      sClass->scanFun(verifyScanHelper, &hasNewRef, t);
+      t += sClass->sizeFun(sClass, t);
     }
     else {
       normalPo trm = C_NORMAL(t);

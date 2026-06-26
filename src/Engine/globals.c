@@ -52,7 +52,7 @@ static retCode globalDel(globalPo glb, globalPo l);
 
 static long glbSize(builtinClassPo cl, termPo o);
 static termPo glbCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo glbScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode glbScan(termHelper helper, void* c, termPo o);
 static logical glbCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer glbHash(builtinClassPo cl, termPo o);
 static retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -181,13 +181,13 @@ termPo glbCopy(builtinClassPo cl, termPo dst, termPo src) {
   return dst + GlobalCellCount;
 }
 
-termPo glbScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
+retCode glbScan(termHelper helper, void* c, termPo o) {
   globalPo glb = C_GLOB(o);
 
   if (glb->content != Null)
-    helper((ptrPo)(&glb->content), c);
+    return helper((ptrPo)(&glb->content), c);
 
-  return o + GlobalCellCount;
+  return Ok;
 }
 
 termPo glbFinalizer(builtinClassPo class, termPo o) {
@@ -238,7 +238,53 @@ void markGlobals(gcSupportPo G) {
 
   hNilEnum = markPtr(G, &hNilEnum);
 
-  scanVect(G);
+  markVect(G);
+}
+
+retCode scanGlobals(termHelper helper, void* cl) {
+  retCode ret = Ok;
+  for (int32 ix = 0; ret == Ok && ix < numGlbVars; ix++) {
+    globalPo glb = &glbVars[ix];
+    if (glb->content != Null)
+      ret = helper(&glb->content, cl);
+  }
+
+  if (ret == Ok) ret = helper(&eINTRUPT, cl);
+  if (ret == Ok) ret = helper(&eEOF, cl);
+
+  if (ret == Ok) ret = helper(&eNOTDIR, cl);
+  if (ret == Ok) ret = helper(&eNOFILE, cl);
+  if (ret == Ok) ret = helper(&eNOTFND, cl);
+  if (ret == Ok) ret = helper(&eINVAL, cl);
+  if (ret == Ok) ret = helper(&eRANGE, cl);
+  if (ret == Ok) ret = helper(&eNOPERM, cl);
+  if (ret == Ok) ret = helper(&eFAIL, cl);
+  if (ret == Ok) ret = helper(&eIOERROR, cl);
+  if (ret == Ok) ret = helper(&eCONNECT, cl);
+  if (ret == Ok) ret = helper(&eDEAD, cl);
+
+  if (ret == Ok) ret = helper(&falseEnum, cl);
+  if (ret == Ok) ret = helper(&trueEnum, cl);
+
+  if (ret == Ok) ret = helper(&voidEnum, cl);
+  if (ret == Ok) ret = helper(&canceledEnum, cl);
+
+  if (ret == Ok) ret = helper(&nilEnum, cl);
+  if (ret == Ok) ret = helper(&noneEnum, cl);
+  if (ret == Ok) ret = helper(&neitherEnum, cl);
+
+  if (ret == Ok) ret = helper(&divZero, cl);
+
+  if (ret == Ok) ret = helper(&noValue, cl);
+  if (ret == Ok) ret = helper(&hasValue, cl);
+
+  if (ret == Ok) ret = helper((ptrPo)&unitEnum, cl);
+
+  if (ret == Ok) ret = helper(&hNilEnum, cl);
+
+  if (ret == Ok) ret = scanVect(helper, cl);
+
+  return ret;
 }
 
 retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

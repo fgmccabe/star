@@ -66,4 +66,6 @@ int32 indexOfLabel(labelPo lbl);
 
 logical isLabel(labelPo lbl, char *name);
 
+retCode scanLabels(termHelper helper, void *cl);
+
 #endif //STAR_LABELSP_H

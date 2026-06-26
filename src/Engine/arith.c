@@ -39,7 +39,7 @@ static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, log
 
 static long floatSize(builtinClassPo cl, termPo o);
 static termPo floatCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo floatScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static retCode floatScan(termHelper helper, void* c, termPo o);
 static logical floatCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer fltHash(builtinClassPo cl, termPo o);
 static retCode floatDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -70,8 +70,8 @@ termPo floatCopy(builtinClassPo cl, termPo dst, termPo src) {
   return (termPo)di + FloatCellCount;
 }
 
-termPo floatScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
-  return o + FloatCellCount;
+retCode floatScan(termHelper helper, void* c, termPo o) {
+  return Ok;
 }
 
 termPo floatFinalizer(builtinClassPo class, termPo o) {
