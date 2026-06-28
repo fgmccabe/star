@@ -119,15 +119,17 @@ retCode reserveSpace(integer amnt) {
 
 void showCards() {
   outMsg(logFile, "%d cards in table\n", heap.ncards);
+  outMsg(logFile, "min old: 0x%lx, max old: 0x%lx\n", heap.old, heap.oldLimit);
   for (int ix = 0; ix < heap.ncards; ix++) {
     if (heap.cards[ix] != 0) {
       outMsg(logFile, "card 0x%lx: %0lb\n", heap.old + ix, heap.cards[ix]);
     }
   }
+  flushOut();
 }
 
 void recordTermUpdate(termPo t) {
-  if (t >= heap.old && t < heap.oldLimit) {
+  if (isOldRef(t)) {
     uint64 add = t - heap.old;
 
     assert((add>>CARDSHIFT) < heap.ncards);
@@ -187,6 +189,7 @@ normalPo allocateUnary(int32 index, termPo arg) {
   int root = gcAddRoot(&arg);
   normalPo trm = C_NORMAL(allocateObject(index,NormalCellCount(1)));
   trm->args[0] = arg;
+  recordTermUpdate((termPo)trm);
   gcReleaseRoot(root);
   return trm;
 }
@@ -198,6 +201,7 @@ normalPo allocateBinary(int32 index, termPo left, termPo right) {
   normalPo trm = C_NORMAL(allocateObject(index,NormalCellCount(2)));
   gcReleaseRoot(root);
 
+  recordTermUpdate((termPo)trm);
   trm->args[0] = left;
   trm->args[1] = right;
   return trm;

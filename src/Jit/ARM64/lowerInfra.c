@@ -613,16 +613,16 @@ void writeBarrier(codeGenPo state, int32 pc, FlexOp src) {
   armReg hpReg = findARegister(state, pc);
   armReg tmp = findARegister(state, pc);
   armReg tmp2 = findARegister(state, pc);
-  codeLblPo okLbl = newLabel(ctx);
+  codeLblPo skipLbl = newLabel(ctx);
+
+  // installBkPt(state, pc);
 
   loadRegister(state, trm, src);
   mov(hpReg, IM((uinteger)&heap));
   ldp(tmp, tmp2, OF(hpReg,OffsetOf(HeapRecord,old)));
-  cmp(trm, RG(tmp));
-  ccmp(trm, RG(tmp2), 2, HI);
-  bhi(okLbl);
-
-  installBkPt(state, pc);
+  cmp(trm, RG(tmp2));
+  ccmp(trm, RG(tmp), 0, LO);
+  blo(skipLbl); // skip if not in old space
 
   sub(trm, trm, RG(tmp)); // relative address in old space
   lsr(trm, trm, IM(3));   // convert addr difference to cell number
@@ -635,7 +635,7 @@ void writeBarrier(codeGenPo state, int32 pc, FlexOp src) {
   ldr(tmp, EX2(hpReg,trm,U_XTX, 3)); // Get card table entry
   orr(tmp, tmp, RG(tmp2));
   str(tmp, EX2(hpReg, trm, U_XTX, 3));
-  bind(okLbl);
+  bind(skipLbl);
   releaseReg(state->jit, tmp);
   releaseReg(state->jit, hpReg);
   releaseReg(state->jit, trm);

@@ -89,7 +89,9 @@ typedef enum {
   EQ = 0, // Equal
   NE = 0x1, // Note equal
   CS = 0x2, // Carry set or Higher condition
+  HS = CS,  // Higher or same
   CC = 0x3, // Carry clear or less than
+  LO = CC,  // Unsigned lower
   MI = 0x4, // Negative, or less then
   PL = 0x5, // Plus, positive or zero
   VS = 0x6, // Overflow
@@ -214,7 +216,9 @@ void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
 #define beq(lbl) b_cond_(EQ, lbl, ctx)
 #define bne(lbl) do{ b_cond_(NE, lbl, ctx); } while(False)
 #define bcs(lbl) do{ b_cond_(CS, lbl, ctx); } while(False)
+#define bhs(lbl) do{ b_cond_(HS, lbl, ctx); } while(False)
 #define bcc(lbl) do{ b_cond_(CC, lbl, ctx); } while(False)
+#define blo(lbl) do{ b_cond_(LO, lbl, ctx); } while(False)
 #define bmi(lbl) do{ b_cond_(MI, lbl, ctx); } while(False)
 #define bpl(lbl) do{ b_cond_(PL, lbl, ctx); } while(False)
 #define bvs(lbl) do{ b_cond_(VS, lbl, ctx); } while(False)

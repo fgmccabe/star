@@ -134,7 +134,6 @@ retCode gcCollect(long amount) {
       outMsg(logFile, "GC compaction #%d\n%_", gcCompactCount);
     }
 #endif
-
     compactHeap();
     if (heap.limit - heap.curr + amount < (heap.outerLimit - heap.start) / 10) {
       extendHeap(amount);
@@ -167,8 +166,11 @@ void markOldGen(gcSupportPo G) {
   for (integer ix = 0; ix < max; ix++) {
     if (heap.cards[ix] != 0) {
       for (integer jx = 0; jx < CARDWIDTH; jx++)
-        if ((heap.cards[ix] & (1ull << jx)) != 0)
-          markHeapTerm(G, heap.old + (ix << CARDSHIFT) + jx);
+        if ((heap.cards[ix] & (1ull << jx)) != 0) {
+          termPo t = heap.old + (ix << CARDSHIFT) + jx;
+          assert(heap.old<=t && t<heap.oldLimit);
+          markHeapTerm(G, t);
+        }
     }
   }
 }

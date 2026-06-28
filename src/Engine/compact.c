@@ -16,8 +16,6 @@
 // We re-used the card table for a special mark phase
 // And use a 'break' table to handle relocation.
 
-static void cardMarkTerm(termPo t);
-
 static logical isMarked(termPo t) { // Use the card table for mark bits
   uint64 add = t - heap.base;
   return (heap.cards[add >> CARDSHIFT] & (1ull << (add & CARDMASK)) ? True : False);
@@ -25,15 +23,18 @@ static logical isMarked(termPo t) { // Use the card table for mark bits
 
 static void markCard(termPo t) {
   uint64 add = t - heap.base;
+  assert((add>>CARDSHIFT)<heap.ncards);
   heap.cards[add >> CARDSHIFT] |= (1ull << (add & CARDMASK));
 }
 
 static retCode cardMarkHelper(ptrPo p, void* c);
+static void nonRecMark(termPo t, void* cl);
 
 static uint64 termCount = 0;
 static uint64 heapSize = 0;
 
 void cardMarkTerm(termPo t) {
+again:
   if (t != Null && isPointer(t) && isHeapRef(t) && !isMarked(t)) {
     markCard(t);
     termCount++;
@@ -46,16 +47,89 @@ void cardMarkTerm(termPo t) {
       labelPo lbl = termLbl(C_NORMAL(t));
       int32 arity = lblArity(lbl);
       normalPo term = C_NORMAL(t);
-      for (int32 ax = 0; ax < arity; ax++) {
+      for (int32 ax = 0; ax < arity - 1; ax++) {
         cardMarkTerm(term->args[ax]);
       }
       heapSize += arity + 1;
+      if (arity > 0) {
+        t = term->args[arity - 1];
+        goto again;
+      }
+    }
+  }
+}
+
+typedef struct {
+  ptrPo table;
+  int32 top;
+  int32 max;
+} MarkInfo, *markInfoPo;
+
+static int32 pushMark(markInfoPo info, termPo p) {
+  if (info->top >= info->max) {
+    int32 newSize = info->max = info->max * 2;
+    info->table = (ptrPo)realloc(info->table, newSize * sizeof(termPo));
+    assert(info->table!=Null);
+  }
+  info->table[info->top] = p;
+  return info->top++;
+}
+
+static termPo popMark(markInfoPo info) {
+  assert(info->top>0);
+  return info->table[--info->top];
+}
+
+static markInfoPo setupMarkTable(markInfoPo info) {
+  info->top = 0;
+  info->max = heap.ncards;
+  info->table = (ptrPo)malloc(sizeof(termPo) * info->max);
+  return info;
+}
+
+static void clearMarkTable(markInfoPo info) {
+  assert(info->top==0);
+  free(info->table);
+}
+
+// A non-recursive marking algorithm. Use an auxilliary table.
+static void nonRecMark(termPo t, void* cl) {
+  markInfoPo info = (markInfoPo)cl;
+
+  if (t != Null && isPointer(t) && isHeapRef(t) && !isMarked(t)) {
+    int32 top = pushMark(info, t);
+
+    while (info->top > top) {
+      termPo trm = popMark(info);
+      assert(trm != Null && isPointer(trm) && isHeapRef(trm));
+
+      if (!isMarked(trm)) {
+        markCard(trm);
+        termCount++;
+        if (hasBuiltinType(trm)) {
+          builtinClassPo special = builtinClassOf(trm);
+          special->scanFun(cardMarkHelper, info, trm);
+          heapSize += special->sizeFun(special, trm);
+        }
+        else {
+          normalPo term = C_NORMAL(trm);
+          labelPo lbl = termLbl(term);
+          int32 arity = lblArity(lbl);
+          for (int32 ax = 0; ax < arity; ax++) {
+            termPo arg = term->args[ax];
+            if (arg != Null && isPointer(arg) && isHeapRef(arg) && !isMarked(arg)) {
+              pushMark(info, arg);
+            }
+          }
+          heapSize += arity + 1;
+        }
+      }
     }
   }
 }
 
 retCode cardMarkHelper(ptrPo p, void* c) {
-  cardMarkTerm(*p);
+  nonRecMark(*p, c);
   return Ok;
 }
 
@@ -133,7 +207,7 @@ static int32 shuffleTerms(integer count) {
 
   free(breaks);
 
-  heap.limit = heap.split = heap.base + (heap.outerLimit-heap.base) / 2;
+  heap.limit = heap.split = heap.base + (heap.outerLimit - heap.base) / 2;
   heap.allocMode = lowerPhase1;
   assert(heap.curr<=heap.limit);
   return tx;
@@ -154,7 +228,7 @@ void adjustHeap(breakPo from, breakPo to) {
 
   // Adjust all pointers
   for (int i = 0; i < heap.topRoot; i++) /* mark the external roots */
-    adjustTerm(heap.roots[i],&breakTable);
+    adjustTerm(heap.roots[i], &breakTable);
 
   scanLabels(adjustTerm, &breakTable);
   scanGlobals(adjustTerm, &breakTable);
@@ -174,7 +248,7 @@ void adjustHeap(breakPo from, breakPo to) {
       normalPo nml = C_NORMAL(t);
       integer arity = termArity(nml);
       for (integer ix = 0; ix < arity; ix++)
-        adjustTerm(&nml->args[ix],&breakTable);
+        adjustTerm(&nml->args[ix], &breakTable);
       t += NormalCellCount(arity);
     }
   }
@@ -195,14 +269,22 @@ void compactHeap() {
   termCount = 0;
   heapSize = 0;
 
+  MarkInfo markInfo;
+  markInfoPo info = setupMarkTable(&markInfo);
+
   // Mark everything
   for (int i = 0; i < heap.topRoot; i++) /* mark the external roots */
-    cardMarkTerm(*heap.roots[i]);
+    nonRecMark(*heap.roots[i], info);
 
-  scanLabels(cardMarkHelper, Null);
-  scanGlobals(cardMarkHelper, Null);
-  scanProcesses(cardMarkHelper, Null);
-  scanConstants(cardMarkHelper, Null);
+  assert(info->top==0);
+
+  scanLabels(cardMarkHelper, info);
+  scanGlobals(cardMarkHelper, info);
+  scanProcesses(cardMarkHelper, info);
+  scanConstants(cardMarkHelper, info);
+
+  assert(info->top==0);
+  clearMarkTable(info);
 
   assert(heapSize>>CARDSHIFT <= heap.ncards);
   assert(heapSize>=termCount);

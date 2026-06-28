@@ -174,7 +174,6 @@ retCode markProcess(enginePo P, gcSupportPo G) {
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
   P->stk = C_STACK(markPtr(G, (ptrPo)&P->stk));
-
   recordTermUpdate((termPo)P->stk); // We must mark active stacks
   return Ok;
 }
