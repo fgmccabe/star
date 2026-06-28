@@ -4,9 +4,6 @@ This is an implementation of a revised definition of star.
 
 It is sufficiently different that there may be a new name coming...
 
-Most of the features are carried over from old star but the syntax has been
-completely revised.
-
 This repository contains the VM, two compilers -- one written in Prolog and one
 written in Star --  an emacs mode to support Star, and documentation.
 
@@ -29,8 +26,7 @@ permitted or supported.
 Currently, the only supported architecture is ARM64. There will be an X64 jit compiler at some
 time. There is currently no intention to support 32-bit architectures.
 
-The roadmap for the Star language includes a WebAssembly backend to the main compiler and
-better support for debugging.
+
 
 
 
