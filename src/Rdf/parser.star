@@ -9,7 +9,8 @@ rdf.parser{
   import rdf.triple.
 
   public parseGraph:() >> set[triple] --> cons[token].
-  parseGraph >> Gr* --> rdfTriple * >> Gr, [.endTok(_)], {trP("grs $(Gr)")}.
+  parseGraph >> Gr* --> preamble >> PrefixMap,
+           rdfTriple * >> Gr, [.endTok(_)], {trP("grs $(Gr)")}.
 
   public rdfTriple:() >> set[triple] --> cons[token].
   rdfTriple >> Ss --> triple >> Ss, {trP("triple: $(Ss)")}.
@@ -26,9 +27,7 @@ rdf.parser{
   symbolic >> .named("",Id) --> [.tok(_,.idTok(Id))], ~[.tok(_,.pncTok(":"))].
   symbolic >> .uri(U) --> [.tok(_,.uriTok(U))].
 
-  prefix >> .prefix(Nm) --> [.tok(_,.pncTok("@")), .tok(_,.idTok(Id)),.tok(_,.pncTok(":"))].
 
-  
   literal >> .int(Ix) --> [.tok(_,.intTok(Ix))].
   literal >> .flt(Fx) --> [.tok(_,.fltTok(Fx))].
   literal >> .text(Mkup) --> [.tok(Lc,.strTok(Sgs))], { Mkup ?= parseMarkup(Lc,Sgs) }.
@@ -49,6 +48,15 @@ rdf.parser{
 
   markup() >> .str(Str) --> [.segment(_,Str)].
   markup() >> .link(C,S) --> [.interpolate(_,Tks,S)], {C ?= parseTks(concept,Tks)}.
+
+  preamble:() >> map[string,string] --> cons[token].
+  preamble >> { P -> U | (P,U) in Ps } --> prefix * >> Ps.
+
+  prefix :() >> (string,string) --> cons[token].
+  prefix >> (P,U) -->
+    [.tok(_,.pncTok("@")),.tok(_,.idTok("prefix")),
+    .tok(_,.idTok(P)),.tok(_,.pncTok(":")),
+    .tok(_,.uriTok(U)), .endTok(_)].
 
   parseTks:all t,r ~~ stream[t->>_] |= ((()>>r-->t),t) => option[r].
   parseTks(P,T) => ( (R,[]) ?= P(T) ?? .some(R) || .none).
