@@ -1627,7 +1627,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sUnderflow: {
       int32 insSize = 1;
       // underflow from current stack
-      // Special concerns: ignore state and assume that X0 = RTS, X1=RTV
       stp(RTV, RTS, PRX(SP,-16));
       invokeIntrinsic(state, pc, pc, (runtimeFn)detachDropStack, 2, (FlexOp[]){RG(PR),RG(STK)}, False, 0,
                       (FlexOp[]){});
@@ -1639,16 +1638,18 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sLine: {
       int32 insSize = 2;
-      if (lineDebugging >= generalTracing) {
+      if (lineDebugging >= detailedTracing) {
         int32 locKey = opand(1);
-        recordMethodLocation(state->mtd, getConstant(locKey), currentPc(ctx));
+        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2, (FlexOp[]){
+                          RG(PR), constantFlex(locKey)
+                        }, False, 0, (FlexOp[]){});
       }
       pc += insSize;
       continue;
     }
     case sBind: {
       int32 insSize = 3;
-      if (lineDebugging > generalTracing) {
+      if (lineDebugging >= detailedTracing) {
         int32 varKey = opand(1);
         FlexOp vl = localFlex(state, pc, opand(2));
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)bindDebug, 3, (FlexOp[]){

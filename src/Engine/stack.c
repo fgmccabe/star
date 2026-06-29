@@ -349,13 +349,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
   methodPo callProg = locateMethod((uinteger)pc);
 
   if (callProg != Null) {
-    codeLocationPo loc = locateMethodLocation(callProg, (uinteger)pc);
-
-    if (loc != Null)
-      outMsg(out, "[%d] %L: %T", frameNo, loc, callProg);
-    else
-      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, callProg,
-             codeOffset(callProg, pc));
+    outMsg(out, "[%d]: %T[%d]", frameNo, callProg, codeOffset(callProg, pc));
 
     int32 count = mtdArity(callProg);
 

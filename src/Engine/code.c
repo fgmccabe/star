@@ -158,10 +158,6 @@ termPo codeFinalizer(builtinClassPo class, termPo o) {
     mtd->instructions = Null;
   }
 
-  if (mtd->locations != Null) {
-    mtd->locations = eraseArray(mtd->locations,Null, Null);
-  }
-
   return ((termPo)o) + mtdSize(class, o);
 }
 
@@ -312,7 +308,6 @@ methodPo defineMtd(int32 insCount, ssaInsPo instructions, int32 lclCount, int32 
   mtd->clss.space = FIVEAS;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
-  mtd->locations = Null;
 #ifndef NOJIT
   mtd->jit.code = Null;
   mtd->jit.codeSize = 0;
@@ -354,51 +349,3 @@ retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize) {
   return Ok;
 }
 #endif
-arrayPo allocArray(int elSize, int32 initial, logical growable);
-
-void recordMethodLocation(methodPo mtd, termPo loc, uint32 offset) {
-  if (mtd->locations == Null) {
-    mtd->locations = allocArray(sizeof(CodeLocation), 16, True);
-  }
-
-  if (isNormalPo(loc)) {
-    normalPo line = C_NORMAL(loc);
-    char pkgNm[MAX_SYMB_LEN];
-    copyChars2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
-
-    packagePo pkg = loadedPackage(pkgNm);
-    CodeLocation locn = {
-      .pkg = pkg, .line = (int32)integerVal(nthArg(line, 1)), (int32)integerVal(nthArg(line, 2)),
-      .from = (int32)integerVal(nthArg(line, 3)), .size = (int32)integerVal(nthArg(line, 4)), .offset = offset
-    };
-    appendEntry(mtd->locations, &locn);
-  }
-}
-
-codeLocationPo locateMethodLocation(methodPo mtd, uinteger pc) {
-  if (mtd->locations == Null) {
-    return Null;
-  }
-
-#ifdef NOJIT
-  int32 offset = codeOffset(mtd, (ssaInsPo)pc);
-#else
-  int32 offset = pc - (uinteger)jitCode(mtd);
-#endif
-
-  int32 minOffset = -1;
-  codeLocationPo minLoc = Null;
-
-  for (int32 lx = 0; lx < arrayCount(mtd->locations); lx++) {
-    codeLocationPo loc = nthEntry(mtd->locations, lx);
-    if (loc->offset < offset) {
-      if (loc->offset > minOffset) {
-        minOffset = loc->offset;
-        minLoc = loc;
-      }
-      else
-        break;
-    }
-  }
-  return minLoc;
-}

@@ -7,6 +7,7 @@
 #include <sock.h>
 #include <manifest.h>
 
+#include "arith.h"
 #include "debugP.h"
 #include "disass.h"
 #include "editline.h"
@@ -632,17 +633,22 @@ DebugWaitFor insDebug(enginePo p) {
 }
 
 retCode showLoc(ioPo f, void* data, long depth, long precision, logical alt) {
-  codeLocationPo ln = (codeLocationPo)data;
+  normalPo ln = C_NORMAL(data);
 
   if (ln != Null) {
+    integer pkgNmLen;
+    const char* pkgName = strVal(nthArg(ln,0), &pkgNmLen);
+
     if (alt && showPkgFile) {
       char srcName[MAXFILELEN];
+      packagePo pkg = loadedPackage(pkgName);
 
-      retCode ret = manifestResource(ln->pkg, "source", srcName, NumberOf(srcName));
+      retCode ret = manifestResource(pkg, "source", srcName, NumberOf(srcName));
       if (ret == Ok)
-        return outMsg(f, "%s(%d:%d@%d,%d)%_", srcName, ln->line, ln->col, ln->from, ln->size);
+        return outMsg(f, "%s(%T:%T@%T,%T)%_", srcName, nthArg(ln, 1), nthArg(ln, 2), nthArg(ln, 3), nthArg(ln, 4));
     }
-    return outMsg(f, "%s:%T:%T(%T)", pkgName(ln->pkg), ln->line, ln->col, ln->from, ln->size);
+
+    return outMsg(f, "%S:%T:%T(%T)", pkgName, pkgNmLen, nthArg(ln, 1), nthArg(ln, 2), nthArg(ln, 3));
   }
   else
     return outStr(f, "?unknown loc?");
