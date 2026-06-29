@@ -8,7 +8,8 @@ tries.
 
 == Scoring
 
-When player two makes a guess, player one computes a score for the guess. This score is presented back to player two by coloring the letters of the guess:
+When player two makes a guess, player one computes a score for the guess. This
+score is presented back to player two by coloring the letters of the guess:
 
 * a green letter means that the letter is correct, and in the right place,
 * a yellow letter means that the letter is correct, but not in the right place, and

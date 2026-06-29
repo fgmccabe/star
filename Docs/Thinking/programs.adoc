@@ -7,7 +7,7 @@
 This game is explained in <<wordleGame>>.
 
 [source,star]
-----
+++++
 test.wordle{
   import star.
   import star.io.
@@ -153,7 +153,6 @@ test.wordle{
       
       if Secret ?= Words[_irand(Cnt)] then{
 	autoplay(Secret,Words);
---	play(Secret,Words);
       }
     } catch {
       M => showMsg("We got an exception: $(M)")
@@ -161,4 +160,4 @@ test.wordle{
     valis ()
   }
 }
-----
+++++

@@ -12,19 +12,26 @@ of Star, this line might be (we will explain what it means a bit later on):
 factorial:all t ~~ arith[t] |= (t)=>t.
 ----
 
-This is a _type annotation_: a description of the type of a
-variable -- in this case `factorial`. It is a function type --
-which means that we can call `factorial`. It is also, somewhat
-unusually for factorial, _generic_: the factorial of any type can
-be computed -- provided that `arith`metic has been implemented for it.
+This is a _type annotation_: a description of the type of a variable -- in this
+case `factorial`. It is a function type -- which means that we can invoke
+`factorial` it to get a result. It is also, somewhat unusually for factorial
+functions, _generic_: the factorial of any type can be computed -- provided that
+``arith``metic has been implemented for it.
 
-Although this is not the simplest type annotation; overall, the
-texture of Star is designed to enhance the readability of
-programs. Readability is important because many people have to be able
-to read programs; perhaps more than are involved in writing them. Even
-with an emphasis on readability, the power of the language is such
-that Star programs tend to be shorter than their equivalents written
-in languages like Java.
+Although this is not the simplest type annotation; overall, the texture of Star
+is designed to enhance the readability of programs. Readability is important
+because many people have to be able to read programs; perhaps more than are
+involved in writing them.
+
+Readability is not simply about nice looking fonts and letter spacing. In our
+case, we believe that readability is enhanced by precision. For example, while
+many programming languages support generic types of functions, in Star we
+require that generic types have _explicit quantifiers_.
+
+Explicit quantifiers have a documentation purpose: we highlight what the generic
+types are; but also enhance precision. Especially for complex cases -- such as
+functions that take generic functions as arguments, or data types that hold
+generic functions.
 
 This is a function definition that should be more straightforward to
 understand:
@@ -308,60 +315,6 @@ is a conditional expression: if `x` is greater than
 is. This is an example of a very well known form of expression that
 uses symbolic operators rather than keywords.
 
-== Collections
-
-Star has a standard way of writing sequences and collections – like
-lists and dictionaries. For example, the expression
-
-[source, star]
-----
-[4, 8, 15, 16, 42]
-----
-
-denotes the list with the numbers 4, 8, 15, 16 and 42 in it. This
-notation – which is called the sequence notation.  We can denote a
-different kind of sequences, containing cons elements for example,
-using:
-
-[source, star]
-----
-[4, 8, 15, 16, 42]:cons[integer]
-----
-
-or, we can even denote a general collection without being explicit
-about the type of collection:
-
-[source, star]
-----
-[4, 8, 15, 16, 42]
-----
-
-In this last case, the compiler may have to rely on the context to
-fully determine the type of the sequence.
-
-As another example, we can see that a dictionary literal is also a
-variation on the collection – except that we have keys as well as
-values:
-
-[source, star]
-----
-{ "alpha"->1, "beta"->2 }
-----
-
-=== Comprehensions
-
-Star has a built-in query expression notation that allows us to avoid
-a lot of common recursive forms of definition. For example, the
-`apply` function can be written more succinctly using:
-
-[source, star]
-----
-apply(f,C) => { f(X) | X in C }
-----
-
-the meaning of the expression is equivalent to the recursive
-definition we saw of `apply` above.
-
 == Contracts
 
 Star contracts are analogous to type interfaces: they specify the
@@ -525,9 +478,160 @@ displaying values, coercions between types and support for coroutines
 all represent syntactic features of the language whose semantics is
 provided via contracts.
 
-== Other Features
+== Collections
 
-This tour is necessarily incomplete. Other notable features of Star include a
-built-in grammar notation, exceptions, yield-style generators, async functions,
-and actors.
+Star has a standard way of writing sequences and collections – like
+lists and dictionaries. We call this Star's _sequence notation_.
+For example, the expression
+
+[source, star]
+----
+[4, 8, 15, 16, 42]
+----
+
+denotes a sequence with the numbers 4, 8, 15, 16 and 42 in it. As it stands, the
+type of this epxression is incomplete: we know it's a seqence, but we don't know
+what type of sequence it is. The type might be inferrable from the context, in
+which cse that is all we need to say. On the other hand, there are many kinds of
+sequence, including any user-defined type that has the appropriate ``sequence``
+contract implemented for it.
+
+We can denote a specific kind of sequences, containing ``cons`` elements for
+example, using a type annotation:
+
+[source, star]
+----
+[4, 8, 15, 16, 42]:cons[integer]
+----
+
+As another example, we can see that a dictionary literal is also a
+variation on the collection – except that we have keys as well as
+values:
+
+[source, star]
+----
+{ "alpha"->1, "beta"->2 }
+----
+
+In addition to complete sequences, we can also denote partial sequence
+expression -- where the sequence is constructed by prepending elements to an
+existing sequence:
+
+[source, star]
+----
+["alpha", "beta",.. Greek]
+----
+
+We can also use sequence expressions as patterns. For example, this function
+replicates the standard sequence concatenation function:
+
+[source, star]
+----
+conc:all c,e ~~ sequence[c->>e], stream[c->>e] |= (c,c)=>c.
+conc([],S) => S.
+conc([E,..R],S) => [E,..conc(R,S)].
+----
+
+We saw earlier how the ``sequence`` and ``stream`` contracts were defined. This
+function illustrates how some syntactic features can be connected to semantic
+implementations -- via contracts.
+
+=== Comprehensions
+
+Star has a built-in query expression notation that allows us to avoid
+a lot of common recursive forms of definition. For example, the
+`apply` function can be written more succinctly using:
+
+[source, star]
+----
+apply(f,C) => { f(X) | X in C }
+----
+
+the meaning of the expression is equivalent to the recursive
+definition we saw of `apply` above.
+
+In addition to the sequence comprehension, Star also has iota comprehensions
+(finding a single solution to a query), test comprehensions (checking that a
+solution exists) and folding comprehensions (folding over the results of a
+comprehension).
+
+An example of the latter might be:
+
+[source, star]
+----
+sumUp(C) => { (+) <* X <* 0 | X in C where X > 0}
+----
+
+which adds up all the positive elements of the collection in ``C``.
+
+== Coroutining
+
+A coroutine is a _suspendable_ computation. When coroutines suspend they can
+signal a value to the code that originally resumed the coroutine. This value is
+typically used to both continue the computation and to decide whether or not the
+coroutine can be resumed again.
+
+One of the simpler applications of the coroutine concept is the _generator_. A
+Star generator is an expression that returns -- via the ``yield`` action --
+values that typically represent successive elements of an iteration.
+
+A simple fixed generator might look like:
+
+[source, star]
+----
+generator {
+  yield "alpha";
+  yield "beta";
+  yield "gamma";
+}
+----
+
+Each of the `yield` actions results in the generator being suspended -- and the
+corresponding value being communicated.
+
+Generators are used by `for` loops. An action of the form:
+
+[source, star]
+----
+for L : generator { ... } do {
+  show L
+}
+----
+
+One feature of Star's generators is that the `yield` action does not need to be
+at the top-level of the generator. For example, in:
+
+[source, star]
+----
+walk:all e,x ~~ (tree[e],(e,x)=>x,x) => x.
+walk(.empty,_,X) => X.
+walk(.node(L,E,R),F,X) => walk(R,F,F(E,walk(L,F,X))).
+
+walker:all e ~~ (tree[e]) => generator[e].
+walker(T) => generator{
+  walk(T,(E,_) => valof{
+    yield E;
+    valis ()
+  },());
+   valis ._all
+}
+----
+
+the generator performs calls ``walk`` -- which is a generic function that itself
+takes a function argument -- passing to it a lambda expression which uses
+``yield`` to return leaf nodes to the generator.
+
+NOTE: This generator is well typed -- because while the ``yield`` is peformed
+dynamically, it is statically linked to the ``generator`` expression: the
+elements yielded must be consistent with the type of the ``generator`` which, in
+turn, is linked to the ``walker`` function itself.
+
+Star has other coroutining features, including suspend for the classic
+async/await style of programming as well as green threads and structured tasks.
+
+== More to Come
+
+This tour is necessarily incomplete. However, in the following chapters we shall
+explore using Star to realize some non-trivial examples.
+
 

@@ -1,13 +1,12 @@
 = Collections
 
-Modern programming -- whether it is OO programming, functional
-programming or just plain C programming -- relies on a rich standard
-library. Given that nearly every program needs to be able to manage
-collections of _things_, the central pearl of any standard
-library is the _collections_ library. Recalling our mantra of
-hiding recursion; a well designed collections library can make a huge
-difference to the programmer's productivity, often by hiding many of
-the recursions and iterations required to process collections.
+Modern programming -- whether it is OO programming, functional programming or
+just plain C programming -- relies on a rich standard library. Given that nearly
+every program needs to be able to manage collections of _things_, the central
+pearl of any standard library is the _collections_ library. Recalling our mantra
+of hiding recursion; a well designed collections library can make a huge
+difference to the programmer's productivity, often by hiding many of the
+recursions and iterations required to process collections.
 
 The collections architecture has four main components:
 
