@@ -277,8 +277,8 @@ void genToken(char *op, char *cmt, logical isKeyword) {
 
 static opPo genOper(char *op, char *cmt, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
   opPo oper = (opPo) malloc(sizeof(Operator));
-  strcpy(oper->name, op);
-  strcpy(oper->cmt, cmt);
+  uniCpy(oper->name, NumberOf(oper->name), op);
+  uniCpy(oper->cmt, NumberOf(oper->cmt), cmt);
   oper->style = style;
   oper->left = left;
   oper->prior = prior;
@@ -313,10 +313,10 @@ void genPostfix(char *op, int left, int prior, logical isKeyword, char *cmt) {
 void genBracket(char *op, integer prior, char *left, char *right, char *sep, char *cmt) {
   bracketPo bkt = (bracketPo) malloc(sizeof(BrktRecord));
 
-  strcpy(bkt->name, op);
-  strcpy(bkt->left, left);
-  strcpy(bkt->right, right);
-  strcpy(bkt->sep, sep);
+  uniCpy(bkt->name, NumberOf(bkt->name), op);
+  uniCpy(bkt->left, NumberOf(bkt->left), left);
+  uniCpy(bkt->right, NumberOf(bkt->right), right);
+  uniCpy(bkt->sep, NumberOf(bkt->sep), sep);
   bkt->priority = prior;
 
   hashPut(bracketTbl, bkt->name, bkt);
