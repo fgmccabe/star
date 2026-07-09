@@ -43,7 +43,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
 
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
-    showMethodCode(logFile, "Jit method %L\n", mtd);
+    showMethodCode(logFile, "Jit method", mtd);
   }
 #endif
 
@@ -72,7 +72,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
 retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
-    showMethodCode(logFile, "Jit special method %L\n", mtd);
+    showMethodCode(logFile, "Jit special method", mtd);
   }
 #endif
 

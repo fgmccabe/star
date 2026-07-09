@@ -77,7 +77,7 @@ static logical registerInUse(codeGenPo state, FlexOp src);
 retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, char* errMsg, integer msgLen) {
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
-    showMethodCode(logFile, "Jit method %L\n", mtd);
+    showMethodCode(logFile, "Jit method", mtd);
   }
 #endif
 

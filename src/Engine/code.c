@@ -171,8 +171,7 @@ integer mtdHash(builtinClassPo cl, termPo o) {
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
-  labelPo mtdLbl = mtd->lbl;
-  return outMsg(out, "%%%s/%d", lblName(mtdLbl), mtdLbl->lbl.arity);
+  return outMsg(out, "%%%A", mtd->lbl);
 }
 
 labelPo mtdLabel(methodPo mtd) {
@@ -214,8 +213,7 @@ void showMethodCode(ioPo out, char* msg, methodPo mtd) {
   ssaInsPo pc = entryPoint(mtd);
   ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
 
-  outMsg(out, msg, mtdLabel(mtd));
-
+  outMsg(out, "%s %A\n", msg, mtdLabel(mtd));
   outMsg(out, "%d locals\n", lclCount(mtd));
 
   while (pc < last) {
