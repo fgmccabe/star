@@ -1,49 +1,84 @@
 = Representing Policy
 
-One of the design goals for Star was that it would be able to stretch
-from relatively low-level problems to very high-level ones. In
-particular, we should be able to borrow some of the powerful features
-of languages like Prolog and SQL to express high-level concepts.
+One of the design goals for Star was that it would be able to stretch from
+relatively low-level problems to very high-level ones. In particular, we should
+be able to borrow some of the powerful features of languages like Prolog and SQL
+to express high-level concepts.
 
-In this chapter we look at how the combination of query expressions
-and set data structures -- together with the more normal features of
-the language -- can be combined to construct an effective policy
-mechanism.
+In this chapter we look at how the combination of query expressions and set data
+structures -- together with the more normal features of the language -- can be
+combined to construct an effective policy mechanism.
 
 == Application = Mechanism + Policy
 
-It is an informal truism of software engineering that it is often
-easier to solve a more general version of a presented problem and to
-then allow customization of that solution for particular needs. This
-is also how we can amortize the cost of development across multiple
-use-cases.
+It is an informal truism of software engineering that it is often easier to
+solve a more general version of a presented problem and to then allow
+customization of that solution for particular needs. This is also how we can
+amortize the cost of development across multiple use-cases.
 
-We can crystalize this idea by factoring applications into two parts:
-a mechanism that embodies the functionality of the application and a
-policy that guides us how to actually use the mechanism.
+We can crystalize this idea by factoring applications into two parts: a
+mechanism that embodies the functionality of the application and a policy that
+guides us how to actually use the mechanism.
 
-We see this from two perspectives: that of the owner of the
-application and that of the application code itself.
+We see this from two perspectives: that of the owner of the application and that
+of the application code itself.
 
 === What is a policy?
 
 One reasonable definition of policy is in terms of constraints:
 
-[sidebar]
-A policy is a constraint on the behavior of a system.
+Policy:: a constraint on the behavior of a system. This includes
+constraints on people interacting with the system as well as constraints on the
+elements of the system itself.
 
 For example, we might have a policy of never lending books to library
 customers if they have any outstanding fines.
 
-It is quite possible to unpack this definition into many important
-aspects; for example we can distinguish _permissive_ policies
-from _audit_ policies. However, for lack of space, we avoid that
-here and instead note that policies are:
+It is quite possible to unpack this definition into many important aspects; for
+example we can distinguish _permissive_ policies from _audit_ policies. 
 
-[sidebar]
-declarative statements of the intention of the stakeholders
-of a system
+Yet another take on the question looks at it from the point of view of
+application code:
 
+Policy:: is the answer to a question that code has that cannot be directly
+answered within the application or from its input.
+
+Taking the lending example for example, somewhere in the code there will be a
+function that allows a user to check out a book (and assign the book to their
+currently checked out list). The same code will typically have a condition along
+the lines of:
+
+[source,star]
+----
+checkoutBook(User,Book) => valof {
+  if lendingIsPermitted(Book,User) then{
+    assignBook(Book,User);
+    valis .checkout(User,Book)
+  } else {
+    logMsg(.warning,"User $(User) not allowed to borrow $(Book)");
+    valis .denied
+  }
+}
+----
+
+Functions such ``lendingIsPermitted`` is not typically hard coded into lending
+applications, nor is it included in the input data (the user's name and the book
+they want to check out).footnote:[Although the user might have presented
+additional input -- such as a special pass -- that the application can use to
+override its own reluctance.]
+
+In this way of conceptualizing policies and policy enforcement is that the
+overall system contains an _oracle_ whose role is to answer policy _questions_
+that the application(s) have.
+
+NOTE: In larger scale applications, having an explicit policy oracle can be a
+useful architectural technique as it can help factorize out what a system can do
+from the mechanisms needed to achieve its goals.
+
+Both views on policies are valid, and can help us design an effective means of
+governing systems.
+
+    
 A key differentiator of different policy systems is the expressiveness
 of the notation that one can use to represent policies.
 
