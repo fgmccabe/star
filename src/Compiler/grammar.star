@@ -89,6 +89,12 @@ star.compiler.macro.grammar{
     valis .some(foldRight((C,X)=>.seq(Lc,.term(Lc,.chr(Lc,C)),X),.epsilon(Lc),Els))
   }
   parseBody(A) where (_,Els) ?= isTuple(A) => parseBody(reComma(Els)).
+  parseBody(A) where (Lc,L) ?= isPull(A) => valof{
+    if LL?=parseBody(L) then
+      valis .some(.opt(Lc,LL))
+    else
+    valis .none
+  }
   parseBody(A) where (Lc,L) ?= isUnary(A,"*") => valof{
     if LL?=parseBody(L) then
       valis .some(.rep(Lc,LL))
@@ -139,11 +145,7 @@ star.compiler.macro.grammar{
   parseRule(_) default => .none.
 
   makeBody:(grBody,ast,ast,option[ast]) => ast.
-  makeBody(.epsilon(Lc),Str,Nxt,.none) => mkMatch(Lc,Nxt,Str). -- Nxt.=Str
-  makeBody(.epsilon(Lc),Str,Nxt,.some(V)) => valof{
-    reportError("cannot produce $(V) from []",Lc);
-    valis mkMatch(Lc,Nxt,Str)
-  }
+  makeBody(.epsilon(Lc),Str,Nxt,_) => mkMatch(Lc,Nxt,Str). -- Nxt.=Str
   makeBody(.term(Lc,T),Str,Nxt,.none) => hdtl(Lc,T,Nxt,Str).
   makeBody(.term(Lc,T),Str,Nxt,.some(V)) =>
     mkConjunct(Lc,
@@ -171,6 +173,16 @@ star.compiler.macro.grammar{
   }
   makeBody(.dis(Lc,L,R),Str,Nxt,V) => 
     mkDisjunct(Lc,makeBody(L,Str,Nxt,V), makeBody(R,Str,Nxt,V)).
+  makeBody(.opt(Lc,R),Str,Nxt,.none) =>
+    makeBody(.dis(Lc,R,.epsilon(Lc)),Str,Nxt,.none).
+  makeBody(.opt(Lc,R),Str,Nxt,.some(V)) => valof{
+    o = genName(Lc,"o");
+    Rgt = makeBody(R,Str,Nxt,.some(o));
+    Tst = mkMatch(Lc,V,mkSome(Lc,o));
+    valis mkDisjunct(Lc,mkConjunct(Lc,Rgt,Tst),
+      mkConjunct(Lc,makeBody(.epsilon(Lc),Str,Nxt,.some(enum(Lc,"none"))),
+	mkMatch(Lc,V,enum(Lc,"none"))))
+  }
   makeBody(.rep(Lc,L),Str,Nxt,V) => valof{
     /*
     let{.
@@ -190,7 +202,7 @@ star.compiler.macro.grammar{
       .some(makeBody(L,S0,S1,.some(X))),
       roundTerm(Lc,s,[S1,mkCon(Lc,"cons",[X,SoF])]));
     Eq2 = mkEquation(Lc,.some(s),.true,rndTuple(Lc,[S0,SoF]),.none,
-      mkOption(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
+      mkSome(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
     Val = (VV ?= V ?? VV || mkAnon(Lc));
     valis mkOptionMatch(Lc,rndTuple(Lc,[Val,Nxt]),
       mkLetRecDef(Lc,[Eq1,Eq2],roundTerm(Lc,s,[Str,sqTuple(Lc,[])])))
@@ -229,7 +241,7 @@ star.compiler.macro.grammar{
     Tst = mkConjunct(Lc,Rgt,Lft);
     Eq1 = mkEquation(Lc,.some(s),.false,rndTuple(Lc,[S0,SoF]),.some(Tst),Val);
     Eq2 = mkEquation(Lc,.some(s),.true,rndTuple(Lc,[S0,SoF]),.none,
-      mkOption(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
+      mkSome(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
 
     /* build equations for overall production */
     AA = mkOptionMatch(Lc,rndTuple(Lc,[Fr,Si]),roundTerm(Lc,f,[S0]));
@@ -254,7 +266,7 @@ star.compiler.macro.grammar{
     Rgt = makeBody(R,S0,An,.none);
     Eq1 = mkEquation(Lc,.some(sk),.false,rndTuple(Lc,[S0]),
       .some(Rgt),
-      mkOption(Lc,rndTuple(Lc,[unit(Lc),S0])));
+      mkSome(Lc,rndTuple(Lc,[unit(Lc),S0])));
     Eq2 = mkEquation(Lc,.some(sk),.false,rndTuple(Lc,[S0]),
       .some(hdtl(Lc,An,S1,S0)),
       roundTerm(Lc,sk,[S1]));
@@ -298,7 +310,7 @@ star.compiler.macro.grammar{
       B = makeBody(Rl.body,Str,Rst,.none);
       valis mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),
 	mergeCond(Rl.cond,.some(B)),
-	mkOption(Lc,rndTuple(Lc,[Rl.value,Rst])))
+	mkSome(Lc,rndTuple(Lc,[Rl.value,Rst])))
     } else
     valis mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),.none,enum(Lc,"none")).
   }
@@ -377,7 +389,7 @@ star.compiler.macro.grammar{
       Cond = makeBody(Body,Str,Nxt,.some(Rslt));
       valis .active(
 	mkConditional(Lc,mkConjunct(Lc,Cond,unary(Lc,"_eof",Nxt)),
-	  mkOption(Lc,Rslt),
+	  mkSome(Lc,Rslt),
 	  enum(Lc,"none")))
     }
     else {

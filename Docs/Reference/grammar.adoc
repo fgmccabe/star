@@ -233,6 +233,27 @@ N >> P --> L >> P.
 N >> P --> R >> P.
 ----
 
+=== Optional
+
+An optional non-terminal is written using a prefix ``?`` operator. An optional
+is satisfied if either the argument is satisfied, or it is empty.
+
+Note that, if an optional has an out, then it is _wrapped_ into an ``option``
+value.
+
+For example, if ``decimal`` has an ``integer`` output, then
+
+[source,star]
+====
+... ? decimal >> D ....
+====
+
+has an output of type ``option[integer]``: if a ``decimal`` is parsed, and
+produces ``42`` (say) then the output f ``? decimal >> D`` is ``.some(42)``.
+
+If there is no ``decimal`` in the input, then the output will be bound to
+``.none``.
+
 === Kleene Star
 
 A starred grammar represents a repeated sequence of expressions.

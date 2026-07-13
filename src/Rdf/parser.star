@@ -8,7 +8,7 @@ rdf.parser{
   import rdf.token.
   import rdf.triple.
 
-  prefixDict ~> map[string,string].
+  public prefixDict ~> map[string,string].
 
   public parseGraph:() >> set[triple] --> cons[token].
   parseGraph >> Gr* --> preamble >> PrefixMap,
@@ -52,7 +52,7 @@ rdf.parser{
   markup(_) >> .str(Str) --> [.segment(_,Str)].
   markup(D) >> .link(C,S) --> [.interpolate(_,Tks,S)], {C ?= parseTks(concept,Tks,D)}.
 
-  preamble:() >> prefixDict --> cons[token].
+  public preamble:() >> prefixDict --> cons[token].
   preamble >> { P -> U | (P,U) in Ps } --> prefix * >> Ps.
 
   prefix :() >> (string,string) --> cons[token].
@@ -67,6 +67,9 @@ rdf.parser{
   resolve:(concept,prefixDict)=>concept.
   resolve(.named(Nm,Post),D) where Pr ?= D[Nm] => .uri(Pr++Post).
   resolve(C,_) default => C.
+
+  public keyword:(string) >> () --> cons[token].
+  keyword(Key) --> [.tok(_,.idTok(Key))].
 
   trP(Msg) => valof{
     if traceParse! then{

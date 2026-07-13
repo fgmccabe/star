@@ -2,19 +2,19 @@
 (((ontology)))
 
 Star offers a standard suite of features that permit applications
-to parse _ontology_ files using a variant of the N3 standard for
+to parse _ontology_ files using a variant of the Turtle <<w3ttl,standard>> for
 describing triple-based ontologies.
 
-== RDF and N3
+== RDF and Turtle
 RDF is a W3C standard for specifying simple ontologies using a very
 simple language: an RDF graph is a set of _triples_; each triple
 consists of a subject, a predicate and an object -- all of which are
 _concepts_. In the standard notation, RDF triples are written
 using an XML-based notation; however, there is a more convenient
-notation often used called `N3`.
+notation often used called `Turtle` (Terse RDF Triple Language).
 
 [#tripleFig]
-.N3 Triples
+.Turtle Triples
 [source,star]
 ----
 triple --> subject predicate object.
@@ -25,7 +25,7 @@ object --> concept.
 ----
 
 where _Subject_, _Predicate_ and _Object_ are all
-concepts. Such a statement is called a _Triple_. N3 supports
+concepts. Such a statement is called a _Triple_. Turtle supports
 several shortened forms of triples; for example, a statement such as:
 
 [source,star]
@@ -83,7 +83,7 @@ NOTE:  The one exception to this is string text. String text may reference
 concepts using a special interpolation notation (see below).
 
 [#conceptFig]
-.N3 Concepts
+.Turtle Concepts
 [source,star]
 ----
 concept --> identifiedConcept.
@@ -134,5 +134,5 @@ they are sometimes used, for example, to give human-readable names of concepts.
 Another use for text concepts is as 'bulk text' that can be used as part of a
 graph application.
 
-== Parsing N3 content
+== Parsing Turtle content
 

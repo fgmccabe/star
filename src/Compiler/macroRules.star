@@ -107,21 +107,21 @@ star.compiler.macro.rules{
 
   -- Convert P?=E to .some(P).=E
   optionMatchMacro(A,.expression) where (Lc,L,R) ?= isOptionMatch(A) =>
-    .active(mkMatch(Lc,mkOption(Lc,L),R)).
+    .active(mkMatch(Lc,mkSome(Lc,L),R)).
   optionMatchMacro(_,_) default => .inactive.
 
   -- Convert P?|E to (.some(X).=P ?? X || E)
   optionCondMacro(A,.expression) where (Lc,P,E) ?= isOptionCond(A) => valof{
     X = genName(Lc,"X");
     
-    valis .active(mkConditional(Lc,mkMatch(Lc,mkOption(Lc,X),P),X,E))
+    valis .active(mkConditional(Lc,mkMatch(Lc,mkSome(Lc,X),P),X,E))
   }
   optionCondMacro(_,_) default => .inactive.
 
 -- Convert P?E to (X where .some(P).=E(X))
   optionLiftMacro(A,.pattern) where (Lc,P,E) ?= isHat(A) => valof{
     X = genName(Lc,"X");
-    valis .active(mkWhere(Lc,X,mkMatch(Lc,mkOption(Lc,E),roundTerm(Lc,P,[X]))))
+    valis .active(mkWhere(Lc,X,mkMatch(Lc,mkSome(Lc,E),roundTerm(Lc,P,[X]))))
   }
   optionLiftMacro(_,_) default => .inactive.
 
@@ -192,7 +192,7 @@ star.compiler.macro.rules{
   iotaComprehensionMacro(A,.expression) where
       (Lc,Bnd,Body) ?= isIotaComprehension(A) => valof{
 	CC = makeCondition(Body,passThru,
-	  genResult(mkOption(Lc,Bnd)),
+	  genResult(mkSome(Lc,Bnd)),
 	  .grounded(enum(Lc,"none")));
 	valis .active(CC)
       }.

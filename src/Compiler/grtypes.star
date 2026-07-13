@@ -17,6 +17,7 @@ star.compiler.macro.grtypes{
   public grBody ::=
     .seq(option[locn],grBody,grBody) |
     .rep(option[locn],grBody) |
+    .opt(option[locn],grBody) |
     .sep(option[locn],grBody,grBody) |
     .dis(option[locn],grBody,grBody) |
     .neg(option[locn],grBody) |
@@ -42,6 +43,8 @@ star.compiler.macro.grtypes{
       "#(leftPar(P,Pr)) ~ #(dB(R,Rp))#(rightPar(P,Pr))".
     dB(.rep(_,L),Pr) where (Lp,P) ?= isPostfixOp("*") =>
       "#(leftPar(P,Pr)) #(dB(L,Lp)) * #(rightPar(P,Pr))".
+    dB(.opt(_,L),Pr) where (Lp,P) ?= isPrefixOp("?") =>
+      "#(leftPar(P,Pr)) ? #(dB(L,Lp)) #(rightPar(P,Pr))".
     dB(.sep(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp("*") =>
       "#(leftPar(P,Pr)) #(dB(L,Lp)) * #(dB(R,Rp)) #(rightPar(P,Pr))".
     dB(.term(_,T),Pr) => "[#(dispAst(T,1000,""))]".

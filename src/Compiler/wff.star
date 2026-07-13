@@ -442,7 +442,7 @@ star.compiler.wff{
 
   public mkMatch(Lc,L,R) => binary(Lc,".=",L,R).
 
-  public mkOption(Lc,A) => mkCon(Lc,"some",[A]).
+  public mkSome(Lc,A) => mkCon(Lc,"some",[A]).
 
   public isOptionMatch(A) where R ?=isBinary(A,"?=") => .some(R).
   isOptionMatch(A) where (Lc,L,R) ?= isBinary(A,".=") &&
@@ -450,7 +450,7 @@ star.compiler.wff{
 	  (_,"some") ?= isName(Op) => .some((Lc,LL,R)).
   isOptionMatch(_) default => .none.
 
-  public mkOptionMatch(Lc,L,R) => mkMatch(Lc,mkOption(Lc,L),R).
+  public mkOptionMatch(Lc,L,R) => mkMatch(Lc,mkSome(Lc,L),R).
 
   public isOptionCond(A) where R ?=isBinary(A,"?|") => .some(R).
   isOptionCond(A) => isBinary(A,"?|").
@@ -807,7 +807,7 @@ star.compiler.wff{
 
   public mkWherePtn:(option[locn],ast,ast) => ast.
   mkWherePtn(Lc,Ptn,Op) where V.=genName(Lc,"_P") =>
-    binary(Lc,"where",V,binary(Lc,".=",mkOption(Lc,Ptn),roundTerm(Lc,Op,[V]))).
+    binary(Lc,"where",V,binary(Lc,".=",mkSome(Lc,Ptn),roundTerm(Lc,Op,[V]))).
 
   public isPull:(ast) => option[(option[locn],ast)].
   isPull(A) => isUnary(A,"?").

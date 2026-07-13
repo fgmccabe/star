@@ -74,6 +74,9 @@ parseBody(A,sep(Lc,Lft,Rgt)) :-
   isBinary(A,Lc,"*",L,R),!,
   parseBody(L,Lft),
   parseBody(R,Rgt).
+parseBody(A,opt(Lc,B)) :-
+  isUnary(A,Lc,"?",L),!,
+  parseBody(L,B).
 parseBody(A,prod(Lc,NT,B)) :-
   isBinary(A,Lc,">>",L,B),!,
   parseBody(L,NT).
@@ -167,6 +170,9 @@ dispBody(prod(_,N,T),O,Ox) :-
 dispBody(rep(_,Lft),O,Ox) :-
   dispBody(Lft,O,O2),
   appStr(" * ",O2,Ox).
+dispBody(opt(_,Lft),O,Ox) :-
+  dispBody(Lft,O,O2),
+  appStr(" ? ",O2,Ox).
 dispBody(sep(_,Lft,Rgt),O,Ox) :-
   dispBody(Lft,O,O2),
   appStr(" * ",O2,O3),
@@ -204,10 +210,7 @@ makeRule(grRule(Lc,Nm,Args,Cond,Deflt,Val,Body),Rl) :-
   mkConApply(Lc,name(Lc,"some"),[A],Rs),
   buildEquation(Lc,name(Lc,Nm),[Str|Args],Cnd,Deflt,Rs,Rl).
 
-makeBody(epsilon(Lc),Str,Nxt,none,B) :-!,
-  match(Lc,Nxt,Str,B).
-makeBody(epsilon(Lc),Str,Nxt,some(V),B) :-!,
-  reportError("Not permitted to produce %s here",[ast(V)],Lc),
+makeBody(epsilon(Lc),Str,Nxt,_,B) :-!,
   match(Lc,Nxt,Str,B).
 makeBody(term(Lc,T),Str,Nxt,none,B) :- !,
   hdtl(Lc,T,Nxt,Str,B).
@@ -250,6 +253,19 @@ makeBody(dis(Lc,L,R),Str,Nxt,V,B) :-!,
   makeBody(L,Str,Nxt,V,B1),
   makeBody(R,Str,Nxt,V,B2),
   disjunct(Lc,B1,B2,B).
+makeBody(opt(Lc,L),Str,Nxt,none,B) :-!,
+  makeBody(dis(Lc,L,epsilon(Lc)),Str,Nxt,none,B).
+makeBody(opt(Lc,L),Str,Nxt,some(V),Bdy) :- !,
+  genIden(Lc,"o",O),
+  makeBody(L,Str,Nxt,some(O),Lt),
+  mkConApply(Lc,name(Lc,"some"),[O],OO),
+  match(Lc,V,OO,T1),
+  conjunct(Lc,Lt,T1,Lft),
+  makeBody(epsilon(Lc),Str,Nxt,none,Eps),
+  mkEnum(Lc,"none",None),
+  match(Lc,V,None,T2),
+  conjunct(Lc,Eps,T2,Rgt),
+  disjunct(Lc,Lft,Rgt,Bdy).
 makeBody(neg(Lc,R),Str,Nxt,none,B) :-!,
   genIden(Lc,"I",I),
   makeBody(R,Str,I,none,Ng),
