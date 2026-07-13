@@ -21,15 +21,10 @@ test.gr3{
 
   main:(){}.
   main() {
-    if (Ix,_) ?= int("123") then {
-      show Ix;
-    }
-    if (Ix,_) ?= int("-123") then {
-      show Ix
-    }
-    if (Ix,_) ?= int("+123") then {
-      show Ix
-    }
+    assert 123 ?= (int --> "123");
+    assert -123 ?= (int --> "-123");
+    assert 123 ?= (int --> "+123");
+
     if (Ix,_) ?= int("1-23") then {
       show Ix
     }
