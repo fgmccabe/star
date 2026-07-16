@@ -7,11 +7,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 include_directories(
         "../Headers"
-        "../../Util/Headers"
-        "../../Engine/Headers"
+        "../../../Util/Headers"
+        "../../../Engine/Headers"
         "../../Headers"
         "../../../Headers"
-        "../../../../Headers"
         "./Headers")
 
 set(HEADER_FILES
@@ -21,6 +20,6 @@ set(HEADER_FILES
         macros.h
         config.h)
 
-set(SOURCE_FILES assemx86_64.c ins_x64.c macros.c)
+set(SOURCE_FILES assemx86_64.c ins_x64.c macros.c asmInfra.c)
 add_library(assem STATIC ${SOURCE_FILES})
 

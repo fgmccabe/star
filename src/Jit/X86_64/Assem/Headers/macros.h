@@ -6,31 +6,31 @@
 #define STAR_MACROS_H
 
 #include "jit.h"
-#include "x64-64.h"
+#include "x86_64.h"
 
 typedef uint64 registerMap;
 
 registerMap defltAvailRegSet();
 registerMap emptyRegSet();
 registerMap allRegisters();
-registerMap fixedRegSet(armReg Rg);
+registerMap fixedRegSet(mcRegister Rg);
 
 static inline registerMap scratchRegs() {
   return 1u << RAX | 1u << RCX;
 }
 
-registerMap allocReg(registerMap from, armReg Rg);
-registerMap freeReg(registerMap from, armReg Rg);
-registerMap dropReg(registerMap map, armReg Rg);
-registerMap addReg(registerMap from, armReg Rg);
-logical isRegInMap(registerMap from, armReg Rg);
+registerMap allocReg(registerMap from, mcRegister Rg);
+registerMap freeReg(registerMap from, mcRegister Rg);
+registerMap dropReg(registerMap map, mcRegister Rg);
+registerMap addReg(registerMap from, mcRegister Rg);
+logical isRegInMap(registerMap from, mcRegister Rg);
 
-armReg nxtAvailReg(registerMap from);
+mcRegister nxtAvailReg(registerMap from);
 
 void saveRegisters(assemCtxPo ctx, registerMap regs);
 void restoreRegisters(assemCtxPo ctx, registerMap regs);
 
-typedef void (*regProc)(armReg rg, void *cl);
+typedef void (*regProc)(mcRegister rg, void *cl);
 
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
@@ -47,8 +47,7 @@ codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);
 uint64 labelTgt(codeLblPo lbl);
 retCode cleanupLabels(assemCtxPo ctx);
-
-static retCode updateLblEntry(void *entry, integer ix, void *cl);
+integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
 void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 

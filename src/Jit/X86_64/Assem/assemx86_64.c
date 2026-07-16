@@ -11,17 +11,17 @@
 #include "jit.h"
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclCount) {
-  codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
-  push(RG(RBP), ctx);
-  mov(RG(RBP), RG(RSP), ctx);
-  sub(RG(RSP), IM(lclCount), ctx);
+  codeLblPo entry = defineLabel(ctx, ctx->pc);
+  push(RG(RBP));
+  mov(RG(RBP), RG(RSP));
+  sub(RG(RSP), IM(lclCount));
   return entry;
 }
 
 retCode postamble(assemCtxPo ctx) {
-  mov(RG(RSP), RG(RBP), ctx);
-  pop(RG(RBP), ctx);
-  rtn(ctx);
+  mov(RG(RSP), RG(RBP));
+  pop(RG(RBP));
+  rtn();
   return Ok;
 }
 

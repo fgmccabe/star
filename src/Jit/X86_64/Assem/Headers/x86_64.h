@@ -34,8 +34,14 @@ typedef enum {
   Labeled
 } x64OpMode;
 
+typedef enum {
+  sz32 = 4,
+  sz64 = 8
+} OpSize;
+
 typedef struct x640p {
   x64OpMode mode;
+  OpSize size;
   union {
     x64Reg reg;
     struct {
@@ -54,19 +60,27 @@ typedef struct x640p {
   } op;
 } FlexOp;
 
+typedef FlexOp x64Op;
+
 typedef x64Reg mcRegister;
 
 logical sameFlexOp(FlexOp a, FlexOp b);
 
 #define PLATFORM_PC_DELTA 4
 
-#define RG(Rg) ((FlexOp){.mode=Reg, .op.reg=(Rg)})
-#define IM(Vl) ((FlexOp){.mode=Immediate, .op.imm=(Vl)})
-#define BS(Rg, Off) ((FlexOp){.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)})
-#define IX(Rg, Ix, Sc, Off) ((FlexOp){.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)})
-#define LB(l)  ((FlexOp){.mode=Labeled, .op.lbl = (l)})
+#define RG(Rg) ((FlexOp){.mode=Reg, .size=sz64, .op.reg=(Rg)})
+#define IM(Vl) ((FlexOp){.mode=Immediate, .size=sz64, .op.imm=(Vl)})
+#define BS(Rg, Off) ((FlexOp){.mode=Based, .size=sz64, .op.based.base=(Rg), .op.based.disp=(Off)})
+#define IX(Rg, Ix, Sc, Off) ((FlexOp){.mode=Indexed, .size=sz64, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)})
+#define LB(l)  ((FlexOp){.mode=Labeled, .size=sz64, .op.lbl = (l)})
 
-void lea_(x64Reg dst, FlexOp src, assemCtxPo ctx);
+#define RG32(Rg) ((FlexOp){.mode=Reg, .size=sz32, .op.reg=(Rg)})
+#define IM32(Vl) ((FlexOp){.mode=Immediate, .size=sz32, .op.imm=(Vl)})
+#define BS32(Rg, Off) ((FlexOp){.mode=Based, .size=sz32, .op.based.base=(Rg), .op.based.disp=(Off)})
+#define IX32(Rg, Ix, Sc, Off) ((FlexOp){.mode=Indexed, .size=sz32, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)})
+
+
+void lea_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define lea(dst, src) lea_(dst,(src),ctx)
 
 void mov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
@@ -74,7 +88,7 @@ void mov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
 void cmov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
-void movsx_(x64Reg dst, FlexOp src, uint8 scale, assemCtxPo ctx);
+void movsx_(FlexOp dst, FlexOp src, uint8 scale, assemCtxPo ctx);
 #define movsx(dst, src, scale) movsx_(dst, src, scale, ctx)
 
 void xchg_(FlexOp dst, FlexOp src, assemCtxPo ctx);
@@ -101,10 +115,10 @@ void leave_(assemCtxPo ctx);
 void cwd_(FlexOp dst, assemCtxPo ctx);
 void cbw_(FlexOp src, assemCtxPo ctx);
 
-void movzx_(x64Reg dst, FlexOp src, assemCtxPo ctx);
+void movzx_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define movzx(dst, src) movzx_(dst,(src),ctx)
 
-void movzdx_(x64Reg dst, FlexOp src, assemCtxPo ctx);
+void movzdx_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define movzdx(dst, src) movzdx_(dst,src,ctx)
 
 void fld(int i, assemCtxPo ctx);
@@ -129,7 +143,7 @@ void sub_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void sbb_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define sbb(dst, src) sbb_((dst),(src),ctx)
 
-void imul_(x64Reg dst, FlexOp src, assemCtxPo ctx);
+void imul_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define imul(dst, src) imul_(dst,(src),ctx)
 
 void idiv_(FlexOp src, assemCtxPo ctx);

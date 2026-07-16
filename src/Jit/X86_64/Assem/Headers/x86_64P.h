@@ -126,5 +126,6 @@ void clearCodeCtxMaps(assemCtxPo ctx);
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclCount);
 retCode postamble(assemCtxPo ctx);
+logical isI32(int64 x);
 
 #endif //STAR_X86_64P_H
