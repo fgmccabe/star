@@ -4,33 +4,33 @@ star.windowed{
 
   -- Implement a range of windowed statistics functions
 
-  contract all state,t,res ~~ WindowState[state ->> t,res] ::= {
+  public contract all state,t,res ~~ Window[state ->> t,res] ::= {
     getResult:((state)=>option[res]).
     validResult:((state)=>boolean).
     addElement:((t,state)=>state).
     removeElement:((t,state)=>state).
   }
 
-  type all t ~~ identityState[t] ::= statisticsIdentity{
+  private all t ~~ identityState[t] ::= identity{
     res : t.
     count : integer.
   }.
 
-  implementation all t ~~ arith[t],comp[t] |= WindowState[identityState[t]->>t, t] => {
-    getResult(S) where S.count>0 =>.some(S.res).
-    getResult(_)=>.none.
-    validResult(S)=> S.count>0.
-    addElement(elt, statisticsIdentity{count=c})=>statisticsIdentity{count=c + one. res=elt}.
-    removeElement(elt, statisticsIdentity{res=r. count=c}) where c>0=>
-      statisticsIdentity{res=r. count = c - 1}.
+  implementation all t ~~ arith[t],comp[t] |= Window[identityState[t]->>t, t] => {
+    getResult(S) where S.count>0 => .some(S.res).
+    getResult(_) => .none.
+    validResult(S) => S.count>0.
+    addElement(elt, identity{count=c}) => identity{count=c + one. res=elt}.
+    removeElement(elt, identity{res=r. count=c}) where c>0=>
+      identity{res=r. count = c - 1}.
     removeElement(elt, St)=>St.
   }.
 
-  type all t ~~ countState[t] ::= cnt{
+  private all t ~~ countState[t] ::= cnt{
     c : integer.
   }
 
-  implementation all t ~~ arith[t] |= WindowState[countState[t]->>t,integer]=>{
+  implementation all t ~~ arith[t] |= Window[countState[t]->>t,integer]=>{
     getResult(cnt{c=c})=> c>0 ?? .some(c) || .none.
     validResult(_)=> .true
     addElement(elt, cnt{c=c})=>cnt{c=c + 1}.
@@ -41,7 +41,7 @@ star.windowed{
     res : t.
   }
 
-  implementation all t ~ arith[t] |= WindowState[sumState[t]->>t,t] =>{
+  implementation all t ~ arith[t] |= Window[sumState[t]->>t,t] =>{
     getResult(S)=> .some(S.res).
     validResult(_)=>.true.
     addElement(elt, sum{res=r})=>sum{res=r + elt}.
@@ -54,7 +54,7 @@ star.windowed{
   }
 
   implementation all t ~~ coercion[t,float],arith[t],comp[t] |=
-    WindowState[averageState[t]->>t,float] =>  let{
+    Window[averageState[t]->>t,float] =>  let{
       getRes(avg{count=c. total=t})=> c==0 ?? .none || .some((getResult(t)::float)/(c::float)).
       validRes(avg{count=c})=> c > 0.
       addElt(elt, avg{count=c. total=t})=>avg{count=c + 1. total=addElement(elt, t)}.
@@ -70,7 +70,7 @@ star.windowed{
     removalHeap : heap[t].
   }
 
-  implementation all t ~~ arith[t], comp[t],equality[t] |= WindowState[maxState[t]->>t,t] => {.
+  implementation all t ~~ arith[t], comp[t],equality[t] |= Window[maxState[t]->>t,t] => {.
     getResult(maxState{resHeap=rh})=>head(rh).
     validResult(maxState{resHeap=rh})=>~isEmpty(rh).
 
@@ -102,7 +102,7 @@ star.windowed{
     removalHeap default=>list of {}.
   } or emptymin.
 
-  implementation WindowState over minState of t determines (t, t) where comparable over t 'n equality over t=>{
+  implementation Window over minState of t determines (t, t) where comparable over t 'n equality over t=>{
     getResult(emptymin)=>(0 cast t).
     getResult(statisticsMin{resHeap=rh})=>peek(rh).
     validResult(emptymin)=>false.
@@ -178,7 +178,7 @@ star.windowed{
     }.
   } in (balancedMedian(newS) ? newS | rebalanceMedian(newS)).
 
-  implementation WindowState over medianState of t determines (t, t) where comparable over t 'n equality over t=>{
+  implementation Window over medianState of t determines (t, t) where comparable over t 'n equality over t=>{
     getResult(emptymedian)=>(0 cast t).
     validResult(emptymedian)=>false.
     validResult(statsMedian{count=c})=>c > 0.
@@ -204,7 +204,7 @@ star.windowed{
     value : t.
   } or emptyconstant.
 
-  implementation WindowState over constantState of t determines (x, t)=>{
+  implementation Window over constantState of t determines (x, t)=>{
     getResult(constant{value=val})=>val.
     getResult(emptyconstant)=>(0 cast t).
     validResult(constant{value=val})=>true.
@@ -219,7 +219,7 @@ star.windowed{
     count : integer.
   } or emptyvariance.
 
-  implementation WindowState over varianceState of t determines (t, float) where coercion over (t, float) 'n arithmetic over t=>{
+  implementation Window over varianceState of t determines (t, float) where coercion over (t, float) 'n arithmetic over t=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -242,7 +242,7 @@ star.windowed{
     vari : varianceState of t.
   } or emptystdDev.
 
-  implementation WindowState over stdDevState of t determines (t, float) where coercion over (t, float) 'n arithmetic over t=>{
+  implementation Window over stdDevState of t determines (t, float) where coercion over (t, float) 'n arithmetic over t=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -276,7 +276,7 @@ star.windowed{
   #allFloat(?E1 - ?E2) ==> allFloat(?E1) - allFloat(?E2).
   #allFloat((?E)) ==> allFloat(E).
   #allFloat(?E) ==> (E::float).
-  implementation WindowState over forecastState of (t, t) determines ((t, t), float) where arithmetic over t 'n coercion over (t, float)=>{
+  implementation Window over forecastState of (t, t) determines ((t, t), float) where arithmetic over t 'n coercion over (t, float)=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -327,7 +327,7 @@ star.windowed{
     xyavg : averageState oft.
   } or emptycovariance.
 
-  implementation WindowState over covarianceState of (t, t) determines ((t, t), float) where arithmetic over t 'n coercion over (t, float)=>{
+  implementation Window over covarianceState of (t, t) determines ((t, t), float) where arithmetic over t 'n coercion over (t, float)=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -364,7 +364,7 @@ star.windowed{
     stdDevY : stdDevState of t.
   } or emptycorrelation.
 
-  implementation WindowState over correlationState of (t, t) determines ((t, t), float) where arithmetic over t 'n coercion over (t, float)=>{
+  implementation Window over correlationState of (t, t) determines ((t, t), float) where arithmetic over t 'n coercion over (t, float)=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -404,7 +404,7 @@ star.windowed{
     aboveAvg : averageState of t.
   } or emptyaverageDeviation.
 
-  implementation WindowState over averageDeviationState of t determines (t, float) where arithmetic over t 'n coercion over (t, float) 'n comparable over t 'n equality over t=>{
+  implementation Window over averageDeviationState of t determines (t, float) where arithmetic over t 'n coercion over (t, float) 'n comparable over t 'n equality over t=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -462,7 +462,7 @@ star.windowed{
     n : countState of t.
   } or emptyskewness.
 
-  implementation WindowState over skewnessState of t determines (t, float) where arithmetic over t 'n coercion over (t, float)=>{
+  implementation Window over skewnessState of t determines (t, float) where arithmetic over t 'n coercion over (t, float)=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -511,7 +511,7 @@ star.windowed{
     M4 : sumState of float.
   } or emptykurtosis.
 
-  implementation WindowState over kurtosisState of t determines (t, float) where arithmetic over t 'n coercion over (t, float)=>{
+  implementation Window over kurtosisState of t determines (t, float) where arithmetic over t 'n coercion over (t, float)=>{
     getResult=>getRes.
     validResult=>validRes.
     addElement=>addElt.
@@ -559,7 +559,7 @@ star.windowed{
     res : t.
   } or emptyproduct.
 
-  implementation WindowState over productState of t determines (t, t) where arithmetic over t=>{
+  implementation Window over productState of t determines (t, t) where arithmetic over t=>{
     getResult(emptyproduct)=>(1 cast t).
     validResult(emptyproduct)=>false.
     addElement(elt, emptyproduct)=>statProd{res=elt}.
@@ -582,7 +582,7 @@ star.windowed{
     count : integer.
   } or emptygeomAverage.
 
-  implementation WindowState over geomAverageState of t determines (t, float) where arithmetic over t 'n coercion over (t, float)is {
+  implementation Window over geomAverageState of t determines (t, float) where arithmetic over t 'n coercion over (t, float)is {
     getResult=>gr.
     validResult=>vr.
     addElement=>ae.

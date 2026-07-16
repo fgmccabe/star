@@ -20,17 +20,17 @@ star.finger{
 
   node[a] ::= .node2(integer,a,a) | .node3(integer,a,a,a).
 
-  contract all t,e ~~ reduce[t->>e] ::= {
+  contract all t,e ~~ reduction[t->>e] ::= {
     reducer:all a ~~ ((e,a)=>a) => (t,a) => a.
     reducel:all a ~~ ((e,a)=>a) => (t,a) => a.
   }
 
-  implementation all e ~~ reduce[cons[e]->>e] => {
+  implementation all e ~~ reduction[cons[e]->>e] => {
     reducer(F) => (L,U) => foldRight(F,U,L).
     reducel(F) => (L,U) => foldLeft(F,U,L).
   }
 
-  implementation all e ~~ reduce[node[e]->>e] => {
+  implementation all e ~~ reduction[node[e]->>e] => {
     reducer = reducerNode.
     reducel = reducelNode.
   }
@@ -47,7 +47,7 @@ star.finger{
     rdl(.node3(_,c,b,a),z) => F(a,F(b,F(c,z))).
   } in rdl.
 
-  implementation all e ~~ reduce[digit[e]->>e] => {
+  implementation all e ~~ reduction[digit[e]->>e] => {
     reducer = reducerDigits.
     reducel = reducelDigits.
   }
@@ -80,7 +80,7 @@ star.finger{
     _coerce(.node3(_,l,m,r)) => [l,m,r].
   }
   
-  implementation all e ~~ reduce[fingerTree[e]->>e] => {
+  implementation all e ~~ reduction[fingerTree[e]->>e] => {
     reducer = reducerTree.
     reducel = reducelTree.
   }
@@ -144,11 +144,11 @@ star.finger{
     .deep([|x|]⊕M,l,append(.node3([|a|]⊕[|b|]⊕[|c|],a,b,c),mid),.two(d,x)).
   append(x,.deep(M,l,mid,r)) => .deep([|x|]⊕M,l,mid,r++.one(x)).
 
-  liftPrepend:all e,f ~~ reduce[f->>e],measured[e->>integer] |=
+  liftPrepend:all e,f ~~ reduction[f->>e],measured[e->>integer] |=
     (f,fingerTree[e]) => fingerTree[e].
   liftPrepend = reducer(prepend).
 
-  liftAppend:all e,f ~~ reduce[f->>e],measured[e->>integer] |=
+  liftAppend:all e,f ~~ reduction[f->>e],measured[e->>integer] |=
     (f,fingerTree[e])=>fingerTree[e].
   liftAppend = reducel(append).
 

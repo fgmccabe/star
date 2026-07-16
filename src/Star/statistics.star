@@ -1,230 +1,77 @@
 star.statistics{
   import star.
   import star.heap.
+  import star.sort.
 
-  contract all state,t,res ~~ WindowedFun[state ->> t,res] ::= {
-    getResult:((state)=>res).
-    validResult:((state)=>boolean).
-    addElement:((t,state)=>state).
-    removeElement:((t,state)=>state).
+  public average:all c,e ~~ arith[e], total[e], generate[c->>e], sizeable[c], coercion[integer,e ->> exception] |= (c) => e throws exception.
+  average(S) => total(S)/(size(S)::e).
+
+  public contract all e ~~ total[e] ::= {
+    total:all c ~~ generate[c->>e] |= (c) => e.
   }
 
-  type all t ~~ identityState[t] ::= statisticsIdentity{
-    res : t.
-    count : integer.
-  } | .emptyidentity.
-
-  implementation all t ~~ arith[t],comp[t] |= WindowedFun[identityState[t]->>t, t] => {
-    getResult(statisticsIdentity{res=r})=>r.
-    getResult(emptyidentity)=>zero.
-    validResult(emptyidentity)=>.false.
-    validResult(statisticsIdentity{count=c})=> c > zero.
-    addElement(elt, emptyidentity)=>statisticsIdentity{count=1.res=elt}.
-    addElement(elt, statisticsIdentity{count=c})=>statisticsIdentity{count=c + one. res=elt}.
-    removeElement(elt, statisticsIdentity{count=1})=>emptyidentity.
-    removeElement(elt, statisticsIdentity{res=r. count=c})=>
-      statisticsIdentity{res=r. count = c - 1}.
-    removeElement(elt, .emptyidenity)=>.emptyidentity.
-  }.
-
-  type all t ~~ countState[t] ::= cnt{
-    c : integer.
-  } | .emptycount.
-
-  implementation all t ~~ arith[t] |= WindowedFun[countState[t] ->> t, integer]=>{
-    getResult(emptycount)=>0.
-    getResult(cnt{c=c})=>c.
-    validResult(x)=>.true.
-    addElement(elt, .emptycount)=>cnt{c=1}.
-    addElement(elt, cnt{c=c})=>cnt{c=c + 1}.
-    removeElement(elt, .emptycount)=>cnt{c=-1}.
-    removeElement(elt, cnt{c=c})=>cnt{c=c - 1}.
-  }.
-
-  type all t ~~ sumState[t] ::= sum{
-    res : t.
-  } | .emptysum.
-
-  implementation all t ~ arith[t] |= WindowedFun[sumState[t] ->>t,t] =>{
-    getResult(emptysum)=>zero.
-    getResult(sum{res=r})=>r.
-    validResult(x)=>.true.
-    addElement(elt, emptysum)=>sum{res=elt}.
-    addElement(elt, sum{res=r})=>sum{res=r + elt}.
-    removeElement(elt, .emptysum)=>.emptysum.
-    removeElement(elt, sum{res=r})=>sum{res=r - elt}.
-  }
-
-  type all t ~~ averageState[t] ::= avg{
-    count : integer.
-    total : sumState[t].
-  } | .emptyaverage.
-
-  implementation all t ~~ coercion[t,float],arith[t],comp[t] |=
-    WindowedFun[averageState[t]->>t,float] =>  let{.
-      getRes(.emptyaverage)=>0.0.
-      getRes(avg{count=c. total=t})=>(getResult(t)::float) / (c::float).
-      validRes(.emptyaverage)=>false.
-      validRes(avg{count=c})=>c > zero.
-      addElt(elt, .emptyaverage)=>avg{count=1. total=addElement(elt,.emptysum)}.
-      addElt(elt, avg{count=c. total=t})=>avg{count=c + 1. total=addElement(elt, t)}.
-      removeElt(elt, .emptyaverage)=>.emptyaverage.
-      removeElt(elt, avg{count=1})=> .emptyaverage.
-      removeElt(elt, avg{count=c. total=t})=>avg{count=c - 1. total=removeElement(elt, t)}.
-    .} in {getResult = getRes.
-      validResult = validRes.
-      addElement = addElt.
-      removeElement = removeElt.
-    }.
-
-  type all t ~~ maxState[t] ::= statisticsMax {
-    resHeap : heap[t].
-    removalHeap : heap[t].
-  } | .emptymax.
-
-  implementation all t ~~ arith[t], comp[t],equality[t] |= WindowedFun[maxState[t]->>t,t] => {.
-    getResult(.emptymax)=>zero.
-    getResult(statisticsMax{resHeap=rh})=>peek(rh).
-    validResult(.emptymax)=>.false.
-    validResult(statisticsMax{resHeap=rh})=>size(rh) > zero.
-    addElement(elt, emptymax)=>statisticsMax{resHeap = push(elt, list of {})}.
-    addElement(elt, statisticsMax{resHeap=rh.removalHeap=remh})=>statisticsMax{resHeap = push(elt, rh).removalHeap=remh}.
-    removeElement(elt, statisticsMax{resHeap=rh.removalHeap=remh})=>valof {
-      var newRes := rh.
-      var newRemoval := remh.
-      if elt = peek(newRes) then {
-        newRes := pop(newRes).
-	while not isEmpty(newRes) and not isEmpty(newRemoval) and peek(newRes) = peek(newRemoval) do {
-	  newRes := pop(newRes).
-	  newRemoval := pop(newRemoval).
-	}
-      } else {
-	newRemoval := push(elt, newRemoval).
-      }
-      valis statisticsMax{resHeap=newRes.removalHeap=newRemoval}.
-    }.
-    removeElement(elt, m matching statisticsMax{resHeap=rh.removalHeap = list of {}})=>
-      elt = peek(rh) ? m substitute {resHeap=pop(rh)} | m substitute {removalHeap=push(elt,list of {})}.
-    removeElement(elt, statisticsMax{resHeap=list of {elt}})=>emptymax.
-    removeElement(elt, emptymax)=>emptymax.
-  }
-
-  type minState of t=>statisticsMin {
-    resHeap : list of t.
-    removalHeap : list of t.
-    removalHeap default=>list of {}.
-  } or emptymin.
-
-  implementation WindowedFun over minState of t determines (t, t) where comparable over t 'n equality over t=>{
-    getResult(emptymin)=>(0 cast t).
-    getResult(statisticsMin{resHeap=rh})=>peek(rh).
-    validResult(emptymin)=>false.
-    validResult(statisticsMin{resHeap=rh})=>size(rh) > 0.
-    addElement(elt, emptymin)=>statisticsMin{resHeap = pushMin(elt, list of {})}.
-    addElement(elt, statisticsMin{resHeap=rh.removalHeap=remh})=>statisticsMin{resHeap = pushMin(elt, rh).removalHeap=remh}.
-    removeElement(elt, statisticsMin{resHeap=rh.removalHeap=remh})=>valof {
-      var newRes := rh.
-      var newRemoval := remh.
-      {
-        if elt = peek(newRes) then {
-	  newRes := pop(newRes).
-	  while not isEmpty(newRes) and not isEmpty(newRemoval) and peek(newRes) = peek(newRemoval) do {
-	    newRes := popMin(newRes).
-	    newRemoval := popMin(newRemoval).
-	  }
-	}
-	else {
-	  newRemoval := pushMin(elt, newRemoval).
-	}
-      }
-      valis statisticsMin{resHeap=newRes.removalHeap=newRemoval}.
+  public implementation total[integer] => {
+    total(S) => valof{
+      T := 0;
+      for X in S do{
+        T := T!+X
+      };
+      valis T!
     }
-    removeElement(elt, m matching statisticsMin{resHeap=rh.removalHeap = list of {}})=>
-      elt = peek(rh) ? m substitute {resHeap=pop(rh)} | m substitute {removalHeap=pushMin(elt,list of {})}.
-    removeElement(elt, statisticsMin{resHeap=list of {elt}})=>emptymin.
-    removeElement(elt, emptymin)=>emptymin.
-    
   }
 
-
-  type medianState of t=>statsMedian {
-    res : t.
-    smallHeap : list of t.
-    smallHeap default=>list of {}.
-    bigHeap : list of t.
-    bigHeap default=>list of {}.
-    removalMap : dictionary of (t, integer).
-    removalMap default=>dictionary of {}.
-    count : integer.
-    smallRemovedCount : integer.
-    smallRemovedCount default=>0.
-    bigRemovedCount : integer.
-    bigRemovedCount default=>0.
-  } or emptymedian.
-
-  balancedMedian(statsMedian{count=c.smallHeap=small.bigHeap=big.bigRemovedCount=bRemCount.smallRemovedCount=sRemCount})=>(size(small) - sRemCount = size(big) - bRemCount) or (c  2 = 0 and (size(small) - sRemCount = size(big) + 1 - bRemCount)).
-
-    -- The idea=>to keep the size of the smallHeap equal to (or one less than)
-    -- half the count minus the number of removed elements
-
-    -- When an element=>added or removed that changes the top of
-    -- smallHeap, we check to see if the element at the top of
-    -- smallHeap=>in removalMap.  If it is, we pop the element from
-    -- the heap, decrease its count in the removalMap, and rebalance.
-    -- We continue doing this until we get an element at the top of
-    -- the smallHeap that=>either not in the removalMap or has a
-    -- count of zero.
-  rebalanceMedian : (medianState of t where comparable over t 'n equality over t) => medianState of t.
-  rebalanceMedian(s matching statsMedian{smallHeap=small.bigHeap=big.res=r} where size(small) = 0) is
-    size(big) = 0 ? s | rebalanceMedian(s substitute{smallHeap=push(r, small).res=peek(big).bigHeap=pop(big)}).
-  rebalanceMedian(s matching statsMedian{smallHeap=small.bigHeap=big.res=r} where size(big) = 0) is
-    size(small) > 1 ? rebalanceMedian(s substitute{smallHeap=pop(small).bigHeap=pushMin(r, big).res=peek(small)}) | s.
-  rebalanceMedian(s)=>let {
-    smallTop=>peek(s.smallHeap).
-    bigTop=>peek(s.bigHeap).
-    newS=>case s in {
-      a matching statsMedian{count=c.res=r.smallHeap=small.bigHeap=big.removalMap=rem.smallRemovedCount=remCount} where (sm where sm=smallTop) -> X in rem and X > 0=>a substitute {smallHeap=pop(small).removalMap=_set_indexed(rem, smallTop, X - 1).smallRemovedCount=remCount - 1}.
-      a matching statsMedian{count=c.res=r.smallHeap=small.bigHeap=big.removalMap=rem.bigRemovedCount=remCount} where (bt where bt=bigTop) -> X in rem and X > 0=>a substitute {bigHeap=pop(big).removalMap=_set_indexed(rem, bigTop, X - 1).bigRemovedCount=remCount - 1}.
-      a matching statsMedian{count=c.res=r.smallHeap=small.bigHeap=big.removalMap=rem.smallRemovedCount=sRemCount.bigRemovedCount=bRemCount} where size(small) - sRemCount < size(big) - bRemCount=>a substitute {smallHeap=push(r, small).res=bigTop.bigHeap=popMin(big)}.
-      a matching statsMedian{count=c.res=r.smallHeap=small.bigHeap=big.removalMap=rem.smallRemovedCount=sRemCount.bigRemovedCount=bRemCount} where size(small) - sRemCount > size(big) - bRemCount and not balancedMedian(a)=>a substitute {smallHeap=pop(small).res=smallTop.bigHeap=pushMin(r, big)}.
-      _ default=>s.
-    }.
-  } in (balancedMedian(newS) ? newS | rebalanceMedian(newS)).
-
-  implementation WindowedFun over medianState of t determines (t, t) where comparable over t 'n equality over t=>{
-    getResult(emptymedian)=>(0 cast t).
-    validResult(emptymedian)=>false.
-    validResult(statsMedian{count=c})=>c > 0.
-    removeElement(elt, emptymedian)=>emptymedian.
-    removeElement(elt, statsMedian{count=1})=>emptymedian.
-    addElement(elt, emptymedian)=>statsMedian{count=1.res=elt}.
-    getResult(statsMedian{res=r})=>r.
-    addElement(elt, s matching statsMedian{smallHeap=small.count=c.bigHeap=big.res=r})=>let {
-      x=>elt < r ? s substitute{count=c + 1.smallHeap=push(elt, small)} | s substitute{count=c + 1.bigHeap=pushMin(elt, big)}.
-    } in rebalanceMedian(x).
-    removeElement(elt, s matching statsMedian{removalMap=rem.smallRemovedCount=remCount.count=c.res=r} where elt < r)=>let {
-      x=>s substitute{count=c - 1.smallRemovedCount=remCount + 1.removalMap=_set_indexed(rem, elt, (rem[elt] default 0) + 1)}
-    } in rebalanceMedian(x).
-    removeElement(elt, s matching statsMedian{removalMap=rem.bigRemovedCount=remCount.count=c.res=r} where elt > r)=>let {
-      x=>s substitute{count=c - 1.bigRemovedCount=remCount + 1.removalMap=_set_indexed(rem, elt, (rem[elt] default 0) + 1)}
-    } in rebalanceMedian(x).
-    removeElement(elt, s matching statsMedian{removalMap=rem.count=c.res=r.smallHeap=small} where elt = r)=>let {
-      x=>s substitute{count=c - 1.res=peek(small).smallHeap=pop(small)}
-    } in rebalanceMedian(x).
-  }.
-
-  type constantState of t=>constant {
-    value : t.
-  } or emptyconstant.
-
-  implementation WindowedFun over constantState of t determines (x, t)=>{
-    getResult(constant{value=val})=>val.
-    getResult(emptyconstant)=>(0 cast t).
-    validResult(constant{value=val})=>true.
-    validResult(emptyconstant)=>false.
-    addElement(elt, x)=>x.
-    removeElement(elt, x)=>x.
+  -- Compute sum + error
+  fast2sum:(float,float)=>(float,float).
+  fast2sum(A,B) => valof{
+    S = A+B;
+    A1 = S-B;
+    B1 = S-A;
+    D1 = A-A1;
+    D2 = B-B1;
+    valis (S,D1+D2)
   }
+
+  -- This tries to minimize fp calculation artifacts
+  public implementation total[float] => {
+    total(S) => valof{
+      sum := 0.0;
+      C := 0.0;
+      for X in S do{
+	(s,c) = fast2sum(sum!,X+C!);
+	sum := s;
+	C := c;
+      };
+      valis sum!
+    }
+  }
+  
+
+  public minimum:all c,e ~~ comp[e], reducing[c->>e] |= (c) => e.
+  minimum(S) => reduceLeft((A,B)=>(A>B??A||B),S).
+
+  public maximum:all c,e ~~ comp[e], reducing[c->>e] |= (c) => e.
+  maximum(S) => reduceLeft((A,B)=>(A>B??A||B),S).
+
+  public median:all c,e ~~ comp[e], arith[e], stream[c->>e], sequence[c->>e], indexed[c->>integer,e],coercion[integer,e ->> exception], sizeable[c] |= (c) => e throws exception.
+  median(S) => valof{
+    SS = sort(S, (<));
+    Sz = size(S);
+    if Sz>0 then{
+      Hf = Sz/2;
+      if isOdd(Sz) then
+	valis ?SS[Hf]
+      else
+      valis (?SS[Hf]+?SS[Hf+1])/(2::e)
+    } else
+    throw .exception("median requires at least one element")
+  }
+
+  public variance: all c,e ~~ arith[e], stream[c->>e], sizeable[c] |= (c) => e throws exception.
+
+  isOdd:(integer)=>boolean.
+  isOdd(X) => X.&.1==1.
+  
+/*
 
   type varianceState of t=>variance {
     averageOfSquares : averageState of t.
@@ -611,9 +458,7 @@ star.statistics{
     ae(elt, gAvg{count=c.prod=p})=>gAvg{count=c + 1.prod=addElement(elt, p)}.
     re(elt, gAvg{count=c.prod=p})=>gAvg{count=c - 1.prod=removeElement(elt, p)}.
   }
-}
-
-
-  
+  }
+*/  
   
 }

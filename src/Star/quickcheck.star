@@ -2,42 +2,39 @@ star.quickcheck{
   import star.
   import star.random.
 
-  gen[a] ::= Gen((integer,StdGen)=>a).
+  gen[a] ::= .Gen((integer,StdGen)=>a).
 
   sized:all a ~~ ((integer)=>gen[a])=>gen[a].
-  sized(f) => Gen(
+  sized(f) => .Gen(
     (n,r)=> valof{
       Gen(m) .= f(n);
       valis m(n,r)
     }).
 
   resize:all a ~~ (integer,gen[a])=>gen[a].
-  resize(n,Gen(m)) => Gen((_,r)=>m(n,r)).
+  resize(n,.Gen(m)) => .Gen((_,r)=>m(n,r)).
 
   rand:gen[StdGen].
-  rand = Gen((n,r) => r).
+  rand = .Gen((n,r) => r).
 
   promote:all a,b ~~ ((a)=>gen[b])=>gen[(a)=>b].
-  promote(f) => Gen((n,r) =>
-      (a)=>valof {
-	Gen(m).=f(a);
-	valis m(n,r)
-      }).
+  promote(f) => .Gen((n,r) =>
+      (a) where .Gen(m) .= f(a) => m(n,r).
 
   variant:all a ~~ (integer,gen[a])=>gen[a].
-  variant(V,Gen(m)) =>
-    Gen((n,r) =>
+  variant(V,.Gen(m)) =>
+    .Gen((n,r) =>
 	m(n,repeat(((R)=>snd(split(r))),V+1)(r))).
 
   generate:all a ~~ (integer,StdGen,gen[a])=>a.
-  generate(n,rnd,Gen(m)) where (Size,Rnd1).=randomR(0,n,rnd) => m(Size,Rnd1).
+  generate(n,rnd,.Gen(m)) where (Size,Rnd1).=randomR(0,n,rnd) => m(Size,Rnd1).
 
   genReturn:all a ~~ (a)=>gen[a].
-  genReturn(A) => Gen((n,r)=>A).
+  genReturn(A) => .Gen((n,r)=>A).
 
   genBind:all a,b ~~ (gen[a],(a)=>gen[b])=>gen[b].
-  genBind(Gen(m),k) =>
-    Gen((n,r0) where (r1,r2) .= split(r0) && Gen(m1).=k(m(n,r1)) => m1(n,r2)).
+  genBind(.Gen(m),k) =>
+    .Gen((n,r0) where (r1,r2) .= split(r0) && .Gen(m1).=k(m(n,r1)) => m1(n,r2)).
 
   genLiftM2:all a,b,c ~~ ((a,b)=>c) => (gen[a],gen[b])=>gen[c].
   genLiftM2(f) =>
@@ -62,7 +59,5 @@ star.quickcheck{
     arb:gen[a].
     coarb:all b ~~ (a,gen[b])=>gen[b]
   }
-    
-  
 }
   

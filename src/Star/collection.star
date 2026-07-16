@@ -9,6 +9,11 @@ star.collection{
     foldLeft:all x,xx ~~ (((e,x)=>x throws xx),x,c) => x throws xx.
   }
 
+  public contract all c,e ~~ reducing[c->>e] ::= {
+    reduceRight:all xx ~~ (((e,e)=>e throws xx),c) => e throws xx.
+    reduceLeft:all xx ~~ (((e,e)=>e throws xx),c) => e throws xx.
+  }
+
   public contract all c,e ~~ filter[c->>e] ::= {
     (^/):(c,(e)=>boolean) => c.
   }
@@ -74,6 +79,11 @@ star.collection{
     foldLeft(F,U,.nil) => U.
     foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
   .}
+
+  public implementation all e ~~ reducing[cons[e]->>e] => {
+    reduceLeft(F,.cons(H,T)) => foldLeft(F,H,T).
+    reduceRight(F,.cons(H,T)) => foldRight(F,H,T).
+  }
 
   public implementation all e ~~ visitor[cons[e]->>e] => {.
     visit(.nil,_) do {}.

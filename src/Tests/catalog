@@ -195,6 +195,7 @@
     "test.sieve": "sieve.star",
     "test.sl": "sl.star",
     "test.st": "st.star",
+    "test.stats": "stats.star",
     "test.str1": "str1.star",
     "test.str2": "str2.star",
     "test.syntax": "sy.star",

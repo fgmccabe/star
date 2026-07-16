@@ -1,5 +1,6 @@
 star.arith{
   import star.core.
+  import star.bits.
 
   public contract all x ~~ arith[x] ::= {
     (+): (x,x)=>x.
@@ -202,6 +203,24 @@ star.arith{
 
   public random:()=>float.
   random() => _random().
+
+  public contract all e ~~ bigsmall[e] ::= {
+    smallest : e.
+    largest : e.
+  }
+
+  public implementation bigsmall[integer] => {
+    largest = (-1.<<.1).>>.1.
+    smallest = (-1)-(-1.>>.1).
+  }
+
+  infinity = _bits_float(0x7ff0000000000000).
+  neginfinity = _bits_float(0xfff0000000000000).
+
+  public implementation bigsmall[float] => {
+    largest = infinity.
+    smallest = neginfinity.
+  }
 
   -- public lg2:(integer)=>integer.
   -- lg2(X) => _int_lg2(X).
