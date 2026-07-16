@@ -31,14 +31,12 @@ Policy:: a constraint on the behavior of a system. This includes
 constraints on people interacting with the system as well as constraints on the
 elements of the system itself.
 
-For example, we might have a policy of never lending books to library
-customers if they have any outstanding fines.
-
-It is quite possible to unpack this definition into many important aspects; for
-example we can distinguish _permissive_ policies from _audit_ policies. 
+For example, we might have a policy of never lending books to library customers
+if they have any outstanding fines. Any lending software should honor this
+constraint when a reader tries to check out a book.
 
 Yet another take on the question looks at it from the point of view of
-application code:
+the application:
 
 Policy:: is the answer to a question that code has that cannot be directly
 answered within the application or from its input.
@@ -61,65 +59,34 @@ checkoutBook(User,Book) => valof {
 }
 ----
 
-Functions such ``lendingIsPermitted`` is not typically hard coded into lending
-applications, nor is it included in the input data (the user's name and the book
-they want to check out).footnote:[Although the user might have presented
-additional input -- such as a special pass -- that the application can use to
-override its own reluctance.]
+Functions such ``lendingIsPermitted`` are not typically hard coded into lending
+applications, nor is the answer to the question included in the input data (the
+user's name and the book they want to check out).footnote:[Although the user
+might have presented additional input -- such as a special pass -- that the
+application can use to override its own reluctance.]
 
 In this way of conceptualizing policies and policy enforcement is that the
 overall system contains an _oracle_ whose role is to answer policy _questions_
 that the application(s) have.
 
-NOTE: In larger scale applications, having an explicit policy oracle can be a
-useful architectural technique as it can help factorize out what a system can do
-from the mechanisms needed to achieve its goals.
-
 Both views on policies are valid, and can help us design an effective means of
 governing systems.
 
-    
+== A policy language
+
 A key differentiator of different policy systems is the expressiveness
 of the notation that one can use to represent policies.
 
-There is another way of defining policies; from the perspective of the
-code of the application system:
+In this chapter we take an approach that models polices in terms of _sets_ of
+atomic fragments and _queries_ over them for particular scenarios. In
+particular, we will leverage the RDF capabilities that we support: we shall use
+RDF triples to denote policies and SPARQL queries to query the policy database.
 
-[sidebar]
-A policy is the answer to a question that the software system has
-about how to proceed in a particular situation.
 
-This highlights one of the important roles of policies: to control the
-behaviour of software systems. More specifically, there are often
-'`questions`' that an executing system must answer that are not
-immediately answerable by the system itself.
 
-For example, a system for lending books to readers has to validate the
-user, has to validate that the book is one that the library owns and
-has to validate that the user is allowed to borrow the book. The
-first two of these questions are typically answereable within the
-system: there are standard ways of authenticating the user and there
-are similarly standard mechanisms for determining the library's
-inventory. But, the right to borrow the book in question is typically
-not intrinsic to the system software: it is beyond the software's
-_paygrade_.
-
-Instead, the function that is deciding whether to allow the
-registration has to call out to a system that _is_ charged with
-implementing library policy. That step -- of calling out to an oracle
-is at the heart of many configuration and policy systems.
-
-From the software's point of view, this amounts to a kind of level
-shift: from the world of bits and algorithms to the world of actions
-and permissions. In many cases, the kinds of programming constructs
-involved are likely to be quite different and it makes good
-engineering sense to centralize that decision making functionality.
 
 === Atomic Policies
 
-In this chapter we look at modeling polices in terms of _sets_ of
-atomic fragments and _queries_ over them for particular
-scenarios.
 
 Configuration of software is often expressed in terms of key/value
 pairs. For example, the Star compiler has a configuration point of

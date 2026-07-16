@@ -432,4 +432,42 @@ exp0 >> E --> [`(`], exp >> E, ([`)`] |
     { reportError("missing right paren")}, *> [`;`]).
 ----
 
+== Invoking Grammars
+
+A grammar call is an expression that consumes a stream and returns an optional
+value that represents the output of the grammar over the stream. Typically, we
+guard such a call using an option match.
+
+For example, given the grammar:
+
+[source,star]
+====
+decimal >> Ix -->
+  dec(0) >> Ix.
+
+dec(Sx) >> Ix -->
+  [X], {isDigit(X)}, dec(Sx*10+digitVal(X))>>Ix.
+dec(Sx) >> Sx --> [].
+
+int >> isSigned(S,Dx) --> ? sign >> S, decimal >> Dx.
+
+sign >> 1 --> [`+`].
+sign >> -1 --> [`-`].
+
+isSigned(.none,Ix) => Ix.
+isSigned(.some(Sx),Ix) => Sx*Ix.
+====
+
+we can use ``int`` to parse a string with:a
+
+[source,star]
+====
+Ix ?= (int --> "+123"
+====
+
+which results in ``Ix`` being bound to ``123``.
+
+If the invoked grammar does not actually return a value explicitly, then it will
+return the unit tuple: ``()``. If the grammar fails, then the ``-->`` form
+returns ``.none``.
 
