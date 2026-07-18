@@ -29,6 +29,8 @@ jitCompPo jitContext(methodPo mtd) {
   jitComp->lclCnt = lclCount(mtd);
   jitComp->arity = mtdArity(mtd);
 
+  jitComp->failed = False;
+
   return jitComp;
 }
 

@@ -58,7 +58,7 @@ void store(assemCtxPo ctx, x64Reg src, x64Reg dst, int64 offset, registerMap fre
 
 void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs);
 
-retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...);
+
 retCode loadCGlobal(assemCtxPo ctx, x64Reg reg, void *address);
 
 #endif //STAR_MACROS_H

@@ -114,6 +114,6 @@ else ()
     SET(JIT)
 endif ()
 
-target_link_libraries(star escapes infra ooio ${JIT})
+target_link_libraries(star escapes infra ${JIT} ooio)
 
 install(TARGETS star DESTINATION bin)

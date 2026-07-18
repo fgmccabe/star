@@ -92,6 +92,7 @@
     "test.fil": "fil.star",
     "test.fl": "fl.star",
     "test.flt": "flt.star",
+    "test.flt_test": "flt_test.star",
     "test.fm": "fm.star",
     "test.fma": "fma.star",
     "test.fmt": "fmt.star",

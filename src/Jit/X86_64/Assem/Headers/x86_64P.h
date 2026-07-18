@@ -31,9 +31,11 @@ void clearCodeCtxMaps(assemCtxPo ctx);
 #define ADC_r_rm  0x13
 #define ADC_rm_r  0x11
 #define ADC_rm_imm  0x81
+#define ADDSD_x_xm  0x58
 #define AND_r_rm  0x23
 #define AND_rm_r  0x21
 #define AND_rm_imm  0x81
+#define ANDPD_x_xm  0x54
 #define BSR_r_rm  (/* GROUP_0F */ 0xbd)
 #define CALL_i32  0xe8
 #define CALL_rm 0xff
@@ -76,6 +78,11 @@ void clearCodeCtxMaps(assemCtxPo ctx);
 
 #define MOVZX_r_rm 0xb6
 #define MOVZXD_r_rm 0x67
+
+#define MOVQ_x_rm 0x6e
+#define MOVQ_rm_x 0x7e
+#define MOVSD_x_xm  0x10
+#define MOVSD_xm_x  0x11
 
 #define MULSD_x_xm  0x59
 
@@ -123,6 +130,7 @@ void clearCodeCtxMaps(assemCtxPo ctx);
 #define XOR_r_rm  0x33
 #define XOR_rm_r  0x31
 #define XOR_rm_imm 0x81
+#define XORPD_x_xm 0x57
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclCount);
 retCode postamble(assemCtxPo ctx);

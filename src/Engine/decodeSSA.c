@@ -375,7 +375,7 @@ retCode loadCode(ioPo in, packagePo owner, char* errorMsg, long msgSize) {
             if (enableVerify) {
               char errMsg[MAXLINE];
               if (verifyMethod(mtd, errMsg, NumberOf(errMsg)) != Ok) {
-                logMsg(logFile, "problem in loading %L: %s", lbl, errMsg);
+                logMsg(logFile, "problem in loading %A: %s", lbl, errMsg);
                 syserr("error in creating method");
               };
             }
@@ -383,8 +383,13 @@ retCode loadCode(ioPo in, packagePo owner, char* errorMsg, long msgSize) {
             recordMethodCode(mtd);
 
 #ifndef NOJIT
-            if (jitOnLoad)
-              ret = jitMethod(mtd, errorMsg, msgSize);
+            if (jitOnLoad) {
+              retCode jitRet = jitMethod(mtd, errorMsg, msgSize);
+              if (jitRet != Ok) {
+                logMsg(logFile, "warning: JIT compilation failed for %A: %s (falling back to interpreter)\n", lbl, errorMsg);
+                errorMsg[0] = '\0';
+              }
+            }
 #endif
           }
         }

@@ -26,8 +26,12 @@ typedef enum {
   R15 = 15
 } x64Reg;
 
+#define XZR ((x64Reg)16)
+
+
 typedef enum {
   Reg,
+  Fp,
   Immediate,
   Based,
   Indexed,
@@ -38,6 +42,25 @@ typedef enum {
   sz32 = 4,
   sz64 = 8
 } OpSize;
+
+typedef enum {
+  XMM0 = 0,
+  XMM1 = 1,
+  XMM2 = 2,
+  XMM3 = 3,
+  XMM4 = 4,
+  XMM5 = 5,
+  XMM6 = 6,
+  XMM7 = 7,
+  XMM8 = 8,
+  XMM9 = 9,
+  XMM10 = 10,
+  XMM11 = 11,
+  XMM12 = 12,
+  XMM13 = 13,
+  XMM14 = 14,
+  XMM15 = 15
+} fpReg;
 
 typedef struct x640p {
   x64OpMode mode;
@@ -55,7 +78,7 @@ typedef struct x640p {
       int64 disp;
     } indexed;
     int64 imm;
-    uint8 fpReg;
+    fpReg fpReg;
     codeLblPo lbl;
   } op;
 } FlexOp;
@@ -69,6 +92,7 @@ logical sameFlexOp(FlexOp a, FlexOp b);
 #define PLATFORM_PC_DELTA 4
 
 #define RG(Rg) ((FlexOp){.mode=Reg, .size=sz64, .op.reg=(Rg)})
+#define FLT(Rg) ((FlexOp){.mode=Fp, .size=sz64, .op.fpReg=(Rg)})
 #define IM(Vl) ((FlexOp){.mode=Immediate, .size=sz64, .op.imm=(Vl)})
 #define BS(Rg, Off) ((FlexOp){.mode=Based, .size=sz64, .op.based.base=(Rg), .op.based.disp=(Off)})
 #define IX(Rg, Ix, Sc, Off) ((FlexOp){.mode=Indexed, .size=sz64, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)})
@@ -176,6 +200,11 @@ void sal_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void shl_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void shrd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void shld_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+
+#define sar(dst, src) sar_((dst),(src),ctx)
+#define shr(dst, src) shr_((dst),(src),ctx)
+#define sal(dst, src) sal_((dst),(src),ctx)
+#define shl(dst, src) shl_((dst),(src),ctx)
 
 void ror_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void rol_(FlexOp dst, FlexOp src, assemCtxPo ctx);
@@ -311,4 +340,40 @@ void rdseed_(FlexOp dst, assemCtxPo ctx);
 void mfence_(assemCtxPo ctx);
 void lfence_(assemCtxPo ctx);
 void pause_(assemCtxPo ctx);
+
+void addsd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define addsd(dst, src) addsd_((dst), (src), ctx)
+
+void subsd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define subsd(dst, src) subsd_((dst), (src), ctx)
+
+void mulsd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define mulsd(dst, src) mulsd_((dst), (src), ctx)
+
+void divsd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define divsd(dst, src) divsd_((dst), (src), ctx)
+
+void movsd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define movsd(dst, src) movsd_((dst), (src), ctx)
+
+void ucomisd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define ucomisd(dst, src) ucomisd_((dst), (src), ctx)
+
+void cvtsi2sd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define cvtsi2sd(dst, src) cvtsi2sd_((dst), (src), ctx)
+
+void cvttsd2si_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define cvttsd2si(dst, src) cvttsd2si_((dst), (src), ctx)
+
+void movq_g2x_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define movq_g2x(dst, src) movq_g2x_((dst), (src), ctx)
+
+void movq_x2g_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define movq_x2g(dst, src) movq_x2g_((dst), (src), ctx)
+
+void andpd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define andpd(dst, src) andpd_((dst), (src), ctx)
+
+void xorpd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
+#define xorpd(dst, src) xorpd_((dst), (src), ctx)
 #endif

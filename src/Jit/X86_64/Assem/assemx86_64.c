@@ -29,8 +29,26 @@ void clearCodeCtxMaps(assemCtxPo ctx) {
 //  ctx->usedRegs = 0;
 }
 
-
-
-
-
-
+logical sameFlexOp(FlexOp a, FlexOp b) {
+  if (a.mode != b.mode || a.size != b.size)
+    return False;
+  switch (a.mode) {
+    case Reg:
+      return a.op.reg == b.op.reg;
+    case Fp:
+      return a.op.fpReg == b.op.fpReg;
+    case Immediate:
+      return a.op.imm == b.op.imm;
+    case Based:
+      return a.op.based.base == b.op.based.base && a.op.based.disp == b.op.based.disp;
+    case Indexed:
+      return a.op.indexed.base == b.op.indexed.base &&
+             a.op.indexed.index == b.op.indexed.index &&
+             a.op.indexed.scale == b.op.indexed.scale &&
+             a.op.indexed.disp == b.op.indexed.disp;
+    case Labeled:
+      return a.op.lbl == b.op.lbl;
+    default:
+      return False;
+  }
+}

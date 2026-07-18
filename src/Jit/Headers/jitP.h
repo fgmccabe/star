@@ -20,6 +20,7 @@ typedef struct jit_compiler_ {
   int32 minOffset;
   int32 maxOffset;
   char errMsg[MAXLINE];
+  logical failed;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);

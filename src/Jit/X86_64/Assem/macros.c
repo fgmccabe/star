@@ -5,7 +5,6 @@
 #include "x86_64P.h"
 #include "macros.h"
 
-#define XZR 16 // Define XZR as 16 (invalid register for x64) to satisfy nxtAvailReg
 
 registerMap emptyRegSet() {
   return 0;
@@ -92,14 +91,18 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
 }
 
 void showReg(mcRegister rg, void *cl) {
-  outMsg((ioPo) cl, "%R ", rg);
+  outMsg((ioPo) cl, "%R ", &rg);
+}
+
+void showRegisterMap(ioPo out, registerMap regs) {
+  outMsg(out, "registers: {");
+  processRegisterMap(regs, showReg, out);
+  outMsg(out, "}\n");
+  flushOut();
 }
 
 void dRegisterMap(registerMap regs) {
-  outMsg(logFile, "registers: {");
-  processRegisterMap(regs, showReg, logFile);
-  outMsg(logFile, "}\n");
-  flushOut();
+  showRegisterMap(logFile, regs);
 }
 
 retCode loadCGlobal(assemCtxPo ctx, mcRegister reg, void *address) {
@@ -174,5 +177,44 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
     }
     default:
       check(False, "unsupported destination mode");
+  }
+}
+
+static logical powerOf2(int64 val) {
+  return val > 0 && (val & (val - 1)) == 0;
+}
+
+void immModulo(assemCtxPo ctx, mcRegister rg, int64 modulo, registerMap freeRegs) {
+  if (powerOf2(modulo) && modulo > 1) {
+    int32 mask = (int32)(modulo - 1);
+    and(RG(rg), IM(mask));
+  }
+  else {
+    registerMap safeFree = dropReg(dropReg(freeRegs, RAX), RDX);
+    mcRegister divisor = nxtAvailReg(safeFree);
+    check(divisor != XZR, "no free registers for modulo");
+
+    logical saveRAX = (rg != RAX) && !isRegInMap(freeRegs, RAX);
+    logical saveRDX = (rg != RDX) && !isRegInMap(freeRegs, RDX);
+
+    if (saveRAX) push(RG(RAX));
+    if (saveRDX) push(RG(RDX));
+
+    mov(RG(divisor), IM(modulo));
+
+    if (rg != RAX) {
+      mov(RG(RAX), RG(rg));
+    }
+
+    xor(RG(RDX), RG(RDX));
+
+    idiv(RG(divisor));
+
+    if (rg != RDX) {
+      mov(RG(rg), RG(RDX));
+    }
+
+    if (saveRDX) pop(RG(RDX));
+    if (saveRAX) pop(RG(RAX));
   }
 }

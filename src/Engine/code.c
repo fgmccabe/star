@@ -331,7 +331,7 @@ labelPo specialMethod(const char* name, int32 arity, int32 insCx, ssaInsPo instr
   retCode ret = jitSpecialMethod(mtd, errMsg, NumberOf(errMsg));
   if (ret != Ok) {
     char msg[MAX_SYMB_LEN];
-    strMsg(msg,NumberOf(msg), "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
+    strMsg(msg,NumberOf(msg), "could not generate jit code for special method %A,\nbecause %s", lbl, errMsg);
     syserr(msg);
   }
 #endif

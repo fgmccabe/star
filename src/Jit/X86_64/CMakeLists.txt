@@ -13,6 +13,7 @@ include_directories(
         "../../Engine/Headers"
         "../../Escapes/Headers"
         "../../Infra/Headers"
+        "../Analysis/Headers"
         "./Assem/Headers")
 
 set(HEADER_FILES
@@ -24,9 +25,9 @@ set(HEADER_FILES
         config.h
         )
 
-set(SOURCE_FILES lower.c lowerFFI.c lowerFrame.c lowerStack.c)
+set(SOURCE_FILES lower.c lowerInfra.c shuffle.c)
 add_library(X86_64 STATIC ${SOURCE_FILES})
-target_link_libraries(X86_64 assem)
+target_link_libraries(X86_64 PUBLIC assem analysis jit)
 
 
 

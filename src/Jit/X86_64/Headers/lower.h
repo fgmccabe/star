@@ -6,8 +6,7 @@
 #define STAR_LOWER_H
 
 #include "config.h"
-#include "assem.h"
+#include "../Assem/Headers/x86_64.h"
 #include "code.h"
-
 
 #endif //STAR_LOWER_H

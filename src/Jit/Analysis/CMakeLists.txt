@@ -19,5 +19,6 @@ set(HEADER_FILES
 set(ANALYSIS_SOURCE_FILES analyse.c analysisInfra.c)
 
 add_library(analysis STATIC ${ANALYSIS_SOURCE_FILES})
+target_link_libraries(analysis PUBLIC ooio)
 
 

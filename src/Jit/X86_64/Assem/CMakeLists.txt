@@ -6,12 +6,12 @@ add_subdirectory(Tests)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 include_directories(
+        "./Headers"
         "../Headers"
         "../../../Util/Headers"
         "../../../Engine/Headers"
         "../../Headers"
-        "../../../Headers"
-        "./Headers")
+        "../../../Headers")
 
 set(HEADER_FILES
         x86_64.h

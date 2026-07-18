@@ -17,6 +17,14 @@ static uint8 encodeRex(uint8 rex, x64Reg dst, x64Reg index, x64Reg src);
 static void binop_(uint8 op_rm_r, uint8 op_r_rm, uint8 op_rm_imm, uint8 rm_flag, x64Op dst, x64Op src, assemCtxPo ctx);
 
 
+static __thread logical force_next_disp = False;
+static __thread logical emit_sib_24 = False;
+
+#define emitSIB(ctx, base, index, scale) do { \
+  emit_sib_24 = False; \
+  emitU8(ctx, encodeSIB(base, index, scale)); \
+} while(0)
+
 static inline uint8 rexBase(OpSize size) {
   return size == sz64 ? REX_W : REX;
 }
@@ -86,7 +94,7 @@ void binop_(uint8 op_rm_r, uint8 op_r_rm, uint8 op_rm_imm, uint8 rm_flag, x64Op 
           emitRex(ctx, encodeRex(rexBase(size), dst.op.reg, src.op.indexed.index, src.op.indexed.base));
           emitU8(ctx, op_r_rm);
           emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
           emitDisp(ctx, src.op.indexed.disp);
           return;
         case Labeled: {
@@ -107,7 +115,7 @@ void binop_(uint8 op_rm_r, uint8 op_r_rm, uint8 op_rm_imm, uint8 rm_flag, x64Op 
           emitRex(ctx, encodeRex(rexBase(size), src.op.reg, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, op_rm_r);
           emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
           emitDisp(ctx, dst.op.indexed.disp);
           return;
         case Based:
@@ -118,7 +126,7 @@ void binop_(uint8 op_rm_r, uint8 op_r_rm, uint8 op_rm_imm, uint8 rm_flag, x64Op 
           emitRex(ctx, encodeRex(rexBase(size), 0, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, op_rm_imm);
           emitU8(ctx, encodeModRM(rm_flag, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
           emitDisp(ctx, dst.op.indexed.disp);
           emitU32(ctx, src.op.imm);
           return;
@@ -153,7 +161,7 @@ void unop_(uint8 op_rm, uint8 rm_flag, x64Op dst, assemCtxPo ctx) {
       emitRex(ctx, encodeRex(rexBase(size), 0, dst.op.indexed.index, dst.op.indexed.base));
       emitU8(ctx, op_rm);
       emitU8(ctx, encodeModRM(rm_flag, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+      emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
       emitDisp(ctx, dst.op.indexed.disp);
       return;
     case Labeled: {
@@ -224,7 +232,7 @@ void dec_(x64Op dst, assemCtxPo ctx) {
       emitRex(ctx, encodeRex(rexBase(size), 0, dst.op.indexed.index, dst.op.indexed.base));
       emitU8(ctx, DEC_rm);
       emitU8(ctx, encodeModRM(1, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+      emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
       emitDisp(ctx, dst.op.indexed.disp);
       return;
     default:
@@ -234,6 +242,15 @@ void dec_(x64Op dst, assemCtxPo ctx) {
 
 void idiv_(x64Op src, assemCtxPo ctx) {
   unop_(IDIV, 7, src, ctx);
+}
+
+void cqo_(assemCtxPo ctx) {
+  emitU8(ctx, REX_W);
+  emitU8(ctx, CDQ);
+}
+
+void cdq_(assemCtxPo ctx) {
+  emitU8(ctx, CDQ);
 }
 
 void ret_(int16 disp, assemCtxPo ctx) {
@@ -269,7 +286,7 @@ void imul_(x64Op dst, x64Op src, assemCtxPo ctx) {
       emitU8(ctx, IMUL_r_rm_1);
       emitU8(ctx, IMUL_r_rm_2);
       emitU8(ctx, encodeModRM(dstReg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+      emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
       emitDisp(ctx, src.op.indexed.disp);
       return;
     case Immediate: {
@@ -312,7 +329,7 @@ void inc_(x64Op dst, assemCtxPo ctx) {
       emitRex(ctx, encodeRex(rexBase(size), 0, dst.op.indexed.index, dst.op.indexed.base));
       emitU8(ctx, INC_rm);
       emitU8(ctx, encodeModRM(0, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+      emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
       emitDisp(ctx, dst.op.indexed.disp);
       return;
     default:
@@ -361,7 +378,7 @@ void lea_(x64Op dst, x64Op src, assemCtxPo ctx) {
       emitRex(ctx, encodeRex(rexBase(size), dstReg, src.op.indexed.index, src.op.indexed.base));
       emitU8(ctx, LEA_r_m);
       emitU8(ctx, encodeModRM(dstReg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+      emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
       emitDisp(ctx, src.op.indexed.disp);
       return;
     case Labeled: {
@@ -399,7 +416,7 @@ void mov_(x64Op dst, x64Op src, assemCtxPo ctx) {
             emitU8(ctx, MOV_rm_imm);
             if (dst.op.based.base != RAX) {
               emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp, isByte(dst.op.based.disp))); // 4 = no index
-              emitU8(ctx, encodeSIB(dst.op.based.base, 4, 1));
+              emitSIB(ctx, dst.op.based.base, 4, 1);
             } else {
               emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
             }
@@ -446,7 +463,7 @@ void mov_(x64Op dst, x64Op src, assemCtxPo ctx) {
           emitRex(ctx, encodeRex(rexBase(size), dst.op.reg, src.op.indexed.index, src.op.indexed.base));
           emitU8(ctx, MOV_r_rm);
           emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
           emitDisp(ctx, src.op.indexed.disp);
           return;
         case Labeled: {
@@ -467,7 +484,7 @@ void mov_(x64Op dst, x64Op src, assemCtxPo ctx) {
           emitRex(ctx, encodeRex(rexBase(size), src.op.reg, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, MOV_rm_r);
           emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
           emitDisp(ctx, dst.op.indexed.disp);
           return;
         case Based:
@@ -478,7 +495,7 @@ void mov_(x64Op dst, x64Op src, assemCtxPo ctx) {
           emitRex(ctx, encodeRex(rexBase(size), 0, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, MOV_rm_imm);
           emitU8(ctx, encodeModRM(0, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
           emitDisp(ctx, dst.op.indexed.disp);
           emitU32(ctx, src.op.imm);
           return;
@@ -531,7 +548,7 @@ void movsx_(x64Op dst, x64Op src, uint8 scale, assemCtxPo ctx) {
       emitRex(ctx, encodeRex(rexBase(size), dstReg, src.op.indexed.index, src.op.indexed.base));
       genMovsxOp(scale, ctx);
       emitU8(ctx, encodeModRM(dstReg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+      emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
       emitDisp(ctx, src.op.indexed.disp);
       return;
     case Labeled: {
@@ -580,7 +597,7 @@ void pop_(x64Op dst, assemCtxPo ctx) {
         emitU8(ctx, encodeRex(REX, 0, dst.op.indexed.index, dst.op.indexed.base));
       emitU8(ctx, POP_rm);
       emitU8(ctx, encodeModRM(0x0, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+      emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
       emitDisp(ctx, dst.op.indexed.disp);
       return;
     default:
@@ -619,7 +636,7 @@ void push_(x64Op src, assemCtxPo ctx) {
         emitU8(ctx, encodeRex(REX, 0, src.op.indexed.index, src.op.indexed.base));
       emitU8(ctx, PUSH_rm);
       emitU8(ctx, encodeModRM(0x6, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-      emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+      emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
       emitDisp(ctx, src.op.indexed.disp);
       return;
     case Labeled:
@@ -664,7 +681,7 @@ void test_(x64Op dst, x64Op src, assemCtxPo ctx) {
             emitU8(ctx, TEST_rm_imm);
             if (dst.op.based.base != RAX) {
               emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp, isByte(dst.op.based.disp))); // 4 = no index
-              emitU8(ctx, encodeSIB(dst.op.based.base, 4, 1));
+              emitSIB(ctx, dst.op.based.base, 4, 1);
             } else {
               emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
             }
@@ -706,7 +723,7 @@ void test_(x64Op dst, x64Op src, assemCtxPo ctx) {
           emitRex(ctx, encodeRex(rexBase(size), dst.op.reg, src.op.indexed.index, src.op.indexed.base));
           emitU8(ctx, TEST_rm_r);
           emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
           emitDisp(ctx, src.op.indexed.disp);
           return;
         case Labeled: {
@@ -774,7 +791,7 @@ void xchg_(x64Op dst, x64Op src, assemCtxPo ctx) {
           emitRex(ctx, encodeRex(rexBase(size), dst.op.reg, src.op.indexed.index, src.op.indexed.base));
           emitU8(ctx, XCHG_r_rm);
           emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitSIB(ctx, src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale);
           emitDisp(ctx, src.op.indexed.disp);
           return;
       }
@@ -787,7 +804,7 @@ void xchg_(x64Op dst, x64Op src, assemCtxPo ctx) {
           emitRex(ctx, encodeRex(rexBase(size), src.op.reg, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, XCHG_r_rm);
           emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
-          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitSIB(ctx, dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale);
           emitDisp(ctx, dst.op.indexed.disp);
           return;
         case Based:
@@ -821,25 +838,43 @@ uint8 encodeModRR(x64Reg op1, x64Reg op2) {
   return ((uint8) 0xc0) | (unsigned) (sr << 3u) | dr;
 }
 
+
 uint8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag) {
   uint8 fr = ((uint8) fst) & 0x7u;
   uint8 sr = ((uint8) snd) & 0x7u;
 
-  if (disp == 0)
-    return (unsigned) (fr << 3u) | sr;
-  else if (flag)
-    return ((uint8) 0x40u) | (unsigned) (fr << 3u) | sr;
+  if (sr == 4)
+    emit_sib_24 = True;
   else
+    emit_sib_24 = False;
+
+  if (disp == 0 && sr == 5 && flag) {
+    force_next_disp = True;
+    return ((uint8) 0x40u) | (unsigned) (fr << 3u) | sr;
+  } else if (disp == 0) {
+    force_next_disp = False;
+    return (unsigned) (fr << 3u) | sr;
+  } else if (flag) {
+    force_next_disp = False;
+    return ((uint8) 0x40u) | (unsigned) (fr << 3u) | sr;
+  } else {
+    force_next_disp = False;
     return ((uint8) 0x80u) | (unsigned) (fr << 3u) | sr;
+  }
 }
 
 void emitDisp(assemCtxPo ctx, int64 disp) {
-  if (disp != 0) {
-    if (isByte(disp))
+  if (emit_sib_24) {
+    emitU8(ctx, 0x24);
+    emit_sib_24 = False;
+  }
+  if (disp != 0 || force_next_disp) {
+    if (isByte(disp) || force_next_disp)
       emitU8(ctx, (unsigned) disp & 0xffu);
     else
       emitU32(ctx, disp);
   }
+  force_next_disp = False;
 }
 
 uint8 encodeModRI(uint8 mode, x64Reg dst) {
@@ -873,3 +908,177 @@ uint8 encodeRex(uint8 rex, x64Reg dst, x64Reg index, x64Reg src) {
 
   return (unsigned) rex | dr | sx | sr;
 }
+
+static void shift_(uint8 regField, x64Op dst, x64Op src, assemCtxPo ctx) {
+  OpSize size = dst.size;
+  check(dst.mode == Reg, "dst must be register");
+
+  if (src.mode == Immediate) {
+    int8 imm = (int8) src.op.imm;
+    if (size == sz64) {
+      emitRex(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
+    } else if (dst.op.reg >= R8) {
+      emitRex(ctx, encodeRex(REX, 0, 0, dst.op.reg));
+    }
+    if (imm == 1) {
+      emitU8(ctx, 0xd1); // shift by 1
+      emitU8(ctx, encodeModRR(dst.op.reg, regField));
+    } else {
+      emitU8(ctx, 0xc1); // shift by imm8
+      emitU8(ctx, encodeModRR(dst.op.reg, regField));
+      emitU8(ctx, (uint8)imm);
+    }
+  } else if (src.mode == Reg && src.op.reg == RCX) {
+    if (size == sz64) {
+      emitRex(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
+    } else if (dst.op.reg >= R8) {
+      emitRex(ctx, encodeRex(REX, 0, 0, dst.op.reg));
+    }
+    emitU8(ctx, 0xd3); // shift by CL
+    emitU8(ctx, encodeModRR(dst.op.reg, regField));
+  } else {
+    check(False, "invalid shift operand");
+  }
+}
+
+void sar_(x64Op dst, x64Op src, assemCtxPo ctx) {
+  shift_(7, dst, src, ctx);
+}
+
+void shr_(x64Op dst, x64Op src, assemCtxPo ctx) {
+  shift_(5, dst, src, ctx);
+}
+
+void sal_(x64Op dst, x64Op src, assemCtxPo ctx) {
+  shift_(4, dst, src, ctx);
+}
+
+void shl_(x64Op dst, x64Op src, assemCtxPo ctx) {
+  shift_(4, dst, src, ctx);
+}
+
+static void sse_op_(uint8 prefix, uint8 opcode, uint8 rex_base, FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  if (prefix != 0) {
+    emitU8(ctx, prefix);
+  }
+
+  uint8 reg_dst = 0;
+  uint8 reg_src = 0;
+
+  if (dst.mode == Reg) reg_dst = dst.op.reg;
+  else if (dst.mode == Fp) reg_dst = dst.op.fpReg;
+
+  if (src.mode == Reg) reg_src = src.op.reg;
+  else if (src.mode == Fp) reg_src = src.op.fpReg;
+  else if (src.mode == Based) reg_src = src.op.based.base;
+
+  uint8 rex = encodeRex(rex_base, reg_dst, 0, reg_src);
+  emitRex(ctx, rex);
+
+  emitU8(ctx, 0x0F);
+  emitU8(ctx, opcode);
+
+  if (src.mode == Reg || src.mode == Fp) {
+    emitU8(ctx, encodeModRR(reg_src, reg_dst));
+  } else if (src.mode == Based) {
+    emitU8(ctx, encodeModRM(reg_dst, reg_src, src.op.based.disp, isByte(src.op.based.disp)));
+    emitDisp(ctx, src.op.based.disp);
+  } else {
+    check(False, "invalid src mode for SSE op");
+  }
+}
+
+void addsd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0xF2, ADDSD_x_xm, REX, dst, src, ctx);
+}
+
+void subsd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0xF2, SUBSD_x_xm, REX, dst, src, ctx);
+}
+
+void mulsd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0xF2, MULSD_x_xm, REX, dst, src, ctx);
+}
+
+void divsd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0xF2, DIVSD_x_xm, REX, dst, src, ctx);
+}
+
+void ucomisd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0x66, UCOMISD_x_xm, REX, dst, src, ctx);
+}
+
+void cvtsi2sd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  uint8 rex_base = (src.size == sz64) ? REX_W : REX;
+  sse_op_(0xF2, CVTSI2SD_x_rm, rex_base, dst, src, ctx);
+}
+
+void cvttsd2si_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  uint8 rex_base = (dst.size == sz64) ? REX_W : REX;
+  sse_op_(0xF2, CVTTSD2SI_r_xm, rex_base, dst, src, ctx);
+}
+
+void movsd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  if (dst.mode == Fp) {
+    sse_op_(0xF2, MOVSD_x_xm, REX, dst, src, ctx);
+  } else if (dst.mode == Based && src.mode == Fp) {
+    uint8 prefix = 0xF2;
+    uint8 opcode = MOVSD_xm_x;
+    emitU8(ctx, prefix);
+
+    uint8 reg_src = src.op.fpReg;
+    uint8 reg_dst_base = dst.op.based.base;
+
+    uint8 rex = encodeRex(REX, reg_src, 0, reg_dst_base);
+    emitRex(ctx, rex);
+
+    emitU8(ctx, 0x0F);
+    emitU8(ctx, opcode);
+
+    emitU8(ctx, encodeModRM(reg_src, reg_dst_base, dst.op.based.disp, isByte(dst.op.based.disp)));
+    emitDisp(ctx, dst.op.based.disp);
+  } else {
+    check(False, "invalid operands for movsd");
+  }
+}
+
+void movq_g2x_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  assert(dst.mode == Fp);
+  sse_op_(0x66, MOVQ_x_rm, REX_W, dst, src, ctx);
+}
+
+void movq_x2g_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  assert(src.mode == Fp);
+  emitU8(ctx, 0x66);
+
+  uint8 reg_src = src.op.fpReg;
+  uint8 reg_dst = 0;
+
+  if (dst.mode == Reg) reg_dst = dst.op.reg;
+  else if (dst.mode == Based) reg_dst = dst.op.based.base;
+
+  uint8 rex = encodeRex(REX_W, reg_src, 0, reg_dst);
+  emitRex(ctx, rex);
+
+  emitU8(ctx, 0x0F);
+  emitU8(ctx, MOVQ_rm_x);
+
+  if (dst.mode == Reg) {
+    emitU8(ctx, encodeModRR(reg_dst, reg_src));
+  } else if (dst.mode == Based) {
+    emitU8(ctx, encodeModRM(reg_src, reg_dst, dst.op.based.disp, isByte(dst.op.based.disp)));
+    emitDisp(ctx, dst.op.based.disp);
+  } else {
+    check(False, "invalid dst for movq_x2g");
+  }
+}
+
+void andpd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0x66, ANDPD_x_xm, REX, dst, src, ctx);
+}
+
+void xorpd_(FlexOp dst, FlexOp src, assemCtxPo ctx) {
+  sse_op_(0x66, XORPD_x_xm, REX, dst, src, ctx);
+}
+
+

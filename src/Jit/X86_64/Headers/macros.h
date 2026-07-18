@@ -1,32 +1,35 @@
 //
-// Created by Francis McCabe on 6/25/25.
+// Created by Francis McCabe on 9/8/24.
 //
 
-#ifndef MACROS_H
-#define MACROS_H
+#ifndef STAR_MACROS_H
+#define STAR_MACROS_H
 
-#include "ooio.h"
+#include "jit.h"
+#include "assem.h"
 #include "x86_64.h"
 
 typedef uint64 registerMap;
 
 registerMap defltAvailRegSet();
 registerMap emptyRegSet();
+registerMap fixedRegSet(mcRegister Rg);
+registerMap mapUnion(registerMap a, registerMap b);
 
 static inline registerMap scratchRegs() {
-  return 1u << RAX | 1u << RCX | 1u << RDX | 1u << RBX | 1u << R8 | 1u << R9;
+  return 1u << RAX | 1u << RCX;
 }
 
 static inline registerMap callerSaved() {
-  return 1u << RAX | 1u << RCX | 1u << RDX | 1u << R8 | 1u << R9 | 1u << R10 | 1u << R11;
+  return 1u << RAX | 1u << RCX | 1u << RDX | 1u << RSI | 1u << RDI | 1u << R8 | 1u << R9 | 1u << R10 | 1u << R11;
 }
 
 static inline registerMap calleeSaved() {
-  return 1u << RBX | 1u << RBP | 1u << RDI | 1u << RSP | 1u << R12 | 1u << R13 | 1u << R14 | 1u << R15;
+  return 1u << RBX | 1u << RSP | 1u << RBP | 1u << R12 | 1u << R13 | 1u << R14 | 1u << R15;
 }
 
 static inline registerMap stackControlRegs() {
-  return 1u << RSP;
+  return 1u << RSP | 1u << RBP;
 }
 
 registerMap allocReg(registerMap from, mcRegister Rg);
@@ -45,27 +48,18 @@ typedef void (*regProc)(mcRegister rg, void *cl);
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
 void dRegisterMap(registerMap regs);
-
-codeLblPo newLabel(assemCtxPo ctx);
-codeLblPo here_(assemCtxPo ctx);
-#define here() here_(ctx)
-codeLblPo defineLabel(assemCtxPo ctx, integer pc);
-
-codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl);
-#define bind(lbl) setLabel_(ctx,lbl)
-
-logical isLabelDefined(codeLblPo lbl);
-uint64 labelTgt(codeLblPo lbl);
-retCode cleanupLabels(assemCtxPo ctx);
-
-integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
-void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
-void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
+void showRegisterMap(ioPo out, registerMap regs);
 
 typedef integer (*runtimeFn)();
 
-retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, integer arity, ...);
+void load(assemCtxPo ctx, mcRegister dst, mcRegister src, int64 offset);
+void store(assemCtxPo ctx, mcRegister src, mcRegister dst, int64 offset);
+
+void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs);
+
+retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...);
 retCode loadCGlobal(assemCtxPo ctx, mcRegister reg, void *address);
 
+void immModulo(assemCtxPo ctx, mcRegister rg, int64 imm, registerMap freeRegs);
 
-#endif //MACROS_H
+#endif //STAR_MACROS_H

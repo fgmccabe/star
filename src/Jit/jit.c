@@ -35,7 +35,7 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen) {
         recordMethodJitCode(mtd);
     }
     else
-      strMsg(errMsg, msgLen, "error: %S in generating jit code for %L", jit->errMsg, uniStrLen(jit->errMsg),
+      strMsg(errMsg, msgLen, "error: %S in generating jit code for %A", jit->errMsg, uniStrLen(jit->errMsg),
              mtdLabel(mtd));
 
     clearJitContext(jit);
@@ -56,7 +56,7 @@ retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen) {
       ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
     }
     else
-      strMsg(errMsg, msgLen, "error: %S in generating jit code for %L", jit->errMsg, uniStrLen(jit->errMsg),
+      strMsg(errMsg, msgLen, "error: %S in generating jit code for %A", jit->errMsg, uniStrLen(jit->errMsg),
              mtdLabel(mtd));
 
     clearJitContext(jit);
