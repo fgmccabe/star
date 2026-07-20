@@ -1861,19 +1861,20 @@ void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs) {
     var->inUse = True;
     var->inited = True;
     var->desc = desc;
-    armReg rg = nxtAvailReg(registerArgs);
-    if (rg != XZR) {
-      var->src = RG(rg);
-      var->stashed = False;
-      registerArgs = dropReg(registerArgs, rg);
-      reserveReg(state->jit, rg);
-      regArgCnt++;
+    if (lineDebugging == noTracing) {
+      armReg rg = nxtAvailReg(registerArgs);
+      if (rg != XZR) {
+        var->src = RG(rg);
+        var->stashed = False;
+        registerArgs = dropReg(registerArgs, rg);
+        reserveReg(state->jit, rg);
+        regArgCnt++;
+        continue;
+      }
     }
-    else {
-      var->stkOff = ax;
-      var->stashed = True;
-      var->src = varFlex(var->stkOff);
-    }
+    var->stkOff = ax;
+    var->stashed = True;
+    var->src = varFlex(var->stkOff);
   }
 
 #ifdef TRACEJIT
@@ -1881,30 +1882,6 @@ void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs) {
     showRegisterMap(logFile, registerArgs);
   }
 #endif
-}
-
-int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, int32 argBase, int32 arity) {
-  ArgSpec operands[arity];
-
-  int32 currVarLimit = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
-
-  for (int32 ix = 0; ix < arity; ix++) {
-    FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
-    armReg ax = nxtAvailReg(argRegs);
-    if (ax != XZR) {
-      argRegs = dropReg(argRegs, ax);
-      operands[ix] = argSpec(argSrc, RG(ax));
-    }
-    else {
-      int32 argSlot = currVarLimit - arity + ix;
-      operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
-    }
-  }
-  registerMap tmpMap = fixedRegSet(X16);
-  shuffleVars(state->jit, operands, arity, &tmpMap);
-
-  voidOutFrameLocals(state, livePc, currVarLimit); // void out gaps in the locals map
-  return currVarLimit - arity; // return how must space is needed to preserve current locals and arguments.
 }
 
 int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
@@ -1986,15 +1963,16 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp arg = sourceOperandFlex(state, argPc, ix);
-    armReg rx = nxtAvailReg(argRegs);
-    if (rx != XZR) {
-      argRegs = dropReg(argRegs, rx);
-      operands[ix] = argSpec(arg, RG(rx));
+    if (lineDebugging == noTracing) {
+      armReg rx = nxtAvailReg(argRegs);
+      if (rx != XZR) {
+        argRegs = dropReg(argRegs, rx);
+        operands[ix] = argSpec(arg, RG(rx));
+        continue;
+      }
     }
-    else {
-      int32 argSlot = tgtOff + ix;
-      operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
-    }
+    int32 argSlot = tgtOff + ix;
+    operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
   }
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(state->jit, operands, arity, &tmpMap);
