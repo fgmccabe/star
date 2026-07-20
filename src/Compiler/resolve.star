@@ -36,9 +36,6 @@ star.compiler.resolve{
   overloadDefs:(cons[canonDef],dict,cons[canonDef]) => (cons[canonDef],dict).
   overloadDefs([],Dict,Dfx) => (reverse(Dfx),Dict).
   overloadDefs([D,..Defs],Dict,Dfx) => valof{
-    if traceResolve! then
-      showMsg("leq? #(showVar("leq",Dict))");
-
     DD = overloadDef(D,Dict);
     valis overloadDefs(Defs,Dict,[DD,..Dfx])
   }
@@ -261,11 +258,11 @@ star.compiler.resolve{
   overloadTerm(.over(Lc,T,Cx),Dict,St) => valof{
     (DArg,St1) = resolveConstraint(Lc,Cx,Dict,St);
     (OverOp,NArgs,St2) = resolveRef(T,DArg,[],Dict,St1);
-    valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
+    valis overloadTerm(overApply(Lc,OverOp,NArgs,typeOf(T)),Dict,markResolved(St2))
   }
   overloadTerm(.apply(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
     if traceResolve! then
-      showMsg("$(lc)\: overload $(.over(OLc,T,Cx)) in call");
+      showMsg("$(lc)\: overload call $(.apply(lc,.over(OLc,T,Cx),Args,Tp))");
 
     (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
@@ -274,7 +271,7 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
 
-    valis (.apply(lc,OverOp,NArgs,Tp),markResolved(St3))
+    valis overloadTerm(.apply(lc,OverOp,NArgs,Tp),Dict,markResolved(St3))
   }
   overloadTerm(.apply(lc,Op,Args,Tp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);
@@ -292,7 +289,7 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
 
-    valis (makeTApply(Lc,OverOp,NArgs,Tp,ErTp),markResolved(St3))
+    valis overloadTerm(makeTApply(Lc,OverOp,NArgs,Tp,ErTp),Dict,markResolved(St3))
   }
   overloadTerm(.tapply(lc,Op,Args,Tp,ErTp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);
@@ -657,6 +654,9 @@ star.compiler.resolve{
     }
   }
   resolveConstraint(Lc,Con,Dict,St) => valof{
+    if traceResolve! then
+      showMsg("resolve contract $(Con) @ $(Lc)");
+
     ImpNm = implementationName(Con);
     Tp = typeOf(Con);
     if Impl?=findImplementation(Dict,ImpNm) then {
@@ -702,10 +702,10 @@ star.compiler.resolve{
 	FrFt = snd(freshen(Ft,Dict));
 	(Cx,FldT) = deConstrain(FrFt);
 
+	if sameType(Tp,FldT,Dict) then{
 	if traceResolve! then
 	  showMsg("check field type $(Ft)=$(FldT) against $(Tp)");
 
-	if sameType(Tp,FldT,Dict) then{
 	  valis (manageConstraints(FrFt,Lc,(TT)=>.apply(Lc,AccFn,[Rc],FldT)),markResolved(St))
 	} else {
 	  valis (.dot(Lc,Rc,Fld,Tp),
