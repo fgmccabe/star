@@ -1596,11 +1596,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo rtn = newLabel(ctx);
       adr(X16, rtn);
       str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-      mov(RTS, IM(0));
+      ArgSpec specs[3] = {
+        argSpec(localFlex(state, pc, opand(1)), RG(X1)),
+        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
+        argSpec(IM(0), RG(RTS))
+      };
+      shuffleVars(jit, specs, 3, &jit->freeRegs);
       stp(RTV, RTS, PRX(SP,-16));
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)attachStack, 2, (FlexOp[]){
-                        RG(PR), localFlex(state, pc,opand(1))
+                        RG(PR), RG(X1)
                       }, True, 0, (FlexOp[]){});
       ldp(RTV, RTS, PSX(SP,16));
       ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));

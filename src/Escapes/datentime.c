@@ -23,7 +23,7 @@
 #define DATE_LEN 8
 
 ValueReturn s__date2time(enginePo P, termPo tpl) {
-  struct tm now;
+  struct tm now = {0};
 
   normalPo dte = C_NORMAL(tpl);
   termPo y = nthArg(dte, 0);
@@ -54,7 +54,7 @@ ValueReturn s__date2time(enginePo P, termPo tpl) {
 }
 
 ValueReturn s__utc2time(enginePo P, termPo tpl) {
-  struct tm now;
+  struct tm now = {0};
 
   normalPo dte = C_NORMAL(tpl);
   termPo y = nthArg(dte, 0);
@@ -591,7 +591,7 @@ ValueReturn s__parsetime(enginePo P, termPo s, termPo f) {
   integer fmtLen;
   const char* fmt = strVal(f, &fmtLen);
 
-  struct tm time;
+  struct tm time = {0};
 
   retCode ret = parseTime(fmt, fmtLen, src, srcLen, &time);
 

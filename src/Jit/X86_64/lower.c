@@ -355,8 +355,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       adjustAG(state, pc, tgtOff);
       registerMap saveMap = criticalRegs();
       saveRegisters(ctx, saveMap);
+      mov(RG(RAX), RG(RSP));
+      and(RG(RSP), IM(-16));
+      sub(RG(RSP), IM(16));
+      mov(BS(RSP, 8), RG(RAX));
       mov(RG(X16), IM((integer) escapeCode(esc)));
       call(RG(X16));
+      mov(RG(RSP), BS(RSP, 8));
       restoreRegisters(ctx, saveMap);
       unstashEngineState(state->jit);
       dropArguments(state, pc + insSize);
@@ -1690,12 +1695,16 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo rtn = newLabel(ctx);
       adr(X16, rtn);
       str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-      mov(RG(RTS), IM(0));
+      ArgSpec specs[3] = {
+        argSpec(localFlex(state, pc, opand(1)), RG(RSI)),
+        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
+        argSpec(IM(0), RG(RTS))
+      };
+      shuffleVars(jit, specs, 3, &jit->freeRegs);
       push(RG(RTV));
       push(RG(RTS));
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)attachStack, 2, (FlexOp[]){
-                        RG(PR), localFlex(state, pc,opand(1))
+                        RG(PR), RG(RSI)
                       }, True, 0, Null);
       pop(RG(RTS));
       pop(RG(RTV));
@@ -2056,7 +2065,7 @@ int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 ar
       operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
     }
   }
-  registerMap tmpMap = fixedRegSet(R10);
+  registerMap tmpMap = fixedRegSet(X0);
   shuffleVars(state->jit, operands, arity, &tmpMap);
   voidOutFrameLocals(state, livePc, currVarLimit); // void out gaps in the locals map
   return currVarLimit - arity; // return how must space is needed to preserve current locals and arguments.

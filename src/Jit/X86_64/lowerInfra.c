@@ -348,8 +348,13 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   stashEngineState(state->jit, lastSlot, argRegs);
   registerMap saveMap = criticalRegs();
   saveRegisters(ctx, saveMap);
+  mov(RG(RAX), RG(RSP));
+  and(RG(RSP), IM(-16));
+  sub(RG(RSP), IM(16));
+  mov(BS(RSP, 8), RG(RAX));
   mov(RG(X16), IM((integer) fn));
   call(RG(X16));
+  mov(RG(RSP), BS(RSP, 8));
   restoreRegisters(ctx, saveMap);
   unstashEngineState(state->jit);
 
