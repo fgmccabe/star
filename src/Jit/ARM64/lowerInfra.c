@@ -350,7 +350,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
     armReg ax = nxtAvailReg(argRegs);
     argRegs = dropReg(argRegs, ax);
     assert(ax!=XZR);
-    rsltOps[ix] = argSpec(RG(ax), results[ax]);
+    rsltOps[ix] = argSpec(RG(ax), results[ix]);
   }
   shuffleVars(state->jit, rsltOps, rsCnt, &tmpMap);
   restoreStashedLocals(state, livePc);
@@ -471,7 +471,11 @@ void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = newLabel(ctx);
   int32 delta = (arity + lcls + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
+  registerMap savedFree = jit->freeRegs;
+  jit->freeRegs = dropReg(jit->freeRegs, RTS);
+  jit->freeRegs = dropReg(jit->freeRegs, RTV);
   armReg tmp = findFreeReg(jit);
+  jit->freeRegs = dropReg(savedFree, tmp);
 
   // if (mtdHasName(state->mtd, "star.multi@star.core$sequence!star.multi*multi@Γ%283@_cons")) {
   //   installBkPt(state, pc);

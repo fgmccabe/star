@@ -10,6 +10,7 @@
 static uint8 encodeMod(uint8 mode, x64Reg fst, x64Reg snd);
 static uint8 encodeModRR(x64Reg op1, x64Reg op2);
 static uint8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag);
+static uint8 encodeModRM_SIB(x64Reg fst, x64Reg base, int64 disp, logical flag);
 static void emitDisp(assemCtxPo ctx, int64 disp);
 static uint8 encodeSIB(x64Reg base, x64Reg index, uint8 scale);
 static uint8 encodeModRI(uint8 mode, x64Reg dst);
@@ -415,7 +416,7 @@ void mov_(x64Op dst, x64Op src, assemCtxPo ctx) {
             emitRex(ctx, encodeRex(rexBase(size), 0, 4, dst.op.based.base));
             emitU8(ctx, MOV_rm_imm);
             if (dst.op.based.base != RAX) {
-              emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp, isByte(dst.op.based.disp))); // 4 = no index
+              emitU8(ctx, encodeModRM_SIB(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
               emitSIB(ctx, dst.op.based.base, 4, 1);
             } else {
               emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
@@ -680,7 +681,7 @@ void test_(x64Op dst, x64Op src, assemCtxPo ctx) {
             emitRex(ctx, encodeRex(rexBase(size), 0, 4, dst.op.based.base));
             emitU8(ctx, TEST_rm_imm);
             if (dst.op.based.base != RAX) {
-              emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp, isByte(dst.op.based.disp))); // 4 = no index
+              emitU8(ctx, encodeModRM_SIB(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
               emitSIB(ctx, dst.op.based.base, 4, 1);
             } else {
               emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
@@ -836,6 +837,28 @@ uint8 encodeModRR(x64Reg op1, x64Reg op2) {
   uint8 sr = ((uint8) op2) & 0x7u;
 
   return ((uint8) 0xc0) | (unsigned) (sr << 3u) | dr;
+}
+
+
+static uint8 encodeModRM_SIB(x64Reg fst, x64Reg base, int64 disp, logical flag) {
+  uint8 fr = ((uint8) fst) & 0x7u;
+  uint8 br = ((uint8) base) & 0x7u;
+  emit_sib_24 = True;
+
+  logical force = (disp == 0 && br == 5);
+  if (force) {
+    force_next_disp = True;
+    return ((uint8) 0x40u) | (unsigned) (fr << 3u) | 4;
+  } else if (disp == 0) {
+    force_next_disp = False;
+    return (unsigned) (fr << 3u) | 4;
+  } else if (flag) {
+    force_next_disp = False;
+    return ((uint8) 0x40u) | (unsigned) (fr << 3u) | 4;
+  } else {
+    force_next_disp = False;
+    return ((uint8) 0x80u) | (unsigned) (fr << 3u) | 4;
+  }
 }
 
 

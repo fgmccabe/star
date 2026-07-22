@@ -85,7 +85,7 @@ PC += operand(o);                                   \
 assert(PC->op.op==sBlock);                          \
 assert(operand(1)==1);                              \
 varble(operand(2)) = vl;                            \
-PC += operand(1)+1;                                 \
+PC += operand(3);                                   \
 })
 
 #define operand(i) ((PC+(i))->op.ltrl)

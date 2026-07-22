@@ -216,6 +216,9 @@ void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
     else if (isRegisterOp(src)) {
       move(ctx, tgt, src, state->jit->freeRegs);
     }
+    else if (src.mode == Immediate && tgt.mode == Based && isI32(src.op.imm)) {
+      mov(tgt, src);
+    }
     else {
       mcRegister tmp = findFreeReg(state->jit);
       loadRegister(state, tmp, src);
@@ -381,6 +384,7 @@ retCode jitError(jitCompPo jit, char* msg, ...) {
   return Error;
 }
 
+
 void bailOut(codeGenPo state, int32 pc, ExitCode code) {
   assemCtxPo ctx = assemCtx(state->jit);
   mov(RG(X16), IM((integer)star_exit));
@@ -463,7 +467,11 @@ void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = newLabel(ctx);
   int32 delta = (arity + lcls + (int32)(FrameCellCount + FrameCellCount)) * pointerSize;
+  registerMap savedFree = jit->freeRegs;
+  jit->freeRegs = dropReg(jit->freeRegs, RTS);
+  jit->freeRegs = dropReg(jit->freeRegs, RTV);
   mcRegister tmp = findFreeReg(jit);
+  jit->freeRegs = dropReg(savedFree, tmp);
 
   // if (mtdHasName(state->mtd, "star.multi@star.core$sequence!star.multi*multi@Γ%283@_cons")) {
   //   installBkPt(state, pc);
