@@ -1035,12 +1035,13 @@ ValueReturn run(enginePo P) {
       }
     }
     case sBind: {
-      int32 insSize = 3;
+      int32 insSize = 4;
       if (lineDebugging > generalTracing) {
         termPo vrNm = getConstant(operand(1));
+        termPo loc = getConstant(operand(2));
         PC += insSize; // We aim to continue at the next instruction
         saveRegisters();
-        bindDebug(P, vrNm, varble(operand(2)));
+        bindDebug(P, vrNm, loc, varble(operand(3)));
         restoreRegisters();
         continue;
       }

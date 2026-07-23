@@ -1027,12 +1027,16 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
       continue;
     }
     case sBind: {
-      int32 insSize = 3;
+      int32 insSize = 4;
       int32 constant = operand(1);
       if (!isDefinedConstant(constant))
         return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
-      int32 srcVr = operand(2);
+      int32 loc = operand(2);
+      if (!isDefinedConstant(loc))
+        return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, loc);
+
+      int32 srcVr = operand(3);
       if (!initedLocal(&ctx, srcVr))
         return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 

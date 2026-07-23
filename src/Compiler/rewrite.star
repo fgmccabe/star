@@ -104,7 +104,7 @@ star.compiler.rewrite{
     | .cResum(Lc,T,M,Tp) => .cResum(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
     | .cSusp(Lc,T,M,Tp) => .cSusp(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
     | .cRetyr(Lc,T,M,Tp) => .cRetyr(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
-    | .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,rwTerm(E,Mp,ExtFn))
+    | .cVarNme(Lc,N,V,E) => .cVarNme(Lc,N,rwTerm(V,Mp,ExtFn),rwTerm(E,Mp,ExtFn))
     | .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Mp,ExtFn),Tp)
     | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
   }.
@@ -220,7 +220,7 @@ star.compiler.rewrite{
 	valis Ac
       }
     }
-    | .aVarNmes(Lc,Vs,E) => .aVarNmes(Lc,Vs,rwAct(E,Mp,ExtFn))
+    | .aVarNme(Lc,N,V,E) => .aVarNme(Lc,N,rwTerm(V,Mp,ExtFn),rwAct(E,Mp,ExtFn))
     | .aAbort(Lc,Ms) => .aAbort(Lc,Ms)
   }
 

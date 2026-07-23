@@ -232,7 +232,7 @@ star.compiler.matcher{
   matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) =>
     matchTriples(Lc,Vrs,applyVar(.cVar(Lc,V),Triples),Deflt,Depth,Map).
 
-  applyVar:all e ~~ rewrite[e], display[e] |= (cExp,cons[triple[e]]) => cons[triple[e]].
+  applyVar:all e ~~ rewrite[e], display[e], reform[e] |= (cExp,cons[triple[e]]) => cons[triple[e]].
   applyVar(V,Triples) => let{
     applyToTriple:(triple[e])=>triple[e].
     applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
@@ -243,9 +243,7 @@ star.compiler.matcher{
 
       NArgs = rewriteTerms(Args,Mp);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
-      NExp = rewrite(Exp,Mp);
-
-      valis (NArgs, (CLc,B,NGl,NExp),Ix)
+      valis (NArgs, (CLc,B,NGl,decorateVar(VLc,Vr,V,rewrite(Exp,Mp))),Ix)
     }
   } in (Triples//applyToTriple).
 
@@ -307,10 +305,7 @@ star.compiler.matcher{
   applyBindings:all e ~~ reform[e] |= (option[locn],cons[(string,cV)],e) => e.
   applyBindings(Lc,Bnds,Val) => valof{
     VBnds = (Bnds^/(((Nm,_))=>~isUnderscoreName(Nm)));
-    if isEmpty(VBnds) then
-      valis Val
-    else
-    valis varNames(Lc,VBnds,Val)
+    valis foldLeft(((Nm,V),E)=>decorateVar(Lc,Nm,.cVar(Lc,V),E),Val,VBnds)
   }
 
   compareScalarTriple:all e ~~ (triple[e],triple[e]) => boolean.

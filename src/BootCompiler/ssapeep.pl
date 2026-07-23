@@ -65,7 +65,7 @@ vrRead(Vr,iResume(_,Vr)).
 vrRead(Vr,iRetire(Vr,_)).
 vrRead(Vr,iRetire(_,Vr)).
 
-vrRead(Vr,iBind(_,Vr)).
+vrRead(Vr,iBind(_,_,Vr)).
 vrRead(Vr,iMv(_,Vr)).
 vrRead(Vr,iSG(_,Vr)).
 

@@ -92,7 +92,7 @@ star.compiler.ssa{
     | .iRetire(varNm, varNm)
     | .iUnderflow
     | .iLine(data)
-    | .iBind(data, varNm)
+    | .iBind(data, data, varNm)
     | .iDBug(data)
 
     | .iLbl(string, insOp).
@@ -282,9 +282,9 @@ star.compiler.ssa{
     (Lt1, L1) = findLit(Lt0,V0); 
     valis ([.intgr(73),.intgr(L1)],Pc+2,Lt1);
   }
-  mnem(.iBind(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
-    (Lt1, L1) = findLit(Lt0,V0); 
-    valis ([.intgr(74),.intgr(L1),findLocal(V1,Lcs)],Pc+3,Lt1);
+  mnem(.iBind(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
+    (Lt1, L1) = findLit(Lt0,V0); (Lt2, L2) = findLit(Lt1,V1); 
+    valis ([.intgr(74),.intgr(L1),.intgr(L2),findLocal(V2,Lcs)],Pc+4,Lt2);
   }
   mnem(.iDBug(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0); 
@@ -442,7 +442,7 @@ star.compiler.ssa{
   showIns(.iRetire(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Retire #(V0), #(V1)",Pc+3).
   showIns(.iUnderflow, Pc, Sps) => ("#(showPc(Pc,Sps))Underflow",Pc+1).
   showIns(.iLine(V0), Pc, Sps) => ("#(showPc(Pc,Sps))Line $(V0)",Pc+2).
-  showIns(.iBind(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Bind $(V0), #(V1)",Pc+3).
+  showIns(.iBind(V0, V1, V2), Pc, Sps) => ("#(showPc(Pc,Sps))Bind $(V0), $(V1), #(V2)",Pc+3).
   showIns(.iDBug(V0), Pc, Sps) => ("#(showPc(Pc,Sps))DBug $(V0)",Pc+2).
 
   showPc:(integer, integer) => string.
@@ -1062,9 +1062,9 @@ star.compiler.ssa{
   validIns(.iLine(V0), Lcls0, Lbls) => valof{
     valis Lcls0
   }
-  validIns(.iBind(V0, V1), Lcls0, Lbls) => valof{
-   if ~varInited(Lcls0, V1) then
-     throw .exception("Var #(V1) in 'Bind' not inited");
+  validIns(.iBind(V0, V1, V2), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V2) then
+     throw .exception("Var #(V2) in 'Bind' not inited");
     valis Lcls0
   }
   validIns(.iDBug(V0), Lcls0, Lbls) => valof{
@@ -1080,5 +1080,5 @@ star.compiler.ssa{
   hasEntryInstruction([_,..Ins]) => hasEntryInstruction(Ins).
   hasEntryInstruction([]) => .none.
 
-  public opcodeHash = 2096417289393624453.
+  public opcodeHash = 2096417289399390681.
 }

@@ -20,7 +20,7 @@ logical isDebuggableOp(ssaOp op);
 logical isDebugging();
 
 DebugWaitFor lineDebug(enginePo p, termPo lc);
-DebugWaitFor bindDebug(enginePo p, termPo name, termPo val);
+DebugWaitFor bindDebug(enginePo p, termPo name, termPo loc, termPo val);
 DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb);
 DebugWaitFor abortDebug(enginePo p, termPo lc);
 DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args);

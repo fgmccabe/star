@@ -139,6 +139,9 @@ star.compiler.inline{
     | .cResum(Lc,T,M,Tp) =>
       .cResum(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cValof(Lc,Act,Tp) => valofAct(Lc,simplifyAct(Act,Map,Depth),Tp)
+    | .cVarNme(Lc,Nm,V,E) where .cVar(_,_).=V =>
+      .cVarNme(Lc,Nm,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth))
+    | .cVarNme(Lc,_,_,E) => simplifyExp(E,Map,Depth)
   }
 
   simCond:(cExp,map[defnSp,cDefn],integer) => cExp.
@@ -211,8 +214,8 @@ star.compiler.inline{
   simAct(.aThrw(Lc,E),Map,Depth) => .aThrw(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
-  simAct(.aVarNmes(Lc,Vrs,X),Map,Depth) =>
-    .aVarNmes(Lc,Vrs,simplifyAct(X,Map,Depth)).
+  simAct(.aVarNme(Lc,Nm,Vr,X),Map,Depth) =>
+    .aVarNme(Lc,Nm,simplifyExp(Vr,Map,Depth),simplifyAct(X,Map,Depth)).
   simAct(.aAbort(Lc,Txt),_,_) => .aAbort(Lc,Txt).
 
   dropNops(_,.aNop(_),A) => A.

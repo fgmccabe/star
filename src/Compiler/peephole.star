@@ -54,7 +54,7 @@ star.compiler.peephole{
   vrRead(Vr,.iResume(T,E)) => T==Vr || E==Vr.
   vrRead(Vr,.iRetire(T,E)) => T==Vr || E==Vr.
 
-  vrRead(Vr,.iBind(_,V)) => V==Vr.
+  vrRead(Vr,.iBind(_,_,V)) => V==Vr.
   vrRead(Vr,.iMv(_,V)) => V==Vr.
   vrRead(Vr,.iSG(_,V)) => V==Vr.
   vrRead(Vr,.iLdSav(_,_,V)) => V==Vr.

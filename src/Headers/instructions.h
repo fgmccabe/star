@@ -94,5 +94,5 @@ instr(Retire, lcl lcl)
 instr(Underflow, none)
 
 instr(Line, lit)
-instr(Bind, lit lcl)
+instr(Bind, lit lit lcl)
 instr(dBug, lit)

@@ -438,8 +438,8 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       continue;
     }
     case sBind: {
-      int32 nextPc = pc + 3;
-      ret = recordVariableUse(analysis, scope, operand(2), nextPc);
+      int32 nextPc = pc + 4;
+      ret = recordVariableUse(analysis, scope, operand(3), nextPc);
       if (lineDebugging > generalTracing) {
         setSafePoint(analysis, pc);
       }

@@ -377,10 +377,11 @@ mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(72)|Cd],Cdx) :-
 mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(73),intgr(L0)|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
-mnem([iBind(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(74),intgr(L0), Off1|Cd],Cdx) :-
+mnem([iBind(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(74),intgr(L0),intgr(L1), Off2|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
-  findLocal(V1,LsMap,Off1),
-  mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
+  findLit(Lt1,V1,L1,Lt2),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt2,Ltx,LsMap,Cd,Cdx).
 mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(75),intgr(L0)|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
@@ -703,8 +704,9 @@ showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
 showMnem(iLine(V0),Pc,sq([PcDx,ss(": "),ss("Line"),ss(" "),SS0])) :- !,
   ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
-showMnem(iBind(V0, V1),Pc,sq([PcDx,ss(": "),ss("Bind"),ss(" "),SS0,ss(" "),ss(V1)])) :- !,
+showMnem(iBind(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Bind"),ss(" "),SS0,ss(" "),SS1,ss(" "),ss(V2)])) :- !,
   ssTrm(V0,0,SS0),
+  ssTrm(V1,0,SS1),
   showPc(Pc,PcDx).
 showMnem(iDBug(V0),Pc,sq([PcDx,ss(": "),ss("dBug"),ss(" "),SS0])) :- !,
   ssTrm(V0,0,SS0),
@@ -717,7 +719,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(2096417289393624453).
+ssaHash(2096417289399390681).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

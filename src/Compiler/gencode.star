@@ -396,6 +396,12 @@ star.compiler.gencode{
     (TC,TV) = bindExpToVar(T,Lc,Brks,.notLast,Ctx);
     valis chLine(OLc,Lc)++EC++TC++[.iRetire(TV,EV)]
   }
+  compExp(.cVarNme(Lc,ONm,V,E),_,Vr,Brks,Last,Ctx) => valof{
+    if .cVar(_,.cV(VNm,_)) .= V then
+      valis genBind(Lc,ONm,VNm)++compExp(E,Lc,Vr,Brks,Last,Ctx)
+    else
+    valis compExp(E,Lc,Vr,Brks,Last,Ctx)
+  }
   compExp(.cValof(Lc,A,Tp),OLc,Vr,Brks,Last,Ctx) => valof{
     VLbl = defineLbl(Ctx,"Vl");
     AC = compAction(A,Lc,Brks["$valof"->VLbl],Last,Ctx);
@@ -543,7 +549,7 @@ star.compiler.gencode{
       if .cVar(_,.cV(Nm,Tp)).=P then{
 	defineLclVar(Nm,Tp,Ctx);
 	EC = compExp(E,Lc,Nm,Brks,.notLast,Ctx);
-	valis chLine(OLc,Lc)++EC++genBind(Nm)
+	valis chLine(OLc,Lc)++EC
       } else{
 	(EC,EV) = bindExpToVar(E,Lc,Brks,.notLast,Ctx);
 	Ab = defineLbl(Ctx,"Ab");
@@ -794,7 +800,7 @@ star.compiler.gencode{
     | .cVar(_,.cV("_",_)) => []
     | .cVar(Lc,.cV(Vr,Tp)) => valof{
       defineLclVar(Vr,Tp,Ctx);
-      valis [.iMv(Vr,PVr)]++genBind(Vr)
+      valis [.iMv(Vr,PVr)]
     }
     | .cVoid(Lc) => []
     | .cAnon(Lc,_) => []
@@ -918,8 +924,10 @@ star.compiler.gencode{
   genDbg(.some(Lc),Ins) => (genDebug! ?? [.iDBug(Lc::data),..Ins] || Ins).
   genDbg(.none,Ins) => Ins.
 
-  genBind:(identifier) => multi[insOp].
-  genBind(Nm) => (genDebug! ?? [.iBind(.strg(Nm),Nm)] || []).
+  genBind:(option[locn],identifier,identifier) => multi[insOp].
+  genBind(.some(Lc),OrigNm,VrNm) => (
+    genDebug! ?? [.iBind(.strg(OrigNm),Lc::data,VrNm)] || []).
+  genBind(.none,_,_) => [].
 
   flatSig = .fnTipe([],.tplTipe([])).
   nearlyFlatSig(T) => .fnTipe([],.tplTipe([T])).

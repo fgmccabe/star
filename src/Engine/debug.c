@@ -17,7 +17,7 @@ integer pcCount = 0;
 
 static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore, termPo ignore2);
 static void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl, termPo ignore);
-static void showBind(ioPo out, stackPo stk, termPo name, termPo val, termPo ignore);
+static void showBind(ioPo out, stackPo stk, termPo name, termPo val, termPo loc);
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason, termPo ignore);
 static void showRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore);
 static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val, termPo ignore);
@@ -700,12 +700,12 @@ static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore, termPo ign
   }
 }
 
-void showBind(ioPo out, stackPo stk, termPo name, const termPo val, termPo ignore) {
+void showBind(ioPo out, stackPo stk, termPo name, const termPo loc, const termPo val) {
   if (tracing >= detailedTracing) {
     if (showColors)
-      outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %#T = %#,*T\n%_", name, displayDepth, val);
+      outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %#L: %#T = %#,*T\n%_", loc, name, displayDepth, val);
     else
-      outMsg(out, "return: %#T->%#,*T\n%_", name, displayDepth, val);
+      outMsg(out, "bind: %#L: %#T->%#,*T\n%_", loc, name, displayDepth, val);
   }
 }
 
@@ -908,8 +908,8 @@ DebugWaitFor lineDebug(enginePo p, termPo lc) {
   return lnDebug(p, sLine, showLine, lc, Null, Null);
 }
 
-DebugWaitFor bindDebug(enginePo p, termPo name, termPo val) {
-  return lnDebug(p, sBind, showBind, name, val, Null);
+DebugWaitFor bindDebug(enginePo p, termPo name, termPo loc, termPo val) {
+  return lnDebug(p, sBind, showBind, name, loc, val);
 }
 
 DebugWaitFor glbDebug(enginePo p, termPo loc, globalPo glb) {

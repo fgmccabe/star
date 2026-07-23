@@ -1642,7 +1642,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sLine: {
       int32 insSize = 2;
-      if (lineDebugging >= detailedTracing) {
+      if (lineDebugging > noTracing) {
         int32 locKey = opand(1);
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2, (FlexOp[]){
                           RG(PR), constantFlex(locKey)
@@ -1652,12 +1652,14 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       continue;
     }
     case sBind: {
-      int32 insSize = 3;
-      if (lineDebugging >= detailedTracing) {
-        int32 varKey = opand(1);
-        FlexOp vl = localFlex(state, pc, opand(2));
-        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)bindDebug, 3, (FlexOp[]){
-                          RG(PR), constantFlex(varKey), vl
+      int32 insSize = 4;
+      if (lineDebugging > noTracing) {
+        FlexOp var = constantFlex(opand(1));
+        FlexOp loc = constantFlex(opand(2));
+        FlexOp vl = localFlex(state, pc, opand(3));
+
+        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)bindDebug, 4, (FlexOp[]){
+                          RG(PR), var, loc, vl
                         }, False, 0, (FlexOp[]){});
       }
       pc += insSize;
