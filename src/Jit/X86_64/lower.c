@@ -66,7 +66,7 @@ static localVarPo operandVar(codeGenPo state, int32 pc, int32 ax);
 static int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
 static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase);
-static void dropArguments(codeGenPo state, int32 pc);
+static void dropArguments(codeGenPo state, int32 pc, int32 tgtOff);
 static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity);
 static void adjustAG(codeGenPo state, int32 pc, int32 tgtOff);
 static localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo);
@@ -130,6 +130,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 #ifdef TRACEJIT
   if (traceJit >= generalTracing) {
     outMsg(logFile, "Jit block %d -> %d\n%_", from, endPc);
+    flushOut();
   }
 #endif
   for (int32 pc = from; ret == Ok && !state->jit->failed && pc < endPc;) {
@@ -142,6 +143,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     if (traceJit >= generalTracing) {
       showIns(logFile, state->mtd, Null, &code[pc]);
       outMsg(logFile, "\n%_");
+      flushOut();
     }
 #endif
     switch (code[pc].op.op) {
@@ -225,7 +227,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       lea(RG(LR), LB(rtn)); // Use LR (R11) symbolically
       jmp(RG(R10));
       bind(rtn);
-      dropArguments(state, nextPc);
+      dropArguments(state, nextPc, argPnt);
       pc = nextPc;
       continue;
     }
@@ -252,7 +254,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // Pick up the jit code itself
       ldr(X16, OF(lamReg, OffsetOf(MethodRec, jit.code)));
       blr(X16);
-      dropArguments(state, pc + insSize);
+      dropArguments(state, pc + insSize, argPnt);
       pc = nextPc;
       continue;
     }
@@ -363,8 +365,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       call(RG(X16));
       mov(RG(RSP), BS(RSP, 8));
       restoreRegisters(ctx, saveMap);
+      loadCGlobal(ctx, CO, &constAnts);
       unstashEngineState(state->jit);
-      dropArguments(state, pc + insSize);
+      dropArguments(state, pc + insSize, tgtOff);
 
       pc = nextPc;
       continue;
@@ -732,7 +735,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       ldr(X16, OF(X16, OffsetOf(MethodRec, jit.code)));
 
       blr(X16);
-      dropArguments(state, nextPc);
+      dropArguments(state, nextPc, minOffset);
       bind(haveContent);
       pc = nextPc;
       continue;
@@ -2134,9 +2137,12 @@ void adjustAG(codeGenPo state, int32 pc, int32 tgtOff) {
   }
 }
 
-void dropArguments(codeGenPo state, int32 pc) {
+void dropArguments(codeGenPo state, int32 pc, int32 tgtOff) {
   retireExpiredVars(state, pc);
   resetRegMap(state->jit, defltAvailRegSet());
+  for (int32 lx = tgtOff - 1; lx >= -state->argMark; lx--) {
+    state->voided[state->argMark + lx] = False;
+  }
 }
 
 localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo) {

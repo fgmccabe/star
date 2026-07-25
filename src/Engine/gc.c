@@ -150,10 +150,10 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
   termPo t = *p;
 
   if (t != Null && isPointer(t)) {
-    if (hasMoved(t))
-      return movedTo(t);
-    else if (inSwappedHeap(G, t)) {
-      if (hasBuiltinType(t)) {
+    if (inSwappedHeap(G, t)) {
+      if (hasMoved(t))
+        return movedTo(t);
+      else if (hasBuiltinType(t)) {
         builtinClassPo special = builtinClassOf(t);
         termPo nn = heap.curr;
         heap.curr = special->copyFun(special, nn, t);

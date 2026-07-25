@@ -4,6 +4,7 @@
 
 #include "arithP.h"
 #include "constants.h"
+#include "constantsP.h"
 #include "formioP.h"
 #include "jit.h"
 #include "jitP.h"
@@ -293,7 +294,9 @@ int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
 
 int32 flushArguments(codeGenPo state, int32 pc) {
   int32 minOffset = processLocals(state, pc, flushArg, Null);
-  voidOutFrameLocals(state, pc, minOffset);
+  int32 arity = mtdArity(state->mtd);
+  int32 frameSize = state->numLocals - arity;
+  voidOutFrameLocals(state, pc, -frameSize);
   return minOffset;
 }
 
@@ -356,6 +359,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   call(RG(X16));
   mov(RG(RSP), BS(RSP, 8));
   restoreRegisters(ctx, saveMap);
+  loadCGlobal(ctx, CO, &constAnts);
   unstashEngineState(state->jit);
 
   assert(rsCnt >= 0 && rsCnt <= 2);
@@ -511,7 +515,7 @@ void stashEngineState(jitCompPo jit, int32 stackLevel, registerMap freeRegs) {
   mcRegister currSP = nxtAvailReg(freeRegs);
   if (stackLevel != 0) {
     mov(RG(currSP), RG(AG));
-    add(RG(currSP), IM(-stackLevel*pointerSize));
+    sub(RG(currSP), IM(-stackLevel*pointerSize));
     mov(OF(STK, OffsetOf(StackRecord, sp)), RG(currSP));
   }
   else {

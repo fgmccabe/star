@@ -12,7 +12,7 @@ tracing = False
 ignore_failures = False
 
 def main(argv):
-    global tracing,tester
+    global tracing,tester,ignore_failures
     
     pkgs = []
 
