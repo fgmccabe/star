@@ -746,7 +746,7 @@ logical isExecutableFile(char *file) {
         gid_t *groups = (gid_t *) calloc((size_t) ngroups, sizeof(gid_t));
         int i;
 
-        getgroups(ngroups, groups);
+        ngroups = getgroups(ngroups, groups);
 
         for (i = 0; i < ngroups; i++)
           if (groups[i] == buf.st_gid) {

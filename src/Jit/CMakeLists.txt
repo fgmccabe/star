@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(jit)
 
-add_compile_definitions(TRACEJIT)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 if (NOT DEFINED JIT_ARCH)

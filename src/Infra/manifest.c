@@ -506,16 +506,16 @@ void defltRepoDir() {
     char *dir = getenv("STAR_DIR"); /* pick up the installation directory */
     if (dir == NULL) {
       char DF[MAXFILELEN];
-      getcwd(DF, sizeof(DF));
+      char *cwd = getcwd(DF, sizeof(DF));
 
-      while (uniStrLen(DF) > 0) {
-        strMsg(repoDir, NumberOf(repoDir), "%s/.star-repo", DF);
+      while (uniStrLen(cwd) > 0) {
+        strMsg(repoDir, NumberOf(repoDir), "%s/.star-repo", cwd);
         if (isDirectory(repoDir) == Ok)
           return;
         else {
-          integer slash = uniLastIndexOf(DF, uniStrLen(DF), '/');
+          integer slash = uniLastIndexOf(cwd, uniStrLen(cwd), '/');
           if (slash > 0) {
-            DF[slash] = '\0';
+            cwd[slash] = '\0';
           } else {
             uniCpy(repoDir, NumberOf(repoDir), STARDIR);  /* Default installation path */
             return;
@@ -694,9 +694,9 @@ char *repoRsrcPath(char *name, char *buffer, int bufLen) {
 retCode setManifestPath(char *path) {
   if (path[0] != '/') {
     char wd[MAXFILELEN];
-    getcwd(wd, sizeof(wd));
+    char *cwd = getcwd(wd, sizeof(wd));
 
-    resolveFileName(wd, path, uniStrLen(path), repoDir, NumberOf(repoDir));
+    resolveFileName(cwd, path, uniStrLen(path), repoDir, NumberOf(repoDir));
   } else
     strMsg(repoDir, NumberOf(repoDir), "%s", path);
 #ifdef TRACEMANIFEST

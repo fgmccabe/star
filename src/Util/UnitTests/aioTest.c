@@ -36,7 +36,7 @@ static void                 /* Handler for I/O completion signal */
 aioSigHandler(int sig, siginfo_t *si, void *ucontext)
 {
   if (si->si_code == SI_ASYNCIO) {
-    write(STDOUT_FILENO, "I/O completion signal received\n", 31);
+    int reslt = write(STDOUT_FILENO, "I/O completion signal received\n", 31);
 
     /* The corresponding ioRequest structure would be available as
            struct ioRequest *ioReq = si->si_value.sival_ptr;
