@@ -171,13 +171,16 @@ framePo pushFrame(stackPo stk, logical execJit, methodPo mtd) {
   f->args = stk->args;
   f->link = stk->pc;
 #ifndef NOJIT
-  stk->pc = (execJit ? (ssaInsPo)jitCode(mtd) : entryPoint(mtd));
-#else
-  stk->pc = entryPoint(mtd);
+  if (execJit) {
+    stk->pc = (ssaInsPo)jitCode(mtd);
+    if (stk->pc == Null)
+      star_exit(undefinedCode);
+  }
+  else
 #endif
+    stk->pc = entryPoint(mtd);
   stk->prog = mtd;
   stk->args = stk->sp;
-
   stk->fp = f;
 
   return f;

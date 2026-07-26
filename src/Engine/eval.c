@@ -10,6 +10,7 @@
 #include "char.h"
 #include <math.h>
 
+#include "abort.h"
 #include "analyse.h"
 #include "errorCodes.h"
 #include "escapeP.h"
@@ -42,8 +43,11 @@ ValueReturn run(enginePo P) {
 #endif
 
     switch (PC->op.op) {
-    case sHalt:
-      return (ValueReturn){.value = varble(operand(1)), .status = Normal};
+    case sHalt: {
+      termPo val = varble(operand(1));
+      star_exit(integerVal(val));
+      return (ValueReturn){.value = varble(operand(1)), .status = Normal}; // Never taken
+    }
     case sAbort: {
       termPo lc = getConstant(operand(1));
       termPo msg = varble(operand(2));

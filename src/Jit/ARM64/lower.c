@@ -137,7 +137,11 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // Stop execution
       int32 insSize = 2;
       FlexOp src = localFlex(state, pc, opand(1));
-      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)star_exit, 1, (FlexOp[]){src}, False, 0,
+
+      armReg vl = findARegister(state, pc);
+      loadRegister(state, vl, src);
+      getIntVal(jit, vl);
+      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)star_exit, 1, (FlexOp[]){RG(vl)}, False, 0,
                       (FlexOp[]){});
       pc += insSize;
       continue;
@@ -148,11 +152,14 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       armReg loc = findARegister(state, pc);
       adr(loc, here());
       str(loc, OF(STK,OffsetOf(StackRecord,pc)));
-      FlexOp val = sourceOperandFlex(state, pc, 2);
       loadConstant(jit, opand(1), loc);
-      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)abort_star, 3, (FlexOp[]){RG(PR), RG(loc), val},
+      armReg vl = findARegister(state, pc);
+      loadRegister(state, vl, sourceOperandFlex(state, pc, 2));
+      getIntVal(jit, vl);
+      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)abort_star, 3, (FlexOp[]){RG(PR), RG(loc), RG(vl)},
                       False, 0, (FlexOp[]){});
       releaseReg(jit, loc);
+      releaseReg(jit, vl);
       pc += insSize;
       continue;
     }
@@ -732,8 +739,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       loadConstant(jit, falseIndex, fl);
       loadConstant(jit, trueIndex, tr);
       ldr(tmp, OF(tmp, OffsetOf(SingleRecord, content)));
-      tst(tmp, RG(XZR));
-      csel(tmp, tr, fl, EQ);
+      tst(tmp, RG(tmp));
+      csel(tmp, fl, tr, EQ);
       localVarPo tgt = localTarget(state, pc, opand(1));
       storeVar(state, pc, RG(tmp), tgt);
       releaseReg(jit, tr);
