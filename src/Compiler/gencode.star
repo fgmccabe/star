@@ -63,8 +63,8 @@ star.compiler.gencode{
     (EC,EV) = bindExpToVar(Val,Lc,Brks,.noMore,Ct1);
     Er = defineTmpVar(typeThrows(Tp),Ct1);
 
-    C0 = [.iEntry(Args//((.cV(ArgNm,_))=>ArgNm),varNms(Ctx))]++
-    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock([],
+    C0 = genDbg(Lc,[.iEntry(Args//((.cV(ArgNm,_))=>ArgNm),varNms(Ctx))])++
+    [.iLbl(AbrtLbl,.iBlock([],
 	  [.iLbl(ExLbl,.iBlock([Er],EC++genDbg(Lc,[.iRet(EV)])))]++genDbg(Lc,[.iXRet(Er)]))),..AbrtCde];
     
     Code = .func(.tLbl(FnNm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct1),C0);
@@ -96,8 +96,8 @@ star.compiler.gencode{
     (EC,EV) = bindExpToVar(Val,Lc,Brks,.noMore,Ct1);
     Er = defineTmpVar(typeThrows(Tp),Ct1);
 
-    C0 = [.iEntry(Args//((.cV(ArgNm,_))=>ArgNm),varNms(Ctx))]++
-    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock([],
+    C0 = genDbg(Lc,[.iEntry(Args//((.cV(ArgNm,_))=>ArgNm),varNms(Ctx))])++
+    [.iLbl(AbrtLbl,.iBlock([],
 	  EC++genDbg(Lc,[.iRet(EV)]))),..AbrtCde];
 
     Code = .func(.tLbl(FnNm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct1),C0);
@@ -134,8 +134,8 @@ star.compiler.gencode{
     EC = compAction(Act,Lc,Brks,.noMore,Ct1);
     Er = defineTmpVar(typeThrows(Tp),Ct1);
     
-    C0 = [.iEntry(Args//((.cV(Nm,_))=>Nm),varNms(Ctx))]++
-    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock([],
+    C0 = genDbg(Lc,[.iEntry(Args//((.cV(Nm,_))=>Nm),varNms(Ctx))])++
+    [.iLbl(AbrtLbl,.iBlock([],
 	  [.iLbl(ExLbl,.iBlock([Er],EC++genDbg(Lc,[.iRtn])))]++genDbg(Lc,[.iXRet(Er)]))),..AbrtCde];
     
     Code = .func(.tLbl(PrNm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct1),C0);
@@ -159,7 +159,7 @@ star.compiler.gencode{
 
     (GC,GV) = bindExpToVar(Val,Lc,Brks,.notLast,Ctx);
     
-    C0 = [.iEntry([],varNms(Ctx))]++chLine(.none,Lc)++
+    C0 = genDbg(Lc,[.iEntry([],varNms(Ctx))])++
     [.iLbl(AbrtLbl,.iBlock([],GC++[.iSG(GNm,GV)]++genDbg(Lc,[.iRet(GV)])))]
       ++AbrtCde;
 
@@ -621,7 +621,6 @@ star.compiler.gencode{
 
       valis [.iLbl(Done,.iBlock([],[.iLbl(Lp,
 		.iBlock([],GC++BC++[.iCont(Lp)]))]))]
---		.iLoop(GC++BC++[.iCont(Lp)]))]))]
     }
     |.aLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       Ctx1 = defineLclVar(Vr,VTp,Ctx);
@@ -647,6 +646,13 @@ star.compiler.gencode{
 	    [.iLbl(TrX,.iBlock([Er],BC++[.iBreak(Ok)]))]++HC++[.iBreak(Ok)]))]
     }
     | .aAbort(Lc,Msg) => compAbort(Lc,Msg,Ctx)
+    | .aVarNme(Lc,OgNm,Vr,Act) => valof{
+      if .cVar(_,.cV(VNm,_)) .= Vr then
+	valis genBind(Lc,OgNm,VNm)++compAction(Act,Lc,Brks,Last,Ctx)
+      else{
+	valis compAction(Act,Lc,Brks,Last,Ctx)
+      }
+    }
     | _ default => valof{
       reportError("cannot compile action $(A)",locOf(A));
       valis []

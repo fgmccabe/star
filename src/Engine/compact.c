@@ -209,7 +209,6 @@ static int32 shuffleTerms(integer count) {
 
   heap.limit = heap.split = heap.base + (heap.outerLimit - heap.base) / 2;
   heap.allocMode = lowerPhase1;
-  assert(heap.curr<=heap.limit);
   return tx;
 }
 

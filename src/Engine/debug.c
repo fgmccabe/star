@@ -637,7 +637,7 @@ retCode showLoc(ioPo f, void* data, long depth, long precision, logical alt) {
 
   if (ln != Null) {
     integer pkgNmLen;
-    const char* pkgName = strVal(nthArg(ln,0), &pkgNmLen);
+    const char* pkgName = strVal(nthArg(ln, 0), &pkgNmLen);
 
     if (alt && showPkgFile) {
       char srcName[MAXFILELEN];
@@ -654,26 +654,51 @@ retCode showLoc(ioPo f, void* data, long depth, long precision, logical alt) {
     return outStr(f, "?unknown loc?");
 }
 
-static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo args) {
+static void showArgs(ioPo out, int32 arity, stackPo stk) {
+  ptrPo args = stk->sp;
+  outStr(out, "(");
+  char* sep = "";
+  for (int32 ax = 0; ax < arity; ax++) {
+    outMsg(out, "%s%#,*T", sep, displayDepth, args[ax]);
+    sep = ", ";
+  }
+  outStr(out, ")");
+}
+
+static void showClosureArgs(ioPo out, closurePo closure, stackPo stk) {
+  ptrPo args = stk->sp;
+  outStr(out, "(");
+  int32 arity = lblArity(closureLabel(closure));
+  assert(arity > 0);
+  termPo free = closureFree(closure);
+  outMsg(out, "%#,*T", displayDepth, free);
+  for (int32 ax = 0; ax < arity; ax++) {
+    outMsg(out, ", %#,*T", displayDepth, args[ax + 1]);
+  }
+  outStr(out, ")");
+}
+
+static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr, termPo ignored) {
   if (isALabel(pr)) {
     labelPo callee = C_LBL(pr);
 
     if (showColors)
-      outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %Q%#,*T", lc, lblName(callee), displayDepth, args);
+      outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %Q", lc, lblName(callee));
     else
-      outMsg(out, "call: %#L %Q%#,*T", lc, lblName(callee), displayDepth, args);
-
+      outMsg(out, "call: %#L %Q", lc, lblName(callee), displayDepth);
+    showArgs(out, lblArity(callee), stk);
     outMsg(out, "\n%_");
   }
   else
     outMsg(out, "invalid use of showCall\n%_");
 }
 
-static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure, termPo args) {
+static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure, termPo ignored) {
   if (showColors)
-    outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %T%#,*T", lc, closure, displayDepth, args);
+    outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %T", lc, closure, displayDepth);
   else
-    outMsg(out, "call: %#L %T%#,*T", lc, closure, displayDepth, args);
+    outMsg(out, "call: %#L %T%#,*T", lc, closure, displayDepth);
+  showClosureArgs(out, C_CLOSURE(closure), stk);
   outMsg(out, "\n%_");
 }
 
@@ -714,6 +739,9 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl, termPo ignore) {
     outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16A", lc, lbl);
   else
     outMsg(out, "entry: %#L %#.16A", lc, lbl);
+
+  labelPo entry = C_LBL(lbl);
+  showArgs(out, lblArity(entry), stk);
   outMsg(out, "\n%_");
 }
 
@@ -808,23 +836,22 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
     break;
   }
   case sCall: {
-    termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt = callDebug(p, sCall, lc, getConstant(operand(pc, 1)), args);
+    reslt = callDebug(p, sCall, lc, getConstant(operand(pc, 1)));
     break;
   }
   case sTCall: {
     termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt = tcallDebug(p, lc, getConstant(operand(pc, 1)), args);
+    reslt = tcallDebug(p, lc, getConstant(operand(pc, 1)));
     break;
   }
   case sOCall: {
     termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt = ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)), args);
+    reslt = ocallDebug(p, sOCall, lc, stackVariable(stk, operand(pc, 1)));
     break;
   }
   case sTOCall: {
     termPo args = allocateCallArgs(p, mtd, pc + 2);
-    reslt = tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)), args);
+    reslt = tocallDebug(p, lc, stackVariable(stk, operand(pc, 1)));
     break;
   }
   case sEntry:
@@ -921,20 +948,20 @@ DebugWaitFor abortDebug(enginePo p, termPo lc) {
   return lnDebug(p, sAbort, showAbort, lc, stackVariable(stk, operand(stk->pc, 1)), Null);
 }
 
-DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args) {
-  return lnDebug(p, op, showCall, lc, pr, args);
+DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
+  return lnDebug(p, op, showCall, lc, pr, Null);
 }
 
-DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr, termPo args) {
-  return lnDebug(p, sTCall, showTCall, lc, pr, args);
+DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr) {
+  return lnDebug(p, sTCall, showTCall, lc, pr, Null);
 }
 
-DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr, termPo args) {
-  return lnDebug(p, op, showOCall, lc, pr, args);
+DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
+  return lnDebug(p, op, showOCall, lc, pr, Null);
 }
 
-DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr, termPo args) {
-  return lnDebug(p, sTOCall, showOCall, lc, pr, args);
+DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
+  return lnDebug(p, sTOCall, showOCall, lc, pr, Null);
 }
 
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {

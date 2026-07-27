@@ -48,6 +48,10 @@
 static retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int32 endPc);
 
 static void pushFrme(codeGenPo state, int32 pc, int32 argOffset);
+static void emitCallInvoke(codeGenPo state, int32 pc, int32 nextPc, int32 key, int32 argPnt);
+static void emitTCallInvoke(codeGenPo state, int32 pc, int32 key, int32 tgtOff);
+static void emitOCallInvoke(codeGenPo state, int32 pc, int32 nextPc, armReg lamReg, int32 argPnt);
+static void emitTOCallInvoke(codeGenPo state, int32 pc, armReg lamReg, int32 tgtOff);
 static void allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt);
 static void allocUnary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo arg);
 static void allocBinary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo left, localVarPo right);
@@ -60,7 +64,7 @@ static FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo);
 static FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax);
 static localVarPo operandVar(codeGenPo state, int32 pc, int32 ax);
 static int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
-static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
+static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity, armReg lamReg);
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase);
 static void dropArguments(codeGenPo state, int32 pc);
 static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity);
@@ -169,36 +173,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 arity = lblArity(C_LBL(getConstant(key)));
       int32 nextPc = pc + insSize;
 
-      labelPo tgt = C_LBL(getConstant(key));
-      methodPo callee = labelMtd(tgt);
-
       int32 argPnt = loadArguments(state, nextPc, pc + 3, arity);
-
-      if (callee != Null && hasJitCode(callee)) {
-        jittedCode jitted = jitCode(callee);
-        mov(X16, IM((uinteger)jitted));
-      }
-      else {
-        loadConstant(jit, key, X16);
-
-        // pick up the pointer to the method
-        ldr(X16, OF(X16, OffsetOf(LblRecord, mtd)));
-        codeLblPo noMtd = newLabel(ctx);
-        cbz(X16, noMtd);
-        // Pick up the jit code itself
-        ldr(X16, OF(X16, OffsetOf(MethodRec, jit.code)));
-        codeLblPo runMtd = newLabel(ctx);
-        cbnz(X16, runMtd);
-
-        bind(noMtd);
-        bailOut(state, pc, undefinedCode);
-
-        bind(runMtd);
-      }
-
-      pushFrme(state, pc, argPnt);
-      blr(X16);
-      dropArguments(state, nextPc);
+      emitCallInvoke(state, pc, nextPc, key, argPnt);
       pc = nextPc;
       continue;
     }
@@ -209,23 +185,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       armReg lamReg = X17;
       loadRegister(state, lamReg, lam);
-      int32 argPnt = loadLambdaArguments(state, nextPc, pc + 3, numArgs) - 1;
-      ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
-      ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
-      // pick up the pointer to the method
-      ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(lamReg, haveMtd);
-
-      bailOut(state, pc, undefinedCode);
-
-      bind(haveMtd);
-      pushFrme(state, pc, argPnt);
-
-      // Pick up the jit code itself
-      ldr(X16, OF(lamReg, OffsetOf(MethodRec, jit.code)));
-      blr(X16);
-      dropArguments(state, pc + insSize);
+      int32 argPnt = loadLambdaArguments(state, nextPc, pc + 3, numArgs + 1, lamReg);
+      emitOCallInvoke(state, pc, nextPc, lamReg, argPnt);
       pc = nextPc;
       continue;
     }
@@ -235,37 +196,11 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 key = opand(1);
       labelPo tgt = C_LBL(getConstant(key));
       int32 arity = lblArity(tgt);
-      methodPo callee = labelMtd(tgt);
 
       int32 argPc = pc + 3;
       int32 tgtOff = overrideArguments(state, defaultArgRegs(), argPc, arity);
 
-      if (callee != Null && hasJitCode(callee)) {
-        mov(X16, IM((uinteger)jitCode(callee)));
-      }
-      else {
-        loadConstant(jit, key, X16);
-
-        // pick up the pointer to the method
-        ldr(X16, OF(X16, OffsetOf(LblRecord, mtd)));
-        codeLblPo noMtd = newLabel(ctx);
-        cbz(X16, noMtd);
-        // Pick up the jit code itself
-        ldr(X16, OF(X16, OffsetOf(MethodRec, jit.code)));
-        codeLblPo runMtd = newLabel(ctx);
-        cbnz(X16, runMtd);
-
-        bind(noMtd);
-        bailOut(state, pc, undefinedCode);
-
-        bind(runMtd);
-      }
-      adjustAG(state, pc, tgtOff);
-      str(AG, OF(STK, OffsetOf(StackRecord,args)));
-
-      // Pick up the old return address
-      ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
-      br(X16);
+      emitTCallInvoke(state, pc, key, tgtOff);
       pc = nextPc;
       continue;
     }
@@ -280,24 +215,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs) - 1;
 
       ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
-      ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
-      // pick up the pointer to the method
-      ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
-      codeLblPo haveMtd = newLabel(ctx);
-      codeLblPo noMtd = newLabel(ctx);
-      cbz(lamReg, noMtd);
-      assert(lamReg!=X17);
-      ldr(X17, OF(lamReg, OffsetOf(MethodRec, jit.code)));
-      cbnz(X17, haveMtd);
-      bind(noMtd);
-      bailOut(state, pc, undefinedCode);
-
-      bind(haveMtd);
-      adjustAG(state, pc, tgtOff);
-      str(AG, OF(STK, OffsetOf(StackRecord,args)));
-      // Pick up the old return address
-      ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
-      br(X17);
+      if (lineDebugging != noTracing) {
+        str(X0, OF(AG,tgtOff*pointerSize));
+      }
+      emitTOCallInvoke(state, pc, lamReg, tgtOff);
       pc = nextPc;
       continue;
     }
@@ -1649,7 +1570,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sLine: {
       int32 insSize = 2;
-      if (lineDebugging > noTracing) {
+      if (lineDebugging > generalTracing) {
         int32 locKey = opand(1);
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2, (FlexOp[]){
                           RG(PR), constantFlex(locKey)
@@ -1692,43 +1613,87 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           break;
         }
         case sCall: {
-          armReg argReg = allocCallArgVector(state, nextPc + 2, nextPc);
+          // Stage the call's arguments before the debug hook fires, so showArgs sees them
+          // at their final location instead of the caller's stale locals (see loadArguments).
+          int32 key = operand(state, nextPc, 1);
+          int32 numArgs = operand(state, nextPc, 2);
+          int32 callInsSize = numArgs + 3;
+          int32 afterCallPc = nextPc + callInsSize;
+          int32 arity = lblArity(C_LBL(getConstant(key)));
 
-          invokeIntrinsic(state, pc, nextPc, (runtimeFn)callDebug, 5, (FlexOp[]){
+          int32 argPnt = loadArguments(state, afterCallPc, nextPc + 3, arity);
+
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)callDebug, 4, (FlexOp[]){
                             RG(PR), IM(sCall), constantFlex(locKey),
-                            constantFlex(operand(state, nextPc, 1)),
-                            RG(argReg)
+                            constantFlex(key)
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit, argReg);
-          break;
+
+          emitCallInvoke(state, nextPc, afterCallPc, key, argPnt);
+          pc = afterCallPc;
+          continue;
         }
         case sTCall: {
-          armReg argReg = allocCallArgVector(state, nextPc + 2, nextPc);
+          int32 key = operand(state, nextPc, 1);
+          int32 numArgs = operand(state, nextPc, 2);
+          int32 callInsSize = numArgs + 3;
+          int32 afterCallPc = nextPc + callInsSize;
+          int32 arity = lblArity(C_LBL(getConstant(key)));
+          int32 argPc = nextPc + 3;
 
-          invokeIntrinsic(state, pc, nextPc, (runtimeFn)tcallDebug, 4, (FlexOp[]){
+          int32 tgtOff = overrideArguments(state, defaultArgRegs(), argPc, arity);
+
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)tcallDebug, 3, (FlexOp[]){
                             RG(PR), constantFlex(locKey),
-                            constantFlex(operand(state, nextPc, 1)),RG(argReg)
+                            constantFlex(key)
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit, argReg);
-          break;
+
+          emitTCallInvoke(state, nextPc, key, tgtOff);
+          pc = afterCallPc;
+          continue;
         }
         case sOCall: {
-          armReg argReg = allocCallArgVector(state, nextPc + 2, nextPc);
+          int32 numArgs = operand(state, nextPc, 2);
+          int32 callInsSize = numArgs + 3;
+          int32 afterCallPc = nextPc + callInsSize;
+          FlexOp lamSrc = sourceOperandFlex(state, nextPc, 1); // Pick up the closure
+          armReg lamReg = X17;
+          loadRegister(state, lamReg, lamSrc);
+          int32 argPnt = loadLambdaArguments(state, afterCallPc, nextPc + 3, numArgs + 1, lamReg);
+
           FlexOp lam = localFlex(state, pc, operand(state, nextPc, 1));
-          invokeIntrinsic(state, pc, nextPc, (runtimeFn)ocallDebug, 5, (FlexOp[]){
-                            RG(PR), IM(sOCall), constantFlex(locKey), lam, RG(argReg)
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)ocallDebug, 4, (FlexOp[]){
+                            RG(PR), IM(sOCall), constantFlex(locKey), lam
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit, argReg);
-          break;
+
+          // lamReg is scratch and may have been clobbered by the intrinsic call; reload it.
+          loadRegister(state, lamReg, lamSrc);
+          emitOCallInvoke(state, nextPc, afterCallPc, lamReg, argPnt);
+          pc = afterCallPc;
+          continue;
         }
         case sTOCall: {
-          armReg argReg = allocCallArgVector(state, nextPc + 2, nextPc);
+          int32 numArgs = operand(state, nextPc, 2);
+          int32 callInsSize = numArgs + 3;
+          int32 afterCallPc = nextPc + callInsSize;
+          int32 argPc = nextPc + 3;
+          armReg lamReg = X16;
+          FlexOp lamSrc = sourceOperandFlex(state, nextPc, 1); // Pick up the closure
+          loadRegister(state, lamReg, lamSrc);
+          int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs) - 1;
+
+          ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
+          str(X0, OF(AG,tgtOff*pointerSize));
+
           FlexOp lam = localFlex(state, pc, operand(state, nextPc, 1));
-          invokeIntrinsic(state, pc, nextPc, (runtimeFn)tocallDebug, 4, (FlexOp[]){
-                            RG(PR), constantFlex(locKey), lam, RG(argReg)
+          invokeIntrinsic(state, pc, nextPc, (runtimeFn)tocallDebug, 3, (FlexOp[]){
+                            RG(PR), constantFlex(locKey), lam
                           }, False, 0, (FlexOp[]){});
-          releaseReg(jit, argReg);
-          break;
+
+          // lamReg is scratch and may have been clobbered by the intrinsic call; reload it.
+          loadRegister(state, lamReg, lamSrc);
+          emitTOCallInvoke(state, nextPc, lamReg, tgtOff);
+          pc = afterCallPc;
+          continue;
         }
         case sRet: {
           FlexOp vl = localFlex(state, pc, operand(state, nextPc, 1));
@@ -1845,6 +1810,122 @@ void pushFrme(codeGenPo state, int32 pc, int32 argOffset) {
   adjustAG(state, pc, argOffset);
 }
 
+// Resolve the callee and branch to it. Arguments must already be staged (see loadArguments).
+void emitCallInvoke(codeGenPo state, int32 pc, int32 nextPc, int32 key, int32 argPnt) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  labelPo tgt = C_LBL(getConstant(key));
+  methodPo callee = labelMtd(tgt);
+
+  if (callee != Null && hasJitCode(callee)) {
+    jittedCode jitted = jitCode(callee);
+    mov(X16, IM((uinteger)jitted));
+  }
+  else {
+    loadConstant(jit, key, X16);
+
+    // pick up the pointer to the method
+    ldr(X16, OF(X16, OffsetOf(LblRecord, mtd)));
+    codeLblPo noMtd = newLabel(ctx);
+    cbz(X16, noMtd);
+    // Pick up the jit code itself
+    ldr(X16, OF(X16, OffsetOf(MethodRec, jit.code)));
+    codeLblPo runMtd = newLabel(ctx);
+    cbnz(X16, runMtd);
+
+    bind(noMtd);
+    bailOut(state, pc, undefinedCode);
+
+    bind(runMtd);
+  }
+
+  pushFrme(state, pc, argPnt);
+  blr(X16);
+  dropArguments(state, nextPc);
+}
+
+// Resolve the callee and tail-branch to it. Arguments must already be staged (see overrideArguments).
+void emitTCallInvoke(codeGenPo state, int32 pc, int32 key, int32 tgtOff) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  labelPo tgt = C_LBL(getConstant(key));
+  methodPo callee = labelMtd(tgt);
+
+  if (callee != Null && hasJitCode(callee)) {
+    mov(X16, IM((uinteger)jitCode(callee)));
+  }
+  else {
+    loadConstant(jit, key, X16);
+
+    // pick up the pointer to the method
+    ldr(X16, OF(X16, OffsetOf(LblRecord, mtd)));
+    codeLblPo noMtd = newLabel(ctx);
+    cbz(X16, noMtd);
+    // Pick up the jit code itself
+    ldr(X16, OF(X16, OffsetOf(MethodRec, jit.code)));
+    codeLblPo runMtd = newLabel(ctx);
+    cbnz(X16, runMtd);
+
+    bind(noMtd);
+    bailOut(state, pc, undefinedCode);
+
+    bind(runMtd);
+  }
+  adjustAG(state, pc, tgtOff);
+  str(AG, OF(STK, OffsetOf(StackRecord,args)));
+
+  // Pick up the old return address
+  ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
+  br(X16);
+}
+
+// Resolve the closure's method and branch to it. lamReg must hold the closure pointer and
+// arguments must already be staged (see loadLambdaArguments).
+void emitOCallInvoke(codeGenPo state, int32 pc, int32 nextPc, armReg lamReg, int32 argPnt) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
+  // pick up the pointer to the method
+  ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
+  codeLblPo haveMtd = newLabel(ctx);
+  cbnz(lamReg, haveMtd);
+
+  bailOut(state, pc, undefinedCode);
+
+  bind(haveMtd);
+  pushFrme(state, pc, argPnt);
+
+  // Pick up the jit code itself
+  ldr(X16, OF(lamReg, OffsetOf(MethodRec, jit.code)));
+  blr(X16);
+  dropArguments(state, nextPc);
+}
+
+// Resolve the closure's method and tail-branch to it. lamReg must hold the closure pointer and
+// arguments must already be staged (see overrideArguments).
+void emitTOCallInvoke(codeGenPo state, int32 pc, armReg lamReg, int32 tgtOff) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
+  // pick up the pointer to the method
+  ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
+  codeLblPo haveMtd = newLabel(ctx);
+  codeLblPo noMtd = newLabel(ctx);
+  cbz(lamReg, noMtd);
+  assert(lamReg!=X17);
+  ldr(X17, OF(lamReg, OffsetOf(MethodRec, jit.code)));
+  cbnz(X17, haveMtd);
+  bind(noMtd);
+  bailOut(state, pc, undefinedCode);
+
+  bind(haveMtd);
+  adjustAG(state, pc, tgtOff);
+  str(AG, OF(STK, OffsetOf(StackRecord,args)));
+  // Pick up the old return address
+  ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
+  br(X17);
+}
+
 retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -1903,15 +1984,16 @@ int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
   int32 currVarLimit = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
-    armReg ax = nxtAvailReg(argRegs);
-    if (ax != XZR) {
-      argRegs = dropReg(argRegs, ax);
-      operands[ix] = argSpec(argSrc, RG(ax));
+    if (lineDebugging == noTracing) {
+      armReg ax = nxtAvailReg(argRegs);
+      if (ax != XZR) {
+        argRegs = dropReg(argRegs, ax);
+        operands[ix] = argSpec(argSrc, RG(ax));
+        continue;
+      }
     }
-    else {
-      int32 argSlot = currVarLimit - arity + ix;
-      operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
-    }
+    int32 argSlot = currVarLimit - arity + ix;
+    operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
   }
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(state->jit, operands, arity, &tmpMap);
@@ -1919,21 +2001,25 @@ int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
   return currVarLimit - arity; // return how must space is needed to preserve current locals and arguments.
 }
 
-int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
-  registerMap argRegs = dropReg(defaultArgRegs(), X0);
+// arity is the lambda's full arity (the free value plus its numArgs proper arguments); argBase
+// points at the numArgs proper arguments, and the free value is read from lamReg and placed
+// ahead of them (slot 0 / X0), so both flow through the same register-vs-stack-slot handling.
+int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity, armReg lamReg) {
+  registerMap argRegs = defaultArgRegs();
   ArgSpec operands[arity];
   int32 currVarLimit = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
   for (int32 ix = 0; ix < arity; ix++) {
-    FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
-    armReg ax = nxtAvailReg(argRegs);
-    if (ax != XZR) {
-      argRegs = dropReg(argRegs, ax);
-      operands[ix] = argSpec(argSrc, RG(ax));
+    FlexOp argSrc = ix == 0 ? OF(lamReg, OffsetOf(ClosureRecord, free)) : sourceOperandFlex(state, argBase, ix - 1);
+    if (lineDebugging == noTracing) {
+      armReg ax = nxtAvailReg(argRegs);
+      if (ax != XZR) {
+        argRegs = dropReg(argRegs, ax);
+        operands[ix] = argSpec(argSrc, RG(ax));
+        continue;
+      }
     }
-    else {
-      int32 argSlot = currVarLimit - arity + ix;
-      operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
-    }
+    int32 argSlot = currVarLimit - arity + ix;
+    operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
   }
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(state->jit, operands, arity, &tmpMap);
