@@ -89,7 +89,7 @@ term0 >> T --> literal >> T.
 ----
 
 Note that the grammar in <<srOpPrecGrammar>> is based on Star's
-grammar notation (see <<Grammar Rules>>) but is presented here for
+grammar notation (see <<grammarRules>>) but is presented here for
 illustative purposes: it is not an executable grammar.
 
 == The `quote` contract

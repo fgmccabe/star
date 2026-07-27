@@ -39,7 +39,7 @@ include::date.adoc[leveloffset=1]
 include::json.adoc[leveloffset=1]
 include::rdf.adoc[leveloffset=1]
 include::system.adoc[leveloffset=1]
-include::operators.adoc[]
+include::operators.adoc[leveloffset=1]
 include::catalog.adoc[leveloffset=1]
 include::vm.adoc[leveloffset=1]
 

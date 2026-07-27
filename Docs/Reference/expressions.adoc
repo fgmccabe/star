@@ -15,7 +15,6 @@ expression --> numericLiteral.
 expression --> stringLiteral.
 expression --> algebraicLiteral.
 expression --> applicativeExpression.
-expression --> recordLiteral.
 expression --> fieldAccess.
 expression --> recordUpdate.
 expression --> caseExpression.
@@ -23,6 +22,7 @@ expression --> tryCatchExpression.
 expression --> throwExpression.
 expression --> conditionalExpression.
 expression --> condition.
+expression --> queryExpression.
 expression --> lambdaExpression.
 expression --> lambdaProcedure.
 expression --> thunkExpression.
@@ -34,13 +34,14 @@ expression --> sequenceExpression.
 expression --> rangeExpression.
 expression --> indexExpression.
 expression --> sliceExpression.
+expression --> grammarCall.
 ----
 
 [#variable]
 == Variables
 
 (((variables)))
-A <<Variable>> is a placeholder that denotes a value. Variables
+A <<variable>> is a placeholder that denotes a value. Variables
 may be used to denote many kinds of values -- arithmetic values,
 complex data structures and programs.
 
@@ -388,6 +389,23 @@ are any escape characters interpreted.
 In addition, block strings can span multiple lines whereas
 quoted strings are not permitted to include new-line characters -- except by escaping.
 
+[#algebraicLiteral]
+== Algebraic Literals
+
+(((algebraic literal)))
+An <<algebraicLiteral>> denotes a value built from an algebraic type
+constructor -- either a <<tupleLiteral>>, whose shape is purely
+positional, or a <<constructorLiteral>>, whose shape is determined by
+a constructor defined in a type definition.
+
+[#algebraicLiteralFig]
+.Algebraic Literal
+[source,star]
+----
+algebraicLiteral --> tupleLiteral.
+algebraicLiteral --> constructorLiteral.
+----
+
 == Algebraic Constructor Expressions
 
 The constructor expressions are those that refer to
@@ -398,6 +416,7 @@ There are three primary forms of constructor literals:
 * positional constructor literals, and
 * record literals.
 
+[#constructorLiteral]
 [#algebraicExpressionFig]
 .Algebraic Constructor Expressions
 [source,star]
@@ -1391,7 +1410,7 @@ exactly what the expected type of an expression is -- there is no implied
 coversion of values from one type to another.
 
 NOTE: Type annotations are not commonly required; with the major exception being
-<<sequenceliteral>>s. Sequence literals require explicit type information
+<<sequenceLiterals>>. Sequence literals require explicit type information
 because, without that the `sequence` contract that is used to construct sequence
 literals cannot be properly resolved.
 +
@@ -1770,7 +1789,7 @@ indexExpression --> expression, ["["], expression, ["->"], expression, ["]"].
 indexExpression --> expression, ["[", "~"], expression, ["]"].
 ----
 
-There is a related similar notation -- the <<Slice Notation>> --
+There is a related similar notation -- the <<sliceExpression>> --
 that is used to denote sub-sequences.
 
 The index notation is based on the `indexed` contract (see <<indexedContract>>).

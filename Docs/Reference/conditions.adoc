@@ -29,8 +29,13 @@ condition --> impliesCondition.
 condition --> negatedCondition.
 condition --> conditionalCondition.
 condition --> expression.
+condition --> searchCondition.
 condition --> ["("], condition, [")"].
 ----
+
+A condition that draws its value(s) by searching a collection is a
+<<searchCondition>>; it is discussed together with the other
+<<queries>> in the next chapter.
 
 [#matchesCondition]
 == Matching Conditions

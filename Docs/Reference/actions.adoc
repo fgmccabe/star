@@ -14,7 +14,7 @@ evaluation of expressions.
 
 (((action types)))
 (((action!types)))
-The <<procedureType>> captures the intended shape of an action: an action is
+The <<procedureTypeFig>> captures the intended shape of an action: an action is
 performed for effect and does not return any value. However, actions _may_
 return a value if they are syntactically part of a <<valofExpression>> -- or
 part of a <<collectExpression>>.
@@ -44,7 +44,6 @@ action --> tryCatchAction.
 action --> throwAction.
 action --> labeledAction.
 action --> breakAction.
-action --> nullAction.
 ----
 
 [#nullAction]
@@ -92,7 +91,7 @@ also expressed in terms of actions.
 .Call Action
 [source,star]
 ----
-callAction --> applicativeExpression
+callAction --> applicativeExpression.
 ----
 
 Any value that is returned by the function call is discarded; however,
@@ -197,7 +196,7 @@ not affected -- unless it lexically contains a <<breakAction>>.
 .Labeled Action
 [source,star]
 ----
-labeledAction --> identifier, blockAction
+labeledAction --> identifier, blockAction.
 ----
 
 The scope of the label is limited to the text enclosed within the labeled action.
@@ -297,11 +296,11 @@ value of a re-assignable variable with another value. The variable
 being re-assigned must have a `ref` type -- there is no
 `implicit' assignability of a variable or field.
 
-[#assignactionFig]
+[#assignActionFig]
 .Assignment Action
 [source,star]
 ----
-assignAction --> variable =, {":="], expression.
+assignAction --> variable, [":="], expression.
 ----
 
 Reassignable variables are typically introduced with a
@@ -354,7 +353,7 @@ repeats for as long as some condition is satisfied.
 .While Action
 [source,star]
 ----
-whileAction --> ["while"], condition. ["do"], action.
+whileAction --> ["while"], condition, ["do"], action.
 ----
 
 The enclosed action will be repeated zero or more times, for so long

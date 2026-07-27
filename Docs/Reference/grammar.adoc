@@ -175,7 +175,7 @@ A, L, R>>P, B
 
 === Grammar Disjunction
 
-A disjunction of grammar terms is written using the `||`
+A disjunction of grammar terms is written using the `|`
 operator. A disjunctive grammar is satisfied if either arms are
 satisfied.
 
@@ -432,11 +432,24 @@ exp0 >> E --> [`(`], exp >> E, ([`)`] |
     { reportError("missing right paren")}, *> [`;`]).
 ----
 
+[#grammarCall]
 == Invoking Grammars
 
-A grammar call is an expression that consumes a stream and returns an optional
-value that represents the output of the grammar over the stream. Typically, we
-guard such a call using an option match.
+(((grammar,invoking)))
+A <<grammarCall>> is an expression that consumes a stream and returns an
+optional value that represents the output of the grammar over the
+stream. Typically, we guard such a call using an option match.
+
+[#grammarCallFig]
+.Grammar Call
+[source,star]
+----
+grammarCall --> expression, ["-->"], expression.
+----
+
+The left-hand expression denotes the non-terminal -- and any arguments it takes --
+to invoke; the right-hand expression denotes the stream, typically a `string`, to
+be parsed.
 
 For example, given the grammar:
 
@@ -458,11 +471,11 @@ isSigned(.none,Ix) => Ix.
 isSigned(.some(Sx),Ix) => Sx*Ix.
 ====
 
-we can use ``int`` to parse a string with:a
+we can use ``int`` to parse a string with:
 
 [source,star]
 ====
-Ix ?= (int --> "+123"
+Ix ?= (int --> "+123")
 ====
 
 which results in ``Ix`` being bound to ``123``.

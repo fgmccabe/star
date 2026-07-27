@@ -214,7 +214,7 @@ rather than being returned as some form of collection.
 .Fold Query
 [source,star]
 ----
-foldQuery -->  ["{"], reducer ["<*"] expression ["<*"] expression | condition ["}"].
+foldQuery --> ["{"], reducer, ["<*"], expression, ["<*"], expression, ["|"], condition, ["}"].
 
 reducer --> expression.
 ----

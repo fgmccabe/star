@@ -2,7 +2,7 @@
 = Getting Star
 
 The Star language system is available on github at:
-<<https://github.com/fgmccabe/star>>
+https://github.com/fgmccabe/star
 
 == Building Star
 

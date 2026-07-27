@@ -92,7 +92,7 @@ A line comment consists of a `--` followed by a space character or tab, followed
 characters up to the next new-line. Here, `\t` refers to the
 Horizontal Tab.
 
-[#lineCommentFig
+[#lineCommentFig]
 .Line Comment
 [source,star]
 ----
@@ -199,7 +199,7 @@ isDigit(`0`) => .some(0).
 isDigit(`1`) => .some(1).
 ...
 isDigit(`9`) => .some(9).
-isDigit(_) => .none.
+isDigit(_) default => .none.
 ----
 
 Normal integers have limited (62bit) precision, whereas big integers
@@ -327,16 +327,16 @@ charRef >> Chr --> [Chr] | escape >> Chr.
 charLiteral >> .chrTok(Chr) --> [`\``], charRef >> Chr, [`\``].
 
 escape >> Chr --> [`\\`], escapeChar >> Chr.
-escape >> Hx::char --> [`\\`,`u`], hex >> Hx, [`;`]
+escape >> Hx::char --> [`\\`,`u`], hex >> Hx, [`;`].
 
-ecapeChar >> `\b` --> [`b`]. -- <1>
-ecapeChar >> `\d` --> [`d`].
-ecapeChar >> `\e` --> [`e`].
-ecapeChar >> `\f` --> [`f`].
-ecapeChar >> `\n` --> [`n`].
-ecapeChar >> `\r` --> [`r`].
-ecapeChar >> `\t` --> [`t`].
-ecapeChar >> `\v` --> [`v`].
+escapeChar >> `\b` --> [`b`]. -- <1>
+escapeChar >> `\d` --> [`d`].
+escapeChar >> `\e` --> [`e`].
+escapeChar >> `\f` --> [`f`].
+escapeChar >> `\n` --> [`n`].
+escapeChar >> `\r` --> [`r`].
+escapeChar >> `\t` --> [`t`].
+escapeChar >> `\v` --> [`v`].
 ----
 <1> Standard escape char.
 
@@ -377,19 +377,19 @@ There are two forms of _string literal_: a quotedString and a blockString.
 stringLiteral >> .strTok(Str) --> quotedString >> Str.
 stringLiteral >> .strTok([.segment(Seg)]) --> blockString >> Seg.
 
-quotedString >> Segs => [`"`], segment* >> Segs [`"`].
+quotedString >> Segs --> [`"`], segment* >> Segs, [`"`].
 
 segment >> Seg --> interpolation >> Seg.
 segment >> Seg --> embedding >> Seg.
 segment >> .segment(Chrs::string) --> stringCharRef* >> Chrs.
 
 interpolation >> .interpolate(Tks,Fmt::string) -->
-  [`$`, `{` ], token* >> Tks [`}`, `:` ], charRef* >> Fmt, [`;`].
+  [`$`, `{` ], token* >> Tks, [`}`, `:` ], charRef* >> Fmt, [`;`].
 interpolation >> .interpolate(Tks,"") -->
-  [`$`, `{` ], token* >> Tks [`}`], ~ [`:`].
+  [`$`, `{` ], token* >> Tks, [`}`], ~ [`:`].
 
 embedding >> .evaluate(Tks) -->
-  [`#`, `{` ], token* >> Tks [`}`].
+  [`#`, `{` ], token* >> Tks, [`}`].
 
 stringCharRef >> Cher --> [Chr], { Chr ~= `$` && Chr ~= `#` && Chr ~= `\n` }.
 stringCharRef >> `$` --> [`\`,`$`].
@@ -505,6 +505,9 @@ of all the standard graphic-form identifiers.
 [source,star]
 ----
 graphicIdentifier >> .idTok(Chrs::string) --> symbolicChar*>>Chrs.
+
+symbolicChar >> Ch --> [Ch], { mathSymbol(Ch) || currencySymbol(Ch) ||
+  modifierSymbol(Ch) || otherSymbol(Ch) }.
 ----
 
 The standard graphicIentifier`'s are listed in <<standardOperatorsTbl>>. I.e, such
@@ -575,7 +578,7 @@ a period followed by white space character.
 .Statement Terminator
 [source,star]
 ----
-terminator --> [`.`], whiteSpace,
+terminator --> [`.`], whiteSpace.
 ----
 
 The exceptions are:

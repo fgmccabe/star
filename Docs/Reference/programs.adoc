@@ -46,7 +46,7 @@ package --> packageName , ["{"], thetaEnvironment, ["}"].
 
 packageName --> identifier, packageSuffix*.
 
-packageSuffix >> Nm --> ["."], identifier.
+packageSuffix >> Nm --> ["."], identifier>>Nm.
 ----
 (((package,name)))
 
@@ -165,7 +165,7 @@ be quantified.
 .Type Annotation
 [source,star]
 ----
-typeAnnotation >> (V:T) --> variable>>V [`:`], type>>T
+typeAnnotation >> (V:T) --> variable>>V, [`:`], type>>T.
 ----
 
 For example, a generic function `consLength` that takes a
@@ -327,7 +327,7 @@ ruleHead --> identifier, ["("], pattern, ([","], pattern)*, [")"].
 guardCondition --> ["where"], condition.
 ----
 
-NOTE: The rules in <<#functionFig>> are written assuming that the
+NOTE: The rules in <<functionFig>> are written assuming that the
 function's name is not also an operator. If it is, then the head of
 the rule will take the infix form.
 
@@ -550,7 +550,7 @@ they may be passed as arguments to other procedures as well as being
 assigned as attributes of records.
 
 Procedures can be defined in a let expression, in recursive records,
-in packages -- or a <<procedureRule>> can be used to craft a procedure
+in packages -- or a <<rule>> can be used to craft a procedure
 literal directly as an expression.
 
 [#rule]
@@ -651,7 +651,7 @@ type(s) in the contract head.
 .Contract Definition
 [source,star]
 ----
-contractDefinition --> ["contract"], contractSpec, ["::="], faceType.
+contractDefinition --> ["contract"], contractSpec, ["::="], ["{"], typeAnnotation * [","], ["}"].
 
 contractSpec --> ["all"],boundTypes,["~~"], identifier, ["["], contractTypeArgs, ["]"].
 contractSpec --> identifier, ["["], contractTypeArgs, ["]"].
@@ -695,7 +695,7 @@ contract.
 For certain forms of contract, it may be that the type parameters may
 not all be independent of each other. For example, consider the
 standard `stream` contract (defined in
-((streamContractProg))) which reads:
+<<streamContractProg>>) which reads:
 [source,star]
 ----
 public contract all S,E ~~ stream[S ->> E] ::= {

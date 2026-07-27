@@ -169,6 +169,7 @@ Given this implementation, a generator the ``MyTree` value becomes:
 iterGenerator(MyTree)
 ----
 
+[#task]
 == Tasks, Task Groups, Async functions and Futures
 
 A `task` is a suspendable computation. Tasks are executed in the context of a
