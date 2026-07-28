@@ -107,6 +107,10 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
       .parent = Null, .phiCnt = 0, .phiVars = Null
     };
 
+    if (lineDebugging != noTracing) {
+      assemCtxPo ctx = assemCtx(jit);
+      str(LR, OF(FP, OffsetOf(StackFrame, link)));
+    }
     ret = jitBlock(&block, &state, entryPoint(mtd), 0, codeSize(mtd));
   }
 
@@ -248,9 +252,14 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sEntry: {
       int32 nextPc = pc + 3;
-      str(LR, OF(FP, OffsetOf(StackFrame, link)));
+      if (lineDebugging == noTracing) {
+        str(LR, OF(FP, OffsetOf(StackFrame, link)));
+      }
       flushArguments(state, nextPc);
       stackCheck(state, pc, opand(1), opand(2));
+      // if (mtdHasName(state->mtd, "test.a0@fact")) {
+      //   installBkPt(state, pc);
+      // }
       pc = nextPc;
       continue;
     }

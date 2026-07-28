@@ -477,10 +477,6 @@ void stackCheck(codeGenPo state, int32 pc, int32 arity, int32 lcls) {
   armReg tmp = findFreeReg(jit);
   jit->freeRegs = dropReg(savedFree, tmp);
 
-  // if (mtdHasName(state->mtd, "star.multi@star.core$sequence!star.multi*multi@Γ%283@_cons")) {
-  //   installBkPt(state, pc);
-  // }
-
   if (is16bit(delta))
     sub(tmp, AG, IM(delta));
   else {
