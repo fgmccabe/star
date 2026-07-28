@@ -112,6 +112,10 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
       .parent = Null, .phiCnt = 0, .phiVars = Null
     };
 
+    if (lineDebugging != noTracing) {
+      assemCtxPo ctx = assemCtx(jit);
+      mov(BS(FP, OffsetOf(StackFrame, link)), RG(LR));
+    }
     ret = jitBlock(&block, &state, entryPoint(mtd), 0, codeSize(mtd));
     failed = state.jit->failed;
     debug_state(&state);
@@ -374,7 +378,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sEntry: {
       int32 nextPc = pc + 3;
-      mov(BS(FP, OffsetOf(StackFrame, link)), RG(LR)); // Use FP and LR symbolically
+      if (lineDebugging == noTracing) {
+        mov(BS(FP, OffsetOf(StackFrame, link)), RG(LR)); // Use FP and LR symbolically
+      }
       flushArguments(state, nextPc);
       stackCheck(state, pc, opand(1), opand(2));
       pc = nextPc;
