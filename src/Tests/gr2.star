@@ -6,7 +6,8 @@ test.gr2{
 
   ident >> [F,..S]::string --> letter >> F, letterDigit* >>S.
 
-  letter >> L --> [L], {isLetter(L)}.
+  public letter >> L --> [L], {isLetter(L)}.
+  letter >> `$` --> [`$`].
 
   letterDigit:(cons[char]) => option[(char,cons[char])].
   letterDigit >> L --> [L], {isLetter(L)||isDigit(L)}.

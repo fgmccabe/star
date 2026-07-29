@@ -322,10 +322,14 @@ star.compiler.macro.grammar{
   collectRules:(cons[ast]) => (cons[ast],map[string,cons[grRule]]).
   collectRules(Rls) => let{.
     coll([],SoF,Mp) => (reverse(SoF),Mp).
-    coll([S,..Ss],SoF,Mp) where _ ?= isBinary(S,"-->") =>
+    coll([S,..Ss],SoF,Mp) where isGrammarRule(S) =>
       coll(Ss,SoF,addRule(parseRule(S),Mp)).
     coll([S,..Ss],SoF,Mp) => coll(Ss,[S,..SoF],Mp)
   .} in coll(Rls,[],{}).
+
+  isGrammarRule(A) where _ ?= isBinary(A,"-->") => .true.
+  isGrammarRule(A) where (_,S) ?= isPublic(A) && _ ?= isBinary(S,"-->") => .true.
+  isGrammarRule(A) default => .false.
 
   parseRules:(cons[ast]) => map[string,cons[grRule]].
   parseRules(Ss) => foldLeft((A,M) => addRule(parseRule(A),M),{},Ss).
