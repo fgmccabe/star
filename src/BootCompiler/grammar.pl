@@ -430,9 +430,7 @@ hdtl(Lc,T,Nxt,Str,B) :-
 
 grammarMacro(A,statement,Ax) :-
   parseRule(A,Rl),!,
-					%  dispRule(Rl),
-  makeRule(Rl,Ax),
-  dispAst(Ax).
+  makeRule(Rl,Ax).
 
 makeGrammar(Sts,Sx) :-
   collectGrRules(Sts,Oth,rls{},Mp),
@@ -444,7 +442,6 @@ collectGrRules([],[],Mp,Mp) :-!.
 collectGrRules([St|Ss],Rls,Mp,Mpx) :-
   isBinary(St,_,"-->",_,_),!,
   parseRule(St,Rl),
-					%  dispRule(Rl),
   addRule(Rl,Mp,Mp1),
   collectGrRules(Ss,Rls,Mp1,Mpx).
 collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-

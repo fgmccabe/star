@@ -7,6 +7,7 @@ star.compiler.macro.grtypes{
 
   public grRule ::= grRule{
     lc : option[locn].
+    exported:boolean.
     name:string.
     args:cons[ast].
     cond:option[ast].

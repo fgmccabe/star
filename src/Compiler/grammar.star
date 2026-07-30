@@ -131,10 +131,10 @@ star.compiler.macro.grammar{
   pairUp(.none,B,_) => B.
   pairUp(.some(L),.some(R),Lc) => .some(.seq(Lc,L,R)).
 
-  parseRule(A) where (Lc,L,R) ?= isBinary(A,"-->") => valof{
+  parseRule(A) where (Lc,I) ?= isPublic(A) && (_,L,R) ?= isBinary(I,"-->") => valof{
     if (_,Nm,Args,Cond,Val,Deflt) ?= parseHead(L) then{
       if Body?=parseBody(R) then{
-	valis .some(grRule{lc=Lc. name=Nm. args=Args. cond=Cond. isDefault=Deflt. value=Val. body=Body})
+	valis .some(grRule{lc=Lc. exported=.true. name=Nm. args=Args. cond=Cond. isDefault=Deflt. value=Val. body=Body})
       } else{
 	reportError("can't parse body of rule: $(R)",Lc);
 	valis .none
@@ -142,6 +142,18 @@ star.compiler.macro.grammar{
     };
     valis .none
   }
+  parseRule(A) where (Lc,L,R) ?= isBinary(A,"-->") => valof{
+    if (_,Nm,Args,Cond,Val,Deflt) ?= parseHead(L) then{
+      if Body?=parseBody(R) then{
+	valis .some(grRule{lc=Lc. exported=.false. name=Nm. args=Args. cond=Cond. isDefault=Deflt. value=Val. body=Body})
+      } else{
+	reportError("can't parse body of rule: $(R)",Lc);
+	valis .none
+      }
+    };
+    valis .none
+  }
+
   parseRule(_) default => .none.
 
   makeBody:(grBody,ast,ast,option[ast]) => ast.
@@ -308,12 +320,16 @@ star.compiler.macro.grammar{
     
     if ~.block(_).=Rl.body then{
       B = makeBody(Rl.body,Str,Rst,.none);
-      valis mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),
+      valis makePublic(Lc,mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),
 	mergeCond(Rl.cond,.some(B)),
-	mkSome(Lc,rndTuple(Lc,[Rl.value,Rst])))
+	  mkSome(Lc,rndTuple(Lc,[Rl.value,Rst]))),Rl.exported)
     } else
-    valis mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),.none,enum(Lc,"none")).
+    valis makePublic(Lc,
+      mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),.none,enum(Lc,"none")),Rl.exported).
   }
+
+  makePublic(Lc,A,.true) => mkPublic(Lc,A).
+  makePublic(_,A,.false) => A.
 
   public makeGrammar:(cons[ast]) => cons[ast].
   makeGrammar(Ss) where (NonRl,Mp) .= collectRules(Ss) =>
@@ -360,6 +376,7 @@ star.compiler.macro.grammar{
   defaultRl:(option[grRule])=>cons[grRule].
   defaultRl(.none) => [].
   defaultRl(.some(Rl)) => [grRule{lc=Rl.lc.
+      exported=.false.
       name=Rl.name.
       args=(Rl.args//(A)=>mkAnon(locOf(A))).
       cond = .none.
