@@ -2,10 +2,13 @@
 // Created by Francis McCabe on 3/26/25.
 //
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "eitherP.h"
 #include "constantsP.h"
 #include "globals.h"
+#include "labelsP.h"
+#include "normalP.h"
 
 static hashPo constantKeys = Null;
 ptrPo constAnts = Null;
@@ -76,6 +79,35 @@ retCode scanConstants(termHelper helper, void *cl) {
     ret = helper(&constAnts[ix], cl);
   }
   return ret;
+}
+
+// Diagnostic: verify every constant is either Null or a structurally sane heap reference.
+// Uses syserr() directly (not check()/assert()) so it fires even in NDEBUG builds.
+void verifyConstantsTagged(const char *tag) {
+  for (int32 ix = 0; ix < nextConstant; ix++) {
+    termPo t = constAnts[ix];
+    if (t != Null && isPointer(t)) {
+      if (!(isNewRef(t) || isOldRef(t) || !isHeapRef(t))) {
+        char msg[256];
+        snprintf(msg, sizeof(msg),
+                 "[%s] constant %d/%d is not a valid heap reference: %p (base=%p curr=%p old=%p oldLimit=%p outerLimit=%p)",
+                 tag, ix, nextConstant, (void *) t, (void *) heap.base, (void *) heap.curr, (void *) heap.old,
+                 (void *) heap.oldLimit, (void *) heap.outerLimit);
+        syserr(msg);
+      }
+      else if (isHeapRef(t) && !hasBuiltinType(t)) {
+        labelPo lbl = termLbl(C_NORMAL(t));
+        if (lbl == Null || lblArity(lbl) < 0 || lblArity(lbl) > 10000) {
+          char msg[256];
+          snprintf(msg, sizeof(msg),
+                   "[%s] constant %d/%d has a corrupted label (%p), term=%p (base=%p curr=%p old=%p oldLimit=%p)",
+                   tag, ix, nextConstant, (void *) lbl, (void *) t, (void *) heap.base, (void *) heap.curr,
+                   (void *) heap.old, (void *) heap.oldLimit);
+          syserr(msg);
+        }
+      }
+    }
+  }
 }
 
 void dumpConstants() {

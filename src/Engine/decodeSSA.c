@@ -18,7 +18,10 @@ typedef struct break_level_* breakLevelPo;
 
 typedef struct break_level_ {
   int32 pc;
-  normalPo pool;
+  ptrPo poolRef; // Pointer to a GC-rooted termPo holding the constant pool.
+                 // Must never be copied as a plain termPo/normalPo value: the
+                 // referenced pool can be relocated by the moving collector
+                 // during decoding, and only the rooted slot gets updated.
   breakLevelPo parent;
   char* errorMsg;
   integer msgSize;
@@ -30,16 +33,21 @@ static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 static retCode decodeInstructions(ioPo in, int32* codeCount, ssaInsPo* code, char* errorMsg, long msgSize,
                                   termPo constantPool, int32* stackHeight) {
   arrayPo ar = allocArray(sizeof(int32), 256, True);
-  BreakLevel brk = {.pc = 0, .parent = Null, .pool = C_NORMAL(constantPool), .errorMsg = errorMsg, .msgSize = msgSize};
+  int root = gcAddRoot(&constantPool); // Keep constantPool valid across any GC during decoding.
+  BreakLevel brk = {.pc = 0, .parent = Null, .poolRef = &constantPool, .errorMsg = errorMsg, .msgSize = msgSize};
   int32 pc = 0;
 
-  tryRet(decodeBlock(in, ar, 0, &pc, &brk, stackHeight));
-  *codeCount = pc;
-  *code = (ssaInsPo)malloc(sizeof(int32) * (size_t)*codeCount);
-  tryRet(copyOutData(ar, (void *) *code, sizeof(int32) * (size_t) *codeCount));
-  eraseArray(ar, Null, Null);
+  retCode ret = decodeBlock(in, ar, 0, &pc, &brk, stackHeight);
+  if (ret == Ok) {
+    *codeCount = pc;
+    *code = (ssaInsPo)malloc(sizeof(int32) * (size_t)*codeCount);
+    ret = copyOutData(ar, (void *) *code, sizeof(int32) * (size_t) *codeCount);
+  }
+  if (ret == Ok)
+    eraseArray(ar, Null, Null);
 
-  return Ok;
+  gcReleaseRoot(root);
+  return ret;
 }
 
 static retCode decodeOp(ioPo in, breakLevelPo brk, ssaOp* op) {
@@ -59,14 +67,15 @@ static retCode decodeConstant(ioPo in, int32* tgt, breakLevelPo brk) {
   int32 litNo;
   retCode ret = decodeI32(in, &litNo);
   if (ret == Ok) {
-    if (litNo >= 0 && litNo < termArity(brk->pool)) {
-      termPo literal = nthArg(brk->pool, litNo);
+    normalPo pool = C_NORMAL(*brk->poolRef);
+    if (litNo >= 0 && litNo < termArity(pool)) {
+      termPo literal = nthArg(pool, litNo);
       *tgt = defineConstantLiteral(literal);
       return Ok;
     }
     else {
       strMsg(brk->errorMsg, brk->msgSize, "invalid literal number: %d not in range [0..%d)", litNo,
-             termArity(brk->pool));
+             termArity(pool));
       return Error;
     }
   }
@@ -271,7 +280,7 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 basePc, int32* pc, int32* coun
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 basePc, int32* pc, breakLevelPo brk, int32* stackHeight) {
   BreakLevel blkBrk = {
-    .pc = basePc, .parent = brk, .pool = brk->pool, .errorMsg = brk->errorMsg, .msgSize = brk->msgSize
+    .pc = basePc, .parent = brk, .poolRef = brk->poolRef, .errorMsg = brk->errorMsg, .msgSize = brk->msgSize
   };
   int32 count;
 

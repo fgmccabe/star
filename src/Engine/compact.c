@@ -92,44 +92,52 @@ static void clearMarkTable(markInfoPo info) {
   free(info->table);
 }
 
-// A non-recursive marking algorithm. Use an auxilliary table.
-static void nonRecMark(termPo t, void* cl) {
-  markInfoPo info = (markInfoPo)cl;
+// Drain the worklist, marking everything reachable from whatever is currently pushed.
+static void drainMarks(markInfoPo info) {
+  while (info->top > 0) {
+    termPo trm = popMark(info);
+    assert(trm != Null && isPointer(trm) && isHeapRef(trm));
 
-  if (t != Null && isPointer(t) && isHeapRef(t) && !isMarked(t)) {
-    int32 top = pushMark(info, t);
-
-    while (info->top > top) {
-      termPo trm = popMark(info);
-      assert(trm != Null && isPointer(trm) && isHeapRef(trm));
-
-      if (!isMarked(trm)) {
-        markCard(trm);
-        termCount++;
-        if (hasBuiltinType(trm)) {
-          builtinClassPo special = builtinClassOf(trm);
-          special->scanFun(cardMarkHelper, info, trm);
-          heapSize += special->sizeFun(special, trm);
-        }
-        else {
-          normalPo term = C_NORMAL(trm);
-          labelPo lbl = termLbl(term);
-          int32 arity = lblArity(lbl);
-          for (int32 ax = 0; ax < arity; ax++) {
-            termPo arg = term->args[ax];
-            if (arg != Null && isPointer(arg) && isHeapRef(arg) && !isMarked(arg)) {
-              pushMark(info, arg);
-            }
+    if (!isMarked(trm)) {
+      markCard(trm);
+      termCount++;
+      if (hasBuiltinType(trm)) {
+        builtinClassPo special = builtinClassOf(trm);
+        special->scanFun(cardMarkHelper, info, trm);
+        heapSize += special->sizeFun(special, trm);
+      }
+      else {
+        normalPo term = C_NORMAL(trm);
+        labelPo lbl = termLbl(term);
+        int32 arity = lblArity(lbl);
+        for (int32 ax = 0; ax < arity; ax++) {
+          termPo arg = term->args[ax];
+          if (arg != Null && isPointer(arg) && isHeapRef(arg) && !isMarked(arg)) {
+            pushMark(info, arg);
           }
-          heapSize += arity + 1;
         }
+        heapSize += arity + 1;
       }
     }
   }
 }
 
+// A non-recursive marking algorithm. Use an auxilliary table.
+static void nonRecMark(termPo t, void* cl) {
+  markInfoPo info = (markInfoPo)cl;
+
+  if (t != Null && isPointer(t) && isHeapRef(t) && !isMarked(t)) {
+    pushMark(info, t);
+    drainMarks(info);
+  }
+}
+
 retCode cardMarkHelper(ptrPo p, void* c) {
-  nonRecMark(*p, c);
+  markInfoPo info = (markInfoPo)c;
+  termPo t = *p;
+  if (t != Null && isPointer(t) && isHeapRef(t) && !isMarked(t)) {
+    pushMark(info, t);
+  }
   return Ok;
 }
 
@@ -256,6 +264,7 @@ void adjustHeap(breakPo from, breakPo to) {
 void compactHeap() {
 #ifdef TRACEMEM
   if (validateMemory) {
+    verifyConstantsTagged("pre");
     verifyHeap();
     verifyProcesses();
   }
@@ -282,6 +291,8 @@ void compactHeap() {
   scanProcesses(cardMarkHelper, info);
   scanConstants(cardMarkHelper, info);
 
+  drainMarks(info);
+
   assert(info->top==0);
   clearMarkTable(info);
 
@@ -296,6 +307,7 @@ void compactHeap() {
 
 #ifdef TRACEMEM
   if (validateMemory) {
+    verifyConstantsTagged("post");
     verifyHeap();
     verifyProcesses();
   }
