@@ -202,6 +202,7 @@
     "test.syntax": "sy.star",
     "test.sys": "sys.star",
     "test.t": "t.star",
+    "test.tagop": "tagop.star",
     "test.th0": "th0.star",
     "test.th1": "th1.star",
     "test.thfib": "thfib.star",

@@ -60,7 +60,35 @@ typedef void (*aluBinOpFn)(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo 
 typedef void (*fpBinOpFn)(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
 
 static void mulFlex_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-static void binaryIntOp(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, aluBinOpFn op);
+
+// Resolve an operand to a register for a destructive binary op: if the operand is
+// already in a register AND this use is its last (desc->end <= nextPc, i.e. no
+// recorded use at or after nextPc) AND that register isn't `avoid` (the register
+// already chosen for the other operand -- guards against e.g. `X op X` aliasing,
+// where reusing X's register for both operands would corrupt the first operation's
+// input before the second reads it), operate on that register directly. Otherwise
+// copy into a fresh register, exactly as before. Pass XZR for `avoid` when there is
+// no other operand register to avoid yet (i.e. when resolving the first operand).
+static armReg operandRegister(codeGenPo state, int32 pc, int32 nextPc, int32 varOx, FlexOp src, armReg avoid);
+
+static void binaryIntOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                        aluBinOpFn op);
+
+// A tagged integer is (value << 2) | intTg. For AND/OR/ADD/SUB/XOR, operating on the
+// tagged bit patterns directly and applying one of these constant fixups afterward gives
+// the same result as untag/op/retag, since the low tag bits (both operands' tag is intTg,
+// identical) interact predictably with each operator -- see call sites for the derivation
+// specific to each op. Do not add a new caller without re-deriving the fixup: this shortcut
+// does not hold for every operator (e.g. multiply, shifts).
+typedef enum {
+  tagNone,   // AND, OR: tag bits combine to intTg on their own
+  tagSubOne, // ADD: tagged sum has tag value 2*intTg; subtract intTg to correct
+  tagAddOne, // SUB: tagged difference has tag value 0; add intTg to correct
+  tagOrOne   // XOR: tag bits cancel to 0; or intTg back in
+} tagFixup;
+
+static void binaryIntOpTagged(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                              aluBinOpFn op, tagFixup fixup);
 static void binaryIntCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, armCond cond);
 static void binaryFloatOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
                           fpBinOpFn op);
@@ -795,21 +823,21 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sIAdd: {
       // L R --> L+R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), add_);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), add_, tagSubOne);
       pc += insSize;
       continue;
     }
     case sISub: {
       // L R --> L-R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), sub_);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), sub_, tagAddOne);
       pc += insSize;
       continue;
     }
     case sIMul: {
       // L R --> L*R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), mulFlex_);
+      binaryIntOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), mulFlex_);
       pc += insSize;
       continue;
     }
@@ -929,42 +957,42 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sBAnd: {
       // L R --> L&R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), and_);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), and_, tagNone);
       pc += insSize;
       continue;
     }
     case sBOr: {
       // L R --> L|R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), orr_);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), orr_, tagNone);
       pc += insSize;
       continue;
     }
     case sBXor: {
       // L R --> L^R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), eor_);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), eor_, tagOrOne);
       pc += insSize;
       continue;
     }
     case sBLsl: {
       // L R --> L<<R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), lsl_);
+      binaryIntOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), lsl_);
       pc += insSize;
       continue;
     }
     case sBLsr: {
       // L R --> L>>R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), lsr_);
+      binaryIntOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), lsr_);
       pc += insSize;
       continue;
     }
     case sBAsr: {
       // L R --> L>>>R
       int32 insSize = 4;
-      binaryIntOp(state, pc, opand(1), opand(2), opand(3), asr_);
+      binaryIntOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), asr_);
       pc += insSize;
       continue;
     }
@@ -1472,25 +1500,75 @@ static void mulFlex_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   mul_(w, Rd, Rn, S2.reg, ctx);
 }
 
-// Shared shape for sIAdd/sISub/sIMul/sBAnd/sBOr/sBXor/sBLsl/sBLsr/sBAsr: load both
-// operands, untag, apply the ALU op, retag, store.
-void binaryIntOp(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, aluBinOpFn op) {
+// See the forward declaration comment for the safety argument. `var` is looked up via
+// localSource purely to read its liveness (desc->end); its .src is not used here since
+// `src` (already fetched by the caller via localFlex) is the same thing.
+armReg operandRegister(codeGenPo state, int32 pc, int32 nextPc, int32 varOx, FlexOp src, armReg avoid) {
+  if (isRegisterOp(src) && src.reg != avoid) {
+    localVarPo var = localSource(state, pc, varOx);
+    if (var != Null && var->desc->end <= nextPc) {
+      return src.reg; // last use of this variable -- safe to operate on its register directly
+    }
+  }
+  armReg fresh = findARegister(state, pc);
+  loadRegister(state, fresh, src);
+  return fresh;
+}
+
+// Shared shape for sIMul/sBLsl/sBLsr/sBAsr: load both operands, untag, apply the ALU
+// op, retag, store. (sIAdd/sISub/sBAnd/sBOr/sBXor use binaryIntOpTagged instead, which
+// skips the untag/retag round-trip.)
+void binaryIntOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx, aluBinOpFn op) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   FlexOp left = localFlex(state, pc, leftOx);
   FlexOp right = localFlex(state, pc, rightOx);
   localVarPo dst = localTarget(state, pc, dstOx);
 
-  armReg a1 = findARegister(state, pc);
-  armReg a2 = findARegister(state, pc);
-  loadRegister(state, a1, left);
-  loadRegister(state, a2, right);
+  armReg a1 = operandRegister(state, pc, nextPc, leftOx, left, XZR);
+  armReg a2 = operandRegister(state, pc, nextPc, rightOx, right, a1);
   getIntVal(jit, a1);
   getIntVal(jit, a2);
 
   op(1, a1, a1, RG(a2), ctx);
 
   mkIntVal(jit, a1);
+  storeVar(state, pc, RG(a1), dst);
+  releaseReg(jit, a2);
+  releaseReg(jit, a1);
+}
+
+// Shared shape for sIAdd/sISub/sBAnd/sBOr/sBXor: operate directly on the tagged bit
+// patterns instead of untag/op/retag, applying a small constant fixup (see the tagFixup
+// derivation above). Each fixup is exact 64-bit modular arithmetic, so this produces
+// bit-identical results to the untag/op/retag path in every case, including overflow.
+void binaryIntOpTagged(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                       aluBinOpFn op, tagFixup fixup) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  FlexOp left = localFlex(state, pc, leftOx);
+  FlexOp right = localFlex(state, pc, rightOx);
+  localVarPo dst = localTarget(state, pc, dstOx);
+
+  armReg a1 = operandRegister(state, pc, nextPc, leftOx, left, XZR);
+  armReg a2 = operandRegister(state, pc, nextPc, rightOx, right, a1);
+
+  op(1, a1, a1, RG(a2), ctx);
+
+  switch (fixup) {
+  case tagSubOne:
+    sub(a1, a1, IM(intTg));
+    break;
+  case tagAddOne:
+    add(a1, a1, IM(intTg));
+    break;
+  case tagOrOne:
+    orr(a1, a1, IM(intTg));
+    break;
+  case tagNone:
+    break;
+  }
+
   storeVar(state, pc, RG(a1), dst);
   releaseReg(jit, a2);
   releaseReg(jit, a1);
