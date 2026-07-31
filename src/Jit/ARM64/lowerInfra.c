@@ -5,6 +5,7 @@
 #include "arithP.h"
 #include "arm64.h"
 #include "constants.h"
+#include "constantsP.h"
 #include "formioP.h"
 #include "jit.h"
 #include "jitP.h"
@@ -216,16 +217,18 @@ void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
 }
 
 void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
-  assemCtxPo ctx = assemCtx(state->jit);
-  if (isRegisterOp(tgt))
-    loadRegister(state, tgt.reg, src);
-  else if (isRegisterOp(src))
-    move(ctx, tgt, src, state->jit->freeRegs);
-  else {
-    armReg tmp = findFreeReg(state->jit);
-    loadRegister(state, tmp, src);
-    move(ctx, tgt,RG(tmp), state->jit->freeRegs);
-    releaseReg(state->jit, tmp);
+  if (!sameFlexOp(src, tgt)) {
+    assemCtxPo ctx = assemCtx(state->jit);
+    if (isRegisterOp(tgt))
+      loadRegister(state, tgt.reg, src);
+    else if (isRegisterOp(src))
+      move(ctx, tgt, src, state->jit->freeRegs);
+    else {
+      armReg tmp = findFreeReg(state->jit);
+      loadRegister(state, tmp, src);
+      move(ctx, tgt,RG(tmp), state->jit->freeRegs);
+      releaseReg(state->jit, tmp);
+    }
   }
 }
 
@@ -338,6 +341,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int3
   mov(X16, IM((integer) fn));
   blr(X16);
   restoreRegisters(ctx, saveMap);
+  loadCGlobal(ctx, CO, &constAnts);
   unstashEngineState(state->jit);
 
   assert(rsCnt >=0 && rsCnt<=2);

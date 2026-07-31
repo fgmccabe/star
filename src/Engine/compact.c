@@ -264,7 +264,6 @@ void adjustHeap(breakPo from, breakPo to) {
 void compactHeap() {
 #ifdef TRACEMEM
   if (validateMemory) {
-    verifyConstantsTagged("pre");
     verifyHeap();
     verifyProcesses();
   }
@@ -307,7 +306,6 @@ void compactHeap() {
 
 #ifdef TRACEMEM
   if (validateMemory) {
-    verifyConstantsTagged("post");
     verifyHeap();
     verifyProcesses();
   }

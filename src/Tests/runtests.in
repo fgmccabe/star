@@ -16,7 +16,7 @@ tracing = False
 filter = ""
 
 def main(argv):
-    global tracing,starExec,sbc,repoDir,testDir,cflags,rflags
+    global tracing,starExec,sbc,repoDir,testDir,cflags,rflags,filter
 
     cflags = []
     rflags = []

@@ -12,7 +12,6 @@ void initConstants();
 
 void markConstants(gcSupportPo G);
 retCode scanConstants(termHelper helper, void* cl);
-void verifyConstantsTagged(const char *tag);
 extern ptrPo constAnts;
 
 #endif //STAR_CONSTANTSP_H

@@ -127,7 +127,7 @@ retCode gcCollect(long amount) {
       heap.cards[ix] = 0; /* clear the card table */
   }
 
-  if (heap.limit - heap.curr < (heap.outerLimit - heap.start) / 10) {
+  if ((heap.limit - heap.curr - amount) < (heap.outerLimit - heap.start) / 10) {
     gcCompactCount++;
 #ifdef TRACEMEM
     if (traceMemory > noTracing) {
@@ -135,7 +135,7 @@ retCode gcCollect(long amount) {
     }
 #endif
     compactHeap();
-    if (heap.limit - heap.curr + amount < (heap.outerLimit - heap.start) / 10) {
+    if (heap.curr + amount >= heap.limit || (heap.limit - heap.curr - amount) < (heap.outerLimit - heap.start) / 10) {
       extendHeap(amount);
     }
   }
