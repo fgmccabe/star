@@ -9,6 +9,7 @@
     "rdf.sparql.query" : "query.star",
     "rdf.sparql.parser" : "sparql.star",
     "rdf.sparql.engine" : "engine.star",
+    "rdf.sparql.test" : "sparqltest.star",
     "rdf.token" : "token.star",
     "rdf.triple" : "triple.star"
     },

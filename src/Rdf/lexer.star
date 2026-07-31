@@ -68,27 +68,62 @@ rdf.lexer{
     (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok(". ")))).
   nxxTok(Chr,St,St0) where Pnc ?= punc(Chr) =>
     (St,.some(.tok(makeLoc(St0,St),.pncTok(Pnc)))).
-  nxxTok(`<`,St,St0) where (Nxt,.some(Txt)) .= readQuoted(St,`>`,[]) =>
-    (Nxt,.some(.tok(makeLoc(St,Nxt),.uriTok(Txt)))).
+  nxxTok(`<`,St,St0) where (Nx,.some(`<`)) .= nextChr(St) =>
+    (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok("<<")))).
+  nxxTok(`<`,St,St0) where (Nx,.some(`=`)) .= nextChr(St) =>
+    (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok("<=")))).
+  nxxTok(`<`,St,St0) where (Nxt,.some(Txt)) .= tryIriRef(St) =>
+    (Nxt,.some(.tok(makeLoc(St0,Nxt),.uriTok(Txt)))).
+  nxxTok(`<`,St,St0) =>
+    (St,.some(.tok(makeLoc(St0,St),.pncTok("<")))).
+  nxxTok(`>`,St,St0) where (Nx,.some(`>`)) .= nextChr(St) =>
+    (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok(">>")))).
+  nxxTok(`>`,St,St0) where (Nx,.some(`=`)) .= nextChr(St) =>
+    (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok(">=")))).
+  nxxTok(`>`,St,St0) =>
+    (St,.some(.tok(makeLoc(St0,St),.pncTok(">")))).
+  nxxTok(`~`,St,St0) =>
+    (St,.some(.tok(makeLoc(St0,St),.pncTok("~")))).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
   nxxTok(Chr,St,St0) default => valof{
     reportError("illegal char in token: '$(Chr):c;'",.some(makeLoc(St,St0)));
     valis nextToken(St0)
   }.
 
-  isIdentifierStart(Ch) => (Ch==`_` || isLetter(Ch) || Ch==`-`).
+  -- `-` is a valid identifier character (e.g. `foo-bar`), but not a valid
+  -- identifier *start* -- matching Turtle's own PN_LOCAL grammar, where `-`
+  -- is only ever a PN_CHARS continuation character, never a PN_CHARS_U start
+  -- character. That leaves a leading `-` free to tokenize as the SPARQL
+  -- minus/negative-literal-prefix operator via `punc`, below.
+  isIdentifierStart(Ch) => (Ch==`_` || isLetter(Ch)).
 
-  isIdentChr(Ch) => (_isNdChar(Ch) || isIdentifierStart(Ch)).
+  isIdentChr(Ch) => (_isNdChar(Ch) || isIdentifierStart(Ch) || Ch==`-`).
 
   readIden:(tokenState,tokenState,cons[char]) => (tokenState,option[token]).
   readIden(St,St0,SoF) where (Nx,.some(Chr)).=nextChr(St) && isIdentChr(Chr) =>
     readIden(Nx,St0,[Chr,..SoF]).
   readIden(St,St0,SoF) default => (St,.some(.tok(makeLoc(St0,St),.idTok(reverse(SoF)::string)))).
 
-  readQuoted:(tokenState,char,cons[char]) => (tokenState,option[string]).
-  readQuoted(St,Qt,Chrs) where (Nx,.some(Qt)) .= nextChr(St) => (Nx,.some(reverse(Chrs)::string)).
-  readQuoted(St,Qt,Chrs) where (Nx,.some(Ch)) .= charRef(St) => readQuoted(Nx,Qt,[Ch,..Chrs]).
-  readQuoted(Nx,_,_) => (Nx,.none).
+  -- Try to lex an IRIREF body starting right after the opening `<`. Per the
+  -- IRIREF grammar, `<`, `"`, `{`, `}`, `|`, `^`, backtick and any control or
+  -- whitespace character can never appear raw inside an IRI reference, so
+  -- hitting one of those (or the end of input) before a closing `>` means
+  -- this wasn't an IRIREF at all -- it's reported as `.none` so the caller
+  -- can fall back to treating the `<` as a bare punctuation/operator token
+  -- instead (e.g. `<`, `<=`, `<<`), without having consumed anything.
+  tryIriRef:(tokenState) => (tokenState,option[string]).
+  tryIriRef(St) => tryIriChars(St,[]).
+
+  tryIriChars:(tokenState,cons[char]) => (tokenState,option[string]).
+  tryIriChars(St,Chrs) where `>` ?= hedChar(St) => (nxtSt(St),.some(reverse(Chrs)::string)).
+  tryIriChars(St,Chrs) where `\\` ?= hedChar(St) && (Nx,.some(Ch)) .= charRef(St) =>
+    tryIriChars(Nx,[Ch,..Chrs]).
+  tryIriChars(St,Chrs) where Ch ?= hedChar(St) && isIriRefChar(Ch) && (Nx,.some(Ch)) .= charRef(St) =>
+    tryIriChars(Nx,[Ch,..Chrs]).
+  tryIriChars(St,_) default => (St,.none).
+
+  isIriRefChar(Ch) =>
+    ~(Ch==`<` || Ch==`\"` || Ch==`{` || Ch==`}` || Ch==`|` || Ch==`^` || Ch==`\`` || isNonPrint(Ch)).
 
   readString:(tokenState,cons[stringSegment]) => (tokenState,option[cons[stringSegment]]).
   readString(St,SoFar) where (Nx,.some(`\"`)) .= nextChr(St) => (Nx,.some(reverse(SoFar))).
@@ -245,6 +280,9 @@ rdf.lexer{
     | `&` => .some("&")
     | `(` => .some("(")
     | `)` => .some(")")
+    | `*` => .some("*")
+    | `+` => .some("+")
+    | `-` => .some("-")
     | `,` => .some(",")
     | `.` => .some(".")
     | `/` => .some("/")

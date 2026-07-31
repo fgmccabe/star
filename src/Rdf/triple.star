@@ -8,8 +8,12 @@ rdf.triple{
   | .existential(concept,set[triple])
   | .uri(string)
   | .text(cons[markup])
+  | .langText(cons[markup],string)
+  | .typedText(cons[markup],concept)
   | .int(integer)
-  | .flt(float).
+  | .flt(float)
+  | .bool(boolean)
+  | .tripleTerm(triple).
 
   public isSymbolicConcept:(concept)=>boolean.
   isSymbolicConcept(.named(_,_)) => .true.
@@ -25,8 +29,12 @@ rdf.triple{
     eqConcept(.existential(U1,_),.existential(U2,_)) => eqConcept(U1,U2).
     eqConcept(.uri(U1),.uri(U2)) => U1==U2.
     eqConcept(.text(S1),.text(S2)) => eqConcepts(S1,S2).
+    eqConcept(.langText(S1,L1),.langText(S2,L2)) => L1==L2 && eqConcepts(S1,S2).
+    eqConcept(.typedText(S1,D1),.typedText(S2,D2)) => eqConcept(D1,D2) && eqConcepts(S1,S2).
     eqConcept(.int(I1),.int(I2)) => I1==I2.
     eqConcept(.flt(I1),.flt(I2)) => I1==I2.
+    eqConcept(.bool(B1),.bool(B2)) => B1==B2.
+    eqConcept(.tripleTerm(T1),.tripleTerm(T2)) => T1==T2.
     eqConcept(_,_) default => .false.
 
     eqConcepts([],[]) => .true.
@@ -44,8 +52,12 @@ rdf.triple{
     disp(.existential(Ix,Ts)) => "[$(Ts)]".
     disp(.uri(U)) => "<$(U)>".
     disp(.text(S)) => "\"#(interleave(S//disp,";")*)\"".
+    disp(.langText(S,L)) => "\"#(interleave(S//disp,";")*)\"@$(L)".
+    disp(.typedText(S,D)) => "\"#(interleave(S//disp,";")*)\"^^$(D)".
     disp(.int(N)) => disp(N).
     disp(.flt(N)) => disp(N).
+    disp(.bool(B)) => disp(B).
+    disp(.tripleTerm(T)) => "<<($(T))>>".
   }
 
   public implementation display[markup] => {
@@ -60,8 +72,13 @@ rdf.triple{
     hash(.existential(.anon(Ix),_)) => hash(Ix)*37+hash("_").
     hash(.uri(U)) => hash(U)*37+hash("U").
     hash(.text(S)) => hash(S)*37+hash("S").
+    hash(.langText(S,L)) => hash(S)*37+hash(L).
+    hash(.typedText(S,D)) => hash(S)*37+hash(D).
     hash(.int(I)) => hash(I).
     hash(.flt(I)) => hash(I).
+    hash(.bool(.true)) => hash("bool.true").
+    hash(.bool(.false)) => hash("bool.false").
+    hash(.tripleTerm(T)) => hash(T)*37+hash("TT").
   }
 
   Counter = ref -1.
