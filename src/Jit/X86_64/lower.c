@@ -76,6 +76,55 @@ static FlexOp varSrc(codeGenPo state, int32 pc, localVarPo var);
 static void retireExpiredVars(codeGenPo state, int32 pc);
 static logical registerInUse(codeGenPo state, FlexOp src);
 
+typedef void (*aluBinOpFn)(FlexOp dst, FlexOp src, assemCtxPo ctx);
+typedef void (*fpBinOpFn)(FlexOp dst, FlexOp src, assemCtxPo ctx);
+
+// Resolve an operand to a register for read-only use (the caller never writes through
+// the returned register): if already a register, use it directly -- no allocation, no
+// liveness check needed, since nothing here mutates it. Otherwise load into a fresh
+// scratch register. *allocated tells the caller whether it owns a register it must
+// release; do not use this for an operand the caller will also write to (see
+// operandRegister for that case).
+static mcRegister readOperandRegister(codeGenPo state, int32 pc, FlexOp src, logical *allocated);
+
+// Resolve an operand to a register for a destructive binary op: if the operand is
+// already in a register AND this use is its last (desc->end <= nextPc, i.e. no
+// recorded use at or after nextPc) AND that register isn't `avoid` (the register
+// already chosen for the other operand -- guards against e.g. `X op X` aliasing,
+// where reusing X's register for both operands would corrupt the first operation's
+// input before the second reads it), operate on that register directly. Otherwise
+// copy into a fresh register, exactly as before. Pass XZR for `avoid` when there is
+// no other operand register to avoid yet (i.e. when resolving the first operand).
+// *allocated tells the caller whether it owns a register it must release: when the
+// reuse branch fires, the returned register is still owned by the (about to expire)
+// local variable slot, and retireExpiredVars will release it once the variable
+// actually retires -- releasing it again here would double-free it.
+static mcRegister operandRegister(codeGenPo state, int32 pc, int32 nextPc, int32 varOx, FlexOp src, mcRegister avoid,
+                                   logical *allocated);
+
+static void binaryIntOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                        aluBinOpFn op);
+
+// A tagged integer is (value << 2) | intTg. For AND/OR/ADD/SUB/XOR, operating on the
+// tagged bit patterns directly and applying one of these constant fixups afterward gives
+// the same result as untag/op/retag, since the low tag bits (both operands' tag is intTg,
+// identical) interact predictably with each operator -- see call sites for the derivation
+// specific to each op. Do not add a new caller without re-deriving the fixup: this shortcut
+// does not hold for every operator (e.g. multiply, shifts).
+typedef enum {
+  tagNone,   // AND, OR: tag bits combine to intTg on their own
+  tagSubOne, // ADD: tagged sum has tag value 2*intTg; subtract intTg to correct
+  tagAddOne, // SUB: tagged difference has tag value 0; add intTg to correct
+  tagOrOne   // XOR: tag bits cancel to 0; or intTg back in
+} tagFixup;
+
+static void binaryIntOpTagged(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                              aluBinOpFn op, tagFixup fixup);
+static void binaryIntCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, uint8 cond);
+static void binaryFloatOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                          fpBinOpFn op);
+static void binaryFloatCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, uint8 cond);
+
 #define opand(ox) operand(state, pc, (ox))
 
 void debug_state(codeGenPo state) {
@@ -918,69 +967,21 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sIAdd: {
       // L R --> L+R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      add(RG(a1), RG(a2));
-      mkIntVal(jit, a1);
-      storeVar(state, pc, RG(a1), dst);
-
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), add_, tagSubOne);
       pc += insSize;
       continue;
     }
     case sISub: {
       // L R --> L-R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      sub(RG(a1), RG(a2));
-
-      mkIntVal(jit, a1);
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), sub_, tagAddOne);
       pc += insSize;
       continue;
     }
     case sIMul: {
       // L R --> L*R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      imul(RG(a1), RG(a2));
-
-      mkIntVal(jit, a1);
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
+      binaryIntOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), imul_);
       pc += insSize;
       continue;
     }
@@ -1116,30 +1117,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sIEq: {
       // L R --> L==R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      mcRegister fl = findMcRegister(state, pc);
-      mcRegister tr = findMcRegister(state, pc);
-      loadConstant(jit, trueIndex, tr);
-      loadConstant(jit, falseIndex, fl);
-
-      cmp(RG(a1), RG(a2));
-      csel(a1, fl, tr, NE);
-
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
+      binaryIntCompare(state, pc, opand(1), opand(2), opand(3), EQ);
       pc += insSize;
       continue;
     }
@@ -1147,30 +1125,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sILt: {
       // L R --> L<R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      mcRegister fl = findMcRegister(state, pc);
-      mcRegister tr = findMcRegister(state, pc);
-      loadConstant(jit, trueIndex, tr);
-      loadConstant(jit, falseIndex, fl);
-
-      cmp(RG(a1), RG(a2));
-      csel(a1, tr, fl, LT);
-
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
+      binaryIntCompare(state, pc, opand(1), opand(2), opand(3), LT);
       pc += insSize;
       continue;
     }
@@ -1178,99 +1133,28 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sIGe: {
       // L R --> L>=R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      mcRegister fl = findMcRegister(state, pc);
-      mcRegister tr = findMcRegister(state, pc);
-      loadConstant(jit, trueIndex, tr);
-      loadConstant(jit, falseIndex, fl);
-
-      cmp(RG(a1), RG(a2));
-      csel(a1, tr, fl, GE);
-
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
+      binaryIntCompare(state, pc, opand(1), opand(2), opand(3), GE);
       pc += insSize;
       continue;
     }
     case sBAnd: {
       // L R --> L&R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      and(RG(a1), RG(a2));
-
-      mkIntVal(jit, a1);
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), and_, tagNone);
       pc += insSize;
       continue;
     }
     case sBOr: {
       // L R --> L|R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      or(RG(a1), RG(a2));
-
-      mkIntVal(jit, a1);
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), or_, tagNone);
       pc += insSize;
       continue;
     }
     case sBXor: {
       // L R --> L^R
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      xor(RG(a1), RG(a2));
-
-      mkIntVal(jit, a1);
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
+      binaryIntOpTagged(state, pc, pc + insSize, opand(1), opand(2), opand(3), xor_, tagOrOne);
       pc += insSize;
       continue;
     }
@@ -1363,67 +1247,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sFAdd: {
       int32 insSize = 4;
-      int32 nextPc = pc + insSize;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-      addsd(FLT(F0), FLT(F1));
-      mkFloat(state, pc, nextPc, F0);
-      storeVar(state, pc, RG(RTV), dst);
+      binaryFloatOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), addsd_);
       pc += insSize;
       continue;
     }
     case sFSub: {
       int32 insSize = 4;
-      int32 nextPc = pc + insSize;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-      subsd(FLT(F0), FLT(F1));
-      mkFloat(state, pc, nextPc, F0);
-      storeVar(state, pc, RG(RTV), dst);
+      binaryFloatOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), subsd_);
       pc += insSize;
       continue;
     }
     case sFMul: {
       int32 insSize = 4;
-      int32 nextPc = pc + insSize;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-      mulsd(FLT(F0), FLT(F1));
-      mkFloat(state, pc, nextPc, F0);
-      storeVar(state, pc, RG(RTV), dst);
+      binaryFloatOp(state, pc, pc + insSize, opand(1), opand(2), opand(3), mulsd_);
       pc += insSize;
       continue;
     }
@@ -1530,91 +1366,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     }
     case sFEq: {
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-
-      mcRegister fl = findMcRegister(state, pc);
-      mcRegister tr = findMcRegister(state, pc);
-      loadConstant(jit, trueIndex, tr);
-      loadConstant(jit, falseIndex, fl);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-
-      ucomisd(FLT(F0), FLT(F1));
-      csel(a1, fl, tr, NE_CC);
-
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
+      binaryFloatCompare(state, pc, opand(1), opand(2), opand(3), EQ_CC);
       pc += insSize;
       continue;
     }
     case sFLt: {
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-
-      mcRegister fl = findMcRegister(state, pc);
-      mcRegister tr = findMcRegister(state, pc);
-      loadConstant(jit, trueIndex, tr);
-      loadConstant(jit, falseIndex, fl);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-
-      ucomisd(FLT(F0), FLT(F1));
-      csel(a1, tr, fl, C_CC);
-
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
+      binaryFloatCompare(state, pc, opand(1), opand(2), opand(3), C_CC);
       pc += insSize;
       continue;
     }
     case sFGe: {
       int32 insSize = 4;
-      FlexOp left = localFlex(state, pc, opand(2));
-      FlexOp right = localFlex(state, pc, opand(3));
-      localVarPo dst = localTarget(state, pc, opand(1));
-
-      mcRegister a1 = findMcRegister(state, pc);
-      mcRegister a2 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, a2, right);
-
-      mcRegister fl = findMcRegister(state, pc);
-      mcRegister tr = findMcRegister(state, pc);
-      loadConstant(jit, trueIndex, tr);
-      loadConstant(jit, falseIndex, fl);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-
-      ucomisd(FLT(F0), FLT(F1));
-      csel(a1, tr, fl, AE_CC);
-
-      storeVar(state, pc, RG(a1), dst);
-      releaseReg(jit, a2);
-      releaseReg(jit, a1);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
+      binaryFloatCompare(state, pc, opand(1), opand(2), opand(3), AE_CC);
       pc += insSize;
       continue;
     }
@@ -2285,6 +2049,189 @@ FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax) {
 
 localVarPo operandVar(codeGenPo state, int32 pc, int32 ax) {
   return localSource(state, pc, opand(ax));
+}
+
+mcRegister readOperandRegister(codeGenPo state, int32 pc, FlexOp src, logical *allocated) {
+  if (isRegisterOp(src)) {
+    *allocated = False;
+    return src.op.reg;
+  }
+  mcRegister fresh = findMcRegister(state, pc);
+  loadRegister(state, fresh, src);
+  *allocated = True;
+  return fresh;
+}
+
+// See the forward declaration comment for the safety argument. `var` is looked up via
+// localSource purely to read its liveness (desc->end); its .src is not used here since
+// `src` (already fetched by the caller via localFlex) is the same thing.
+mcRegister operandRegister(codeGenPo state, int32 pc, int32 nextPc, int32 varOx, FlexOp src, mcRegister avoid,
+                            logical *allocated) {
+  if (isRegisterOp(src) && src.op.reg != avoid) {
+    localVarPo var = localSource(state, pc, varOx);
+    if (var != Null && var->desc->end <= nextPc) {
+      *allocated = False;
+      return src.op.reg; // last use of this variable -- safe to operate on its register directly
+    }
+  }
+  mcRegister fresh = findMcRegister(state, pc);
+  loadRegister(state, fresh, src);
+  *allocated = True;
+  return fresh;
+}
+
+// Shared shape for sIMul: load both operands, untag, apply the ALU op, retag, store.
+// (sIAdd/sISub/sBAnd/sBOr/sBXor use binaryIntOpTagged instead, which skips the
+// untag/retag round-trip.)
+void binaryIntOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx, aluBinOpFn op) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  FlexOp left = localFlex(state, pc, leftOx);
+  FlexOp right = localFlex(state, pc, rightOx);
+  localVarPo dst = localTarget(state, pc, dstOx);
+
+  logical a1Fresh, a2Fresh;
+  mcRegister a1 = operandRegister(state, pc, nextPc, leftOx, left, XZR, &a1Fresh);
+  mcRegister a2 = operandRegister(state, pc, nextPc, rightOx, right, a1, &a2Fresh);
+  getIntVal(jit, a1);
+  getIntVal(jit, a2);
+
+  op(RG(a1), RG(a2), ctx);
+
+  mkIntVal(jit, a1);
+  storeVar(state, pc, RG(a1), dst);
+  if (a2Fresh) releaseReg(jit, a2);
+  if (a1Fresh) releaseReg(jit, a1);
+}
+
+// Shared shape for sIAdd/sISub/sBAnd/sBOr/sBXor: operate directly on the tagged bit
+// patterns instead of untag/op/retag, applying a small constant fixup (see the tagFixup
+// derivation above). Each fixup is exact 64-bit modular arithmetic, so this produces
+// bit-identical results to the untag/op/retag path in every case, including overflow.
+void binaryIntOpTagged(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                       aluBinOpFn op, tagFixup fixup) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  FlexOp left = localFlex(state, pc, leftOx);
+  FlexOp right = localFlex(state, pc, rightOx);
+  localVarPo dst = localTarget(state, pc, dstOx);
+
+  logical a1Fresh, a2Fresh;
+  mcRegister a1 = operandRegister(state, pc, nextPc, leftOx, left, XZR, &a1Fresh);
+  mcRegister a2 = operandRegister(state, pc, nextPc, rightOx, right, a1, &a2Fresh);
+
+  op(RG(a1), RG(a2), ctx);
+
+  switch (fixup) {
+    case tagSubOne:
+      sub(RG(a1), IM(intTg));
+      break;
+    case tagAddOne:
+      add(RG(a1), IM(intTg));
+      break;
+    case tagOrOne:
+      or(RG(a1), IM(intTg));
+      break;
+    case tagNone:
+      break;
+  }
+
+  storeVar(state, pc, RG(a1), dst);
+  if (a2Fresh) releaseReg(jit, a2);
+  if (a1Fresh) releaseReg(jit, a1);
+}
+
+// Shared shape for sCEq/sIEq, sCLt/sILt, sCGe/sIGe: compare directly on the tagged
+// representations and select the true/false constant based on cond. A tagged integer is
+// 4v+1; since f(v)=4v+1 is strictly monotonic and injective, equality and signed ordering
+// of tagged values exactly match equality/ordering of the underlying integers -- no
+// untagging needed at all, and no fixup afterward either (unlike the arithmetic ops),
+// since neither `cmp` nor the operand loads write through a1/a2. The csel result goes
+// into `tr` (already holding the true constant, self-selecting when cond holds) rather
+// than a1, so a1/a2 stay purely read-only and can use readOperandRegister instead of the
+// liveness-checked operandRegister.
+void binaryIntCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, uint8 cond) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  FlexOp left = localFlex(state, pc, leftOx);
+  FlexOp right = localFlex(state, pc, rightOx);
+  localVarPo dst = localTarget(state, pc, dstOx);
+
+  logical a1Fresh, a2Fresh;
+  mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
+  mcRegister a2 = readOperandRegister(state, pc, right, &a2Fresh);
+
+  mcRegister fl = findMcRegister(state, pc);
+  mcRegister tr = findMcRegister(state, pc);
+  loadConstant(jit, trueIndex, tr);
+  loadConstant(jit, falseIndex, fl);
+
+  cmp(RG(a1), RG(a2));
+  csel(tr, tr, fl, cond);
+
+  storeVar(state, pc, RG(tr), dst);
+  if (a2Fresh) releaseReg(jit, a2);
+  if (a1Fresh) releaseReg(jit, a1);
+  releaseReg(jit, tr);
+  releaseReg(jit, fl);
+}
+
+// Shared shape for sFAdd/sFSub/sFMul: load both operands as floats, apply the FP op, box
+// result. getFltVal only reads through a1/a2 (never writes them), so when an operand is
+// already a register, use it directly instead of copying -- no liveness check needed,
+// since nothing here mutates the source register.
+void binaryFloatOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
+                   fpBinOpFn op) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  FlexOp left = localFlex(state, pc, leftOx);
+  FlexOp right = localFlex(state, pc, rightOx);
+  localVarPo dst = localTarget(state, pc, dstOx);
+
+  logical a1Fresh, a2Fresh;
+  mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
+  mcRegister a2 = readOperandRegister(state, pc, right, &a2Fresh);
+
+  getFltVal(jit, a1, F0);
+  getFltVal(jit, a2, F1);
+  if (a1Fresh) releaseReg(jit, a1);
+  if (a2Fresh) releaseReg(jit, a2);
+  op(FLT(F0), FLT(F1), ctx);
+  mkFloat(state, pc, nextPc, F0);
+  storeVar(state, pc, RG(RTV), dst);
+}
+
+// Shared shape for sFEq/sFLt/sFGe: load both operands as floats, compare, then select
+// the true/false constant based on cond. Same reasoning as binaryIntCompare for routing
+// the csel result through `tr` instead of a1: keeps a1/a2 purely read-only so they can
+// use readOperandRegister.
+void binaryFloatCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, uint8 cond) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  FlexOp left = localFlex(state, pc, leftOx);
+  FlexOp right = localFlex(state, pc, rightOx);
+  localVarPo dst = localTarget(state, pc, dstOx);
+
+  logical a1Fresh, a2Fresh;
+  mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
+  mcRegister a2 = readOperandRegister(state, pc, right, &a2Fresh);
+
+  mcRegister fl = findMcRegister(state, pc);
+  mcRegister tr = findMcRegister(state, pc);
+  loadConstant(jit, trueIndex, tr);
+  loadConstant(jit, falseIndex, fl);
+
+  getFltVal(jit, a1, F0);
+  getFltVal(jit, a2, F1);
+  if (a1Fresh) releaseReg(jit, a1);
+  if (a2Fresh) releaseReg(jit, a2);
+
+  ucomisd(FLT(F0), FLT(F1));
+  csel(tr, tr, fl, cond);
+
+  storeVar(state, pc, RG(tr), dst);
+  releaseReg(jit, tr);
+  releaseReg(jit, fl);
 }
 
 mcRegister allocCallArgVector(codeGenPo state, int32 argPc, int32 livePc) {

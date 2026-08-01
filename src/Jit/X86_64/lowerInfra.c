@@ -638,12 +638,12 @@ void writeBarrier(codeGenPo state, int32 pc, FlexOp src) {
   mov(RG(tmp), IM(1));
   mov(RG(tmp2), RG(trm));
   and(RG(tmp2), IM(63));
-  shiftRegister(state, pc, sBLsl, tmp2, tmp, tmp2);
+  shiftRegister(state, pc, sBLsl, tmp, tmp, tmp2);
   mov(RG(hpReg), OF(hpReg,OffsetOf(HeapRecord,cards)));
   sar(RG(trm), IM(6));
-  mov(RG(tmp), IX(hpReg,trm,8, 0));
-  or(RG(tmp), RG(tmp2));
-  mov(IX(hpReg, trm, 8, 0), RG(tmp));
+  mov(RG(tmp2), IX(hpReg,trm,8, 0));
+  or(RG(tmp2), RG(tmp));
+  mov(IX(hpReg, trm, 8, 0), RG(tmp2));
   bind(skipLbl);
   releaseReg(state->jit, tmp);
   releaseReg(state->jit, hpReg);
