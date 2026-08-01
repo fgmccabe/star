@@ -1447,12 +1447,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo rtn = newLabel(ctx);
       adr(tmp, rtn);
       str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
-      loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-      mov(RG(RTS), IM(0));
+      // Parallel move, for the same reason as sRetire/sResume: RTV and RTS are both
+      // allocatable, so the fiber local may live in one of them and a sequential load of
+      // the event/status would clobber it before it is read.
+      ArgSpec specs[3] = {
+        argSpec(localFlex(state, pc, opand(1)), RG(RSI)),
+        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
+        argSpec(IM(0), RG(RTS))
+      };
+      shuffleVars(jit, specs, 3, &jit->freeRegs);
       push(RG(RTV));
       push(RG(RTS));
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)detachStack, 2, (FlexOp[]){
-                        RG(PR), localFlex(state, pc,opand(1))
+                        RG(PR), RG(RSI)
                       }, True, 0, Null);
       pop(RG(RTS));
       pop(RG(RTV));
@@ -1488,14 +1495,23 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       continue;
     }
     case sRetire: {
-      // Similar to suspend, except that we trash the suspending stack
+      // Similar to suspend, except that we trash the suspending stack.
+      // The fiber, the event and the 0 status all have to be put in place with a
+      // parallel move (same shape as sResume): RTV and RTS are both allocatable, so the
+      // fiber local may itself live in one of them, and loading the event/status
+      // sequentially would clobber the fiber before it is read -- handing
+      // detachDropStack the event value in place of the stack.
       int32 insSize = 3;
-      loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-      mov(RG(RTS), IM(0));
+      ArgSpec specs[3] = {
+        argSpec(localFlex(state, pc, opand(1)), RG(RSI)),
+        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
+        argSpec(IM(0), RG(RTS))
+      };
+      shuffleVars(jit, specs, 3, &jit->freeRegs);
       push(RG(RTV));
       push(RG(RTS));
       invokeIntrinsic(state, pc, pc, (runtimeFn)detachDropStack, 2,
-                      (FlexOp[]){RG(PR), localFlex(state, pc,opand(1))}, True, 0, Null);
+                      (FlexOp[]){RG(PR), RG(RSI)}, True, 0, Null);
       pop(RG(RTS));
       pop(RG(RTV));
 
