@@ -113,7 +113,11 @@ static int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 a
 static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity, armReg lamReg);
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase);
 static void dropArguments(codeGenPo state, int32 pc);
-static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity);
+// `tmpReg` is the register shuffleVars may use to break cycles in the argument
+// permutation; it must not hold anything live across the call. sTCall passes X16, but
+// sTOCall keeps the closure there (emitTOCallInvoke asserts lamReg != X17, so the closure
+// cannot live in X17 instead) and passes X17, which is only used later by the dispatch.
+static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity, armReg tmpReg);
 static void adjustAG(codeGenPo state, int32 pc, int32 tgtOff);
 static localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo);
 static void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var);
@@ -248,7 +252,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 arity = lblArity(tgt);
 
       int32 argPc = pc + 3;
-      int32 tgtOff = overrideArguments(state, defaultArgRegs(), argPc, arity);
+      int32 tgtOff = overrideArguments(state, defaultArgRegs(), argPc, arity, X16);
 
       emitTCallInvoke(state, pc, key, tgtOff);
       pc = nextPc;
@@ -262,7 +266,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       armReg lamReg = X16;
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       loadRegister(state, lamReg, lam);
-      int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs) - 1;
+      int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs, X17) - 1;
 
       ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
       if (lineDebugging != noTracing) {
@@ -1381,7 +1385,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           int32 arity = lblArity(C_LBL(getConstant(key)));
           int32 argPc = nextPc + 3;
 
-          int32 tgtOff = overrideArguments(state, defaultArgRegs(), argPc, arity);
+          int32 tgtOff = overrideArguments(state, defaultArgRegs(), argPc, arity, X16);
 
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)tcallDebug, 3, (FlexOp[]){
                             RG(PR), constantFlex(locKey),
@@ -1420,7 +1424,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           armReg lamReg = X16;
           FlexOp lamSrc = sourceOperandFlex(state, nextPc, 1); // Pick up the closure
           loadRegister(state, lamReg, lamSrc);
-          int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs) - 1;
+          int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs, X17) - 1;
 
           ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
           str(X0, OF(AG,tgtOff*pointerSize));
@@ -1979,7 +1983,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   return currVarLimit;                             // return how must space is needed to preserve current locals.
 }
 
-int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity) {
+int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity, armReg tmpReg) {
   ArgSpec operands[arity];
 
   int32 callerArity = mtdArity(state->jit->mtd);
@@ -1998,7 +2002,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32
     int32 argSlot = tgtOff + ix;
     operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
   }
-  registerMap tmpMap = fixedRegSet(X16);
+  registerMap tmpMap = fixedRegSet(tmpReg);
   shuffleVars(state->jit, operands, arity, &tmpMap);
   return tgtOff;
 }

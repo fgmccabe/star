@@ -68,6 +68,12 @@ static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, i
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase);
 static void dropArguments(codeGenPo state, int32 pc, int32 tgtOff);
 static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity);
+// As overrideArguments, but `extra` is moved into `extraReg` as part of the same parallel
+// move. sTOCall needs this for the closure: it cannot simply be parked in a register
+// before the shuffle, because X16 is the register shuffleVars itself uses to break cycles
+// and any other register may be the source of one of the argument moves.
+static int32 overrideArgumentsAnd(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity,
+                                  FlexOp extra, mcRegister extraReg);
 static void adjustAG(codeGenPo state, int32 pc, int32 tgtOff);
 static localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo);
 static void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var);
@@ -371,19 +377,24 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 numArgs = opand(2);
       int32 argPc = pc + 3;
       int32 nextPc = pc + insSize;
-      mcRegister lamReg = X16;
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
-      loadRegister(state, lamReg, lam);
-      int32 tgtOff = overrideArguments(state, lambdaArgRegs(), argPc, numArgs) - 1;
+      // The closure travels as part of the argument shuffle rather than being loaded
+      // into X16 beforehand: X16 is precisely the register shuffleVars uses to break
+      // cycles, so a cyclic argument permutation used to overwrite the closure and the
+      // dispatch below would then chase a garbage method pointer. X0 is not in
+      // lambdaArgRegs(), so it is a safe destination.
+      mcRegister lamReg = X0;
+      int32 tgtOff = overrideArgumentsAnd(state, lambdaArgRegs(), argPc, numArgs, lam, lamReg) - 1;
 
-      ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
-      ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
+      ldr(X16, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
       // pick up the pointer to the method
-      ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
+      ldr(X16, OF(X16, OffsetOf(LblRecord, mtd)));
+      // the free vars overwrite lamReg, so this has to come after the label is extracted
+      ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
       codeLblPo haveMtd = newLabel(ctx);
       codeLblPo noMtd = newLabel(ctx);
-      cbz(lamReg, noMtd);
-      ldr(X16, OF(lamReg, OffsetOf(MethodRec, jit.code)));
+      cbz(X16, noMtd);
+      ldr(X16, OF(X16, OffsetOf(MethodRec, jit.code)));
       cbnz(X16, haveMtd);
       bind(noMtd);
       bailOut(state, pc, undefinedCode);
@@ -1906,6 +1917,33 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32
   }
   registerMap tmpMap = fixedRegSet(R10);
   shuffleVars(state->jit, operands, arity, &tmpMap);
+  return tgtOff;
+}
+
+// See the forward declaration for why the extra operand has to travel with the argument
+// shuffle rather than being loaded into a register ahead of it.
+int32 overrideArgumentsAnd(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity,
+                           FlexOp extra, mcRegister extraReg) {
+  ArgSpec operands[arity + 1];
+
+  int32 callerArity = mtdArity(state->jit->mtd);
+  int32 tgtOff = callerArity - arity;
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    FlexOp arg = sourceOperandFlex(state, argPc, ix);
+    mcRegister rx = nxtAvailArgReg(argRegs);
+    if (rx != XZR) {
+      argRegs = dropReg(argRegs, rx);
+      operands[ix] = argSpec(arg, RG(rx));
+    }
+    else {
+      int32 argSlot = tgtOff + ix;
+      operands[ix] = argSpec(arg, OF(AG,argSlot*pointerSize));
+    }
+  }
+  operands[arity] = argSpec(extra, RG(extraReg));
+  registerMap tmpMap = fixedRegSet(R10);
+  shuffleVars(state->jit, operands, arity + 1, &tmpMap);
   return tgtOff;
 }
 
