@@ -39,6 +39,24 @@ test.tagop{
   selfSub:(integer) => integer.
   selfSub(X) => X - X.
 
+  -- Exercises binaryIntCompare tagged fast path (no untag, csel routed through tr):
+  -- reused variable across two different comparisons, and same variable as both operands.
+  cmpReuse:(integer) => boolean.
+  cmpReuse(X) => valof{
+    Y = X == 10;
+    Z = X < 10;
+    valis Y && ~Z
+  }
+
+  selfEq:(integer) => boolean.
+  selfEq(X) => X == X.
+
+  selfLt:(integer) => boolean.
+  selfLt(X) => X < X.
+
+  selfGe:(integer) => boolean.
+  selfGe(X) => X >= X.
+
   main:(){}.
   main(){
     -- variable reused across two different ops -- must not be clobbered by the first
@@ -56,6 +74,35 @@ test.tagop{
     assert(selfAdd(-5) == -10);
     assert(selfSub(21) == 0);
     assert(selfSub(-5) == 0);
+
+    -- variable reused across two different comparisons -- must not be clobbered
+    assert(cmpReuse(10));
+    assert(~cmpReuse(9));
+    assert(~cmpReuse(11));
+
+    -- same variable as both operands of a comparison -- must not alias
+    assert(selfEq(21));
+    assert(selfEq(-1));
+    assert(~selfLt(21));
+    assert(~selfLt(-1));
+    assert(selfGe(21));
+    assert(selfGe(-1));
+
+    -- equality/ordering boundary checks for the tagged compare fast path
+    assert(6 == 6);
+    assert(~(6 == 7));
+    assert((-1) == (-1));
+    assert(~((-1) == 1));
+    assert(3 < 5);
+    assert(~(5 < 3));
+    assert((-5) < 3);
+    assert(~(3 < (-5)));
+    assert(~(5 < 5));
+    assert(5 >= 3);
+    assert(~(3 >= 5));
+    assert(5 >= 5);
+    assert(3 >= (-5));
+    assert(~((-5) >= 3));
 
     -- bitwise AND
     assert(6 .&. 3 == 2);
