@@ -1479,6 +1479,15 @@ void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx) {
   encodeScalarOp(p, 0b110000, 0, Rn, Rd, ctx);
 }
 
+// Round to integral, toward zero (truncate). encodeScalarOp's `Rm` parameter is reused
+// here as the top bits of the real 1-source opcode (0b00101_110000 = FRINTZ's encoding,
+// verified against `as`'s actual output for `frintz d0,d1`/`frintz s2,s3` -- this is not
+// the general 1-source pattern fabs_ uses (which happens to have those bits at zero).
+void frintz_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"frintz %#R, %#R\n%_",Rd,Rn));
+  encodeScalarOp(p, 0b110000, 0b00101, Rn, Rd, ctx);
+}
+
 void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"fadd %#R, %#R, %#R\n%_",Rd,Rn,Rm));
   encodeScalarOp(p, 0b001010, Rm, Rn, Rd, ctx);

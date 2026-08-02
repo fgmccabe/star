@@ -614,6 +614,9 @@ typedef enum {
 void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx);
 #define fabs(Rd, Rn) fabs_(Double, Rd, Rn, ctx)
 
+void frintz_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx);
+#define frintz(Rd, Rn) frintz_(Double, Rd, Rn, ctx)
+
 void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
 #define fadd(Rd, Rm, Rn) fadd_(Double, Rd,Rm,Rn,ctx)
 

@@ -1116,10 +1116,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       b(breakLabel(tgtBlock));
       bind(skip);
 
-      stpf(F0, F1, PRX(SP,-16));
-      ldpf(F0, F1, PSX(SP,16));
-      fdiv(F0, F0, F1);
-      fmsub(F2, F2, F1, F0);
+      // fmod(a,b) = a - trunc(a/b)*b. F0 holds a and F1 holds b throughout: fdiv/frintz
+      // only write their destination register, so both survive until the final fmsub,
+      // whose accumulator argument (the last operand) aliasing its destination (F0) is a
+      // single-instruction FMA -- well-defined, reads-before-writes.
+      fdiv(F2, F0, F1);
+      frintz(F2, F2);
+      fmsub(F0, F2, F1, F0);
       mkFloat(state, pc, nextPc, F0);
 
       storeVar(state, pc, RG(RTV), dst);

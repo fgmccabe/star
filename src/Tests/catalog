@@ -94,6 +94,7 @@
     "test.flt": "flt.star",
     "test.flt_test": "flt_test.star",
     "test.fm": "fm.star",
+    "test.fmod": "fmod.star",
     "test.fma": "fma.star",
     "test.fmt": "fmt.star",
     "test.fn": "fn.star",

@@ -104,6 +104,19 @@ static retCode test_fops() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_frintz() {
+  assemCtxPo ctx = createCtx();
+
+  frintz_(Double, F0, F1, ctx);
+  frintz_(Single, F2, F3, ctx);
+
+  uint8 tgt[] = {
+    0x20, 0xc0, 0x65, 0x1e, // frintz d0, d1
+    0x62, 0xc0, 0x25, 0x1e, // frintz s2, s3
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 retCode fp_tests() {
   tryRet(run_test(test_fmov));
   tryRet(run_test(test_ldrfp));
@@ -112,6 +125,7 @@ retCode fp_tests() {
   tryRet(run_test(test_stpfp));
 
   tryRet(run_test(test_fops));
+  tryRet(run_test(test_frintz));
 
   return Ok;
 }
