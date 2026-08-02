@@ -57,6 +57,14 @@ test.tagop{
   selfGe:(integer) => boolean.
   selfGe(X) => X >= X.
 
+  -- Exercises the tagged-bit-pattern fast paths for sIAbs (sub+csneg fixup) and sBNot
+  -- (NOT-then-subtract-1 fixup), both derived to skip the untag/retag round-trip entirely.
+  absCheck:(integer) => integer.
+  absCheck(X) => _int_abs(X).
+
+  notCheck:(integer) => integer.
+  notCheck(X) => .~. X.
+
   main:(){}.
   main(){
     -- variable reused across two different ops -- must not be clobbered by the first
@@ -103,6 +111,22 @@ test.tagop{
     assert(5 >= 5);
     assert(3 >= (-5));
     assert(~((-5) >= 3));
+
+    -- integer absolute value (tagged fast path)
+    assert(absCheck(5) == 5);
+    assert(absCheck(-5) == 5);
+    assert(absCheck(0) == 0);
+    assert(absCheck(1) == 1);
+    assert(absCheck(-1) == 1);
+    assert(absCheck(1000000000) == 1000000000);
+    assert(absCheck(-1000000000) == 1000000000);
+
+    -- bitwise complement (tagged fast path)
+    assert(notCheck(0) == -1);
+    assert(notCheck(-1) == 0);
+    assert(notCheck(5) == -6);
+    assert(notCheck(-6) == 5);
+    assert(notCheck(1000000000) == -1000000001);
 
     -- bitwise AND
     assert(6 .&. 3 == 2);

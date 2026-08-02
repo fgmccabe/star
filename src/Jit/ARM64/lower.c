@@ -931,13 +931,21 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       localVarPo dst = localTarget(state, pc, opand(1));
 
       armReg a1 = findARegister(state, pc);
+      armReg tmp = findARegister(state, pc);
       loadRegister(state, a1, left);
-      getIntVal(jit, a1);
-      cmp(a1, IM(0));
-      csneg(a1, a1, a1, GE);
 
-      mkIntVal(jit, a1);
+      // Negating the tagged bits directly gives -(4v+1) = 4(-v)-1, which is off by 2
+      // from the correctly-tagged abs value 4(-v)+1. csneg(a1,a1,tmp,GE) with
+      // tmp=a1-2 supplies that correction only on the negate branch: -tmp = -(a1-2) =
+      // 2-a1 = 4(-v)+1, exactly right. GE on the tagged value matches GE on the
+      // untagged value exactly (tagged is never 0 and strictly monotonic in v), so no
+      // untag is needed for the sign test either -- no untag/retag at all here.
+      sub(tmp, a1, IM(2));
+      cmp(a1, IM(0));
+      csneg(a1, a1, tmp, GE);
+
       storeVar(state, pc, RG(a1), dst);
+      releaseReg(jit, tmp);
       releaseReg(jit, a1);
       pc += insSize;
       continue;
@@ -1016,11 +1024,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       armReg a1 = findARegister(state, pc);
       loadRegister(state, a1, left);
-      getIntVal(jit, a1);
 
+      // NOT(x) = -x-1 for any two's complement x, so NOT(tagged(v)) = -(4v+1)-1 =
+      // -4v-2, one less than the correctly-tagged tagged(~v) = tagged(-v-1) = -4v-3.
+      // Subtract 1 afterward to correct; no untag/retag needed at all.
       mvn(a1, a1, LSL, 0);
+      sub(a1, a1, IM(1));
 
-      mkIntVal(jit, a1);
       storeVar(state, pc, RG(a1), dst);
       releaseReg(jit, a1);
       pc += insSize;
@@ -1058,16 +1068,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp right = localFlex(state, pc, opand(4));
       localVarPo dst = localTarget(state, pc, opand(2));
 
-      armReg dividend = findARegister(state, pc);
-      armReg divisor = findARegister(state, pc);
-      loadRegister(state, dividend, left);
-      loadRegister(state, divisor, right);
+      logical dividendFresh, divisorFresh;
+      armReg dividend = readOperandRegister(state, pc, left, &dividendFresh);
+      armReg divisor = readOperandRegister(state, pc, right, &divisorFresh);
 
       getFltVal(jit, dividend, F0);
       getFltVal(jit, divisor, F1);
 
-      releaseReg(jit, dividend);
-      releaseReg(jit, divisor);
+      if (dividendFresh) releaseReg(jit, dividend);
+      if (divisorFresh) releaseReg(jit, divisor);
 
       fmov(FP(F2), RG(XZR));
       fcmp(F1, F2);
@@ -1095,10 +1104,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp right = localFlex(state, pc, opand(4));
       localVarPo dst = localTarget(state, pc, opand(2));
 
-      armReg a1 = findARegister(state, pc);
-      armReg divisor = findARegister(state, pc);
-      loadRegister(state, a1, left);
-      loadRegister(state, divisor, right);
+      logical a1Fresh, divisorFresh;
+      armReg a1 = readOperandRegister(state, pc, left, &a1Fresh);
+      armReg divisor = readOperandRegister(state, pc, right, &divisorFresh);
 
       getFltVal(jit, a1, F0);
       getFltVal(jit, divisor, F1);
@@ -1126,8 +1134,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       mkFloat(state, pc, nextPc, F0);
 
       storeVar(state, pc, RG(RTV), dst);
-      releaseReg(jit, divisor);
-      releaseReg(jit, a1);
+      if (divisorFresh) releaseReg(jit, divisor);
+      if (a1Fresh) releaseReg(jit, a1);
       pc += insSize;
       continue;
     }
@@ -1138,8 +1146,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp left = localFlex(state, pc, opand(2));
       localVarPo dst = localTarget(state, pc, opand(1));
 
-      armReg a1 = findARegister(state, pc);
-      loadRegister(state, a1, left);
+      logical a1Fresh;
+      armReg a1 = readOperandRegister(state, pc, left, &a1Fresh);
       getFltVal(jit, a1, F0);
 
       fabs(F0, F0);
@@ -1147,7 +1155,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       mkFloat(state, pc, nextPc, F0);
       verifyState(state, pc);
       storeVar(state, pc, RG(RTV), dst);
-      releaseReg(jit, a1);
+      if (a1Fresh) releaseReg(jit, a1);
       pc = nextPc;
       continue;
     }
