@@ -1739,7 +1739,7 @@ void mkFloat(codeGenPo state, int32 pc, int32 livePc, fpReg dx) {
   stpf(dx, F1, PRX(SP,-16));
   allocSmallStruct(state, pc, livePc, floatIndex, FloatCellCount);
   ldpf(dx, F1, PSX(SP,16));
-  fstr(F0, OF(RTV,OffsetOf(FloatRecord,dx)));
+  fstr(dx, OF(RTV,OffsetOf(FloatRecord,dx)));
 }
 
 void pushFrme(codeGenPo state, int32 pc, int32 argOffset) {
