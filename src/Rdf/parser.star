@@ -64,7 +64,7 @@ rdf.parser{
   parseTks:all t,r ~~ stream[t->>_] |= (((prefixDict)>>r-->t),t,prefixDict) => option[r].
   parseTks(P,T,D) => ( (R,[]) ?= P(T,D) ?? .some(R) || .none).
 
-  resolve:(concept,prefixDict)=>concept.
+  public resolve:(concept,prefixDict)=>concept.
   resolve(.named(Nm,Post),D) where Pr ?= D[Nm] => .uri(Pr++Post).
   resolve(C,_) default => C.
 

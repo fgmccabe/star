@@ -3,7 +3,9 @@ rdf.sparql.parser{
 
   import rdf.token.
   import rdf.triple.
+  import rdf.parser.
   import rdf.sparql.query.
+  import rdf.sparql.prologue.
 
   /* Parse SPARQL queries -- see sparql.bnf for the reference grammar --
      into the query/pattern/term/expression AST defined in rdf.sparql.query.
@@ -22,16 +24,17 @@ rdf.sparql.parser{
      query.star AST constructor or type: datasetClause, describeTargets,
      groupCondition, orderCondition, selectVar, dataBlock.
 
-     prologue/prologueDecl remain plain recognizers: prefix/base declarations
-     aren't resolved against prefixedName here (that expansion, like the
-     annotationItem reifier-identity question in section 3, belongs to a later
-     pass), so there is nothing for them to produce yet. */
+     prologue accumulates PREFIX declarations into a prefixDict; sparqlQuery resolves the whole
+     parsed query against it (rdf.sparql.prologue.resolveQuery) before ever returning it, so
+     queryUnit's own result is already fully .uri(...)-resolved -- callers don't need to know
+     prefixes were involved. BASE is recognized but not yet resolved against relative IRIs,
+     matching rdf.parser's own Turtle preamble, which doesn't handle BASE either. */
 
   public queryUnit:() >> query --> cons[token].
   queryUnit >> Q --> sparqlQuery >> Q, [.endTok(_)].
 
   sparqlQuery:() >> query --> cons[token].
-  sparqlQuery >> combineTopValues(Q,VC) --> prologue,
+  sparqlQuery >> resolveQuery(Pfx,combineTopValues(Q,VC)) --> prologue >> Pfx,
     (selectQuery | constructQuery | describeQuery | askQuery) >> Q,
     valuesClause >> VC.
 
@@ -47,15 +50,29 @@ rdf.sparql.parser{
 
   -- Prologue
 
-  prologue --> prologueDecl*.
+  prologue:() >> prefixDict --> cons[token].
+  prologue >> { P -> U | (P,U) in filterSome(Ds) } --> prologueDecl* >> Ds.
 
-  prologueDecl --> baseDecl.
-  prologueDecl --> prefixDecl.
-  prologueDecl --> versionDecl.
+  prologueDecl:() >> option[(string,string)] --> cons[token].
+  prologueDecl >> D --> baseDecl >> D.
+  prologueDecl >> D --> prefixDecl >> D.
+  prologueDecl >> D --> versionDecl >> D.
 
-  baseDecl --> sparqlKw("base"), iri.
-  prefixDecl --> sparqlKw("prefix"), pnameNs, iri.
-  versionDecl --> sparqlKw("version"), versionSpecifier.
+  baseDecl:() >> option[(string,string)] --> cons[token].
+  baseDecl >> .none --> sparqlKw("base"), iri.
+
+  -- A PREFIX target is always a plain <IRI> in real SPARQL (IRIREF, never a prefixed name);
+  -- iri's prefixedName alternative is only reachable here because iri itself is shared with
+  -- contexts where that's valid -- prefixUriString degrades gracefully rather than failing
+  -- outright if a query ever does something as unusual as prefixing off another prefix.
+  prefixDecl:() >> option[(string,string)] --> cons[token].
+  prefixDecl >> .some((P,prefixUriString(U))) --> sparqlKw("prefix"), pnameNs >> P, iri >> U.
+
+  prefixUriString(.uri(U)) => U.
+  prefixUriString(.named(_,S)) => S.
+
+  versionDecl:() >> option[(string,string)] --> cons[token].
+  versionDecl >> .none --> sparqlKw("version"), versionSpecifier.
 
   versionSpecifier --> [.tok(_,.strTok(_))].
 

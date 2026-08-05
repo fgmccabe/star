@@ -7,6 +7,7 @@
     "rdf.meta" : "meta.star",
     "rdf.parser" : "parser.star",
     "rdf.sparql.query" : "query.star",
+    "rdf.sparql.prologue" : "prologue.star",
     "rdf.sparql.parser" : "sparql.star",
     "rdf.sparql.engine" : "engine.star",
     "rdf.sparql.test" : "sparqltest.star",

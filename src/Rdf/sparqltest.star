@@ -59,6 +59,8 @@ rdf.sparql.test{
       "UNION combines both branches directly, no external left operand");
     tryAst(Failures,"SELECT (GROUP_CONCAT(?n; SEPARATOR=\",\") AS ?names) WHERE { ?s ex:n ?n }", checkGroupConcatSep,
       "GROUP_CONCAT's SEPARATOR string is captured");
+    tryAst(Failures,"PREFIX ex: <http://example.org/> SELECT ?s WHERE { ?s a ex:Thing }", checkPrefixResolved,
+      "PREFIX-qualified names resolve to .uri(...), not .named(...) (Phase 0)");
 
     if Failures! == 0 then{
       logMsg(.info,"all sparql parser tests passed")
@@ -153,4 +155,7 @@ rdf.sparql.test{
 
   checkGroupConcatSep(.select(_,.vars([.computed(.groupConcat(.some(_),.false,.some(",")),"names")]),_,_,_)) => .true.
   checkGroupConcatSep(_) default => .false.
+
+  checkPrefixResolved(.select(_,_,_,.basic(_,_,.literal(.uri("http://example.org/Thing"))),_)) => .true.
+  checkPrefixResolved(_) default => .false.
 }
