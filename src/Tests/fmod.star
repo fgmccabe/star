@@ -2,10 +2,10 @@ test.fmod{
   import star.
   import star.assert.
 
-  -- Regression coverage for the ARM64 JIT's sFMod lowering: it previously computed
-  -- a/b (the plain quotient) instead of a - trunc(a/b)*b, because the truncation step
-  -- was missing entirely (see lower.c's frintz-based fix). These specifically exercise
-  -- sign combinations, since a truncation-direction bug hides exactly there.
+  /* Regression coverage for the ARM64 JIT's sFMod lowering: it previously computed
+     a/b (the plain quotient) instead of a - trunc(a/b)*b, because the truncation step
+     was missing entirely (see lower.c's frintz-based fix). These specifically exercise
+     sign combinations, since a truncation-direction bug hides exactly there. */
 
   chk:(float,float,float)=>boolean.
   chk(A,B,Expect) => valof{
@@ -18,12 +18,12 @@ test.fmod{
     }
   }
 
-  -- Exercises readOperandRegister's reuse path for sFMod/sFDiv/sFAbs: X is a live,
-  -- register-resident variable used directly as an operand of three different float
-  -- ops in a row -- must not be corrupted by an earlier op reusing its register (these
-  -- ops are read-only through their operand register, so there is no aliasing hazard
-  -- the way there is for the destructive integer ops, but the reuse path itself needs
-  -- exercising, not just derivation-by-eye).
+  /* Exercises readOperandRegister's reuse path for sFMod/sFDiv/sFAbs: X is a live,
+     register-resident variable used directly as an operand of three different float
+     ops in a row -- must not be corrupted by an earlier op reusing its register (these
+     ops are read-only through their operand register, so there is no aliasing hazard
+     the way there is for the destructive integer ops, but the reuse path itself needs
+     exercising, not just derivation-by-eye). */
   reuseCheck:(float)=>boolean.
   reuseCheck(X) => valof{
     try{

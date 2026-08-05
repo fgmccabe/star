@@ -5,27 +5,27 @@ rdf.sparql.parser{
   import rdf.triple.
   import rdf.sparql.query.
 
-  -- Parse SPARQL queries -- see sparql.bnf for the reference grammar --
-  -- into the query/pattern/term/expression AST defined in rdf.sparql.query.
-  --
-  -- A number of grammar rules below are suffixed (Clause/Expr/Rule) to avoid
-  -- colliding with same-named AST constructors imported from
-  -- rdf.sparql.query (e.g. the bindClause rule vs. the pattern.bind
-  -- constructor) -- importing that module brings its constructor labels into
-  -- scope as bare names, which clash with a rule of the same name.
-  --
-  -- Section 1: query forms and prologue. The following are used here but
-  -- defined in later sections: groupGraphPattern (section 2); expression,
-  -- constraint, builtInCall, functionCall, brackettedExpression (sections 4/5).
-  --
-  -- Several rules here are suffixed `Rule` because the bare name is already a
-  -- query.star AST constructor or type: datasetClause, describeTargets,
-  -- groupCondition, orderCondition, selectVar, dataBlock.
-  --
-  -- prologue/prologueDecl remain plain recognizers: prefix/base declarations
-  -- aren't resolved against prefixedName here (that expansion, like the
-  -- annotationItem reifier-identity question in section 3, belongs to a later
-  -- pass), so there is nothing for them to produce yet.
+  /* Parse SPARQL queries -- see sparql.bnf for the reference grammar --
+     into the query/pattern/term/expression AST defined in rdf.sparql.query.
+
+     A number of grammar rules below are suffixed (Clause/Expr/Rule) to avoid
+     colliding with same-named AST constructors imported from
+     rdf.sparql.query (e.g. the bindClause rule vs. the pattern.bind
+     constructor) -- importing that module brings its constructor labels into
+     scope as bare names, which clash with a rule of the same name.
+
+     Section 1: query forms and prologue. The following are used here but
+     defined in later sections: groupGraphPattern (section 2); expression,
+     constraint, builtInCall, functionCall, brackettedExpression (sections 4/5).
+
+     Several rules here are suffixed `Rule` because the bare name is already a
+     query.star AST constructor or type: datasetClause, describeTargets,
+     groupCondition, orderCondition, selectVar, dataBlock.
+
+     prologue/prologueDecl remain plain recognizers: prefix/base declarations
+     aren't resolved against prefixedName here (that expansion, like the
+     annotationItem reifier-identity question in section 3, belongs to a later
+     pass), so there is nothing for them to produce yet. */
 
   public queryUnit:() >> query --> cons[token].
   queryUnit >> Q --> sparqlQuery >> Q, [.endTok(_)].
@@ -35,9 +35,9 @@ rdf.sparql.parser{
     (selectQuery | constructQuery | describeQuery | askQuery) >> Q,
     valuesClause >> VC.
 
-  -- A top-level trailing VALUES clause is equivalent to an inline VALUES
-  -- block conjoined onto the query's own pattern (for DESCRIBE, onto its
-  -- optional WHERE pattern, creating one if there wasn't one already).
+  /* A top-level trailing VALUES clause is equivalent to an inline VALUES
+     block conjoined onto the query's own pattern (for DESCRIBE, onto its
+     optional WHERE pattern, creating one if there wasn't one already). */
   combineTopValues:(query,option[dataBlock]) => query.
   combineTopValues(Q,.none) => Q.
   combineTopValues(.select(M,Pr,DCs,P,Mods),.some(DB)) => .select(M,Pr,DCs,conjPattern2(P,.values(DB)),Mods).
@@ -97,11 +97,11 @@ rdf.sparql.parser{
   constructQuery:() >> query --> cons[token].
   constructQuery >> Q --> sparqlKw("construct"), constructBody >> Q.
 
-  -- The two ConstructQuery forms: an explicit template with its own WHERE
-  -- pattern, or the CONSTRUCT WHERE shorthand where the (single) template
-  -- doubles as the WHERE pattern too -- T is bound once by constructTemplate
-  -- and simply referenced twice in the output, the same way collectionToPattern
-  -- (section 3) reuses a single binding in two positions of its result.
+  /* The two ConstructQuery forms: an explicit template with its own WHERE
+     pattern, or the CONSTRUCT WHERE shorthand where the (single) template
+     doubles as the WHERE pattern too -- T is bound once by constructTemplate
+     and simply referenced twice in the output, the same way collectionToPattern
+     (section 3) reuses a single binding in two positions of its result. */
   constructBody:() >> query --> cons[token].
   constructBody >> .construct(T,DCs,WP,Mods) --> constructTemplate >> T, datasetClauseRule* >> DCs,
     whereClause >> WP, solutionModifier >> Mods.
@@ -205,20 +205,20 @@ rdf.sparql.parser{
   valuesClause:() >> option[dataBlock] --> cons[token].
   valuesClause >> DB --> ? (sparqlKw("values"), dataBlockRule) >> DB.
 
-  -- Section 2: graph patterns. The following are used here but defined in
-  -- later sections: triplesSameSubjectPath, tripleTermData (section 3);
-  -- expression, brackettedExpression, builtInCall, functionCall (sections 4/5);
-  -- rdfLiteral, numericLiteral, booleanLiteral (section 6).
-  --
-  -- OPTIONAL and MINUS are algebra combinators that take the pattern
-  -- accumulated *so far* in the enclosing groupGraphPatternSub as their left
-  -- operand (query.pattern's .optional/.minus are both (pattern,pattern), not
-  -- something optionalGraphPattern/minusGraphPattern could produce alone) --
-  -- unlike UNION, FILTER, BIND etc., which just conjoin with whatever precedes
-  -- them. graphPatternNotTriples therefore returns a `combinator` marking
-  -- which kind of combination this item needs, and groupGraphPatternSub's fold
-  -- applies the right one at each step. dataBlock is renamed dataBlockRule
-  -- here for the same reason as section 1's *Rule renames.
+  /* Section 2: graph patterns. The following are used here but defined in
+     later sections: triplesSameSubjectPath, tripleTermData (section 3);
+     expression, brackettedExpression, builtInCall, functionCall (sections 4/5);
+     rdfLiteral, numericLiteral, booleanLiteral (section 6).
+
+     OPTIONAL and MINUS are algebra combinators that take the pattern
+     accumulated *so far* in the enclosing groupGraphPatternSub as their left
+     operand (query.pattern's .optional/.minus are both (pattern,pattern), not
+     something optionalGraphPattern/minusGraphPattern could produce alone) --
+     unlike UNION, FILTER, BIND etc., which just conjoin with whatever precedes
+     them. graphPatternNotTriples therefore returns a `combinator` marking
+     which kind of combination this item needs, and groupGraphPatternSub's fold
+     applies the right one at each step. dataBlock is renamed dataBlockRule
+     here for the same reason as section 1's *Rule renames. */
 
   combinator ::= .plainPat(pattern) | .optWrap(pattern) | .minusWrap(pattern).
 
@@ -329,26 +329,26 @@ rdf.sparql.parser{
   constraint >> E --> builtInCall >> E.
   constraint >> E --> functionCall >> E.
 
-  -- Shared by DISTINCT/REDUCED/SILENT-style optional keywords across sections
-  -- 1, 2 and 5: `? sparqlKw(Kw)` alone can't produce a boolean since sparqlKw
-  -- itself has no output to wrap -- this gives the presence/absence check its
-  -- own boolean-producing rule instead.
+  /* Shared by DISTINCT/REDUCED/SILENT-style optional keywords across sections
+     1, 2 and 5: `? sparqlKw(Kw)` alone can't produce a boolean since sparqlKw
+     itself has no output to wrap -- this gives the presence/absence check its
+     own boolean-producing rule instead. */
   kwFlag:(string) >> boolean --> cons[token].
   kwFlag(Kw) >> .true --> sparqlKw(Kw).
   kwFlag(Kw) >> .false --> [].
 
-  -- Section 3: triples and property paths, including RDF-star reified
-  -- triples/triple terms and annotations. The following are used here but
-  -- defined in later sections: rdfLiteral, numericLiteral, booleanLiteral
-  -- (section 6).
-  --
-  -- propertyList(Path)(NotEmpty) build a plain list of (predicate,objects)
-  -- pairs rather than a pattern directly, since they don't know the subject
-  -- -- it's supplied by the caller (triplesSameSubject(Path)), which combines
-  -- subject+pairs into the actual conjoined .basic triples via
-  -- propertyPairsToPattern. Each object carries the extra `pattern` from a
-  -- nested collection/blank node property list used as that object (e.g.
-  -- `?s ex:p (1 2 3)`), which must still be conjoined into the result.
+  /* Section 3: triples and property paths, including RDF-star reified
+     triples/triple terms and annotations. The following are used here but
+     defined in later sections: rdfLiteral, numericLiteral, booleanLiteral
+     (section 6).
+
+     propertyList(Path)(NotEmpty) build a plain list of (predicate,objects)
+     pairs rather than a pattern directly, since they don't know the subject
+     -- it's supplied by the caller (triplesSameSubject(Path)), which combines
+     subject+pairs into the actual conjoined .basic triples via
+     propertyPairsToPattern. Each object carries the extra `pattern` from a
+     nested collection/blank node property list used as that object (e.g.
+     `?s ex:p (1 2 3)`), which must still be conjoined into the result. */
   public propertyPairs ~> cons[(predicate,cons[(term,pattern,cons[annotationItem])])].
 
   constructTemplate:() >> pattern --> cons[token].
@@ -379,9 +379,9 @@ rdf.sparql.parser{
   propertyListNotEmpty >> [(V0,OL0),..filterSome(VOs)] --> verb >> V0, objectList >> OL0,
     (punc(";"), ? verbObjectPair)* >> VOs.
 
-  -- A bare sequence's `>>` value is only its *last* term (per grammar.adoc),
-  -- so `(verb, objectList)` alone would only capture objectList, silently
-  -- dropping the verb -- this explicit pair rule avoids that.
+  /* A bare sequence's `>>` value is only its *last* term (per grammar.adoc),
+     so `(verb, objectList)` alone would only capture objectList, silently
+     dropping the verb -- this explicit pair rule avoids that. */
   verbObjectPair:() >> (predicate,cons[(term,pattern,cons[annotationItem])]) --> cons[token].
   verbObjectPair >> (V,OL) --> verb >> V, objectList >> OL.
 
@@ -392,9 +392,9 @@ rdf.sparql.parser{
   objectList:() >> cons[(term,pattern,cons[annotationItem])] --> cons[token].
   objectList >> [O0,..Os] --> object >> O0, (punc(","), object)* >> Os.
 
-  -- The middle `pattern` carries structure from a nested collection/blank
-  -- node property list used directly as an object (e.g. `?s ex:p (1 2 3)`)
-  -- -- discarding it would silently drop that structure's own triples.
+  /* The middle `pattern` carries structure from a nested collection/blank
+     node property list used directly as an object (e.g. `?s ex:p (1 2 3)`)
+     -- discarding it would silently drop that structure's own triples. */
   object:() >> (term,pattern,cons[annotationItem]) --> cons[token].
   object >> (T,Extra,As) --> graphNode >> (T,Extra), annotation >> As.
 
@@ -446,10 +446,10 @@ rdf.sparql.parser{
   pathEltOrInverse >> P --> pathElt >> P.
   pathEltOrInverse >> .inverse(P) --> punc("^"), pathElt >> P.
 
-  -- The `?` (zero-or-one) modifier is followed here by a negative lookahead:
-  -- since a variable is lexed as two tokens (`punc("?")` then an identifier,
-  -- see `varRef` below), a bare `punc("?")` immediately followed by an
-  -- identifier token is the start of the *next* variable, not a path modifier.
+  /* The `?` (zero-or-one) modifier is followed here by a negative lookahead:
+     since a variable is lexed as two tokens (`punc("?")` then an identifier,
+     see `varRef` below), a bare `punc("?")` immediately followed by an
+     identifier token is the start of the *next* variable, not a path modifier. */
   pathMod:() >> pathMod --> cons[token].
   pathMod >> .pOptional --> punc("?"), ~ [.tok(_,.idTok(_))].
   pathMod >> .pStar --> punc("*").
@@ -564,10 +564,10 @@ rdf.sparql.parser{
   tripleTermObject >> .literal(C) --> blankNode >> C.
   tripleTermObject >> T --> tripleTermExpr >> T.
 
-  -- Fully-ground triple term, as used in VALUES data blocks: unlike
-  -- tripleTerm above, this can't hold a variable, so it produces a plain
-  -- rdf.triple.concept (reusing .tripleTerm(triple) there) rather than a
-  -- query.term.
+  /* Fully-ground triple term, as used in VALUES data blocks: unlike
+     tripleTerm above, this can't hold a variable, so it produces a plain
+     rdf.triple.concept (reusing .tripleTerm(triple) there) rather than a
+     query.term. */
   tripleTermData:() >> concept --> cons[token].
   tripleTermData >> .tripleTerm(.tr(S,P,O)) --> punc("<<"), punc("("), tripleTermDataSubject >> S,
     (iri >> P | sparqlKw("a"), {P .= rdfTypeConcept()}), tripleTermDataObject >> O, punc(")"), punc(">>").
@@ -612,14 +612,14 @@ rdf.sparql.parser{
   annotationBlockRule >> .annotationBlock(propertyPairsToPattern(anonSubject(),PVs)) -->
     punc("{"), punc("|"), propertyListNotEmpty >> PVs, punc("|"), punc("}").
 
-  -- Section 4: expressions. The following are used here but defined in later
-  -- sections: iriOrFunction, expressionList, builtInCall (section 5);
-  -- rdfLiteral, numericLiteral, numericLiteralPositive, numericLiteralNegative,
-  -- booleanLiteral (section 6, already typed).
-  --
-  -- `&&`, `||` and `!=` compose from adjacent single-char tokens (`&`,`&`;
-  -- `|`,`|`; `!`,`=`) already produced by rdf.lexer, the same way `{|`/`|}`
-  -- did in section 3 -- no further lexer changes needed for this section.
+  /* Section 4: expressions. The following are used here but defined in later
+     sections: iriOrFunction, expressionList, builtInCall (section 5);
+     rdfLiteral, numericLiteral, numericLiteralPositive, numericLiteralNegative,
+     booleanLiteral (section 6, already typed).
+
+     `&&`, `||` and `!=` compose from adjacent single-char tokens (`&`,`&`;
+     `|`,`|`; `!`,`=`) already produced by rdf.lexer, the same way `{|`/`|}`
+     did in section 3 -- no further lexer changes needed for this section. */
 
   expression:() >> expression --> cons[token].
   expression >> E --> conditionalOrExpression >> E.
@@ -642,10 +642,10 @@ rdf.sparql.parser{
   valueLogical:() >> expression --> cons[token].
   valueLogical >> E --> relationalExpression >> E.
 
-  -- The eight relational-suffix alternatives share a single optional slot:
-  -- relOp records which one (if any) matched, and applyRelOp turns that plus
-  -- the LHS into the actual comparison/membership expression -- the same
-  -- "parse a marker, apply it afterward" idiom applyPathMod (section 3) uses.
+  /* The eight relational-suffix alternatives share a single optional slot:
+     relOp records which one (if any) matched, and applyRelOp turns that plus
+     the LHS into the actual comparison/membership expression -- the same
+     "parse a marker, apply it afterward" idiom applyPathMod (section 3) uses. */
   relOp ::= .cmpEq(expression) | .cmpNe(expression) | .cmpLt(expression) | .cmpGt(expression)
     | .cmpLe(expression) | .cmpGe(expression) | .cmpIn(cons[expression]) | .cmpNotIn(cons[expression]).
 
@@ -676,10 +676,10 @@ rdf.sparql.parser{
   numericExpression:() >> expression --> cons[token].
   numericExpression >> E --> additiveExpression >> E.
 
-  -- AdditiveExpression's three tail shapes (+ term, - term, or a directly
-  -- juxtaposed signed literal that can itself carry trailing */÷ factors, e.g.
-  -- `2 -3*4`) all fold left-associatively into the running total, so they
-  -- share one marker type the same way relOp does above.
+  /* AdditiveExpression's three tail shapes (+ term, - term, or a directly
+     juxtaposed signed literal that can itself carry trailing '*' or '/'
+     factors, e.g. `2 -3*4`) all fold left-associatively into the running
+     total, so they share one marker type the same way relOp does above. */
   addOp ::= .addTail(expression) | .subTail(expression).
 
   additiveExpression:() >> expression --> cons[token].
@@ -696,8 +696,8 @@ rdf.sparql.parser{
   foldAdditive(E,[.addTail(R),..Rest]) => foldAdditive(.add(E,R),Rest).
   foldAdditive(E,[.subTail(R),..Rest]) => foldAdditive(.sub(E,R),Rest).
 
-  -- Shared by additiveOp's signed-literal case and multiplicativeExpression
-  -- itself (both are "seed expression, then repeated */÷ factors").
+  /* Shared by additiveOp's signed-literal case and multiplicativeExpression
+     itself (both are "seed expression, then repeated '*'/'/' factors"). */
   mulOp ::= .mulTail(expression) | .divTail(expression).
 
   signedFactorTail:(expression) >> expression --> cons[token].
@@ -731,9 +731,9 @@ rdf.sparql.parser{
   primaryExpression >> .term(.var(V)) --> varRef >> V.
   primaryExpression >> E --> exprTripleTermRule >> E.
 
-  -- verb (section 3) always yields .simple(T) here (SPARQL's Verb production
-  -- is VarOrIri | 'a', never a property path), so predicateToExpr's .path arm
-  -- is unreachable -- kept only for exhaustiveness.
+  /* verb (section 3) always yields .simple(T) here (SPARQL's Verb production
+     is VarOrIri | 'a', never a property path), so predicateToExpr's .path arm
+     is unreachable -- kept only for exhaustiveness. */
   exprTripleTermRule:() >> expression --> cons[token].
   exprTripleTermRule >> .exprTripleTerm(S,predicateToExpr(P),O) -->
     punc("<<"), punc("("), exprTripleTermSubject >> S, verb >> P, exprTripleTermObject >> O, punc(")"), punc(">>").
@@ -756,16 +756,16 @@ rdf.sparql.parser{
   brackettedExpression:() >> expression --> cons[token].
   brackettedExpression >> E --> punc("("), expression >> E, punc(")").
 
-  -- Section 5: built-ins, aggregates, and function calls. The following are
-  -- used here but defined in section 6: rdfLiteral, numericLiteral,
-  -- booleanLiteral (already typed).
-  --
-  -- Most BuiltInCall alternatives share one of a handful of shapes (keyword
-  -- applied to 1/2/3 expressions, or to NIL); oneArgBuiltin/twoArgBuiltin/
-  -- threeArgBuiltin/nilArgBuiltin/aggFn1 below are parameterized over the
-  -- keyword to avoid repeating each shape ~15-20 times. Every one collapses
-  -- to the generic expression.call(name,args) rather than one constructor
-  -- per built-in (see query.star's expression comment).
+  /* Section 5: built-ins, aggregates, and function calls. The following are
+     used here but defined in section 6: rdfLiteral, numericLiteral,
+     booleanLiteral (already typed).
+
+     Most BuiltInCall alternatives share one of a handful of shapes (keyword
+     applied to 1/2/3 expressions, or to NIL); oneArgBuiltin/twoArgBuiltin/
+     threeArgBuiltin/nilArgBuiltin/aggFn1 below are parameterized over the
+     keyword to avoid repeating each shape ~15-20 times. Every one collapses
+     to the generic expression.call(name,args) rather than one constructor
+     per built-in (see query.star's expression comment). */
 
   builtInCall:() >> expression --> cons[token].
   builtInCall >> E --> aggregateExpr >> E.
@@ -876,9 +876,9 @@ rdf.sparql.parser{
   notExistsFunc:() >> expression --> cons[token].
   notExistsFunc >> .notExists(P) --> sparqlKw("not"), sparqlKw("exists"), groupGraphPattern >> P.
 
-  -- COUNT is its own shape (DISTINCT flag plus either `*` or an expression);
-  -- SUM/MIN/MAX/AVG/SAMPLE share aggFn1's single-expression shape;
-  -- GROUP_CONCAT is its own shape again (optional SEPARATOR).
+  /* COUNT is its own shape (DISTINCT flag plus either `*` or an expression);
+     SUM/MIN/MAX/AVG/SAMPLE share aggFn1's single-expression shape;
+     GROUP_CONCAT is its own shape again (optional SEPARATOR). */
   aggregateExpr:() >> expression --> cons[token].
   aggregateExpr >> .aggregate("count",CountArg,Dist) --> sparqlKw("count"), punc("("), kwFlag("distinct") >> Dist,
     countTarget >> CountArg, punc(")").
@@ -929,42 +929,42 @@ rdf.sparql.parser{
   expressionList >> [] --> rdfNil.
   expressionList >> [E0,..Es] --> punc("("), expression >> E0, (punc(","), expression)* >> Es, punc(")").
 
-  -- SPARQL strings don't support N3-style `$(...)` interpolation, but
-  -- rdf.lexer's string reader is shared and will still fire its
-  -- interpolation path for the literal text `$[` -- an edge case treated
-  -- degenerately here (empty segment) rather than by giving the lexer a
-  -- SPARQL-specific string mode.
+  /* SPARQL strings don't support N3-style `$(...)` interpolation, but
+     rdf.lexer's string reader is shared and will still fire its
+     interpolation path for the literal text `$[` -- an edge case treated
+     degenerately here (empty segment) rather than by giving the lexer a
+     SPARQL-specific string mode. */
   stringLiteral:() >> cons[markup] --> cons[token].
   stringLiteral >> segsToMarkup(Segs) --> [.tok(_,.strTok(Segs))].
 
-  -- Section 6: RDF terms and literals. This closes out every forward
-  -- reference from sections 1-5.
-  --
-  -- NumericLiteralUnsigned collapses the BNF's INTEGER/DECIMAL/DOUBLE
-  -- three-way split down to the two numeric token kinds rdf.lexer actually
-  -- produces (.intTok/.fltTok) -- it doesn't distinguish DECIMAL from DOUBLE
-  -- itself.
-  --
-  -- NumericLiteralPositive/Negative are simplified: real SPARQL tokenizes
-  -- `+3`/`-3` as a single signed-literal token but `+ 3`/`- 3` (with a space)
-  -- as separate operator and literal tokens -- an adjacency distinction
-  -- rdf.lexer doesn't make (it always emits `+`/`-` as standalone punc
-  -- tokens). Here they're just `punc("+"|"-"), numericLiteralUnsigned`,
-  -- which still recognizes valid signed literals correctly since these rules
-  -- are only reachable from grammar positions where a signed literal is
-  -- expected; it just doesn't enforce the no-whitespace rule the real
-  -- grammar does.
-  --
-  -- LANG_DIR (`@en`, `@en-US`, `@en--Latn`, ...) simplifies to `@` followed
-  -- by one identifier token: rdf.lexer's identifier scanner already treats
-  -- internal `-`/`--` as ordinary identifier characters (see lexer.star's
-  -- isIdentChr), so it greedily consumes the whole tag as a single .idTok
-  -- without the grammar needing to spell out the subtag structure itself.
+  /* Section 6: RDF terms and literals. This closes out every forward
+     reference from sections 1-5.
 
-  -- The three alternatives are tried longest-first (lang tag, then datatype,
-  -- then bare) so the bare `.text` case doesn't preempt a suffix that's
-  -- actually present -- matching how the recognizer's `?(A|B)` tries A/B
-  -- before falling back to matching nothing.
+     NumericLiteralUnsigned collapses the BNF's INTEGER/DECIMAL/DOUBLE
+     three-way split down to the two numeric token kinds rdf.lexer actually
+     produces (.intTok/.fltTok) -- it doesn't distinguish DECIMAL from DOUBLE
+     itself.
+
+     NumericLiteralPositive/Negative are simplified: real SPARQL tokenizes
+     `+3`/`-3` as a single signed-literal token but `+ 3`/`- 3` (with a space)
+     as separate operator and literal tokens -- an adjacency distinction
+     rdf.lexer doesn't make (it always emits `+`/`-` as standalone punc
+     tokens). Here they're just `punc("+"|"-"), numericLiteralUnsigned`,
+     which still recognizes valid signed literals correctly since these rules
+     are only reachable from grammar positions where a signed literal is
+     expected; it just doesn't enforce the no-whitespace rule the real
+     grammar does.
+
+     LANG_DIR (`@en`, `@en-US`, `@en--Latn`, ...) simplifies to `@` followed
+     by one identifier token: rdf.lexer's identifier scanner already treats
+     internal `-`/`--` as ordinary identifier characters (see lexer.star's
+     isIdentChr), so it greedily consumes the whole tag as a single .idTok
+     without the grammar needing to spell out the subtag structure itself. */
+
+  /* The three alternatives are tried longest-first (lang tag, then datatype,
+     then bare) so the bare `.text` case doesn't preempt a suffix that's
+     actually present -- matching how the recognizer's `?(A|B)` tries A/B
+     before falling back to matching nothing. */
   rdfLiteral:() >> concept --> cons[token].
   rdfLiteral >> .langText(S,L) --> stringLiteral >> S, langTag >> L.
   rdfLiteral >> .typedText(S,D) --> stringLiteral >> S, punc("^"), punc("^"), iri >> D.
@@ -992,14 +992,14 @@ rdf.sparql.parser{
   booleanLiteral >> .bool(.true) --> sparqlKw("true").
   booleanLiteral >> .bool(.false) --> sparqlKw("false").
 
-  -- A BLANK_NODE_LABEL's `_:` only tokenizes as a bare `_` identifier
-  -- followed by `:` when nothing else is glued onto the underscore (`:` is
-  -- not an identifier-continuation character, so the lexer's identifier scan
-  -- stops right there) -- matching how `_:label` is always written with no
-  -- space, per the SPARQL grammar. labeledBlank/genAnon both reuse
-  -- rdf.triple's .anon representation -- the same one Turtle/N3 blank nodes
-  -- already use -- with labeledBlank keeping same-label-same-node consistent
-  -- within one query via a small assoc list reset at the start of queryUnit.
+  /* A BLANK_NODE_LABEL's `_:` only tokenizes as a bare `_` identifier
+     followed by `:` when nothing else is glued onto the underscore (`:` is
+     not an identifier-continuation character, so the lexer's identifier scan
+     stops right there) -- matching how `_:label` is always written with no
+     space, per the SPARQL grammar. labeledBlank/genAnon both reuse
+     rdf.triple's .anon representation -- the same one Turtle/N3 blank nodes
+     already use -- with labeledBlank keeping same-label-same-node consistent
+     within one query via a small assoc list reset at the start of queryUnit. */
   blankNode:() >> concept --> cons[token].
   blankNode >> labeledBlank(L) --> [.tok(_,.idTok("_"))], punc(":"), [.tok(_,.idTok(L))].
   blankNode >> genAnon() --> punc("["), punc("]").
@@ -1014,8 +1014,8 @@ rdf.sparql.parser{
   varOrIri >> .var(V) --> varRef >> V.
   varOrIri >> .literal(C) --> iri >> C.
 
-  -- iri produces a concept (never a variable), reused as-is anywhere a
-  -- ground IRI is needed; varOrIri/term-building rules wrap it in .literal.
+  /* iri produces a concept (never a variable), reused as-is anywhere a
+     ground IRI is needed; varOrIri/term-building rules wrap it in .literal. */
   public iri:() >> concept --> cons[token].
   iri >> .uri(U) --> [.tok(_,.uriTok(U))].
   iri >> C --> prefixedName >> C.
@@ -1034,8 +1034,8 @@ rdf.sparql.parser{
   integerToken:() >> integer --> cons[token].
   integerToken >> N --> [.tok(_,.intTok(N))].
 
-  -- SPARQL keywords are case-insensitive (unlike rdf.parser's `keyword`,
-  -- which is an exact case-sensitive match used by the N3 parser).
+  /* SPARQL keywords are case-insensitive (unlike rdf.parser's `keyword`,
+     which is an exact case-sensitive match used by the N3 parser). */
   sparqlKw(Key) --> [.tok(_,.idTok(Id))], {sameKeyword(Key,Id)}.
 
   sameKeyword(Key,Id) => foldCase(Key)==foldCase(Id).
@@ -1055,10 +1055,10 @@ rdf.sparql.parser{
   filterSome([.some(X),..Xs]) => [X,..filterSome(Xs)].
   filterSome([.none,..Xs]) => filterSome(Xs).
 
-  -- Combine a subject with the (predicate,objects) pairs collected by
-  -- propertyList(Path)(NotEmpty) into the actual conjoined .basic triples,
-  -- folding in each object's extra structure (from a nested collection/
-  -- blank node property list) and wrapping with .annotated where present.
+  /* Combine a subject with the (predicate,objects) pairs collected by
+     propertyList(Path)(NotEmpty) into the actual conjoined .basic triples,
+     folding in each object's extra structure (from a nested collection/
+     blank node property list) and wrapping with .annotated where present. */
   propertyPairsToPattern:(term,propertyPairs) => pattern.
   propertyPairsToPattern(_,[]) => .nilPattern.
   propertyPairsToPattern(S,[(P,Os)]) => objectsToPattern(S,P,Os).
@@ -1101,9 +1101,9 @@ rdf.sparql.parser{
   applyPathMod(P,.none) => P.
   applyPathMod(P,.some(M)) => .mod(P,M).
 
-  -- Builds the standard rdf:first/rdf:rest cons-list encoding for a
-  -- Collection/CollectionPath, returning the list's anchor term (the first
-  -- cell, or rdf:nil if empty) and the pattern of triples describing it.
+  /* Builds the standard rdf:first/rdf:rest cons-list encoding for a
+     Collection/CollectionPath, returning the list's anchor term (the first
+     cell, or rdf:nil if empty) and the pattern of triples describing it. */
   collectionToPattern:(cons[(term,pattern)]) => (term,pattern).
   collectionToPattern([]) => (.literal(.uri(rdfNilUri())), .nilPattern).
   collectionToPattern([(E,EPat),..Rest]) where
@@ -1112,16 +1112,16 @@ rdf.sparql.parser{
       conjPattern2(.basic(Cell,.simple(.literal(.uri(rdfFirstUri()))),E),
         conjPattern2(.basic(Cell,.simple(.literal(.uri(rdfRestUri()))),RestAnchor), RestPat)))).
 
-  -- Collapses the `? reifierClause` around a `<< ... >>`'s optional reifier
-  -- (reifierClause's own result is already option[term], for its own
-  -- optional id) down to a single option[term].
+  /* Collapses the `? reifierClause` around a `<< ... >>`'s optional reifier
+     (reifierClause's own result is already option[term], for its own
+     optional id) down to a single option[term]. */
   annotationItemToReifierId:(option[option[term]]) => option[term].
   annotationItemToReifierId(.none) => .none.
   annotationItemToReifierId(.some(X)) => X.
 
-  -- Placeholder subject for an annotation block's own triples: real RDF-star
-  -- semantics connect these to the enclosing triple's reifier, which this
-  -- pass doesn't wire up (see the annotationItem comment in query.star).
+  /* Placeholder subject for an annotation block's own triples: real RDF-star
+     semantics connect these to the enclosing triple's reifier, which this
+     pass doesn't wire up (see the annotationItem comment in query.star). */
   anonSubject() => .literal(genAnon()).
 
   -- Section 6 support functions
@@ -1135,11 +1135,11 @@ rdf.sparql.parser{
   negateConcept(.int(N)) => .int(-N).
   negateConcept(.flt(N)) => .flt(-N).
 
-  -- Blank-node label -> concept mapping, so that repeated uses of the same
-  -- `_:label` within one query resolve to the same node. Reset at the start
-  -- of each top-level parse (see queryUnit in section 1); like
-  -- rdf.triple.genAnon's own counter, this is a shared module-level ref, not
-  -- safely reentrant across concurrent parses.
+  /* Blank-node label -> concept mapping, so that repeated uses of the same
+     `_:label` within one query resolve to the same node. Reset at the start
+     of each top-level parse (see queryUnit in section 1); like
+     rdf.triple.genAnon's own counter, this is a shared module-level ref, not
+     safely reentrant across concurrent parses. */
   BlankLabels = ref ([]:cons[(string,concept)]).
 
   public resetBlankNodes:(){}.

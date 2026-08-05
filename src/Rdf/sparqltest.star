@@ -7,11 +7,11 @@ rdf.sparql.test{
   import rdf.sparql.query.
   import rdf.triple.
 
-  -- Smoke test for the SPARQL parser (rdf.sparql.parser): each query is
-  -- tokenized and run through queryUnit, and the result is checked against
-  -- the expected accept/reject outcome. Covers every query form, solution
-  -- modifiers, property paths, aggregates, UNION/OPTIONAL, RDF-star
-  -- (reified triples, annotations, reifiers), and expression precedence.
+  /* Smoke test for the SPARQL parser (rdf.sparql.parser): each query is
+     tokenized and run through queryUnit, and the result is checked against
+     the expected accept/reject outcome. Covers every query form, solution
+     modifiers, property paths, aggregates, UNION/OPTIONAL, RDF-star
+     (reified triples, annotations, reifiers), and expression precedence. */
 
   main:(){}.
   main(){
@@ -35,10 +35,10 @@ rdf.sparql.test{
     tryQuery(Failures,"THIS IS NOT VALID SPARQL AT ALL", .false);
     tryQuery(Failures,"SELECT ?s WHERE { ?s ?p ?o UNION { ?s ex:r ?o } }", .false);
 
-    -- AST-shape checks: recognition alone can't catch a wrong operator
-    -- precedence fold, the OPTIONAL/MINUS accumulator combining with the
-    -- wrong side, or CONSTRUCT WHERE's template/where-pattern sharing --
-    -- these inspect the actual query.query value each parse produces.
+    /* AST-shape checks: recognition alone can't catch a wrong operator
+       precedence fold, the OPTIONAL/MINUS accumulator combining with the
+       wrong side, or CONSTRUCT WHERE's template/where-pattern sharing --
+       these inspect the actual query.query value each parse produces. */
     tryAst(Failures,"SELECT ?s WHERE { ?s ?p ?o }", checkSimpleSelect,
       "basic triple pattern with plain projection");
     tryAst(Failures,"SELECT ?s WHERE { ?s ex:p ?o . FILTER(2+3*4) }", checkPrecedence,
@@ -107,22 +107,22 @@ rdf.sparql.test{
     .filter(.add(.term(.literal(.int(2))),.mul(.term(.literal(.int(3))),.term(.literal(.int(4))))))),_)) => .true.
   checkPrecedence(_) default => .false.
 
-  -- additiveOp's clauses are tried in the same priority order as the real
-  -- SPARQL BNF ('+', '-', then the signed-literal case) -- so "- 3 * 4" always
-  -- matches the plain punc("-"),multiplicativeExpression alternative first
-  -- (it parses "3*4" successfully as a multiplicativeExpression), and the
-  -- signed-literal alternative never gets a chance. This matches real SPARQL
-  -- too: without adjacency info (rdf.lexer doesn't track whether '-' touches
-  -- the digit -- see numericLiteralNegative's comment), "2 -3*4" is
-  -- indistinguishable from ordinary subtraction, which is what it parses as.
+  /* additiveOp's clauses are tried in the same priority order as the real
+     SPARQL BNF ('+', '-', then the signed-literal case) -- so "- 3 * 4" always
+     matches the plain punc("-"),multiplicativeExpression alternative first
+     (it parses "3*4" successfully as a multiplicativeExpression), and the
+     signed-literal alternative never gets a chance. This matches real SPARQL
+     too: without adjacency info (rdf.lexer doesn't track whether '-' touches
+     the digit -- see numericLiteralNegative's comment), "2 -3*4" is
+     indistinguishable from ordinary subtraction, which is what it parses as. */
   checkSignedFactor(.select(_,_,_,.conj(.basic(_,_,_),
     .filter(.sub(.term(.literal(.int(2))),.mul(.term(.literal(.int(3))),.term(.literal(.int(4))))))),_)) => .true.
   checkSignedFactor(_) default => .false.
 
-  -- ex:p/ex:q are IRI-valued predicates in a WHERE-clause (property-path)
-  -- context, so they parse through verbPath as .path(.predicate(...)), not
-  -- the plain .simple(...) that CONSTRUCT templates' verb produces (see
-  -- checkConstructWhereShorthand below, and section 3's verb/verbPath split).
+  /* ex:p/ex:q are IRI-valued predicates in a WHERE-clause (property-path)
+     context, so they parse through verbPath as .path(.predicate(...)), not
+     the plain .simple(...) that CONSTRUCT templates' verb produces (see
+     checkConstructWhereShorthand below, and section 3's verb/verbPath split). */
   checkOptionalAccum(.select(_,_,_,.optional(.basic(.var("s"),.path(.predicate(.literal(_))),.var("o")),
     .basic(.var("o"),.path(.predicate(.literal(_))),.var("r"))),_)) => .true.
   checkOptionalAccum(_) default => .false.
@@ -134,11 +134,11 @@ rdf.sparql.test{
   checkCountDistinct(.select(_,.vars([.computed(.aggregate("count",.some(.term(.var("s"))),.true),"c")]),_,_,_)) => .true.
   checkCountDistinct(_) default => .false.
 
-  -- Checks the template and where-pattern positions really did come from the
-  -- same parse (see constructBody's second clause) by comparing the
-  -- variable names on both sides -- pattern/term have no equality contract,
-  -- so this compares the string names directly rather than the patterns
-  -- themselves.
+  /* Checks the template and where-pattern positions really did come from the
+     same parse (see constructBody's second clause) by comparing the
+     variable names on both sides -- pattern/term have no equality contract,
+     so this compares the string names directly rather than the patterns
+     themselves. */
   checkConstructWhereShorthand(.construct(
     .basic(.var(S1),.simple(.var(P1)),.var(O1)),_,
     .basic(.var(S2),.simple(.var(P2)),.var(O2)),_)) => S1==S2 && P1==P2 && O1==O2.

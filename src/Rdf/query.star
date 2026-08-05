@@ -2,15 +2,15 @@ rdf.sparql.query{
   import star.
   import rdf.triple.
 
-  -- The SPARQL query AST. Extends the original query/pattern/term/projection
-  -- skeleton to cover the full grammar in rdf.sparql.parser: construct/
-  -- describe query forms, property paths, RDF-star (reified triples/triple
-  -- terms/annotations/reifiers), and the full expression/built-in surface.
-  --
-  -- Every type here implements `display` right below its declaration, purely
-  -- for debugging (e.g. in error messages or ad hoc `$(...)` interpolation
-  -- while working on the parser/a future interpreter) -- it's not meant to
-  -- round-trip back to SPARQL syntax.
+  /* The SPARQL query AST. Extends the original query/pattern/term/projection
+     skeleton to cover the full grammar in rdf.sparql.parser: construct/
+     describe query forms, property paths, RDF-star (reified triples/triple
+     terms/annotations/reifiers), and the full expression/built-in surface.
+
+     Every type here implements `display` right below its declaration, purely
+     for debugging (e.g. in error messages or ad hoc `$(...)` interpolation
+     while working on the parser/a future interpreter) -- it's not meant to
+     round-trip back to SPARQL syntax. */
 
   public query ::= .select(selectModifier,projection,cons[datasetClause],pattern,solutionMods)
   | .construct(pattern,cons[datasetClause],pattern,solutionMods)
@@ -127,8 +127,8 @@ rdf.sparql.query{
     disp(.annotated(P,As)) => "annotated($(P),$(As))".
   }
 
-  -- A triple's predicate position: either a plain term (non-path context,
-  -- e.g. inside a construct template) or a full property path.
+  /* A triple's predicate position: either a plain term (non-path context,
+     e.g. inside a construct template) or a full property path. */
   public predicate ::= .simple(term) | .path(path).
 
   public implementation display[predicate] => {
@@ -170,16 +170,16 @@ rdf.sparql.query{
     disp(.inv(T)) => "inv($(T))".
   }
 
-  -- RDF terms as they appear in triple patterns/expressions. Ground values
-  -- (IRIs, literals, blank nodes, and fully-ground triple terms -- i.e. what
-  -- rdf.sparql.parser's tripleTermData recognizes, used in VALUES blocks)
-  -- are all `.literal(concept)`, reusing rdf.triple's concept type -- the
-  -- same representation Turtle/N3 blank nodes and (now) triple terms already
-  -- use, per ground triples being a subset of triple patterns.
-  -- `.tripleTermPattern` here is the more general, variable-permitting form
-  -- (from tripleTerm/exprTripleTerm), which concept can't express since
-  -- concept has no variable case -- named to avoid colliding with
-  -- rdf.triple.concept's own (ground-only) .tripleTerm.
+  /* RDF terms as they appear in triple patterns/expressions. Ground values
+     (IRIs, literals, blank nodes, and fully-ground triple terms -- i.e. what
+     rdf.sparql.parser's tripleTermData recognizes, used in VALUES blocks)
+     are all `.literal(concept)`, reusing rdf.triple's concept type -- the
+     same representation Turtle/N3 blank nodes and (now) triple terms already
+     use, per ground triples being a subset of triple patterns.
+     `.tripleTermPattern` here is the more general, variable-permitting form
+     (from tripleTerm/exprTripleTerm), which concept can't express since
+     concept has no variable case -- named to avoid colliding with
+     rdf.triple.concept's own (ground-only) .tripleTerm. */
   public term ::= .literal(concept)
   | .var(string)
   | .tripleTermPattern(term,predicate,term)
@@ -192,11 +192,11 @@ rdf.sparql.query{
     disp(.reifiedTriple(S,P,O,R)) => "reifiedTriple($(S),$(P),$(O),$(R))".
   }
 
-  -- An annotation attached to the object of a triple: either a bare reifier
-  -- (`~id?`) or a `{| ... |}` block giving further properties of the
-  -- reification. Kept structurally rather than expanded into synthetic
-  -- rdf:reifies triples here -- that expansion belongs to a later pass, once
-  -- the reifier-identity conventions it depends on are settled.
+  /* An annotation attached to the object of a triple: either a bare reifier
+     (`~id?`) or a `{| ... |}` block giving further properties of the
+     reification. Kept structurally rather than expanded into synthetic
+     rdf:reifies triples here -- that expansion belongs to a later pass, once
+     the reifier-identity conventions it depends on are settled. */
   public annotationItem ::= .reifier(option[term]) | .annotationBlock(pattern).
 
   public implementation display[annotationItem] => {
@@ -204,11 +204,11 @@ rdf.sparql.query{
     disp(.annotationBlock(P)) => "annotationBlock($(P))".
   }
 
-  -- Expressions. Most built-in function calls collapse to the generic
-  -- `.call(name,args)` rather than one constructor per built-in (there are
-  -- ~65 of them, and they're already grouped that way on the grammar side by
-  -- oneArgBuiltin/twoArgBuiltin/threeArgBuiltin/nilArgBuiltin) -- the name
-  -- plus argument list is all any consumer needs to interpret the call.
+  /* Expressions. Most built-in function calls collapse to the generic
+     `.call(name,args)` rather than one constructor per built-in (there are
+     ~65 of them, and they're already grouped that way on the grammar side by
+     oneArgBuiltin/twoArgBuiltin/threeArgBuiltin/nilArgBuiltin) -- the name
+     plus argument list is all any consumer needs to interpret the call. */
   public expression ::= .term(term)
   | .or(expression,expression)
   | .and(expression,expression)

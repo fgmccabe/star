@@ -3,12 +3,12 @@ test.tagop{
   import star.assert.
   import star.bits.
 
-  -- Boundary/sign checks for the tagged-integer arithmetic fast paths
-  -- (AND, OR, XOR, ADD, SUB) in the ARM64 JIT's binaryIntOpTagged.
+  /* Boundary/sign checks for the tagged-integer arithmetic fast paths
+     (AND, OR, XOR, ADD, SUB) in the ARM64 JIT's binaryIntOpTagged. */
 
-  -- These specifically exercise operandRegister's register-reuse optimization:
-  -- X used twice must not be corrupted by the first use reusing its register,
-  -- and X op X (both operands the same live variable) must not alias.
+  /* These specifically exercise operandRegister's register-reuse optimization:
+     X used twice must not be corrupted by the first use reusing its register,
+     and X op X (both operands the same live variable) must not alias. */
 
   addReuse:(integer) => integer.
   addReuse(X) => valof{
@@ -39,8 +39,8 @@ test.tagop{
   selfSub:(integer) => integer.
   selfSub(X) => X - X.
 
-  -- Exercises binaryIntCompare tagged fast path (no untag, csel routed through tr):
-  -- reused variable across two different comparisons, and same variable as both operands.
+  /* Exercises binaryIntCompare tagged fast path (no untag, csel routed through tr):
+     reused variable across two different comparisons, and same variable as both operands. */
   cmpReuse:(integer) => boolean.
   cmpReuse(X) => valof{
     Y = X == 10;
@@ -57,8 +57,8 @@ test.tagop{
   selfGe:(integer) => boolean.
   selfGe(X) => X >= X.
 
-  -- Exercises the tagged-bit-pattern fast paths for sIAbs (sub+csneg fixup) and sBNot
-  -- (NOT-then-subtract-1 fixup), both derived to skip the untag/retag round-trip entirely.
+  /* Exercises the tagged-bit-pattern fast paths for sIAbs (sub+csneg fixup) and sBNot
+     (NOT-then-subtract-1 fixup), both derived to skip the untag/retag round-trip entirely. */
   absCheck:(integer) => integer.
   absCheck(X) => _int_abs(X).
 
