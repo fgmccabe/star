@@ -7,10 +7,10 @@ rdf.sparql.engine.test{
   import rdf.sparql.solution.
   import rdf.sparql.engine.
 
-  /* Tests for rdf.sparql.engine's evalPattern -- BGP evaluation via join (.conj/.basic),
-     plus the pure combinators (.union/.optional/.minus/.values/.nilPattern) that need no
-     expression evaluation. .filter/.bind/.graph/.subSelect/.service/.annotated are exercised
-     only for their "not supported yet" error, since expreval.star doesn't exist yet. */
+  /* Tests for rdf.sparql.engine's evalPattern -- BGP evaluation via join (.conj/.basic), the
+     pure combinators (.union/.optional/.minus/.values/.nilPattern), and FILTER/BIND (backed
+     by rdf.sparql.expreval). .graph/.subSelect/.service/.annotated are exercised only for
+     their "not supported" error, since they're out of v1 scope entirely. */
 
   vr:(string) => term.
   vr(V) => .var(V).
@@ -90,9 +90,34 @@ rdf.sparql.engine.test{
     Vals = .values(.oneVar("s",[.some(.literal(Alice)),.some(.literal(Bob))]));
     checkCount(Failures,evalOk(G,Vals),2,".values turns a data block into solutions directly");
 
+    -- FILTER: ?s age ?a . FILTER(?a > 25) -- keeps only alice (the only one with an age, 30).
+    FilterKeep = .conj(bp(vr("s"),lit(Age),vr("a")),.filter(.gt(.term(vr("a")),.term(lit(.int(25))))));
+    checkCount(Failures,evalOk(G,FilterKeep),1,"FILTER(?a > 25) keeps the one row satisfying the condition");
+
+    FilterDrop = .conj(bp(vr("s"),lit(Age),vr("a")),.filter(.gt(.term(vr("a")),.term(lit(.int(100))))));
+    checkCount(Failures,evalOk(G,FilterDrop),0,"FILTER(?a > 100) drops every row when nothing satisfies it");
+
+    -- A FILTER expression that errors (division by zero) is treated as "not true", not a
+    -- hard failure of the whole query -- per the SPARQL error-tolerance rules.
+    FilterErrors = .conj(bp(vr("s"),lit(Knows),vr("o")),
+      .filter(.eq(.div(.term(lit(.int(1))),.term(lit(.int(0)))),.term(lit(.int(0))))));
+    checkCount(Failures,evalOk(G,FilterErrors),0,
+      "FILTER with a division-by-zero error is treated as not-true, not a hard failure");
+
+    -- BIND: ?s age ?a . BIND(?a + 1 AS ?next) -- extends each row with the computed value.
+    BindPattern = .conj(bp(vr("s"),lit(Age),vr("a")),.bind(.add(.term(vr("a")),.term(lit(.int(1)))),"next"));
+    ExpectBind = [emptyMapping["s"->Alice]["a"->.int(30)]["next"->.int(31)]];
+    checkSolutionsEq(Failures,evalOk(G,BindPattern),ExpectBind,
+      "BIND(?a + 1 AS ?next) extends each row with the computed value");
+
+    -- A BIND expression that errors leaves the variable unbound for that solution rather
+    -- than dropping the solution entirely.
+    BindErrors = .conj(bp(vr("s"),lit(Knows),vr("o")),
+      .bind(.div(.term(lit(.int(1))),.term(lit(.int(0)))),"bad"));
+    checkCount(Failures,evalOk(G,BindErrors),3,
+      "BIND with an evaluation error keeps the solution, just leaves the variable unbound");
+
     -- Not-yet-supported forms raise a clear error rather than silently mismatching.
-    checkThrows(Failures,() => evalPattern(G,.filter(.term(.literal(.bool(.true))))),
-      "FILTER raises \"not supported yet\", not a silent wrong answer");
     checkThrows(Failures,() => evalPattern(G,.graph(lit(Alice),.nilPattern)),
       "GRAPH raises \"not supported\" (named graphs are out of scope)");
 
@@ -112,6 +137,17 @@ rdf.sparql.engine.test{
     } else{
       Failures := Failures! + 1;
       logMsg(.severe,"FAIL ($(Descr)): expected $(Expect) solutions, got $(N)");
+      valis ()
+    }
+  }
+
+  checkSolutionsEq(Failures,Got,Expect,Descr) => valof{
+    if Got==Expect then{
+      logMsg(.info,"PASS: $(Descr)");
+      valis ()
+    } else{
+      Failures := Failures! + 1;
+      logMsg(.severe,"FAIL ($(Descr)): expected $(Expect), got $(Got)");
       valis ()
     }
   }
