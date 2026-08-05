@@ -15,16 +15,35 @@ rdf.sparql.parser{
   -- scope as bare names, which clash with a rule of the same name.
   --
   -- Section 1: query forms and prologue. The following are used here but
-  -- defined in later sections, and are not yet defined anywhere in this file:
-  --   groupGraphPattern, constructTemplate, expression, brackettedExpression,
-  --   builtInCall, functionCall, constraint, dataBlock.
+  -- defined in later sections: groupGraphPattern (section 2); expression,
+  -- constraint, builtInCall, functionCall, brackettedExpression (sections 4/5).
+  --
+  -- Several rules here are suffixed `Rule` because the bare name is already a
+  -- query.star AST constructor or type: datasetClause, describeTargets,
+  -- groupCondition, orderCondition, selectVar, dataBlock.
+  --
+  -- prologue/prologueDecl remain plain recognizers: prefix/base declarations
+  -- aren't resolved against prefixedName here (that expansion, like the
+  -- annotationItem reifier-identity question in section 3, belongs to a later
+  -- pass), so there is nothing for them to produce yet.
 
-  public queryUnit:() >> () --> cons[token].
-  queryUnit --> sparqlQuery, [.endTok(_)].
+  public queryUnit:() >> query --> cons[token].
+  queryUnit >> Q --> sparqlQuery >> Q, [.endTok(_)].
 
-  sparqlQuery --> prologue,
-    (selectQuery | constructQuery | describeQuery | askQuery),
-    valuesClause.
+  sparqlQuery:() >> query --> cons[token].
+  sparqlQuery >> combineTopValues(Q,VC) --> prologue,
+    (selectQuery | constructQuery | describeQuery | askQuery) >> Q,
+    valuesClause >> VC.
+
+  -- A top-level trailing VALUES clause is equivalent to an inline VALUES
+  -- block conjoined onto the query's own pattern (for DESCRIBE, onto its
+  -- optional WHERE pattern, creating one if there wasn't one already).
+  combineTopValues:(query,option[dataBlock]) => query.
+  combineTopValues(Q,.none) => Q.
+  combineTopValues(.select(M,Pr,DCs,P,Mods),.some(DB)) => .select(M,Pr,DCs,conjPattern2(P,.values(DB)),Mods).
+  combineTopValues(.construct(T,DCs,P,Mods),.some(DB)) => .construct(T,DCs,conjPattern2(P,.values(DB)),Mods).
+  combineTopValues(.describe(DT,DCs,WP,Mods),.some(DB)) => .describe(DT,DCs,.some(conjPattern2(optPatOr(.nilPattern,WP),.values(DB))),Mods).
+  combineTopValues(.ask(DCs,P,Mods),.some(DB)) => .ask(DCs,conjPattern2(P,.values(DB)),Mods).
 
   -- Prologue
 
@@ -42,131 +61,281 @@ rdf.sparql.parser{
 
   -- Query forms
 
-  selectQuery --> selectClause, datasetClause*, whereClause, solutionModifier.
+  selectQuery:() >> query --> cons[token].
+  selectQuery >> .select(Mod,Proj,DCs,P,Mods) --> selectClause >> (Mod,Proj), datasetClauseRule* >> DCs,
+    whereClause >> P, solutionModifier >> Mods.
 
-  subSelectClause --> selectClause, whereClause, solutionModifier, valuesClause.
+  subSelectClause:() >> query --> cons[token].
+  subSelectClause >> .select(Mod,Proj,[],FinalPattern,Mods) -->
+    selectClause >> (Mod,Proj), whereClause >> WP, solutionModifier >> Mods, valuesClause >> VC,
+    {FinalPattern .= combineValues(WP,VC)}.
 
-  selectClause --> sparqlKw("select"), ? (sparqlKw("distinct") | sparqlKw("reduced")),
-    selectVars.
+  combineValues:(pattern,option[dataBlock]) => pattern.
+  combineValues(P,.none) => P.
+  combineValues(P,.some(DB)) => conjPattern2(P,.values(DB)).
 
-  selectVars --> punc("*").
-  selectVars --> selectVar, selectVar*.
+  selectClause:() >> (selectModifier,projection) --> cons[token].
+  selectClause >> (Mod,Proj) --> sparqlKw("select"), ? selectModifierRule >> ModOpt, selectVars >> Proj,
+    {Mod .= optSelectModifier(ModOpt)}.
 
-  selectVar --> varRef.
-  selectVar --> punc("("), expression, sparqlKw("as"), varRef, punc(")").
+  selectModifierRule:() >> selectModifier --> cons[token].
+  selectModifierRule >> .distinct --> sparqlKw("distinct").
+  selectModifierRule >> .reduced --> sparqlKw("reduced").
 
-  constructQuery --> sparqlKw("construct"), constructBody.
+  optSelectModifier:(option[selectModifier]) => selectModifier.
+  optSelectModifier(.none) => .noModifier.
+  optSelectModifier(.some(M)) => M.
 
-  constructBody --> constructTemplate, datasetClause*, whereClause, solutionModifier.
-  constructBody --> datasetClause*, sparqlKw("where"), constructTemplate, solutionModifier.
+  selectVars:() >> projection --> cons[token].
+  selectVars >> .selectAll --> punc("*").
+  selectVars >> .vars([V0,..Vs]) --> selectVarRule >> V0, selectVarRule* >> Vs.
 
-  describeQuery --> sparqlKw("describe"), describeTargets,
-    datasetClause*, ? whereClause, solutionModifier.
+  selectVarRule:() >> selectVar --> cons[token].
+  selectVarRule >> .plain(V) --> varRef >> V.
+  selectVarRule >> .computed(E,V) --> punc("("), expression >> E, sparqlKw("as"), varRef >> V, punc(")").
 
-  describeTargets --> punc("*").
-  describeTargets --> varOrIri, varOrIri*.
+  constructQuery:() >> query --> cons[token].
+  constructQuery >> Q --> sparqlKw("construct"), constructBody >> Q.
 
-  askQuery --> sparqlKw("ask"), datasetClause*, whereClause, solutionModifier.
+  -- The two ConstructQuery forms: an explicit template with its own WHERE
+  -- pattern, or the CONSTRUCT WHERE shorthand where the (single) template
+  -- doubles as the WHERE pattern too -- T is bound once by constructTemplate
+  -- and simply referenced twice in the output, the same way collectionToPattern
+  -- (section 3) reuses a single binding in two positions of its result.
+  constructBody:() >> query --> cons[token].
+  constructBody >> .construct(T,DCs,WP,Mods) --> constructTemplate >> T, datasetClauseRule* >> DCs,
+    whereClause >> WP, solutionModifier >> Mods.
+  constructBody >> .construct(T,DCs,T,Mods) --> datasetClauseRule* >> DCs, sparqlKw("where"),
+    constructTemplate >> T, solutionModifier >> Mods.
+
+  describeQuery:() >> query --> cons[token].
+  describeQuery >> .describe(DT,DCs,WP,Mods) --> sparqlKw("describe"), describeTargetsRule >> DT,
+    datasetClauseRule* >> DCs, ? whereClause >> WP, solutionModifier >> Mods.
+
+  describeTargetsRule:() >> describeTargets --> cons[token].
+  describeTargetsRule >> .allDescribed --> punc("*").
+  describeTargetsRule >> .described([V0,..Vs]) --> varOrIri >> V0, varOrIri* >> Vs.
+
+  askQuery:() >> query --> cons[token].
+  askQuery >> .ask(DCs,P,Mods) --> sparqlKw("ask"), datasetClauseRule* >> DCs, whereClause >> P, solutionModifier >> Mods.
 
   -- Dataset clause
 
-  datasetClause --> sparqlKw("from"), (defaultGraphClause | namedGraphClause).
-  defaultGraphClause --> sourceSelector.
-  namedGraphClause --> sparqlKw("named"), sourceSelector.
-  sourceSelector --> iri.
+  datasetClauseRule:() >> datasetClause --> cons[token].
+  datasetClauseRule >> D --> sparqlKw("from"), (defaultGraphClause >> D | namedGraphClause >> D).
+
+  defaultGraphClause:() >> datasetClause --> cons[token].
+  defaultGraphClause >> .defaultGraph(.literal(C)) --> sourceSelector >> C.
+
+  namedGraphClause:() >> datasetClause --> cons[token].
+  namedGraphClause >> .namedGraph(.literal(C)) --> sparqlKw("named"), sourceSelector >> C.
+
+  sourceSelector:() >> concept --> cons[token].
+  sourceSelector >> C --> iri >> C.
 
   -- Where clause
 
-  whereClause --> ? sparqlKw("where"), groupGraphPattern.
+  whereClause:() >> pattern --> cons[token].
+  whereClause >> P --> ? sparqlKw("where"), groupGraphPattern >> P.
 
   -- Solution modifiers
 
-  solutionModifier --> ? groupClause, ? havingClause, ? orderClause, ? limitOffsetClauses.
+  solutionModifier:() >> solutionMods --> cons[token].
+  solutionModifier >> buildSolutionMods(G,H,O,LO) --> ? groupClause >> G, ? havingClause >> H,
+    ? orderClause >> O, ? limitOffsetClauses >> LO.
 
-  groupClause --> sparqlKw("group"), sparqlKw("by"), groupCondition, groupCondition*.
+  buildSolutionMods:(option[cons[groupCondition]],option[cons[expression]],
+    option[cons[orderCondition]],option[(option[integer],option[integer])]) => solutionMods.
+  buildSolutionMods(G,H,O,LO) => solutionMods{
+    grouping = optListOr([],G).
+    having = optListOr([],H).
+    ordering = optListOr([],O).
+    limit = optPairFst(LO).
+    offset = optPairSnd(LO).
+  }.
 
-  groupCondition --> builtInCall.
-  groupCondition --> functionCall.
-  groupCondition --> punc("("), expression, ? (sparqlKw("as"), varRef), punc(")").
-  groupCondition --> varRef.
+  optListOr:all t ~~ (cons[t],option[cons[t]]) => cons[t].
+  optListOr(D,.none) => D.
+  optListOr(_,.some(L)) => L.
 
-  havingClause --> sparqlKw("having"), havingCondition, havingCondition*.
-  havingCondition --> constraint.
+  optPairFst:(option[(option[integer],option[integer])]) => option[integer].
+  optPairFst(.none) => .none.
+  optPairFst(.some((L,_))) => L.
 
-  orderClause --> sparqlKw("order"), sparqlKw("by"), orderCondition, orderCondition*.
+  optPairSnd:(option[(option[integer],option[integer])]) => option[integer].
+  optPairSnd(.none) => .none.
+  optPairSnd(.some((_,O))) => O.
 
-  orderCondition --> (sparqlKw("asc") | sparqlKw("desc")), brackettedExpression.
-  orderCondition --> constraint.
-  orderCondition --> varRef.
+  groupClause:() >> cons[groupCondition] --> cons[token].
+  groupClause >> [G0,..Gs] --> sparqlKw("group"), sparqlKw("by"), groupConditionRule >> G0, groupConditionRule* >> Gs.
 
-  limitOffsetClauses --> limitClause, ? offsetClause.
-  limitOffsetClauses --> offsetClause, ? limitClause.
+  groupConditionRule:() >> groupCondition --> cons[token].
+  groupConditionRule >> .groupExpr(E,.none) --> builtInCall >> E.
+  groupConditionRule >> .groupExpr(E,.none) --> functionCall >> E.
+  groupConditionRule >> .groupExpr(E,Alias) --> punc("("), expression >> E, ? (sparqlKw("as"), varRef) >> Alias, punc(")").
+  groupConditionRule >> .groupExpr(.term(.var(V)),.none) --> varRef >> V.
 
-  limitClause --> sparqlKw("limit"), integerToken.
-  offsetClause --> sparqlKw("offset"), integerToken.
+  havingClause:() >> cons[expression] --> cons[token].
+  havingClause >> [H0,..Hs] --> sparqlKw("having"), havingCondition >> H0, havingCondition* >> Hs.
+
+  havingCondition:() >> expression --> cons[token].
+  havingCondition >> E --> constraint >> E.
+
+  orderClause:() >> cons[orderCondition] --> cons[token].
+  orderClause >> [O0,..Os] --> sparqlKw("order"), sparqlKw("by"), orderConditionRule >> O0, orderConditionRule* >> Os.
+
+  orderConditionRule:() >> orderCondition --> cons[token].
+  orderConditionRule >> .asc(E) --> sparqlKw("asc"), brackettedExpression >> E.
+  orderConditionRule >> .desc(E) --> sparqlKw("desc"), brackettedExpression >> E.
+  orderConditionRule >> .asc(E) --> constraint >> E.
+  orderConditionRule >> .asc(.term(.var(V))) --> varRef >> V.
+
+  limitOffsetClauses:() >> (option[integer],option[integer]) --> cons[token].
+  limitOffsetClauses >> (.some(L),O) --> limitClause >> L, ? offsetClause >> O.
+  limitOffsetClauses >> (L,.some(O)) --> offsetClause >> O, ? limitClause >> L.
+
+  limitClause:() >> integer --> cons[token].
+  limitClause >> N --> sparqlKw("limit"), integerToken >> N.
+
+  offsetClause:() >> integer --> cons[token].
+  offsetClause >> N --> sparqlKw("offset"), integerToken >> N.
 
   -- Values clause
 
-  valuesClause --> ? (sparqlKw("values"), dataBlock).
+  valuesClause:() >> option[dataBlock] --> cons[token].
+  valuesClause >> DB --> ? (sparqlKw("values"), dataBlockRule) >> DB.
 
   -- Section 2: graph patterns. The following are used here but defined in
-  -- later sections, and are not yet defined anywhere in this file:
-  --   triplesSameSubjectPath, tripleTermData (section 3);
-  --   expression, brackettedExpression, builtInCall, functionCall (sections 4/5);
-  --   rdfLiteral, numericLiteral, booleanLiteral (section 6).
+  -- later sections: triplesSameSubjectPath, tripleTermData (section 3);
+  -- expression, brackettedExpression, builtInCall, functionCall (sections 4/5);
+  -- rdfLiteral, numericLiteral, booleanLiteral (section 6).
+  --
+  -- OPTIONAL and MINUS are algebra combinators that take the pattern
+  -- accumulated *so far* in the enclosing groupGraphPatternSub as their left
+  -- operand (query.pattern's .optional/.minus are both (pattern,pattern), not
+  -- something optionalGraphPattern/minusGraphPattern could produce alone) --
+  -- unlike UNION, FILTER, BIND etc., which just conjoin with whatever precedes
+  -- them. graphPatternNotTriples therefore returns a `combinator` marking
+  -- which kind of combination this item needs, and groupGraphPatternSub's fold
+  -- applies the right one at each step. dataBlock is renamed dataBlockRule
+  -- here for the same reason as section 1's *Rule renames.
 
-  groupGraphPattern --> punc("{"), (subSelectClause | groupGraphPatternSub), punc("}").
+  combinator ::= .plainPat(pattern) | .optWrap(pattern) | .minusWrap(pattern).
 
-  groupGraphPatternSub --> ? triplesBlock,
-    (graphPatternNotTriples, ? punc("."), ? triplesBlock)*.
+  combineItem:(pattern,combinator) => pattern.
+  combineItem(Acc,.plainPat(P)) => conjPattern2(Acc,P).
+  combineItem(Acc,.optWrap(P)) => .optional(Acc,P).
+  combineItem(Acc,.minusWrap(P)) => .minus(Acc,P).
 
-  triplesBlock --> triplesSameSubjectPath, ? (punc("."), ? triplesBlock).
+  groupGraphPattern:() >> pattern --> cons[token].
+  groupGraphPattern >> .subSelect(Q) --> punc("{"), subSelectClause >> Q, punc("}").
+  groupGraphPattern >> P --> punc("{"), groupGraphPatternSub >> P, punc("}").
 
-  graphPatternNotTriples --> groupOrUnionGraphPattern.
-  graphPatternNotTriples --> optionalGraphPattern.
-  graphPatternNotTriples --> minusGraphPattern.
-  graphPatternNotTriples --> graphGraphPattern.
-  graphPatternNotTriples --> serviceGraphPattern.
-  graphPatternNotTriples --> filterClause.
-  graphPatternNotTriples --> bindClause.
-  graphPatternNotTriples --> inlineData.
+  groupGraphPatternSub:() >> pattern --> cons[token].
+  groupGraphPatternSub >> foldGgps(P0,Items) --> ? triplesBlock >> TB0, ggpsItem* >> Items,
+    {P0 .= optPatOr(.nilPattern,TB0)}.
 
-  groupOrUnionGraphPattern --> groupGraphPattern, (sparqlKw("union"), groupGraphPattern)*.
+  foldGgps:(pattern,cons[(combinator,option[pattern])]) => pattern.
+  foldGgps(P,[]) => P.
+  foldGgps(P,[(C,TBOpt),..Rest]) => foldGgps(conjPattern(combineItem(P,C),TBOpt),Rest).
 
-  optionalGraphPattern --> sparqlKw("optional"), groupGraphPattern.
+  ggpsItem:() >> (combinator,option[pattern]) --> cons[token].
+  ggpsItem >> (C,TBOpt) --> graphPatternNotTriples >> C, ? punc("."), ? triplesBlock >> TBOpt.
 
-  minusGraphPattern --> sparqlKw("minus"), groupGraphPattern.
+  optPatOr:(pattern,option[pattern]) => pattern.
+  optPatOr(D,.none) => D.
+  optPatOr(_,.some(P)) => P.
 
-  graphGraphPattern --> sparqlKw("graph"), varOrIri, groupGraphPattern.
+  triplesBlock:() >> pattern --> cons[token].
+  triplesBlock >> conjPattern(T,flattenOptOpt(Rest)) --> triplesSameSubjectPath >> T, ? (punc("."), ? triplesBlock) >> Rest.
 
-  serviceGraphPattern --> sparqlKw("service"), ? sparqlKw("silent"), varOrIri, groupGraphPattern.
+  flattenOptOpt:(option[option[pattern]]) => option[pattern].
+  flattenOptOpt(.none) => .none.
+  flattenOptOpt(.some(.none)) => .none.
+  flattenOptOpt(.some(.some(P))) => .some(P).
 
-  bindClause --> sparqlKw("bind"), punc("("), expression, sparqlKw("as"), varRef, punc(")").
+  graphPatternNotTriples:() >> combinator --> cons[token].
+  graphPatternNotTriples >> .plainPat(P) --> groupOrUnionGraphPattern >> P.
+  graphPatternNotTriples >> .optWrap(P) --> optionalGraphPattern >> P.
+  graphPatternNotTriples >> .minusWrap(P) --> minusGraphPattern >> P.
+  graphPatternNotTriples >> .plainPat(P) --> graphGraphPattern >> P.
+  graphPatternNotTriples >> .plainPat(P) --> serviceGraphPattern >> P.
+  graphPatternNotTriples >> .plainPat(P) --> filterClause >> P.
+  graphPatternNotTriples >> .plainPat(P) --> bindClause >> P.
+  graphPatternNotTriples >> .plainPat(P) --> inlineData >> P.
 
-  inlineData --> sparqlKw("values"), dataBlock.
+  groupOrUnionGraphPattern:() >> pattern --> cons[token].
+  groupOrUnionGraphPattern >> foldUnion(P0,Ps) --> groupGraphPattern >> P0, (sparqlKw("union"), groupGraphPattern)* >> Ps.
 
-  dataBlock --> inlineDataOneVar.
-  dataBlock --> inlineDataFull.
+  foldUnion:(pattern,cons[pattern]) => pattern.
+  foldUnion(P,[]) => P.
+  foldUnion(P,[P1,..Rest]) => foldUnion(.union(P,P1),Rest).
 
-  inlineDataOneVar --> varRef, punc("{"), dataBlockValue*, punc("}").
+  optionalGraphPattern:() >> pattern --> cons[token].
+  optionalGraphPattern >> P --> sparqlKw("optional"), groupGraphPattern >> P.
 
-  inlineDataFull --> (rdfNil | punc("("), varRef*, punc(")")),
-    punc("{"), (punc("("), dataBlockValue*, punc(")") | rdfNil)*, punc("}").
+  minusGraphPattern:() >> pattern --> cons[token].
+  minusGraphPattern >> P --> sparqlKw("minus"), groupGraphPattern >> P.
 
-  dataBlockValue --> iri.
-  dataBlockValue --> rdfLiteral.
-  dataBlockValue --> numericLiteral.
-  dataBlockValue --> booleanLiteral.
-  dataBlockValue --> sparqlKw("undef").
-  dataBlockValue --> tripleTermData.
+  graphGraphPattern:() >> pattern --> cons[token].
+  graphGraphPattern >> .graph(T,P) --> sparqlKw("graph"), varOrIri >> T, groupGraphPattern >> P.
+
+  serviceGraphPattern:() >> pattern --> cons[token].
+  serviceGraphPattern >> .service(T,P,Silent) --> sparqlKw("service"), kwFlag("silent") >> Silent,
+    varOrIri >> T, groupGraphPattern >> P.
+
+  bindClause:() >> pattern --> cons[token].
+  bindClause >> .bind(E,V) --> sparqlKw("bind"), punc("("), expression >> E, sparqlKw("as"), varRef >> V, punc(")").
+
+  inlineData:() >> pattern --> cons[token].
+  inlineData >> .values(D) --> sparqlKw("values"), dataBlockRule >> D.
+
+  dataBlockRule:() >> dataBlock --> cons[token].
+  dataBlockRule >> D --> inlineDataOneVar >> D.
+  dataBlockRule >> D --> inlineDataFull >> D.
+
+  inlineDataOneVar:() >> dataBlock --> cons[token].
+  inlineDataOneVar >> .oneVar(V,Vals) --> varRef >> V, punc("{"), dataBlockValue* >> Vals, punc("}").
+
+  inlineDataFull:() >> dataBlock --> cons[token].
+  inlineDataFull >> .full(Vars,Rows) -->
+    (rdfNilVars >> Vars | punc("("), varRef* >> Vars, punc(")")),
+    punc("{"), (dataRowParen | rdfNilRow)* >> Rows, punc("}").
+
+  rdfNilVars:() >> cons[string] --> cons[token].
+  rdfNilVars >> [] --> rdfNil.
+
+  dataRowParen:() >> cons[option[term]] --> cons[token].
+  dataRowParen >> R --> punc("("), dataBlockValue* >> R, punc(")").
+
+  rdfNilRow:() >> cons[option[term]] --> cons[token].
+  rdfNilRow >> [] --> rdfNil.
+
+  dataBlockValue:() >> option[term] --> cons[token].
+  dataBlockValue >> .some(.literal(C)) --> iri >> C.
+  dataBlockValue >> .some(.literal(C)) --> rdfLiteral >> C.
+  dataBlockValue >> .some(.literal(C)) --> numericLiteral >> C.
+  dataBlockValue >> .some(.literal(C)) --> booleanLiteral >> C.
+  dataBlockValue >> .none --> sparqlKw("undef").
+  dataBlockValue >> .some(.literal(C)) --> tripleTermData >> C.
 
   rdfNil --> punc("("), punc(")").
 
-  filterClause --> sparqlKw("filter"), constraint.
+  filterClause:() >> pattern --> cons[token].
+  filterClause >> .filter(E) --> sparqlKw("filter"), constraint >> E.
 
-  constraint --> brackettedExpression.
-  constraint --> builtInCall.
-  constraint --> functionCall.
+  constraint:() >> expression --> cons[token].
+  constraint >> E --> brackettedExpression >> E.
+  constraint >> E --> builtInCall >> E.
+  constraint >> E --> functionCall >> E.
+
+  -- Shared by DISTINCT/REDUCED/SILENT-style optional keywords across sections
+  -- 1, 2 and 5: `? sparqlKw(Kw)` alone can't produce a boolean since sparqlKw
+  -- itself has no output to wrap -- this gives the presence/absence check its
+  -- own boolean-producing rule instead.
+  kwFlag:(string) >> boolean --> cons[token].
+  kwFlag(Kw) >> .true --> sparqlKw(Kw).
+  kwFlag(Kw) >> .false --> [].
 
   -- Section 3: triples and property paths, including RDF-star reified
   -- triples/triple terms and annotations. The following are used here but
@@ -446,184 +615,319 @@ rdf.sparql.parser{
   -- Section 4: expressions. The following are used here but defined in later
   -- sections: iriOrFunction, expressionList, builtInCall (section 5);
   -- rdfLiteral, numericLiteral, numericLiteralPositive, numericLiteralNegative,
-  -- booleanLiteral (section 6).
+  -- booleanLiteral (section 6, already typed).
   --
   -- `&&`, `||` and `!=` compose from adjacent single-char tokens (`&`,`&`;
   -- `|`,`|`; `!`,`=`) already produced by rdf.lexer, the same way `{|`/`|}`
   -- did in section 3 -- no further lexer changes needed for this section.
 
-  expression --> conditionalOrExpression.
+  expression:() >> expression --> cons[token].
+  expression >> E --> conditionalOrExpression >> E.
 
-  conditionalOrExpression --> conditionalAndExpression,
-    (punc("|"), punc("|"), conditionalAndExpression)*.
+  conditionalOrExpression:() >> expression --> cons[token].
+  conditionalOrExpression >> foldOr(E0,Es) --> conditionalAndExpression >> E0,
+    (punc("|"), punc("|"), conditionalAndExpression)* >> Es.
 
-  conditionalAndExpression --> valueLogical, (punc("&"), punc("&"), valueLogical)*.
+  foldOr:(expression,cons[expression]) => expression.
+  foldOr(E,[]) => E.
+  foldOr(E,[E1,..Rest]) => foldOr(.or(E,E1),Rest).
 
-  valueLogical --> relationalExpression.
+  conditionalAndExpression:() >> expression --> cons[token].
+  conditionalAndExpression >> foldAnd(E0,Es) --> valueLogical >> E0, (punc("&"), punc("&"), valueLogical)* >> Es.
 
-  relationalExpression --> numericExpression,
-    ? ( punc("="), numericExpression
-      | punc("!"), punc("="), numericExpression
-      | punc("<"), numericExpression
-      | punc(">"), numericExpression
-      | punc("<="), numericExpression
-      | punc(">="), numericExpression
-      | sparqlKw("in"), expressionList
-      | sparqlKw("not"), sparqlKw("in"), expressionList
-      ).
+  foldAnd:(expression,cons[expression]) => expression.
+  foldAnd(E,[]) => E.
+  foldAnd(E,[E1,..Rest]) => foldAnd(.and(E,E1),Rest).
 
-  numericExpression --> additiveExpression.
+  valueLogical:() >> expression --> cons[token].
+  valueLogical >> E --> relationalExpression >> E.
 
-  additiveExpression --> multiplicativeExpression,
-    ( punc("+"), multiplicativeExpression
-    | punc("-"), multiplicativeExpression
-    | (numericLiteralPositive | numericLiteralNegative), signedFactorTail
-    )*.
+  -- The eight relational-suffix alternatives share a single optional slot:
+  -- relOp records which one (if any) matched, and applyRelOp turns that plus
+  -- the LHS into the actual comparison/membership expression -- the same
+  -- "parse a marker, apply it afterward" idiom applyPathMod (section 3) uses.
+  relOp ::= .cmpEq(expression) | .cmpNe(expression) | .cmpLt(expression) | .cmpGt(expression)
+    | .cmpLe(expression) | .cmpGe(expression) | .cmpIn(cons[expression]) | .cmpNotIn(cons[expression]).
 
-  signedFactorTail --> (punc("*"), unaryExpression | punc("/"), unaryExpression)*.
+  relationalExpression:() >> expression --> cons[token].
+  relationalExpression >> applyRelOp(L,Op) --> numericExpression >> L, ? relOpSuffix >> Op.
 
-  multiplicativeExpression --> unaryExpression, (punc("*"), unaryExpression | punc("/"), unaryExpression)*.
+  relOpSuffix:() >> relOp --> cons[token].
+  relOpSuffix >> .cmpEq(R) --> punc("="), numericExpression >> R.
+  relOpSuffix >> .cmpNe(R) --> punc("!"), punc("="), numericExpression >> R.
+  relOpSuffix >> .cmpLe(R) --> punc("<="), numericExpression >> R.
+  relOpSuffix >> .cmpGe(R) --> punc(">="), numericExpression >> R.
+  relOpSuffix >> .cmpLt(R) --> punc("<"), numericExpression >> R.
+  relOpSuffix >> .cmpGt(R) --> punc(">"), numericExpression >> R.
+  relOpSuffix >> .cmpIn(Es) --> sparqlKw("in"), expressionList >> Es.
+  relOpSuffix >> .cmpNotIn(Es) --> sparqlKw("not"), sparqlKw("in"), expressionList >> Es.
 
-  unaryExpression --> punc("!"), unaryExpression.
-  unaryExpression --> punc("+"), primaryExpression.
-  unaryExpression --> punc("-"), primaryExpression.
-  unaryExpression --> primaryExpression.
+  applyRelOp:(expression,option[relOp]) => expression.
+  applyRelOp(L,.none) => L.
+  applyRelOp(L,.some(.cmpEq(R))) => .eq(L,R).
+  applyRelOp(L,.some(.cmpNe(R))) => .ne(L,R).
+  applyRelOp(L,.some(.cmpLt(R))) => .lt(L,R).
+  applyRelOp(L,.some(.cmpGt(R))) => .gt(L,R).
+  applyRelOp(L,.some(.cmpLe(R))) => .le(L,R).
+  applyRelOp(L,.some(.cmpGe(R))) => .ge(L,R).
+  applyRelOp(L,.some(.cmpIn(Es))) => .isIn(L,Es).
+  applyRelOp(L,.some(.cmpNotIn(Es))) => .notIn(L,Es).
 
-  primaryExpression --> brackettedExpression.
-  primaryExpression --> builtInCall.
-  primaryExpression --> iriOrFunction.
-  primaryExpression --> rdfLiteral.
-  primaryExpression --> numericLiteral.
-  primaryExpression --> booleanLiteral.
-  primaryExpression --> varRef.
-  primaryExpression --> exprTripleTermRule.
+  numericExpression:() >> expression --> cons[token].
+  numericExpression >> E --> additiveExpression >> E.
 
-  exprTripleTermRule --> punc("<<"), punc("("), exprTripleTermSubject, verb, exprTripleTermObject, punc(")"), punc(">>").
+  -- AdditiveExpression's three tail shapes (+ term, - term, or a directly
+  -- juxtaposed signed literal that can itself carry trailing */÷ factors, e.g.
+  -- `2 -3*4`) all fold left-associatively into the running total, so they
+  -- share one marker type the same way relOp does above.
+  addOp ::= .addTail(expression) | .subTail(expression).
 
-  exprTripleTermSubject --> iri.
-  exprTripleTermSubject --> varRef.
+  additiveExpression:() >> expression --> cons[token].
+  additiveExpression >> foldAdditive(E0,Ops) --> multiplicativeExpression >> E0, additiveOp* >> Ops.
 
-  exprTripleTermObject --> iri.
-  exprTripleTermObject --> rdfLiteral.
-  exprTripleTermObject --> numericLiteral.
-  exprTripleTermObject --> booleanLiteral.
-  exprTripleTermObject --> varRef.
-  exprTripleTermObject --> exprTripleTermRule.
+  additiveOp:() >> addOp --> cons[token].
+  additiveOp >> .addTail(R) --> punc("+"), multiplicativeExpression >> R.
+  additiveOp >> .subTail(R) --> punc("-"), multiplicativeExpression >> R.
+  additiveOp >> .addTail(R) --> (numericLiteralPositive >> N | numericLiteralNegative >> N),
+    signedFactorTail(.term(.literal(N))) >> R.
 
-  brackettedExpression --> punc("("), expression, punc(")").
+  foldAdditive:(expression,cons[addOp]) => expression.
+  foldAdditive(E,[]) => E.
+  foldAdditive(E,[.addTail(R),..Rest]) => foldAdditive(.add(E,R),Rest).
+  foldAdditive(E,[.subTail(R),..Rest]) => foldAdditive(.sub(E,R),Rest).
+
+  -- Shared by additiveOp's signed-literal case and multiplicativeExpression
+  -- itself (both are "seed expression, then repeated */÷ factors").
+  mulOp ::= .mulTail(expression) | .divTail(expression).
+
+  signedFactorTail:(expression) >> expression --> cons[token].
+  signedFactorTail(E0) >> foldMultiplicative(E0,Ms) --> mulDivOp* >> Ms.
+
+  mulDivOp:() >> mulOp --> cons[token].
+  mulDivOp >> .mulTail(R) --> punc("*"), unaryExpression >> R.
+  mulDivOp >> .divTail(R) --> punc("/"), unaryExpression >> R.
+
+  foldMultiplicative:(expression,cons[mulOp]) => expression.
+  foldMultiplicative(E,[]) => E.
+  foldMultiplicative(E,[.mulTail(R),..Rest]) => foldMultiplicative(.mul(E,R),Rest).
+  foldMultiplicative(E,[.divTail(R),..Rest]) => foldMultiplicative(.div(E,R),Rest).
+
+  multiplicativeExpression:() >> expression --> cons[token].
+  multiplicativeExpression >> R --> unaryExpression >> E0, signedFactorTail(E0) >> R.
+
+  unaryExpression:() >> expression --> cons[token].
+  unaryExpression >> .not(E) --> punc("!"), unaryExpression >> E.
+  unaryExpression >> .pos(E) --> punc("+"), primaryExpression >> E.
+  unaryExpression >> .neg(E) --> punc("-"), primaryExpression >> E.
+  unaryExpression >> E --> primaryExpression >> E.
+
+  primaryExpression:() >> expression --> cons[token].
+  primaryExpression >> E --> brackettedExpression >> E.
+  primaryExpression >> E --> builtInCall >> E.
+  primaryExpression >> E --> iriOrFunction >> E.
+  primaryExpression >> .term(.literal(C)) --> rdfLiteral >> C.
+  primaryExpression >> .term(.literal(C)) --> numericLiteral >> C.
+  primaryExpression >> .term(.literal(C)) --> booleanLiteral >> C.
+  primaryExpression >> .term(.var(V)) --> varRef >> V.
+  primaryExpression >> E --> exprTripleTermRule >> E.
+
+  -- verb (section 3) always yields .simple(T) here (SPARQL's Verb production
+  -- is VarOrIri | 'a', never a property path), so predicateToExpr's .path arm
+  -- is unreachable -- kept only for exhaustiveness.
+  exprTripleTermRule:() >> expression --> cons[token].
+  exprTripleTermRule >> .exprTripleTerm(S,predicateToExpr(P),O) -->
+    punc("<<"), punc("("), exprTripleTermSubject >> S, verb >> P, exprTripleTermObject >> O, punc(")"), punc(">>").
+
+  predicateToExpr(.simple(T)) => .term(T).
+  predicateToExpr(.path(_)) => unreachable.
+
+  exprTripleTermSubject:() >> expression --> cons[token].
+  exprTripleTermSubject >> .term(.literal(C)) --> iri >> C.
+  exprTripleTermSubject >> .term(.var(V)) --> varRef >> V.
+
+  exprTripleTermObject:() >> expression --> cons[token].
+  exprTripleTermObject >> .term(.literal(C)) --> iri >> C.
+  exprTripleTermObject >> .term(.literal(C)) --> rdfLiteral >> C.
+  exprTripleTermObject >> .term(.literal(C)) --> numericLiteral >> C.
+  exprTripleTermObject >> .term(.literal(C)) --> booleanLiteral >> C.
+  exprTripleTermObject >> .term(.var(V)) --> varRef >> V.
+  exprTripleTermObject >> E --> exprTripleTermRule >> E.
+
+  brackettedExpression:() >> expression --> cons[token].
+  brackettedExpression >> E --> punc("("), expression >> E, punc(")").
 
   -- Section 5: built-ins, aggregates, and function calls. The following are
   -- used here but defined in section 6: rdfLiteral, numericLiteral,
-  -- booleanLiteral.
+  -- booleanLiteral (already typed).
   --
   -- Most BuiltInCall alternatives share one of a handful of shapes (keyword
   -- applied to 1/2/3 expressions, or to NIL); oneArgBuiltin/twoArgBuiltin/
   -- threeArgBuiltin/nilArgBuiltin/aggFn1 below are parameterized over the
-  -- keyword to avoid repeating each shape ~15-20 times.
+  -- keyword to avoid repeating each shape ~15-20 times. Every one collapses
+  -- to the generic expression.call(name,args) rather than one constructor
+  -- per built-in (see query.star's expression comment).
 
-  builtInCall --> aggregateExpr.
-  builtInCall --> oneArgBuiltin("str").
-  builtInCall --> oneArgBuiltin("lang").
-  builtInCall --> twoArgBuiltin("langmatches").
-  builtInCall --> oneArgBuiltin("langdir").
-  builtInCall --> oneArgBuiltin("datatype").
-  builtInCall --> sparqlKw("bound"), punc("("), varRef, punc(")").
-  builtInCall --> oneArgBuiltin("iri").
-  builtInCall --> oneArgBuiltin("uri").
-  builtInCall --> sparqlKw("bnode"), (punc("("), expression, punc(")") | rdfNil).
-  builtInCall --> nilArgBuiltin("rand").
-  builtInCall --> oneArgBuiltin("abs").
-  builtInCall --> oneArgBuiltin("ceil").
-  builtInCall --> oneArgBuiltin("floor").
-  builtInCall --> oneArgBuiltin("round").
-  builtInCall --> sparqlKw("concat"), expressionList.
-  builtInCall --> substringExpression.
-  builtInCall --> oneArgBuiltin("strlen").
-  builtInCall --> strReplaceExpression.
-  builtInCall --> oneArgBuiltin("ucase").
-  builtInCall --> oneArgBuiltin("lcase").
-  builtInCall --> oneArgBuiltin("encode_for_uri").
-  builtInCall --> twoArgBuiltin("contains").
-  builtInCall --> twoArgBuiltin("strstarts").
-  builtInCall --> twoArgBuiltin("strends").
-  builtInCall --> twoArgBuiltin("strbefore").
-  builtInCall --> twoArgBuiltin("strafter").
-  builtInCall --> oneArgBuiltin("year").
-  builtInCall --> oneArgBuiltin("month").
-  builtInCall --> oneArgBuiltin("day").
-  builtInCall --> oneArgBuiltin("hours").
-  builtInCall --> oneArgBuiltin("minutes").
-  builtInCall --> oneArgBuiltin("seconds").
-  builtInCall --> oneArgBuiltin("timezone").
-  builtInCall --> oneArgBuiltin("tz").
-  builtInCall --> nilArgBuiltin("now").
-  builtInCall --> nilArgBuiltin("uuid").
-  builtInCall --> nilArgBuiltin("struuid").
-  builtInCall --> oneArgBuiltin("md5").
-  builtInCall --> oneArgBuiltin("sha1").
-  builtInCall --> oneArgBuiltin("sha256").
-  builtInCall --> oneArgBuiltin("sha384").
-  builtInCall --> oneArgBuiltin("sha512").
-  builtInCall --> sparqlKw("coalesce"), expressionList.
-  builtInCall --> sparqlKw("if"), punc("("), expression, punc(","), expression, punc(","), expression, punc(")").
-  builtInCall --> twoArgBuiltin("strlang").
-  builtInCall --> threeArgBuiltin("strlangdir").
-  builtInCall --> twoArgBuiltin("strdt").
-  builtInCall --> twoArgBuiltin("sameterm").
-  builtInCall --> oneArgBuiltin("isiri").
-  builtInCall --> oneArgBuiltin("isuri").
-  builtInCall --> oneArgBuiltin("isblank").
-  builtInCall --> oneArgBuiltin("isliteral").
-  builtInCall --> oneArgBuiltin("isnumeric").
-  builtInCall --> oneArgBuiltin("haslang").
-  builtInCall --> oneArgBuiltin("haslangdir").
-  builtInCall --> regexExpression.
-  builtInCall --> existsFunc.
-  builtInCall --> notExistsFunc.
-  builtInCall --> oneArgBuiltin("istriple").
-  builtInCall --> threeArgBuiltin("triple").
-  builtInCall --> oneArgBuiltin("subject").
-  builtInCall --> oneArgBuiltin("predicate").
-  builtInCall --> oneArgBuiltin("object").
+  builtInCall:() >> expression --> cons[token].
+  builtInCall >> E --> aggregateExpr >> E.
+  builtInCall >> .call("str",[A]) --> oneArgBuiltin("str") >> A.
+  builtInCall >> .call("lang",[A]) --> oneArgBuiltin("lang") >> A.
+  builtInCall >> .call("langmatches",[A,B]) --> twoArgBuiltin("langmatches") >> (A,B).
+  builtInCall >> .call("langdir",[A]) --> oneArgBuiltin("langdir") >> A.
+  builtInCall >> .call("datatype",[A]) --> oneArgBuiltin("datatype") >> A.
+  builtInCall >> .bound(V) --> sparqlKw("bound"), punc("("), varRef >> V, punc(")").
+  builtInCall >> .call("iri",[A]) --> oneArgBuiltin("iri") >> A.
+  builtInCall >> .call("uri",[A]) --> oneArgBuiltin("uri") >> A.
+  builtInCall >> .call("bnode",Args) --> sparqlKw("bnode"), bnodeArgs >> Args.
 
-  oneArgBuiltin(Kw) --> sparqlKw(Kw), punc("("), expression, punc(")").
-  twoArgBuiltin(Kw) --> sparqlKw(Kw), punc("("), expression, punc(","), expression, punc(")").
-  threeArgBuiltin(Kw) --> sparqlKw(Kw), punc("("), expression, punc(","), expression, punc(","), expression, punc(")").
+  bnodeArgs:() >> cons[expression] --> cons[token].
+  bnodeArgs >> [A] --> punc("("), expression >> A, punc(")").
+  bnodeArgs >> [] --> rdfNil.
+  builtInCall >> .call("rand",[]) --> nilArgBuiltin("rand").
+  builtInCall >> .call("abs",[A]) --> oneArgBuiltin("abs") >> A.
+  builtInCall >> .call("ceil",[A]) --> oneArgBuiltin("ceil") >> A.
+  builtInCall >> .call("floor",[A]) --> oneArgBuiltin("floor") >> A.
+  builtInCall >> .call("round",[A]) --> oneArgBuiltin("round") >> A.
+  builtInCall >> .call("concat",Es) --> sparqlKw("concat"), expressionList >> Es.
+  builtInCall >> E --> substringExpression >> E.
+  builtInCall >> .call("strlen",[A]) --> oneArgBuiltin("strlen") >> A.
+  builtInCall >> E --> strReplaceExpression >> E.
+  builtInCall >> .call("ucase",[A]) --> oneArgBuiltin("ucase") >> A.
+  builtInCall >> .call("lcase",[A]) --> oneArgBuiltin("lcase") >> A.
+  builtInCall >> .call("encode_for_uri",[A]) --> oneArgBuiltin("encode_for_uri") >> A.
+  builtInCall >> .call("contains",[A,B]) --> twoArgBuiltin("contains") >> (A,B).
+  builtInCall >> .call("strstarts",[A,B]) --> twoArgBuiltin("strstarts") >> (A,B).
+  builtInCall >> .call("strends",[A,B]) --> twoArgBuiltin("strends") >> (A,B).
+  builtInCall >> .call("strbefore",[A,B]) --> twoArgBuiltin("strbefore") >> (A,B).
+  builtInCall >> .call("strafter",[A,B]) --> twoArgBuiltin("strafter") >> (A,B).
+  builtInCall >> .call("year",[A]) --> oneArgBuiltin("year") >> A.
+  builtInCall >> .call("month",[A]) --> oneArgBuiltin("month") >> A.
+  builtInCall >> .call("day",[A]) --> oneArgBuiltin("day") >> A.
+  builtInCall >> .call("hours",[A]) --> oneArgBuiltin("hours") >> A.
+  builtInCall >> .call("minutes",[A]) --> oneArgBuiltin("minutes") >> A.
+  builtInCall >> .call("seconds",[A]) --> oneArgBuiltin("seconds") >> A.
+  builtInCall >> .call("timezone",[A]) --> oneArgBuiltin("timezone") >> A.
+  builtInCall >> .call("tz",[A]) --> oneArgBuiltin("tz") >> A.
+  builtInCall >> .call("now",[]) --> nilArgBuiltin("now").
+  builtInCall >> .call("uuid",[]) --> nilArgBuiltin("uuid").
+  builtInCall >> .call("struuid",[]) --> nilArgBuiltin("struuid").
+  builtInCall >> .call("md5",[A]) --> oneArgBuiltin("md5") >> A.
+  builtInCall >> .call("sha1",[A]) --> oneArgBuiltin("sha1") >> A.
+  builtInCall >> .call("sha256",[A]) --> oneArgBuiltin("sha256") >> A.
+  builtInCall >> .call("sha384",[A]) --> oneArgBuiltin("sha384") >> A.
+  builtInCall >> .call("sha512",[A]) --> oneArgBuiltin("sha512") >> A.
+  builtInCall >> .call("coalesce",Es) --> sparqlKw("coalesce"), expressionList >> Es.
+  builtInCall >> .call("if",[A,B,C]) --> sparqlKw("if"), punc("("), expression >> A, punc(","), expression >> B,
+    punc(","), expression >> C, punc(")").
+  builtInCall >> .call("strlang",[A,B]) --> twoArgBuiltin("strlang") >> (A,B).
+  builtInCall >> .call("strlangdir",[A,B,C]) --> threeArgBuiltin("strlangdir") >> (A,B,C).
+  builtInCall >> .call("strdt",[A,B]) --> twoArgBuiltin("strdt") >> (A,B).
+  builtInCall >> .call("sameterm",[A,B]) --> twoArgBuiltin("sameterm") >> (A,B).
+  builtInCall >> .call("isiri",[A]) --> oneArgBuiltin("isiri") >> A.
+  builtInCall >> .call("isuri",[A]) --> oneArgBuiltin("isuri") >> A.
+  builtInCall >> .call("isblank",[A]) --> oneArgBuiltin("isblank") >> A.
+  builtInCall >> .call("isliteral",[A]) --> oneArgBuiltin("isliteral") >> A.
+  builtInCall >> .call("isnumeric",[A]) --> oneArgBuiltin("isnumeric") >> A.
+  builtInCall >> .call("haslang",[A]) --> oneArgBuiltin("haslang") >> A.
+  builtInCall >> .call("haslangdir",[A]) --> oneArgBuiltin("haslangdir") >> A.
+  builtInCall >> E --> regexExpression >> E.
+  builtInCall >> E --> existsFunc >> E.
+  builtInCall >> E --> notExistsFunc >> E.
+  builtInCall >> .call("istriple",[A]) --> oneArgBuiltin("istriple") >> A.
+  builtInCall >> .call("triple",[A,B,C]) --> threeArgBuiltin("triple") >> (A,B,C).
+  builtInCall >> .call("subject",[A]) --> oneArgBuiltin("subject") >> A.
+  builtInCall >> .call("predicate",[A]) --> oneArgBuiltin("predicate") >> A.
+  builtInCall >> .call("object",[A]) --> oneArgBuiltin("object") >> A.
+
+  oneArgBuiltin:(string) >> expression --> cons[token].
+  oneArgBuiltin(Kw) >> A --> sparqlKw(Kw), punc("("), expression >> A, punc(")").
+
+  twoArgBuiltin:(string) >> (expression,expression) --> cons[token].
+  twoArgBuiltin(Kw) >> (A,B) --> sparqlKw(Kw), punc("("), expression >> A, punc(","), expression >> B, punc(")").
+
+  threeArgBuiltin:(string) >> (expression,expression,expression) --> cons[token].
+  threeArgBuiltin(Kw) >> (A,B,C) --> sparqlKw(Kw), punc("("), expression >> A, punc(","), expression >> B,
+    punc(","), expression >> C, punc(")").
+
   nilArgBuiltin(Kw) --> sparqlKw(Kw), rdfNil.
 
-  regexExpression --> sparqlKw("regex"), punc("("), expression, punc(","), expression,
-    ? (punc(","), expression), punc(")").
+  regexExpression:() >> expression --> cons[token].
+  regexExpression >> .call("regex",twoPlusOptArgs(A,B,C)) --> sparqlKw("regex"), punc("("), expression >> A,
+    punc(","), expression >> B, ? (punc(","), expression) >> C, punc(")").
 
-  substringExpression --> sparqlKw("substr"), punc("("), expression, punc(","), expression,
-    ? (punc(","), expression), punc(")").
+  substringExpression:() >> expression --> cons[token].
+  substringExpression >> .call("substr",twoPlusOptArgs(A,B,C)) --> sparqlKw("substr"), punc("("), expression >> A,
+    punc(","), expression >> B, ? (punc(","), expression) >> C, punc(")").
 
-  strReplaceExpression --> sparqlKw("replace"), punc("("), expression, punc(","), expression,
-    punc(","), expression, ? (punc(","), expression), punc(")").
+  twoPlusOptArgs:(expression,expression,option[expression]) => cons[expression].
+  twoPlusOptArgs(A,B,.none) => [A,B].
+  twoPlusOptArgs(A,B,.some(C)) => [A,B,C].
 
-  existsFunc --> sparqlKw("exists"), groupGraphPattern.
+  strReplaceExpression:() >> expression --> cons[token].
+  strReplaceExpression >> .call("replace",replaceArgs(A,B,C,D)) --> sparqlKw("replace"), punc("("), expression >> A,
+    punc(","), expression >> B, punc(","), expression >> C, ? (punc(","), expression) >> D, punc(")").
 
-  notExistsFunc --> sparqlKw("not"), sparqlKw("exists"), groupGraphPattern.
+  replaceArgs:(expression,expression,expression,option[expression]) => cons[expression].
+  replaceArgs(A,B,C,.none) => [A,B,C].
+  replaceArgs(A,B,C,.some(D)) => [A,B,C,D].
 
-  aggregateExpr --> sparqlKw("count"), punc("("), ? sparqlKw("distinct"), (punc("*") | expression), punc(")").
-  aggregateExpr --> aggFn1("sum").
-  aggregateExpr --> aggFn1("min").
-  aggregateExpr --> aggFn1("max").
-  aggregateExpr --> aggFn1("avg").
-  aggregateExpr --> aggFn1("sample").
-  aggregateExpr --> sparqlKw("group_concat"), punc("("), ? sparqlKw("distinct"), expression,
-    ? (punc(";"), sparqlKw("separator"), punc("="), stringLiteral), punc(")").
+  existsFunc:() >> expression --> cons[token].
+  existsFunc >> .existsPattern(P) --> sparqlKw("exists"), groupGraphPattern >> P.
 
-  aggFn1(Kw) --> sparqlKw(Kw), punc("("), ? sparqlKw("distinct"), expression, punc(")").
+  notExistsFunc:() >> expression --> cons[token].
+  notExistsFunc >> .notExists(P) --> sparqlKw("not"), sparqlKw("exists"), groupGraphPattern >> P.
 
-  iriOrFunction --> iri, ? argList.
+  -- COUNT is its own shape (DISTINCT flag plus either `*` or an expression);
+  -- SUM/MIN/MAX/AVG/SAMPLE share aggFn1's single-expression shape;
+  -- GROUP_CONCAT is its own shape again (optional SEPARATOR).
+  aggregateExpr:() >> expression --> cons[token].
+  aggregateExpr >> .aggregate("count",CountArg,Dist) --> sparqlKw("count"), punc("("), kwFlag("distinct") >> Dist,
+    countTarget >> CountArg, punc(")").
+  aggregateExpr >> E --> aggFn1("sum") >> E.
+  aggregateExpr >> E --> aggFn1("min") >> E.
+  aggregateExpr >> E --> aggFn1("max") >> E.
+  aggregateExpr >> E --> aggFn1("avg") >> E.
+  aggregateExpr >> E --> aggFn1("sample") >> E.
+  aggregateExpr >> .groupConcat(.some(E),Dist,Sep) --> sparqlKw("group_concat"), punc("("), kwFlag("distinct") >> Dist,
+    expression >> E, ? (punc(";"), sparqlKw("separator"), punc("="), stringLiteral) >> SepOpt, punc(")"),
+    {Sep .= optMarkupToString(SepOpt)}.
 
-  functionCall --> iri, argList.
+  countTarget:() >> option[expression] --> cons[token].
+  countTarget >> .none --> punc("*").
+  countTarget >> .some(E) --> expression >> E.
 
-  argList --> rdfNil.
-  argList --> punc("("), ? sparqlKw("distinct"), expression, (punc(","), expression)*, punc(")").
+  optMarkupToString:(option[cons[markup]]) => option[string].
+  optMarkupToString(.none) => .none.
+  optMarkupToString(.some(Segs)) => .some(markupToString(Segs)).
 
-  expressionList --> rdfNil.
-  expressionList --> punc("("), expression, (punc(","), expression)*, punc(")").
+  markupToString:(cons[markup]) => string.
+  markupToString([]) => "".
+  markupToString([M,..Rest]) => markupPart(M) ++ markupToString(Rest).
+
+  markupPart(.str(S)) => S.
+  markupPart(.link(_,_)) => unreachable.
+
+  aggFn1:(string) >> expression --> cons[token].
+  aggFn1(Kw) >> .aggregate(Kw,.some(E),Dist) --> sparqlKw(Kw), punc("("), kwFlag("distinct") >> Dist,
+    expression >> E, punc(")").
+
+  iriOrFunction:() >> expression --> cons[token].
+  iriOrFunction >> combineIriOrFunction(C,ArgOpt) --> iri >> C, ? argList >> ArgOpt.
+
+  combineIriOrFunction:(concept,option[(cons[expression],boolean)]) => expression.
+  combineIriOrFunction(C,.none) => .term(.literal(C)).
+  combineIriOrFunction(C,.some((Args,Dist))) => .funcCall(.literal(C),Args,Dist).
+
+  functionCall:() >> expression --> cons[token].
+  functionCall >> .funcCall(.literal(C),Args,Dist) --> iri >> C, argList >> (Args,Dist).
+
+  argList:() >> (cons[expression],boolean) --> cons[token].
+  argList >> ([],.false) --> rdfNil.
+  argList >> ([E0,..Es],Dist) --> punc("("), kwFlag("distinct") >> Dist, expression >> E0,
+    (punc(","), expression)* >> Es, punc(")").
+
+  expressionList:() >> cons[expression] --> cons[token].
+  expressionList >> [] --> rdfNil.
+  expressionList >> [E0,..Es] --> punc("("), expression >> E0, (punc(","), expression)* >> Es, punc(")").
 
   -- SPARQL strings don't support N3-style `$(...)` interpolation, but
   -- rdf.lexer's string reader is shared and will still fire its
@@ -727,7 +1031,8 @@ rdf.sparql.parser{
   pnameNs >> P --> [.tok(_,.idTok(P))], punc(":").
   pnameNs >> "" --> punc(":").
 
-  integerToken --> [.tok(_,.intTok(_))].
+  integerToken:() >> integer --> cons[token].
+  integerToken >> N --> [.tok(_,.intTok(N))].
 
   -- SPARQL keywords are case-insensitive (unlike rdf.parser's `keyword`,
   -- which is an exact case-sensitive match used by the N3 parser).

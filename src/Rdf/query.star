@@ -8,7 +8,7 @@ rdf.sparql.query{
   -- terms/annotations/reifiers), and the full expression/built-in surface.
 
   public query ::= .select(selectModifier,projection,cons[datasetClause],pattern,solutionMods)
-  | .construct(cons[pattern],cons[datasetClause],pattern,solutionMods)
+  | .construct(pattern,cons[datasetClause],pattern,solutionMods)
   | .describe(describeTargets,cons[datasetClause],option[pattern],solutionMods)
   | .ask(cons[datasetClause],pattern,solutionMods).
 
