@@ -1,5 +1,6 @@
 rdf.sparql.test{
   import star.
+  import star.assert.
   import star.location.
   import rdf.lexer.
   import rdf.sparql.parser.
@@ -12,8 +13,8 @@ rdf.sparql.test{
   -- modifiers, property paths, aggregates, UNION/OPTIONAL, RDF-star
   -- (reified triples, annotations, reifiers), and expression precedence.
 
-  public _main:(cons[string]) => integer.
-  _main(_) => valof{
+  main:(){}.
+  main(){
     Failures = ref 0;
 
     tryQuery(Failures,"SELECT ?s ?p ?o WHERE { ?s ?p ?o . }", .true);
@@ -60,12 +61,11 @@ rdf.sparql.test{
       "GROUP_CONCAT's SEPARATOR string is captured");
 
     if Failures! == 0 then{
-      logMsg(.info,"all sparql parser tests passed");
-      valis 0
+      logMsg(.info,"all sparql parser tests passed")
     } else{
-      logMsg(.severe,"$(Failures!) sparql parser test(s) failed");
-      valis 1
-    }
+      logMsg(.severe,"$(Failures!) sparql parser test(s) failed")
+    };
+    assert(Failures! == 0)
   }
 
   tryQuery(Failures,Q,Expect) => valof{
