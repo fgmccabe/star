@@ -89,7 +89,7 @@ rdf.sparql.test{
         valis ()
       } else{
         Failures := Failures! + 1;
-        logMsg(.severe,"AST MISMATCH ($(Descr)): $(Q) -- $(dumpQ(QAst))");
+        logMsg(.severe,"AST MISMATCH ($(Descr)): $(Q) -- $(QAst)");
         valis ()
       }
     } else{
@@ -98,27 +98,6 @@ rdf.sparql.test{
       valis ()
     }
   }
-
-  -- Minimal debug dumper for AST-mismatch messages (pattern/term/query have
-  -- no disp contract, and deriving one is out of scope here). Only covers
-  -- what's needed to diagnose the checks above -- extend as needed.
-  dumpQ(.select(_,_,_,P,_)) => "select(" ++ dumpP(P) ++ ")".
-  dumpQ(.construct(_,_,P,_)) => "construct(" ++ dumpP(P) ++ ")".
-  dumpQ(.ask(_,P,_)) => "ask(" ++ dumpP(P) ++ ")".
-  dumpQ(_) default => "?query".
-
-  dumpP(.basic(S,_,O)) => "basic(" ++ dumpT(S) ++ "," ++ dumpT(O) ++ ")".
-  dumpP(.conj(A,B)) => "conj(" ++ dumpP(A) ++ "," ++ dumpP(B) ++ ")".
-  dumpP(.union(A,B)) => "union(" ++ dumpP(A) ++ "," ++ dumpP(B) ++ ")".
-  dumpP(.optional(A,B)) => "optional(" ++ dumpP(A) ++ "," ++ dumpP(B) ++ ")".
-  dumpP(.minus(A,B)) => "minus(" ++ dumpP(A) ++ "," ++ dumpP(B) ++ ")".
-  dumpP(.filter(_)) => "filter(_)".
-  dumpP(.bind(_,V)) => "bind(_,#(V))".
-  dumpP(.nilPattern) => "nil".
-  dumpP(_) default => "?pattern".
-
-  dumpT(.var(V)) => "var(#(V))".
-  dumpT(_) default => "?term".
 
   checkSimpleSelect(.select(.noModifier,.vars([.plain("s")]),[],
     .basic(.var("s"),.simple(.var("p")),.var("o")),_)) => .true.
