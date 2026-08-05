@@ -8,6 +8,8 @@
     "rdf.parser" : "parser.star",
     "rdf.sparql.query" : "query.star",
     "rdf.sparql.prologue" : "prologue.star",
+    "rdf.sparql.solution" : "solution.star",
+    "rdf.sparql.solution.test" : "solutiontest.star",
     "rdf.sparql.parser" : "sparql.star",
     "rdf.sparql.engine" : "engine.star",
     "rdf.sparql.test" : "sparqltest.star",
