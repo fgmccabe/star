@@ -56,11 +56,11 @@ rdf.sparql.solution.test{
 
     -- minus: sharing no variables at all is a no-op, per the spec's domain-overlap gate --
     -- this is the behaviour that makes MINUS differ from NOT EXISTS (see solution.star).
-    checkSolutions(Failures,minus([Ms],[Mo]),[Ms],
+    checkSolutions(Failures,minusSol([Ms],[Mo]),[Ms],
       "minus is a no-op when the two sides share no variables");
-    checkSolutions(Failures,minus([Mso],[Mo]),[],
+    checkSolutions(Failures,minusSol([Mso],[Mo]),[],
       "minus removes rows with a domain-overlapping compatible match");
-    checkSolutions(Failures,minus([Mso],[MsoDiff]),[Mso],
+    checkSolutions(Failures,minusSol([Mso],[MsoDiff]),[Mso],
       "minus keeps rows whose overlapping vars disagree (not compatible)");
 
     if Failures! == 0 then{

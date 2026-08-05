@@ -65,8 +65,12 @@ rdf.sparql.solution{
      on domain overlap at all). This is deliberately different from NOT EXISTS, which
      re-evaluates per outer mapping regardless of shared variables -- see the plan's Risks
      section; engine.star's test suite covers the divergence explicitly. */
-  public minus:(solutions,solutions) => solutions.
-  minus(Om1,Om2) => filterSol((M1) => ~hasOverlappingMatch(M1,Om2), Om1).
+  -- Named minusSol, not minus, to avoid colliding with query.star's .minus pattern
+  -- constructor -- the two are unrelated, but star.compiler doesn't disambiguate a plain
+  -- function name from a same-named algebraic constructor cleanly, at least in engine.star's
+  -- evalPattern(G,.minus(A,B)) clause head (confirmed: swap the name and it compiles fine).
+  public minusSol:(solutions,solutions) => solutions.
+  minusSol(Om1,Om2) => filterSol((M1) => ~hasOverlappingMatch(M1,Om2), Om1).
 
   hasOverlappingMatch(_,[]) => .false.
   hasOverlappingMatch(M1,[M2,..Rest]) =>
