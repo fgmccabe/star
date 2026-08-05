@@ -42,6 +42,34 @@ rdf.sparql.engine.test{
     valis []
   }
 
+  selVars:(cons[selectVar]) => projection.
+  selVars(Vs) => .vars(Vs).
+
+  mods:(cons[groupCondition],cons[expression],cons[orderCondition],option[integer],option[integer]) => solutionMods.
+  mods(Grouping,Having,Ordering,Limit,Offset) =>
+    solutionMods{grouping=Grouping. having=Having. ordering=Ordering. limit=Limit. offset=Offset}.
+
+  runSelectOk:(graph,selectModifier,projection,pattern,solutionMods) => solutions.
+  runSelectOk(G,Mod,Proj,P,Mds) => valof{
+    try{
+      valis runSelect(G,Mod,Proj,P,Mds)
+    } catch {
+      _ do valis unexpectedThrow()
+    }
+  }
+
+  runAskOk:(graph,pattern) => boolean.
+  runAskOk(G,P) => valof{
+    try{
+      valis runAsk(G,P)
+    } catch {
+      _ do {
+        assert(.false);
+        valis .false
+      }
+    }
+  }
+
   main:(){}.
   main(){
     Failures = ref 0;
@@ -121,6 +149,72 @@ rdf.sparql.engine.test{
     checkThrows(Failures,() => evalPattern(G,.graph(lit(Alice),.nilPattern)),
       "GRAPH raises \"not supported\" (named graphs are out of scope)");
 
+    -- ===== Solution modifiers / result forms (runSelect, runAsk) =====
+
+    KnowsPat = bp(vr("s"),lit(Knows),vr("o"));
+    NoMods = mods([],[],[],.none,.none);
+
+    -- Plain SELECT ?s, no modifiers: one row per matching triple, duplicates kept.
+    checkCount(Failures,runSelectOk(G,.noModifier,selVars([.plain("s")]),KnowsPat,NoMods),3,
+      "SELECT ?s with no modifiers keeps one row per triple, duplicates and all");
+
+    -- DISTINCT collapses the two alice rows into one.
+    checkCount(Failures,runSelectOk(G,.distinct,selVars([.plain("s")]),KnowsPat,NoMods),2,
+      "SELECT DISTINCT ?s collapses duplicate rows");
+
+    -- COUNT(*) with no GROUP BY: the implicit single group over all 3 solutions.
+    CountAll = selVars([.computed(.aggregate("count",.none,.false),"c")]);
+    checkSolutionsEq(Failures,runSelectOk(G,.noModifier,CountAll,KnowsPat,NoMods),
+      [emptyMapping["c"->.int(3)]],
+      "COUNT(*) with no GROUP BY implicitly groups everything into one row");
+
+    -- COUNT(*) with no GROUP BY and *zero* matching solutions still produces one row with
+    -- count 0, not zero rows -- the aggregate zero-solution edge case (plan Risk #3).
+    NoMatch = bp(lit(.uri("nobody")),lit(Knows),vr("o"));
+    checkSolutionsEq(Failures,runSelectOk(G,.noModifier,CountAll,NoMatch,NoMods),
+      [emptyMapping["c"->.int(0)]],
+      "COUNT(*) over zero solutions with no GROUP BY still yields one row with count 0");
+
+    -- GROUP BY ?s, COUNT(?o) AS ?c: alice has 2 (bob,carol), bob has 1 (carol).
+    GroupBySVar = [.groupExpr(.term(vr("s")),.none)];
+    CountO = selVars([.plain("s"),.computed(.aggregate("count",.some(.term(vr("o"))),.false),"c")]);
+    GroupedRows = runSelectOk(G,.noModifier,CountO,KnowsPat,mods(GroupBySVar,[],[],.none,.none));
+    checkSolutionsBag(Failures,GroupedRows,
+      [emptyMapping["s"->Alice]["c"->.int(2)],emptyMapping["s"->Bob]["c"->.int(1)]],
+      "GROUP BY ?s with COUNT(?o) produces one row per distinct ?s with its own count");
+
+    -- HAVING(?c > 1) on the same grouping keeps only alice's group (count 2), drops bob's (1).
+    HavingMod = mods(GroupBySVar,[.gt(.term(vr("c")),.term(lit(.int(1))))],[],.none,.none);
+    checkSolutionsEq(Failures,runSelectOk(G,.noModifier,CountO,KnowsPat,HavingMod),
+      [emptyMapping["s"->Alice]["c"->.int(2)]],
+      "HAVING(?c > 1) referencing the COUNT alias keeps only the group satisfying it");
+
+    -- ORDER BY / LIMIT / OFFSET: age-tagged data with a unique, orderable value per row.
+    GAge0 = addTriple(G,.tr(Bob,Age,.int(25)));
+    GAge = addTriple(GAge0,.tr(Carol,Age,.int(40)));
+    AgePat = bp(vr("s"),lit(Age),vr("a"));
+    AgeVars = selVars([.plain("s"),.plain("a")]);
+    Asc = mods([],[],[.asc(.term(vr("a")))],.none,.none);
+    ExpectAsc = [emptyMapping["s"->Bob]["a"->.int(25)],emptyMapping["s"->Alice]["a"->.int(30)],
+      emptyMapping["s"->Carol]["a"->.int(40)]];
+    checkSolutionsEq(Failures,runSelectOk(GAge,.noModifier,AgeVars,AgePat,Asc),ExpectAsc,
+      "ORDER BY ?a ascending sorts bob(25) < alice(30) < carol(40)");
+
+    Desc = mods([],[],[.desc(.term(vr("a")))],.none,.none);
+    ExpectDesc = [emptyMapping["s"->Carol]["a"->.int(40)],emptyMapping["s"->Alice]["a"->.int(30)],
+      emptyMapping["s"->Bob]["a"->.int(25)]];
+    checkSolutionsEq(Failures,runSelectOk(GAge,.noModifier,AgeVars,AgePat,Desc),ExpectDesc,
+      "ORDER BY ?a descending reverses the order");
+
+    LimOff = mods([],[],[.asc(.term(vr("a")))],.some(1),.some(1));
+    checkSolutionsEq(Failures,runSelectOk(GAge,.noModifier,AgeVars,AgePat,LimOff),
+      [emptyMapping["s"->Alice]["a"->.int(30)]],
+      "OFFSET 1 LIMIT 1 after ORDER BY ?a skips bob and returns just alice");
+
+    -- ASK: true when the pattern matches, false when it doesn't.
+    checkBool(Failures,runAskOk(G,KnowsPat),.true,"ASK is true when the pattern has at least one solution");
+    checkBool(Failures,runAskOk(G,NoMatch),.false,"ASK is false when the pattern has no solutions");
+
     if Failures! == 0 then{
       logMsg(.info,"all engine tests passed")
     } else{
@@ -151,6 +245,43 @@ rdf.sparql.engine.test{
       valis ()
     }
   }
+
+  checkBool(Failures,Got,Expect,Descr) => checkSolutionsEqBool(Failures,Got==Expect,Descr).
+
+  checkSolutionsEqBool(Failures,Ok,Descr) => valof{
+    if Ok then{
+      logMsg(.info,"PASS: $(Descr)");
+      valis ()
+    } else{
+      Failures := Failures! + 1;
+      logMsg(.severe,"FAIL: $(Descr)");
+      valis ()
+    }
+  }
+
+  -- solutions are a multiset -- compare as bags (same elements, same multiplicities), not
+  -- list order, since grouping's internal order isn't part of the contract being tested.
+  checkSolutionsBag(Failures,Got,Expect,Descr) => valof{
+    if size(Got)==size(Expect) && containsAllRows(Got,Expect) then{
+      logMsg(.info,"PASS: $(Descr)");
+      valis ()
+    } else{
+      Failures := Failures! + 1;
+      logMsg(.severe,"FAIL ($(Descr)): expected $(Expect), got $(Got)");
+      valis ()
+    }
+  }
+
+  containsAllRows:(solutions,solutions) => boolean.
+  containsAllRows([],_) => .true.
+  containsAllRows([M,..Rest],Expect) where Rem ?= removeOneRow(M,Expect) => containsAllRows(Rest,Rem).
+  containsAllRows(_,_) default => .false.
+
+  removeOneRow:(mapping,solutions) => option[solutions].
+  removeOneRow(_,[]) => .none.
+  removeOneRow(M,[M2,..Rest]) where M==M2 => .some(Rest).
+  removeOneRow(M,[M2,..Rest]) where Rem ?= removeOneRow(M,Rest) => .some([M2,..Rem]).
+  removeOneRow(_,_) default => .none.
 
   checkThrows(Failures,Th,Descr) => valof{
     try{

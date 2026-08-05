@@ -134,7 +134,7 @@ rdf.sparql.expreval{
      rdf.triple's equality[concept]), with int/float cross-promotion for numeric equality --
      no throw on genuinely incomparable types (e.g. a string vs a URI), just false, unlike
      strict SPARQL "=" (which type-errors there); a documented simplification given scope. */
-  termEq:(concept,concept) => boolean.
+  public termEq:(concept,concept) => boolean.
   termEq(.int(A),.flt(B)) => valof{
     try{
       valis intToFltUnsafe(A)==B
@@ -151,7 +151,7 @@ rdf.sparql.expreval{
   }
   termEq(C1,C2) default => C1==C2.
 
-  numCompare:(concept,concept) => integer throws string.
+  public numCompare:(concept,concept) => integer throws string.
   numCompare(.int(A),.int(B)) => intCmp(A,B).
   numCompare(.int(A),.flt(B)) => fltCmp(intToFlt(A),B).
   numCompare(.flt(A),.int(B)) => fltCmp(A,intToFlt(B)).
@@ -166,7 +166,7 @@ rdf.sparql.expreval{
   fltCmp(A,B) where A>B => 1.
   fltCmp(_,_) => 0.
 
-  numAdd:(concept,concept) => concept throws string.
+  public numAdd:(concept,concept) => concept throws string.
   numAdd(.int(A),.int(B)) => .int(A+B).
   numAdd(.int(A),.flt(B)) => .flt(intToFlt(A)+B).
   numAdd(.flt(A),.int(B)) => .flt(A+intToFlt(B)).
@@ -189,7 +189,7 @@ rdf.sparql.expreval{
 
   -- SPARQL division always yields a fractional result -- promote both operands to float
   -- rather than truncating integer division.
-  numDiv:(concept,concept) => concept throws string.
+  public numDiv:(concept,concept) => concept throws string.
   numDiv(A,B) => valof{
     try{
       valis numDivRaw(A,B)
@@ -260,7 +260,7 @@ rdf.sparql.expreval{
   evalCall(EvalP,M,"if",[A,B,C]) => (evalBoolOf(EvalP,M,A) ?? evalExpr(EvalP,M,B) || evalExpr(EvalP,M,C)).
   evalCall(_,_,Nm,_) default => throw "$(Nm)() is not supported yet".
 
-  lexicalForm:(concept) => string throws string.
+  public lexicalForm:(concept) => string throws string.
   lexicalForm(.text([.str(S)])) => S.
   lexicalForm(.langText([.str(S)],_)) => S.
   lexicalForm(.typedText([.str(S)],_)) => S.
