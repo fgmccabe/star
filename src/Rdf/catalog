@@ -17,6 +17,7 @@
     "rdf.sparql.expreval.test" : "exprevaltest.star",
     "rdf.sparql.engine" : "engine.star",
     "rdf.sparql.engine.test" : "enginetest.star",
+    "rdf.sparql.smoketest" : "smoketest.star",
     "rdf.sparql.test" : "sparqltest.star",
     "rdf.token" : "token.star",
     "rdf.triple" : "triple.star"

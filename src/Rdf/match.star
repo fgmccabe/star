@@ -10,12 +10,17 @@ rdf.sparql.match{
      variables. Each pattern is matched independently -- combining multiple patterns' results
      (BGP evaluation) is solution.star's join, applied by engine.star.
 
-     v1 scope only: predicate must be .simple(T) (property paths -- .path(...) -- are v2,
-     see the phased plan) and S/O must be .literal(concept)/.var (RDF-star pattern matching
-     against .tripleTermPattern/.reifiedTriple terms is also v2, deferred pending a decision
-     on reifier-identity semantics -- see query.star's annotationItem comment). Calling this
-     with a .path predicate or those term shapes is a non-exhaustive-match error, same as
-     how the rest of v1 draws this boundary.
+     v1 scope only: the predicate must reduce to a single IRI term -- either .simple(T)
+     (used by CONSTRUCT templates) or .path(.predicate(T)) (what an ordinary WHERE-clause
+     triple pattern actually parses to, even for a single plain IRI predicate like `ex:p` --
+     see sparqltest.star's checkOptionalAccum comment on verbPath; .simple(T) alone is *not*
+     enough to cover real queries). Any richer property path (.seq/.alt/.mod/etc, or
+     .inverse/.negated/.group) is v2 and raises a clear "not supported yet" error rather than
+     crashing on a non-exhaustive match. S/O must be .literal(concept)/.var (RDF-star pattern
+     matching against .tripleTermPattern/.reifiedTriple terms is also v2, deferred pending a
+     decision on reifier-identity semantics -- see query.star's annotationItem comment) --
+     those still hit a non-exhaustive-match error, same as how the rest of v1 draws this
+     boundary.
 
      Per-position strategy: a bound *symbolic* term (.literal(C) with isSymbolicConcept(C))
      narrows via the matching graph index (subjects/predicates/objects); a bound but
@@ -24,9 +29,14 @@ rdf.sparql.match{
      bound-and-symbolic, this falls back to a full scan over G.triples -- graph.star has no
      composite (SPO/POS/etc.) index. */
 
-  public matchBasic:(graph,term,predicate,term) => solutions.
-  matchBasic(G,S,.simple(P),O) where Ixs ?= candidateSet(G,S,P,O) => matchIndices(G,Ixs,S,P,O).
-  matchBasic(G,S,.simple(P),O) => matchFullScan(G,S,P,O).
+  public matchBasic:(graph,term,predicate,term) => solutions throws string.
+  matchBasic(G,S,.simple(P),O) => matchOnPredicate(G,S,P,O).
+  matchBasic(G,S,.path(.predicate(P)),O) => matchOnPredicate(G,S,P,O).
+  matchBasic(_,_,.path(_),_) => throw "property paths (beyond a single predicate) are not supported yet".
+
+  matchOnPredicate:(graph,term,term,term) => solutions.
+  matchOnPredicate(G,S,P,O) where Ixs ?= candidateSet(G,S,P,O) => matchIndices(G,Ixs,S,P,O).
+  matchOnPredicate(G,S,P,O) => matchFullScan(G,S,P,O).
 
   /* The intersection of every bound-and-symbolic position's index set, or .none if no
      position is bound-and-symbolic (signalling "fall back to a full scan"). Chains
