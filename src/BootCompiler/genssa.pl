@@ -272,7 +272,7 @@ compAction(defn(Lc,idnt(Nm,Tp),E),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   defineLclVar(Lc,Nm,Tp,Opts,D,D0),
   bindExpToVar(E,Lc,Brks,Opts,VlVr,L,Lx,D0,Dx,C0,[iMv(Nm,VlVr)|C1]),
-  genBind(Opts,Nm,C1,Cx).
+  genBind(Opts,Lc,Nm,C1,Cx).
 compAction(setix(Lc,Rc,Off,Vl),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   bindExpToVar(Vl,Lc,Brks,Opts,VlVr,L,L1,D,D1,C0,C1),
@@ -342,9 +342,10 @@ genDbg(Opts,Lc,[iDBug(Loc)|Cx],Cx) :-
   locTerm(Lc,Loc).
 genDbg(_,_,Cx,Cx).
 
-genBind(Opts,Vr,[iBind(strg(Vr),Vr)|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genBind(_,_,Cx,Cx).
+genBind(Opts,Lc,Vr,[iBind(strg(Vr),Lt,Vr)|Cx],Cx) :-
+  is_member(debugging,Opts),!,
+  locTerm(Lc,Lt).
+genBind(_,_,_,Cx,Cx).
 
 % Compile arguments to function
 compArgs([],_Lc,_Ix,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx) :-!.
@@ -363,7 +364,7 @@ compPtn(ctpl(St,Args),Vr,Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail,Vr)|C],Cx) :
   compPtnArgs(Args,Vr,Lc,0,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx).
 compPtn(idnt(Nm,Tp),Vr,Lc,_Fail,_Brks,Opts,Lx,Lx,D,Dx,[iMv(Nm,Vr)|C],Cx) :-
   defineLclVar(Lc,Nm,Tp,Opts,D,Dx),
-  genBind(Opts,Nm,C,Cx).
+  genBind(Opts,Lc,Nm,C,Cx).
 
 compPtn(enum(Lbl),Vr,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLbl(lbl(Lbl,0),Fail,Vr)|Cx],Cx) :-!.
 compPtn(ctpl(St,Args),Vr,Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail,Vr)|C],Cx) :-
