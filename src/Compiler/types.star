@@ -78,6 +78,9 @@ star.compiler.types{
   isUnboundFVar(.kFun(B,Ar)) => .some(Ar).
   isUnboundFVar(_) default => .none.
 
+  public isBound:(tipe)=>boolean.
+  isBound(V) => ~ isUnbound(V).
+
   public setBinding:(tipe,tipe) => ().
   setBinding(.tVar(B,_),T) where 0==hasKind(T) => bnd(B,T).
   setBinding(.tFun(B,Ar,_),T) where hasKind(T)==Ar => bnd(B,T).
@@ -727,4 +730,38 @@ star.compiler.types{
   vrNm(.kVar(Nm)) => Nm.
   vrNm(.kFun(Nm,_)) => Nm.
   vrNm(.nomnal(Nm)) => Nm.
+
+  public unboundVars:(tipe) => cons[tipe].
+  unboundVars(Tp) => unbVrs(deRef(Tp),[]).
+
+  unbVrs:(tipe,cons[tipe]) => cons[tipe].
+  unbVrs(V,Vrs) where isUnbound(V) =>
+    Vrs\+V.
+  unbVrs(.tpExp(O,A),Vrs) => unbVrs(deRef(O),unbVrs(deRef(A),Vrs)).
+  unbVrs(.funType(A,R,E),Vrs) =>
+    unbVrs(deRef(A),unbVrs(deRef(R),unbVrs(deRef(E),Vrs))).
+  unbVrs(.prcType(A,E),Vrs) => unbVrs(deRef(A),unbVrs(deRef(E),Vrs)).
+  unbVrs(.cnsType(A,R),Vrs) => unbVrs(deRef(A),unbVrs(deRef(R),Vrs)).
+  unbVrs(.tupleType(Els),Vrs) => unbVrsTps(Els,Vrs).
+  unbVrs(.allType(_,B),Vrs) => unbVrs(deRef(B),Vrs).
+  unbVrs(.existType(_,B),Vrs) => unbVrs(deRef(B),Vrs).
+  unbVrs(.faceType(Flds,Tps),Vrs) => unbVrsPrs(Flds,unbVrsRules(Tps,Vrs)).
+  unbVrs(.constrainedType(T,C),Vrs) => unbVrs(deRef(T),unbVrsCon(C,Vrs)).
+  unbVrs(_,Vrs) default => Vrs.
+
+  unbVrsCon(.conTract(_,Els,Dps),Vrs) => unbVrsTps(Els,unbVrsTps(Dps,Vrs)).
+  unbVrsCon(.hasField(T,_,F),Vrs) => unbVrs(deRef(T),unbVrs(deRef(F),Vrs)).
+  unbVrsCon(.implicit(_,T),Vrs) => unbVrs(deRef(T),Vrs).
+
+  unbVrsTps(Tps,Vrs) => foldLeft((T,Vs)=>unbVrs(T,Vs),Vrs,Tps).
+
+  unbVrsPrs(Prs,Vrs) => foldLeft(((_,T),Vs)=>unbVrs(T,Vs),Vrs,Prs).
+
+  unbVrsRules(Rls,Vrs) => foldLeft(((_,R),Vs) => unbVrsRule(R,Vs),Vrs,Rls).
+
+  unbVrsRule(.typeExists(L,R),Vrs) => unbVrs(deRef(L),unbVrs(deRef(R),Vrs)).
+  unbVrsRule(.contractExists(_,LTs,DTs,T),Vrs) =>
+    unbVrsTps(LTs,unbVrsTps(DTs,unbVrs(deRef(T),Vrs))).
+  unbVrsRule(.typeLambda(L,R),Vrs) => unbVrs(deRef(L),unbVrs(deRef(R),Vrs)).
+  unbVrsRule(.allRule(_,Rl),Vrs) => unbVrsRule(Rl,Vrs).
 }

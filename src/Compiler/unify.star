@@ -11,7 +11,11 @@ star.compiler.unify{
   resetV ::= .resetVar(tipe).
 
   public sameType:(tipe,tipe,dict) => boolean.
-  sameType(Tp1,Tp2,Envir) => let{.
+  sameType(Tp1,Tp2,Envir) =>
+    sameTypeWithProgress(Tp1,Tp2,Envir,()=>.true).
+
+  public sameTypeWithProgress:(tipe,tipe,dict,()=>boolean) => boolean.
+  sameTypeWithProgress(Tp1,Tp2,Envir,Check) => let{.
     resets : ref cons[resetV].
     resets = ref [].
 
@@ -122,7 +126,7 @@ star.compiler.unify{
       };
       valis .true
     }.
-  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ?? .true || resetBindings()).
+  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) && Check() ?? .true || resetBindings()).
 
   public faceOfType:(tipe,dict) => option[tipe].
   faceOfType(T,_) where .faceType(_,_).=deRef(T) => .some(T).
