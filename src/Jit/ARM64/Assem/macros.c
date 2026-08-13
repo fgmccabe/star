@@ -199,8 +199,16 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
     case sOff: {
       if (src.immediate != dst.immediate || src.reg != dst.reg) {
         armReg tmp = nxtAvailReg(freeRegs);
-        load(ctx, tmp, src.reg, src.immediate);
-        store(ctx, tmp, dst.reg, dst.immediate);
+        if (tmp != XZR) {
+          load(ctx, tmp, src.reg, src.immediate);
+          store(ctx, tmp, dst.reg, dst.immediate);
+        }
+        else {
+          stp(X0, XZR, PRX(SP,-16)); // stash X0 on the stack
+          load(ctx, X0, src.reg, src.immediate);
+          store(ctx, X0, dst.reg, dst.immediate);
+          ldp(X0, XZR, PRX(SP,16));
+        }
       }
       return;
     }

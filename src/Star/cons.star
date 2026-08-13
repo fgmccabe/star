@@ -204,4 +204,18 @@ star.cons{
   .} in {
     pull_ = pl
   }
+
+  public levenshtein:(string,string) => integer.
+  levenshtein(S1,S2) => let{.
+    leven:(cons[char],cons[char])=>integer.
+    leven([],X) => size(X).
+    leven(X,[]) => size(X).
+    leven([A,..L1],[A,..L2]) => leven(L1,L2).
+    leven([A1,..L1],[A2,..L2]) => valof{
+      D1 = leven(L1,[A2,..L2]);
+      D2 = leven([A1,..L1],L2);
+      D3 = leven(L1,L2);
+      valis min(D1,min(D2,D3))+1
+    }
+  .} in leven(explode(S1),explode(S2))
 }

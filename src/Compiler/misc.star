@@ -117,4 +117,7 @@ star.compiler.misc{
   private cP:all d,e ~~ (cons[(cons[d],cons[e])],cons[d],cons[e]) => (cons[d],cons[e]).
   cP([],D,E) => (D,E).
   cP([(d,e),..Prs],D,E) => cP(Prs,d++D,e++E).
+
+  public similar:(string,string)=>boolean.
+  similar(S1,S2) => levenshtein(S1,S2) * 4 < max(size(S1),size(S2)) * 3.
 }

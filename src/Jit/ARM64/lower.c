@@ -213,7 +213,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       loadConstant(jit, opand(1), loc);
       armReg vl = findARegister(state, pc);
       loadRegister(state, vl, sourceOperandFlex(state, pc, 2));
-      getIntVal(jit, vl);
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)abort_star, 3, (FlexOp[]){RG(PR), RG(loc), RG(vl)},
                       False, 0, (FlexOp[]){});
       releaseReg(jit, loc);
@@ -1961,7 +1960,7 @@ int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 ar
     int32 argSlot = currVarLimit - arity + ix;
     operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
   }
-  registerMap tmpMap = fixedRegSet(X16);
+  registerMap tmpMap = addReg(fixedRegSet(X18),X16);
   shuffleVars(state->jit, operands, arity, &tmpMap);
   voidOutFrameLocals(state, livePc, currVarLimit); // void out gaps in the locals map
   return currVarLimit - arity; // return how must space is needed to preserve current locals and arguments.
