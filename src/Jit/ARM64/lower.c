@@ -1244,14 +1244,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo rtn = newLabel(ctx);
       adr(tmp, rtn);
       str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
-      // Parallel move, for the same reason as sRetire/sResume: RTV and RTS are both
-      // allocatable, so the fiber local may live in one of them and a sequential load of
-      // the event/status would clobber it before it is read.
-      ArgSpec specs[3] = {
+
+      ArgSpec specs[] = {
         argSpec(localFlex(state, pc, opand(1)), RG(X1)),
         argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
         argSpec(IM(0), RG(RTS))
       };
+
       shuffleVars(jit, specs, 3, &jit->freeRegs);
       stp(RTV, RTS, PRX(SP,-16));
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)detachStack, 2, (FlexOp[]){
