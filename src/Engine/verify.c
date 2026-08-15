@@ -368,6 +368,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
         int32 argVr = operand(ix+2);
         if (!validLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: result variable[%d] %d not valid", pc, ix, argVr);
+        if (initedLocal(&ctx, argVr)) {
+          return verifyError(&ctx, ".%d: result variable[%d] %d already used, last written at %d", pc, ix, argVr,
+                             localInitedPC(&ctx, argVr));
+        }
       }
 
       if (blockLen <= 0)
