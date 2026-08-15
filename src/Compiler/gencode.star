@@ -700,9 +700,9 @@ star.compiler.gencode{
 
     DC = Hndlr(Deflt,Lc,Brks,Last,Ctx);
 
-    CC = compCases(Table,0,Mx,GVr,Df,Hndlr,Brks,Last,GC,((Bks)=>[.iIxCase(GVr,Bks)]),Ctx);
+    CC = compCases(Table,0,Mx,GVr,Df,Hndlr,Brks,Last,[],((Bks)=>[.iIxCase(GVr,Bks)]),Ctx);
 
-    valis [.iLbl(Df,.iBlock([],CC))]++DC
+    valis GC++[.iLbl(Df,.iBlock([],CC))]++DC
   }
   compIndexCase(Lc,Gv,Cases,Deflt,Hndlr,Brks,Last,Ctx) =>
     compCase(Lc,Gv,Cases,Deflt,Hndlr,Brks,Last,Ctx).

@@ -691,6 +691,9 @@ star.compiler.term{
   public vName:(cV) => string.
   vName(.cV(Nm,_)) => Nm.
 
+  public freshenA:(aAction,map[termLbl,cExp])=>aAction.
+  freshenA(A,Mp) => frshnA(A,[Mp]).
+
   frshnA:(aAction,scope)=>aAction.
   frshnA(Ac,Sc) => case Ac in {
     | .aNop(Lc) => .aNop(Lc)

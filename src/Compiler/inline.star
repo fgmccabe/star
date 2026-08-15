@@ -130,8 +130,11 @@ star.compiler.inline{
       applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
     | .cAbort(Lc,Txt,Tp) => .cAbort(Lc,Txt,Tp)
     | .cThrw(Lc,E,Tp) => .cThrw(Lc,simplifyExp(E,Map,Depth),Tp)
-    | .cTry(Lc,Inn,E,H,Tp) =>.cTry(Lc,simplifyExp(Inn,Map,Depth),
-      simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp)
+    | .cTry(Lc,Inn,E,H,Tp) where .cVar(VLc,EV) .= E => valof{
+      NE = genVar(vName(EV),typeOf(EV));
+      NH = simplifyExp(freshenE(H,{lName(EV)->.cVar(VLc,NE)}),Map,Depth);
+      valis .cTry(Lc,simplifyExp(Inn,Map,Depth),.cVar(VLc,NE),NH,Tp)
+    }
     | .cSusp(Lc,T,M,Tp) =>
       .cSusp(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cRetyr(Lc,T,M,Tp) =>
@@ -209,8 +212,11 @@ star.compiler.inline{
   simAct(.aWhile(Lc,T,A),Map,Depth) =>
     .aWhile(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(A,Map,Depth)).
-  simAct(.aTry(Lc,B,E,H),Map,Depth) =>
-    .aTry(Lc,simplifyAct(B,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
+  simAct(.aTry(Lc,B,E,H),Map,Depth) where .cVar(VLc,EV) .= E => valof{
+    NE = genVar(vName(EV),typeOf(EV));
+    NH = simplifyAct(freshenA(H,{lName(EV)->.cVar(VLc,NE)}),Map,Depth);
+    valis .aTry(Lc,simplifyAct(B,Map,Depth),.cVar(VLc,NE),NH)
+  }
   simAct(.aThrw(Lc,E),Map,Depth) => .aThrw(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
