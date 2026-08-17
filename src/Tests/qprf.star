@@ -16,24 +16,37 @@ test.qprf{
     }
   }
 
+  gpf:(cons[(integer,integer)]) => cons[(integer,integer)].
+  gpf(Prs) =>
+    foldLeft(((X,Z),L) =>
+      foldLeft(((ZZ,Y),LL)=>
+	(Z==ZZ ?? .cons((X,Y),LL) || LL),
+      L,Prs),.nil,Prs).
+
   gpq: (cons[(integer,integer)]) => cons[(integer,integer)].
   gpq(Prs) => { (X,Y) | (X,Z) in Prs && (Z,Y) in Prs }
   
   main:(integer){}.
   main(Mx){
     idxes = pairs(Mx,5);
-    timer = ref timer_start(Mx, "iterating gps");
+    timer = ref timer_start(Mx*Mx, "iterating gps");
     gps = gp(idxes);
     itTime = timer_finish(timer!);
-    show [|gps|];
 
-    timer := timer_start(Mx, "query gps");
+    timer := timer_start(Mx*Mx, "folding gps");
+    gpfld = gpf(idxes);
+    fTime = timer_finish(timer!);
+
+    timer := timer_start(Mx*Mx, "query gps");
     gpsq = gpq(idxes);
     qTime = timer_finish(timer!);
-    show [|gpsq|];
+
+    assert [|gps|] == [|gpfld|] && [|gpfld|] == [|gpsq|];
 
     try{
-      showMsg("Query/Iterative = $(qTime/itTime)")
+      showMsg("Query/Iterative = $(qTime/itTime)");
+      showMsg("Query/Folding = $(qTime/fTime)");
+      showMsg("Folding/Iterative = $(fTime/itTime)");
     } catch {
       .exception(M) do {
         showMsg("We got exception: $(M)")

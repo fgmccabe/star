@@ -121,7 +121,11 @@ star.compiler.inline{
     | .cDsj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
     | .cNeg(_,_) => simCond(Exp,Map,Depth)
     | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth)
-    | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
+    | .cLtt(Lc,Vr,Bnd,Inn) => valof{
+      NE = genVar(vName(Vr),typeOf(Vr));
+      valis inlineLtt(Lc,NE,simplifyExp(Bnd,Map,Depth),
+	freshenE(Inn,{lName(Vr)->.cVar(Lc,NE)}),Map,Depth)
+    }
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
@@ -218,8 +222,11 @@ star.compiler.inline{
     valis .aTry(Lc,simplifyAct(B,Map,Depth),.cVar(VLc,NE),NH)
   }
   simAct(.aThrw(Lc,E),Map,Depth) => .aThrw(Lc,simplifyExp(E,Map,Depth)).
-  simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
-    inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
+  simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) => valof{
+    NE = genVar(vName(Vr),typeOf(Vr));
+    valis inlineLtt(Lc,NE,simplifyExp(Bnd,Map,Depth),
+      freshenA(A,{lName(Vr)->.cVar(Lc,NE)}), Map,Depth)
+  }
   simAct(.aVarNme(Lc,Nm,Vr,X),Map,Depth) =>
     .aVarNme(Lc,Nm,simplifyExp(Vr,Map,Depth),simplifyAct(X,Map,Depth)).
   simAct(.aAbort(Lc,Txt),_,_) => .aAbort(Lc,Txt).
