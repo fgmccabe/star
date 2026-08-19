@@ -807,11 +807,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 insSize = 4;
       FlexOp trm = localFlex(state, pc, opand(3));
       armReg tmp = findARegister(state, pc);
+      armReg tmp2 = findARegister(state, pc);
       loadFlex(state, pc, trm,RG(tmp));
-      loadElement(jit, tmp, tmp, opand(2) + 1);
+      loadElement(jit, tmp2, tmp, opand(2) + 1);
       localVarPo dst = localTarget(state, pc, opand(1));
-      storeVar(state, pc,RG(tmp), dst);
+      storeVar(state, pc,RG(tmp2), dst);
       releaseReg(jit, tmp);
+      releaseReg(jit, tmp2);
       pc += insSize;
       continue;
     }
