@@ -405,19 +405,6 @@ void bailOut(codeGenPo state, int32 pc, ExitCode code) {
   /* return callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(conString)); */
 }
 
-// NOTE: the else branch below clobbers tgt (via mov) before reading base, so it is only
-// safe when tgt != base. star.compiler.term's sNth lowering used to call this with
-// tgt==base, corrupting the base pointer once a record had enough fields to push ix
-// past is9bit's range (treeAlgebra, 59 fields, was the first to trigger it) -- fixed at
-// that call site (lower.c, sNth) by giving it a second register instead of touching this
-// function. An earlier attempt fixed it here instead, by allocating a fresh scratch
-// register (findFreeReg/releaseReg) for the else branch so tgt==base callers would be
-// safe too. That was semantically correct in isolation and used the same allocator as
-// every other caller in this file, but it caused an unrelated, unexplained crash
-// elsewhere (star.uri/star.cons, during self-hosted recompilation) that went away when
-// reverted. Root cause of that side effect was not found -- if touching this function
-// again, re-verify a full self-hosted build (not just this file compiling), not only the
-// specific call site being changed.
 void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
   assemCtxPo ctx = assemCtx(jit);
   int32 offset = ix * pointerSize;
