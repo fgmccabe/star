@@ -4,13 +4,17 @@ star.compiler.inline{
 
   import star.compiler.data.
   import star.compiler.dependencies.
+  import star.compiler.dict.
+  import star.compiler.errors.
   import star.compiler.term.
   import star.compiler.escapes.
   import star.compiler.freevars.
+  import star.compiler.freshen.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.opts.
   import star.compiler.types.
+  import star.compiler.unify.
 
   import star.compiler.location.
 
@@ -338,19 +342,132 @@ star.compiler.inline{
 
   varFound(Vr) => (T)=>(.cVar(_,VV).=T ?? VV==Vr || .false).
   
+  /* Specializing a generic function's body for one call site, requires
+  propagating type information into the function from the call site.  */
+
+  specializeTypes:(tipe,tipe,cons[(string,tipe)],cExp,option[locn],string) => cExp.
+  specializeTypes(FreshFTp,CallTp,Quants,Rep,Lc,Nm) =>
+    sameType(FreshFTp,CallTp,emptyDict) ??
+      substTypesE(Rep,Quants)
+    || valof{
+      reportError("cannot align types when inlining #(Nm)\: $(FreshFTp) vs $(CallTp)",Lc);
+      valis Rep
+    }.
+
+  substTp:(tipe,cons[(string,tipe)]) => tipe.
+  substTp(Tp,Quants) => refresh(Quants,Tp,emptyDict).
+
+  substCV:(cV,cons[(string,tipe)]) => cV.
+  substCV(.cV(Nm,Tp),Quants) => .cV(Nm,substTp(Tp,Quants)).
+
+  public substTypesE:(cExp,cons[(string,tipe)]) => cExp.
+  substTypesE(E,Quants) => foldExp(E,Quants,substTypesAlgebra).
+
+  public substTypesA:(aAction,cons[(string,tipe)]) => aAction.
+  substTypesA(A,Quants) => foldAct(A,Quants,substTypesAlgebra).
+
+  substCasesTpE:(cons[cCase[cExp]],cons[(string,tipe)]) => cons[cCase[cExp]].
+  substCasesTpE(Cs,Quants) =>
+    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Quants,substTypesAlgebra),foldExp(Rep,Quants,substTypesAlgebra))).
+
+  substCasesTpA:(cons[cCase[aAction]],cons[(string,tipe)]) => cons[cCase[aAction]].
+  substCasesTpA(Cs,Quants) =>
+    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Quants,substTypesAlgebra),foldAct(Rep,Quants,substTypesAlgebra))).
+
+  /* Only the fields that actually carry a tipe (or a cV, which carries one) do
+  anything here.  */
+
+  substTypesAlgebra:treeAlgebra[cons[(string,tipe)],cExp,aAction].
+  substTypesAlgebra = treeAlgebra{
+    onVoid(_,Lc)=>.cVoid(Lc).
+    onAnon(Q,Lc,Tp)=>.cAnon(Lc,substTp(Tp,Q)).
+    onUnrch(Q,Lc,Tp)=>.cUnrch(Lc,substTp(Tp,Q)).
+    onVar(Q,Lc,V)=>.cVar(Lc,substCV(V,Q)).
+    onCel(Q,Lc,E,Tp)=>.cCel(Lc,E,substTp(Tp,Q)).
+    onGet(Q,Lc,E,Tp)=>.cGet(Lc,E,substTp(Tp,Q)).
+    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
+    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
+    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
+    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
+    onString(_,Lc,Sx)=>.cString(Lc,Sx).
+    onTerm(Q,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,substTp(Tp,Q)).
+    onNth(Q,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,substTp(Tp,Q)).
+    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
+    onClos(Q,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,substTp(Tp,Q)).
+    onSv(Q,Lc,Tp)=>.cSv(Lc,substTp(Tp,Q)).
+    onSvDrf(Q,Lc,E,Tp)=>.cSvDrf(Lc,E,substTp(Tp,Q)).
+    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
+    onCall(Q,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,substTp(Tp,Q)).
+    onOCall(Q,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,substTp(Tp,Q)).
+    onXCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,substTp(Tp,Q),substTp(ErTp,Q)).
+    onXOCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,substTp(Tp,Q),substTp(ErTp,Q)).
+    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
+    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
+    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
+    onNeg(_,Lc,R)=>.cNeg(Lc,R).
+    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
+    onLtt(Q,Lc,V,D,E)=>.cLtt(Lc,substCV(V,Q),D,E).
+    onCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,substCasesTpE(Cases,Q),Dflt,substTp(Tp,Q)).
+    onIxCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,substCasesTpE(Cases,Q),Dflt,substTp(Tp,Q)).
+    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
+    onResum(Q,Lc,T,M,Tp)=>.cResum(Lc,T,M,substTp(Tp,Q)).
+    onSusp(Q,Lc,T,M,Tp)=>.cSusp(Lc,T,M,substTp(Tp,Q)).
+    onRetyr(Q,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,substTp(Tp,Q)).
+    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
+    onAbort(Q,Lc,Ms,Tp)=>.cAbort(Lc,Ms,substTp(Tp,Q)).
+    onTry(Q,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,substTp(Tp,Q)).
+    onThrw(Q,Lc,E,Tp)=>.cThrw(Lc,E,substTp(Tp,Q)).
+    onValof(Q,Lc,A,Tp)=>.cValof(Lc,A,substTp(Tp,Q)).
+
+    onANop(_,Lc)=>.aNop(Lc).
+    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
+    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
+    onABreak(_,Lc,L)=>.aBreak(Lc,L).
+    onAValis(_,Lc,E)=>.aValis(Lc,E).
+    onADo(_,Lc,E)=>.aDo(Lc,E).
+    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
+    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
+    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
+    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
+    onACase(Q,Lc,G,Cs,D)=>.aCase(Lc,G,substCasesTpA(Cs,Q),D).
+    onAIxCase(Q,Lc,G,Cs,D)=>.aIxCase(Lc,G,substCasesTpA(Cs,Q),D).
+    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
+    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
+    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
+    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
+    onALtt(Q,Lc,V,D,A)=>.aLtt(Lc,substCV(V,Q),D,A).
+    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
+    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
+
+    extendLtt(Q,_)=>Q.
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
   inlineCall:(option[locn],string,cons[cExp],tipe,map[defnSp,cDefn],integer) => cExp.
-  inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
-      .fnDef(_,_,_,Vrs,Rep) ?= Map[.varSp(Nm)] => valof{
+  inlineCall(Lc,Nm,Args,Tp,Map,Depth) where Depth>0 &&
+      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) =>
+    valof{
+    (Quants,FreshFTp) = freshen(FTp,emptyDict);
+    if traceInline! then
+      showMsg("Inlining call to #(Nm)\:$(FTp)");
+
+    SpecRep = specializeTypes(FreshFTp,.funType(.tupleType(Args//typeOf),Tp,.voidType),Quants,Rep,Lc,Nm);
+
     RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-    valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
+    valis simplifyExp(freshenE(SpecRep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp).
 
   inlineXCall:(option[locn],string,cons[cExp],tipe,tipe,map[defnSp,cDefn],integer) => cExp.
-  inlineXCall(Lc,Nm,Args,_Tp,_ErTp,Map,Depth) where Depth>0 &&
-      .fnDef(_,_,_,Vrs,Rep) ?= Map[.varSp(Nm)] => valof{
+  inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) where Depth>0 &&
+      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) => valof{
+    (Quants,FreshFTp) = freshen(FTp,emptyDict);
+
+    SpecRep = specializeTypes(FreshFTp,.funType(.tupleType(Args//typeOf),Tp,ErTp),Quants,Rep,Lc,Nm);
+
     RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-    valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
+    valis simplifyExp(freshenE(SpecRep,RwMap),Map[~.varSp(Nm)],Depth-1);
       }.
   inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) default => .cXCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).
 
@@ -402,4 +519,7 @@ star.compiler.inline{
   isLeafDef(D) => ~present(D,(Cll) =>
       (.cOCall(_,_,_,_).=Cll ||
       (.cCall(_,Nm,_,_) .= Cll && ~isEscape(Nm)))).
+
+  isSmall:(cDefn) => boolean.
+  isSmall(Df) => isLeafDef(Df) || [|Df|] < 32.
 }

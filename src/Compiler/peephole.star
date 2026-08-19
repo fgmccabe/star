@@ -95,6 +95,10 @@ star.compiler.peephole{
   vrRead(Vr,.iILt(_,L,R)) => L==Vr || R==Vr.
   vrRead(Vr,.iIGe(_,L,R)) => L==Vr || R==Vr.
 
+  vrRead(Vr,.iCEq(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iCLt(_,L,R)) => L==Vr || R==Vr.
+  vrRead(Vr,.iCGe(_,L,R)) => L==Vr || R==Vr.
+
   vrRead(Vr,.iFEq(_,L,R)) => L==Vr || R==Vr.
   vrRead(Vr,.iFLt(_,L,R)) => L==Vr || R==Vr.
   vrRead(Vr,.iFGe(_,L,R)) => L==Vr || R==Vr.

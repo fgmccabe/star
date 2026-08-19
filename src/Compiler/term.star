@@ -260,94 +260,114 @@ star.compiler.term{
     hash(.cV(N,T)) => hash(N).
   }
 
-  eqTerm(E1,E2) => case E1 in {
-    | .cAnon(_,T1) => .cAnon(_,T2).=E2 && T1==T2
-    | .cUnrch(_,T1) => .cUnrch(_,T2).=E2 && T1==T2
-    | .cVoid(_) => .cVoid(_).=E2
-    | .cVar(_,V1) => .cVar(_,V2).=E2 && V1==V2
-    | .cInt(_,N1) => .cInt(_,N2).=E2 && N1==N2
-    | .cChar(_,N1) => .cChar(_,N2).=E2 && N1==N2
-    | .cFlt(_,N1) => .cFlt(_,N2).=E2 && N1==N2
-    | .cString(_,S1) => .cString(_,S2).=E2 && S1==S2
-    | .cTerm(_,S1,A1,_) => .cTerm(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2)
-    | .cClos(_,L1,A1,F1,_) => .cClos(_,L2,A2,F2,_).=E2 && L1==L2 && A1==A2 && eqTerm(F1,F2)
-    | .cSv(_,_) => .cSv(_,_).=E2
-    | .cSvDrf(_,T1,_) => .cSvDrf(_,T2,_).=E2 && eqTerm(T1,T2)
-    | .cSvSet(_,T1,V1) => .cSvSet(_,T2,V2).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2)
-    | .cCel(_,T1,_) => .cCel(_,T2,_).=E2 && eqTerm(T1,T2)
-    | .cGet(_,T1,_) => .cGet(_,T2,_).=E2 && eqTerm(T1,T2)
-    | .cCall(_,S1,A1,_) => .cCall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2)
-    | .cOCall(_,S1,A1,_) => .cOCall(_,S2,A2,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2)
-    | .cXCall(_,S1,A1,_,_) => .cXCall(_,S2,A2,_,_).=E2 && S1==S2 && eqs(A1,A2)
-    | .cXOCall(_,S1,A1,_,_) => .cXOCall(_,S2,A2,_,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2)
-    | .cThrw(_,S1,_) => .cThrw(_,S2,_).=E2 && S1==S2
-    | .cNth(_,R1,F1,_) => .cNth(_,R2,F2,_).=E2 && eqTerm(R1,R2) && F1==F2
-    | .cSetNth(_,R1,Ix,V1) => .cSetNth(_,R2,Ix,V2).=E2 && eqTerm(R1,R2) && eqTerm(V1,V2)
-    | .cSeq(_,L1,R1) => .cSeq(_,L2,R2).=E2 && eqTerm(L1,L2) && eqTerm(R1,R2)
-    | .cCnj(_,L1,R1) => .cCnj(_,L2,R2).=E2 && eqTerm(L1,L2) && eqTerm(R1,R2)
-    | .cDsj(_,L1,R1) => .cDsj(_,L2,R2).=E2 && eqTerm(L1,L2) && eqTerm(R1,R2)
-    | .cNeg(_,R1) => .cNeg(_,R2).=E2 && eqTerm(R1,R2)
-    | .cCnd(_,T1,L1,R1) => .cCnd(_,T2,L2,R2).=E2 &&
-	eqTerm(T1,T2) && eqTerm(L1,L2) && eqTerm(R1,R2)
-    | .cLtt(_,T1,L1,R1) => .cLtt(_,T2,L2,R2).=E2 &&
-	T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2)
-    | .cCase(_,S1,C1,D1,_) => .cCase(_,S2,C2,D2,_).=E2 &&
-	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2)
-    | .cIxCase(_,S1,C1,D1,_) => .cIxCase(_,S2,C2,D2,_).=E2 &&
-	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2)
-    | .cMatch(_,P1,V1) => .cMatch(_,P2,V2).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
-    | .cAbort(_,M1,T1) => .cAbort(_,M2,T2).=E2 && M1==M2 && T1==T2
-    | .cTry(_,M1,E1,H1,_) => .cTry(_,M2,E2,H2,_).=E2 &&
-	eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2)
-    | .cResum(_,P1,V1,_) => .cResum(_,P2,V2,_).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
-    | .cSusp(_,P1,V1,_) => .cSusp(_,P2,V2,_).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
-    | .cRetyr(_,P1,V1,_) => .cRetyr(_,P2,V2,_).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
-    | .cValof(_,A1,_) => .cValof(_,A2,_).=E2 && eqAct(A1,A2)
-    | .cVarNme(_,N,V1,B1) => .cVarNme(_,N,V2,B2).=E2 && eqTerm(V1,V2) && eqTerm(B1,B2)
-    | _ default => .false
-  }
+  /*
+    eqTerm/eqAct: fold E1 into a comparator (cExp/aAction)=>boolean closed over
+    E1, then apply it to E2, turns binary tree-equality into a unary fold.
+  */
 
-  eqs(L1,L2) => case L1 in {
-    | [] => L2==[]
-    | [E1,..S1] => [E2,..S2].=L2 ?? eqTerm(E1,E2) && eqs(S1,S2) || .false
-    | _ default => .false
-  }
+  eqAlgebra:treeAlgebra[(),(cExp)=>boolean,(aAction)=>boolean].
+  eqAlgebra = treeAlgebra{
+    onVoid(_,_)=>(X2)=>(.cVoid(_).=X2).
+    onAnon(_,_,T1)=>(X2)=>(.cAnon(_,T2).=X2 && T1==T2).
+    onUnrch(_,_,T1)=>(X2)=>(.cUnrch(_,T2).=X2 && T1==T2).
+    onVar(_,_,V1)=>(X2)=>(.cVar(_,V2).=X2 && V1==V2).
+    onCel(_,_,ECmp,_)=>(X2)=>(.cCel(_,T2,_).=X2 && ECmp(T2)).
+    onGet(_,_,ECmp,_)=>(X2)=>(.cGet(_,T2,_).=X2 && ECmp(T2)).
+    onInt(_,_,N1)=>(X2)=>(.cInt(_,N2).=X2 && N1==N2).
+    onChar(_,_,C1)=>(X2)=>(.cChar(_,C2).=X2 && C1==C2).
+    onBig(_,_,N1)=>(X2)=>(.cBig(_,N2).=X2 && N1==N2).
+    onFlt(_,_,D1)=>(X2)=>(.cFlt(_,D2).=X2 && D1==D2).
+    onString(_,_,S1)=>(X2)=>(.cString(_,S2).=X2 && S1==S2).
+    onSv(_,_,_)=>(X2)=>(.cSv(_,_).=X2).
+    onTerm(_,_,S1,ArgCmps,_)=>(X2)=>(.cTerm(_,S2,A2,_).=X2 && S1==S2 && eqsWith(ArgCmps,A2)).
+    onNth(_,_,RCmp,F1,_)=>(X2)=>(.cNth(_,R2,F2,_).=X2 && RCmp(R2) && F1==F2).
+    onSetNth(_,_,RCmp,Ix1,VCmp)=>(X2)=>(.cSetNth(_,R2,Ix2,V2).=X2 && RCmp(R2) && Ix1==Ix2 && VCmp(V2)).
+    onClos(_,_,L1,A1,FCmp,_)=>(X2)=>(.cClos(_,L2,A2,F2,_).=X2 && L1==L2 && A1==A2 && FCmp(F2)).
+    onSvDrf(_,_,TCmp,_)=>(X2)=>(.cSvDrf(_,T2,_).=X2 && TCmp(T2)).
+    onSvSet(_,_,TCmp,VCmp)=>(X2)=>(.cSvSet(_,T2,V2).=X2 && TCmp(T2) && VCmp(V2)).
+    onCall(_,_,S1,ArgCmps,_)=>(X2)=>(.cCall(_,S2,A2,_).=X2 && S1==S2 && eqsWith(ArgCmps,A2)).
+    onOCall(_,_,OpCmp,ArgCmps,_)=>(X2)=>(.cOCall(_,S2,A2,_).=X2 && OpCmp(S2) && eqsWith(ArgCmps,A2)).
+    onXCall(_,_,S1,ArgCmps,_,_)=>(X2)=>(.cXCall(_,S2,A2,_,_).=X2 && S1==S2 && eqsWith(ArgCmps,A2)).
+    onXOCall(_,_,OpCmp,ArgCmps,_,_)=>(X2)=>(.cXOCall(_,S2,A2,_,_).=X2 && OpCmp(S2) && eqsWith(ArgCmps,A2)).
+    onSeq(_,_,LCmp,RCmp)=>(X2)=>(.cSeq(_,L2,R2).=X2 && LCmp(L2) && RCmp(R2)).
+    onCnj(_,_,LCmp,RCmp)=>(X2)=>(.cCnj(_,L2,R2).=X2 && LCmp(L2) && RCmp(R2)).
+    onDsj(_,_,LCmp,RCmp)=>(X2)=>(.cDsj(_,L2,R2).=X2 && LCmp(L2) && RCmp(R2)).
+    onNeg(_,_,RCmp)=>(X2)=>(.cNeg(_,R2).=X2 && RCmp(R2)).
+    onCnd(_,_,TCmp,LCmp,RCmp)=>(X2)=>(.cCnd(_,T2,L2,R2).=X2 && TCmp(T2) && LCmp(L2) && RCmp(R2)).
+    onLtt(_,_,V1,DCmp,ECmp)=>(X2)=>(.cLtt(_,V2,D2,E2).=X2 && V1==V2 && DCmp(D2) && ECmp(E2)).
+    onCase(_,_,SelCmp,Cases,DfltCmp,_)=>(X2)=>(.cCase(_,S2,C2,D2,_).=X2 && SelCmp(S2) && eqCasesE(Cases,C2) && DfltCmp(D2)).
+    onIxCase(_,_,SelCmp,Cases,DfltCmp,_)=>(X2)=>(.cIxCase(_,S2,C2,D2,_).=X2 && SelCmp(S2) && eqCasesE(Cases,C2) && DfltCmp(D2)).
+    onMatch(_,_,PCmp,VCmp)=>(X2)=>(.cMatch(_,P2,V2).=X2 && VCmp(V2) && PCmp(P2)).
+    onResum(_,_,PCmp,VCmp,_)=>(X2)=>(.cResum(_,P2,V2,_).=X2 && VCmp(V2) && PCmp(P2)).
+    onSusp(_,_,PCmp,VCmp,_)=>(X2)=>(.cSusp(_,P2,V2,_).=X2 && VCmp(V2) && PCmp(P2)).
+    onRetyr(_,_,PCmp,VCmp,_)=>(X2)=>(.cRetyr(_,P2,V2,_).=X2 && VCmp(V2) && PCmp(P2)).
+    onVarNme(_,_,N1,VCmp,BCmp)=>(X2)=>(.cVarNme(_,N2,V2,B2).=X2 && N1==N2 && VCmp(V2) && BCmp(B2)).
+    onAbort(_,_,M1,T1)=>(X2)=>(.cAbort(_,M2,T2).=X2 && M1==M2 && T1==T2).
+    onTry(_,_,MCmp,ECmp,HCmp,_)=>(X2)=>(.cTry(_,M2,E2,H2,_).=X2 && MCmp(M2) && ECmp(E2) && HCmp(H2)).
+    onThrw(_,_,SCmp,_)=>(X2)=>(.cThrw(_,S2,_).=X2 && SCmp(S2)).
+    onValof(_,_,ACmp,_)=>(X2)=>(.cValof(_,A2,_).=X2 && ACmp(A2)).
 
-  eqCs:all e ~~ (cons[cCase[e]],(e,e)=>boolean,cons[cCase[e]])=>boolean.
-  eqCs(Cs1,P,Cs2) => case Cs1 in {
+    onANop(_,_)=>(X2)=>(.aNop(_).=X2).
+    onASeq(_,_,LCmp,RCmp)=>(X2)=>(.aSeq(_,L2,R2).=X2 && LCmp(L2) && RCmp(R2)).
+    onALbld(_,_,L1,ACmp)=>(X2)=>(.aLbld(_,L2,Ac2).=X2 && L1==L2 && ACmp(Ac2)).
+    onABreak(_,_,L1)=>(X2)=>(.aBreak(_,L2).=X2 && L1==L2).
+    onAValis(_,_,ECmp)=>(X2)=>(.aValis(_,E2).=X2 && ECmp(E2)).
+    onADo(_,_,ECmp)=>(X2)=>(.aDo(_,E2).=X2 && ECmp(E2)).
+    onASetNth(_,_,VCmp,Ix1,TCmp)=>(X2)=>(.aSetNth(_,V2,Ix2,T2).=X2 && VCmp(V2) && Ix1==Ix2 && TCmp(T2)).
+    onADefn(_,_,C1,C2)=>(X2)=>(.aDefn(_,E2,V2).=X2 && C1(E2) && C2(V2)).
+    onAMatch(_,_,C1,C2)=>(X2)=>(.aMatch(_,E2,V2).=X2 && C1(E2) && C2(V2)).
+    onAAsgn(_,_,C1,C2)=>(X2)=>(.aAsgn(_,E2,V2).=X2 && C1(E2) && C2(V2)).
+    onACase(_,_,SCmp,Cs,DCmp)=>(X2)=>(.aCase(_,S2,C2,D2).=X2 && SCmp(S2) && eqCasesA(Cs,C2) && DCmp(D2)).
+    onAIxCase(_,_,SCmp,Cs,DCmp)=>(X2)=>(.aIxCase(_,S2,C2,D2).=X2 && SCmp(S2) && eqCasesA(Cs,C2) && DCmp(D2)).
+    onAIftte(_,_,CCmp,LCmp,RCmp)=>(X2)=>(.aIftte(_,C2,L2,R2).=X2 && CCmp(C2) && LCmp(L2) && RCmp(R2)).
+    onAWhile(_,_,CCmp,LCmp)=>(X2)=>(.aWhile(_,C2,L2).=X2 && CCmp(C2) && LCmp(L2)).
+    onATry(_,_,MCmp,ECmp,HCmp)=>(X2)=>(.aTry(_,M2,E2,H2).=X2 && MCmp(M2) && ECmp(E2) && HCmp(H2)).
+    onAThrw(_,_,ECmp)=>(X2)=>(.aThrw(_,E2).=X2 && ECmp(E2)).
+    onALtt(_,_,V1,DCmp,ACmp)=>(X2)=>(.aLtt(_,V2,D2,Ac2).=X2 && V1==V2 && DCmp(D2) && ACmp(Ac2)).
+    onAVarNme(_,_,N1,VCmp,ACmp)=>(X2)=>(.aVarNme(_,N2,V2,Ac2).=X2 && N1==N2 && VCmp(V2) && ACmp(Ac2)).
+    onAAbort(_,_,M1)=>(X2)=>(.aAbort(_,M2).=X2 && M1==M2).
+
+    extendLtt(Nv,_)=>Nv.
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
+  eqsWith:(cons[(cExp)=>boolean],cons[cExp]) => boolean.
+  eqsWith(Cmps,Es2) => case Cmps in {
+    | [] => isEmpty(Es2)
+    | [Cmp,..Rest] => case Es2 in {
+        | [E2,..Rest2] => Cmp(E2) && eqsWith(Rest,Rest2)
+        | _ default => .false
+      }
+  }.
+
+  eqCasesE:(cons[cCase[cExp]],cons[cCase[cExp]]) => boolean.
+  eqCasesE(Cs1,Cs2) => case Cs1 in {
     | [] => isEmpty(Cs2)
-    | [(_,N1,E1),..S1] => [(_,N2,E2),..S2].=Cs2 && eqTerm(N1,N2) && P(E1,E2) && eqCs(S1,P,S2)
+    | [(_,Ptn1,Rep1),..Rest1] => case Cs2 in {
+        | [(_,Ptn2,Rep2),..Rest2] =>
+          foldExp(Ptn1,(),eqAlgebra)(Ptn2) && foldExp(Rep1,(),eqAlgebra)(Rep2) && eqCasesE(Rest1,Rest2)
+        | _ default => .false
+      }
     | _ default => .false
-  }
+  }.
 
-  eqAct(A1,A2) => case A1 in {
-    | .aNop(_) => .aNop(_).=A2
-    | .aSeq(_,L1,R1) => .aSeq(_,L2,R2) .=A2 && eqAct(L1,L2) && eqAct(R1,R2)
-    | .aLbld(_,L1,Ac1) => .aLbld(_,L2,Ac2).=A2 && L1==L2 && eqAct(Ac1,Ac2)
-    | .aBreak(_,L1) => .aBreak(_,L2).=A2 && L1==L2
-    | .aValis(_,E1) => .aValis(_,E2).=A2 && eqTerm(E1,E2)
-    | .aDo(_,E1) => .aDo(_,E2).=A2 && eqTerm(E1,E2)
-    | .aSetNth(_,V1,Ix1,T1) => .aSetNth(_,V2,Ix2,T2).=A2 && eqTerm(V1,V2) && Ix1==Ix2 && eqTerm(T1,T2)
-    | .aDefn(_,E1,V1) => .aDefn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
-    | .aMatch(_,E1,V1) => .aMatch(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
-    | .aAsgn(_,E1,V1) => .aAsgn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
-    | .aCase(_,S1,C1,D1) => .aCase(_,S2,C2,D2).=A2 &&
-	eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2)
-    | .aIxCase(_,S1,C1,D1) => .aIxCase(_,S2,C2,D2).=A2 &&
-	eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2)
-    | .aIftte(_,C1,L1,R1) => .aIftte(_,C2,L2,R2).=A2 &&
-	eqTerm(C1,C2) && eqAct(L1,L2) && eqAct(R1,R2)
-    | .aWhile(_,C1,L1) => .aWhile(_,C2,L2).=A2 &&
-	eqTerm(C1,C2) && eqAct(L1,L2)
-    | .aTry(_,M1,E1,H1) => .aTry(_,M2,E2,H2).=A2 && eqAct(M1,M2) &&
-	eqTerm(E1,E2) && eqAct(H1,H2)
-    | .aThrw(_,E1) => .aThrw(_,E2).=A2 && eqTerm(E1,E2)
-    | .aLtt(_,V1,D1,Ac1) => .aLtt(_,V2,D2,Ac2).=A2 &&
-	V1==V2 && eqTerm(D1,D2) && eqAct(Ac1,Ac2)
-    | .aVarNme(_,N,V1,Ac1) => .aVarNme(_,N,V2,Ac2).=A2 && eqTerm(V1,V2) && eqAct(Ac1,Ac2)
-    | .aAbort(_,M1) => .aAbort(_,M2).=A1 && M1==M2
+  eqCasesA:(cons[cCase[aAction]],cons[cCase[aAction]]) => boolean.
+  eqCasesA(Cs1,Cs2) => case Cs1 in {
+    | [] => isEmpty(Cs2)
+    | [(_,Ptn1,Rep1),..Rest1] => case Cs2 in {
+        | [(_,Ptn2,Rep2),..Rest2] =>
+          foldExp(Ptn1,(),eqAlgebra)(Ptn2) && foldAct(Rep1,(),eqAlgebra)(Rep2) && eqCasesA(Rest1,Rest2)
+        | _ default => .false
+      }
     | _ default => .false
-  }
+  }.
+
+  eqTerm:(cExp,cExp) => boolean.
+  eqTerm(E1,E2) => foldExp(E1,(),eqAlgebra)(E2).
+
+  eqAct:(aAction,aAction) => boolean.
+  eqAct(A1,A2) => foldAct(A1,(),eqAlgebra)(A2).
 
   public implementation equality[cExp] => {
     X == Y => eqTerm(X,Y)
@@ -514,85 +534,11 @@ star.compiler.term{
 	    .cInt(OLc,Line),.cInt(OLc,Col),.cInt(OLc,Off),.cInt(OLc,Len)])
   }
 
-  rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
-  rwTerm(Trm,Tst) => Vl ?= Tst(Trm) ?? Vl || case Trm in {
-    | .cVoid(_) => Trm
-    | .cAnon(_,_) => Trm
-    | .cUnrch(_,_) => Trm
-    | .cVar(Lc,V) => .cVar(Lc,V)
-    | .cInt(Lc,Ix) => .cInt(Lc,Ix)
-    | .cBig(Lc,Ix) => .cBig(Lc,Ix)
-    | .cFlt(Lc,Dx) => .cFlt(Lc,Dx)
-    | .cChar(Lc,Cx) => .cChar(Lc,Cx)
-    | .cString(Lc,Sx) => .cString(Lc,Sx)
-    | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,rwTerms(Args,Tst),Tp)
-    | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,rwTerm(R,Tst),Ix,Tp)
-    | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst))
-    | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,rwTerm(F,Tst),Tp)
-    | .cSv(_,_) => Trm
-    | .cSvDrf(Lc,E,Tp) => .cSvDrf(Lc,rwTerm(E,Tst),Tp)
-    | .cSvSet(Lc,E,V) => .cSvSet(Lc,rwTerm(E,Tst),rwTerm(V,Tst))
-    | .cCel(Lc,E,Tp) => .cCel(Lc,rwTerm(E,Tst),Tp)
-    | .cGet(Lc,E,Tp) => .cGet(Lc,rwTerm(E,Tst),Tp)
-    | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp)
-    | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp)
-    | .cXCall(Lc,Op,Args,Tp,ErTp) => .cXCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp,ErTp)
-    | .cXOCall(Lc,Op,Args,Tp,ErTp) => .cXOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp,ErTp)
-    | .cThrw(Lc,E,Tp) =>.cThrw(Lc,rwTerm(E,Tst),Tp)
-    | .cSeq(Lc,L,R) =>.cSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst))
-    | .cCnj(Lc,L,R) =>.cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst))
-    | .cDsj(Lc,L,R) =>.cDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst))
-    | .cNeg(Lc,R) =>.cNeg(Lc,rwTerm(R,Tst))
-    | .cCnd(Lc,G,L,R) =>.cCnd(Lc,rwTerm(G,Tst),rwTerm(L,Tst),rwTerm(R,Tst))
-    | .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst)))
-    | .cCase(Lc,Sel,Cases,Dflt,Tp) => .cCase(Lc,rwTerm(Sel,Tst),
-      Cases//(C)=>rwCase(C,Tst,rwTerm),rwTerm(Dflt,Tst),Tp)
-    | .cIxCase(Lc,Sel,Cases,Dflt,Tp) => .cIxCase(Lc,rwTerm(Sel,Tst),
-      Cases//(C)=>rwCase(C,Tst,rwTerm),rwTerm(Dflt,Tst),Tp)
-    | .cMatch(Lc,P,E) => .cMatch(Lc,rwTerm(P,Tst),rwTerm(E,Tst))
-    | .cTry(Lc,B,E,H,Tp) => .cTry(Lc,rwTerm(B,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp)
-    | .cResum(Lc,T,M,Tp) => .cResum(Lc,rwTerm(T,Tst),rwTerm(M,Tst),Tp)
-    | .cSusp(Lc,T,M,Tp) => .cSusp(Lc,rwTerm(T,Tst),rwTerm(M,Tst),Tp)
-    | .cRetyr(Lc,T,M,Tp) => .cRetyr(Lc,rwTerm(T,Tst),rwTerm(M,Tst),Tp)
-    | .cVarNme(Lc,N,V,E) => .cVarNme(Lc,N,rwTerm(V,Tst),rwTerm(E,Tst))
-    | .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Tst),Tp)
-    | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
-    }.
-
-  rwAct:(aAction,(cExp)=>option[cExp])=>aAction.
-  rwAct(Ac,Tst) => case Ac in {
-    | .aNop(Lc) => .aNop(Lc)
-    | .aSeq(Lc,L,R) => .aSeq(Lc,rwAct(L,Tst),rwAct(R,Tst))
-    | .aLbld(Lc,L,A) => .aLbld(Lc,L,rwAct(A,Tst))
-    | .aBreak(Lc,L) => .aBreak(Lc,L)
-    | .aValis(Lc,E) => .aValis(Lc,rwTerm(E,Tst))
-    | .aDo(Lc,E) => .aDo(Lc,rwTerm(E,Tst))
-    | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,rwTerm(V,Tst),Ix,rwTerm(E,Tst))
-    | .aDefn(Lc,V,E) => .aDefn(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
-    | .aMatch(Lc,V,E) => .aMatch(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
-    | .aAsgn(Lc,V,E) => .aAsgn(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
-    | .aCase(Lc,G,Cs,D) => .aCase(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct),rwAct(D,Tst))
-    | .aIxCase(Lc,G,Cs,D) => .aIxCase(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct),rwAct(D,Tst))
-    | .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst))
-    | .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Tst),rwAct(B,Tst))
-    | .aTry(Lc,B,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(E,Tst),rwAct(Hs,Tst))
-    | .aThrw(Lc,E) => .aThrw(Lc,rwTerm(E,Tst))
-    | .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst)))
-    | .aVarNme(Lc,N,V,E) => .aVarNme(Lc,N,rwTerm(V,Tst),rwAct(E,Tst))
-    | .aAbort(Lc,Ms) => .aAbort(Lc,Ms)
-  }
-
   dropVar:(string,(cExp)=>option[cExp])=>(cExp)=>option[cExp].
   dropVar(Nm,Tst) => let{
     test(.cVar(_,.cV(Nm,_))) => .none.
     test(T) default => Tst(T)
   } in test.
-  
-  rwTerms:(cons[cExp],(cExp)=>option[cExp])=>cons[cExp].
-  rwTerms(Els,Tst) => (Els//(E)=>rwTerm(E,Tst)).
-
-  rwCase:all e ~~ (cCase[e],(cExp)=>option[cExp],(e,(cExp)=>option[cExp])=>e) => cCase[e].
-  rwCase((Lc,Ptn,Rep),T,F) => (Lc,rwTerm(Ptn,T),F(Rep,T)).
 
   public implementation rewrite[cExp] => {
     rewrite(E,F) => rwTerm(E,F).
@@ -608,66 +554,399 @@ star.compiler.term{
   public rewriteTerms:all e ~~ rewrite[e] |= (cons[e],(cExp)=>option[cExp])=>cons[e].
   rewriteTerms(Els,F) => (Els//(E)=>rewrite(E,F)).
 
+  -- Catamorphism over cExp/aAction: one field per constructor,
+  --   written once here instead of once per walker.
+
+  public all env,r,ra ~~ treeAlgebra[env,r,ra] ::= treeAlgebra{
+    onVoid   : (env,option[locn]) => r.
+    onAnon   : (env,option[locn],tipe) => r.
+    onUnrch  : (env,option[locn],tipe) => r.
+    onVar    : (env,option[locn],cV) => r.
+    onCel    : (env,option[locn],r,tipe) => r.
+    onGet    : (env,option[locn],r,tipe) => r.
+    onInt    : (env,option[locn],integer) => r.
+    onChar   : (env,option[locn],char) => r.
+    onBig    : (env,option[locn],bigint) => r.
+    onFlt    : (env,option[locn],float) => r.
+    onString : (env,option[locn],string) => r.
+    onTerm   : (env,option[locn],string,cons[r],tipe) => r.
+    onNth    : (env,option[locn],r,integer,tipe) => r.
+    onSetNth : (env,option[locn],r,integer,r) => r.
+    onClos   : (env,option[locn],string,integer,r,tipe) => r.
+    onSv     : (env,option[locn],tipe) => r.
+    onSvDrf  : (env,option[locn],r,tipe) => r.
+    onSvSet  : (env,option[locn],r,r) => r.
+    onCall   : (env,option[locn],string,cons[r],tipe) => r.
+    onOCall  : (env,option[locn],r,cons[r],tipe) => r.
+    onXCall  : (env,option[locn],string,cons[r],tipe,tipe) => r.
+    onXOCall : (env,option[locn],r,cons[r],tipe,tipe) => r.
+    onSeq    : (env,option[locn],r,r) => r.
+    onCnj    : (env,option[locn],r,r) => r.
+    onDsj    : (env,option[locn],r,r) => r.
+    onNeg    : (env,option[locn],r) => r.
+    onCnd    : (env,option[locn],r,r,r) => r.
+    onLtt    : (env,option[locn],cV,r,r) => r.
+    onCase   : (env,option[locn],r,cons[cCase[cExp]],r,tipe) => r.
+    onIxCase : (env,option[locn],r,cons[cCase[cExp]],r,tipe) => r.
+    onMatch  : (env,option[locn],r,r) => r.
+    onResum  : (env,option[locn],r,r,tipe) => r.
+    onSusp   : (env,option[locn],r,r,tipe) => r.
+    onRetyr  : (env,option[locn],r,r,tipe) => r.
+    onVarNme : (env,option[locn],string,r,r) => r.
+    onAbort  : (env,option[locn],string,tipe) => r.
+    onTry    : (env,option[locn],r,r,r,tipe) => r.
+    onThrw   : (env,option[locn],r,tipe) => r.
+    onValof  : (env,option[locn],ra,tipe) => r.
+
+    onANop   : (env,option[locn]) => ra.
+    onASeq   : (env,option[locn],ra,ra) => ra.
+    onALbld  : (env,option[locn],string,ra) => ra.
+    onABreak : (env,option[locn],string) => ra.
+    onAValis : (env,option[locn],r) => ra.
+    onADo    : (env,option[locn],r) => ra.
+    onASetNth: (env,option[locn],r,integer,r) => ra.
+    onADefn  : (env,option[locn],r,r) => ra.
+    onAMatch : (env,option[locn],r,r) => ra.
+    onAAsgn  : (env,option[locn],r,r) => ra.
+    onACase  : (env,option[locn],r,cons[cCase[aAction]],ra) => ra.
+    onAIxCase: (env,option[locn],r,cons[cCase[aAction]],ra) => ra.
+    onAIftte : (env,option[locn],r,ra,ra) => ra.
+    onAWhile : (env,option[locn],r,ra) => ra.
+    onATry   : (env,option[locn],ra,r,ra) => ra.
+    onAThrw  : (env,option[locn],r) => ra.
+    onALtt   : (env,option[locn],cV,r,ra) => ra.
+    onAVarNme: (env,option[locn],string,r,ra) => ra.
+    onAAbort : (env,option[locn],string) => ra.
+
+    extendLtt: (env,cV) => env.
+
+    /* Escape hatch: a .some(Rp) return short-circuits foldExp/foldAct straight to Rp
+    */
+
+    onRaw : (env,cExp) => option[r].
+    onARaw: (env,aAction) => option[ra].
+    }.
+
+  public foldExp:all env,r,ra ~~ (cExp,env,treeAlgebra[env,r,ra]) => r.
+  foldExp(Trm,Nv,Alg) => Ov ?= Alg.onRaw(Nv,Trm) ?? Ov || case Trm in {
+    | .cVoid(Lc) => Alg.onVoid(Nv,Lc)
+    | .cAnon(Lc,Tp) => Alg.onAnon(Nv,Lc,Tp)
+    | .cUnrch(Lc,Tp) => Alg.onUnrch(Nv,Lc,Tp)
+    | .cVar(Lc,V) => Alg.onVar(Nv,Lc,V)
+    | .cCel(Lc,E,Tp) => Alg.onCel(Nv,Lc,foldExp(E,Nv,Alg),Tp)
+    | .cGet(Lc,E,Tp) => Alg.onGet(Nv,Lc,foldExp(E,Nv,Alg),Tp)
+    | .cInt(Lc,Ix) => Alg.onInt(Nv,Lc,Ix)
+    | .cChar(Lc,Cx) => Alg.onChar(Nv,Lc,Cx)
+    | .cBig(Lc,Ix) => Alg.onBig(Nv,Lc,Ix)
+    | .cFlt(Lc,Dx) => Alg.onFlt(Nv,Lc,Dx)
+    | .cString(Lc,Sx) => Alg.onString(Nv,Lc,Sx)
+    | .cTerm(Lc,Op,Args,Tp) => Alg.onTerm(Nv,Lc,Op,foldExps(Args,Nv,Alg),Tp)
+    | .cNth(Lc,R,Ix,Tp) => Alg.onNth(Nv,Lc,foldExp(R,Nv,Alg),Ix,Tp)
+    | .cSetNth(Lc,R,Ix,E) => Alg.onSetNth(Nv,Lc,foldExp(R,Nv,Alg),Ix,foldExp(E,Nv,Alg))
+    | .cClos(Lc,L,A,F,Tp) => Alg.onClos(Nv,Lc,L,A,foldExp(F,Nv,Alg),Tp)
+    | .cSv(Lc,Tp) => Alg.onSv(Nv,Lc,Tp)
+    | .cSvDrf(Lc,E,Tp) => Alg.onSvDrf(Nv,Lc,foldExp(E,Nv,Alg),Tp)
+    | .cSvSet(Lc,E,V) => Alg.onSvSet(Nv,Lc,foldExp(E,Nv,Alg),foldExp(V,Nv,Alg))
+    | .cCall(Lc,Op,Args,Tp) => Alg.onCall(Nv,Lc,Op,foldExps(Args,Nv,Alg),Tp)
+    | .cOCall(Lc,Op,Args,Tp) => Alg.onOCall(Nv,Lc,foldExp(Op,Nv,Alg),foldExps(Args,Nv,Alg),Tp)
+    | .cXCall(Lc,Op,Args,Tp,ErTp) => Alg.onXCall(Nv,Lc,Op,foldExps(Args,Nv,Alg),Tp,ErTp)
+    | .cXOCall(Lc,Op,Args,Tp,ErTp) => Alg.onXOCall(Nv,Lc,foldExp(Op,Nv,Alg),foldExps(Args,Nv,Alg),Tp,ErTp)
+    | .cSeq(Lc,L,R) => Alg.onSeq(Nv,Lc,foldExp(L,Nv,Alg),foldExp(R,Nv,Alg))
+    | .cCnj(Lc,L,R) => Alg.onCnj(Nv,Lc,foldExp(L,Nv,Alg),foldExp(R,Nv,Alg))
+    | .cDsj(Lc,L,R) => Alg.onDsj(Nv,Lc,foldExp(L,Nv,Alg),foldExp(R,Nv,Alg))
+    | .cNeg(Lc,R) => Alg.onNeg(Nv,Lc,foldExp(R,Nv,Alg))
+    | .cCnd(Lc,G,L,R) => Alg.onCnd(Nv,Lc,foldExp(G,Nv,Alg),foldExp(L,Nv,Alg),foldExp(R,Nv,Alg))
+    | .cLtt(Lc,V,D,E) => Alg.onLtt(Nv,Lc,V,foldExp(D,Nv,Alg),foldExp(E,Alg.extendLtt(Nv,V),Alg))
+    | .cCase(Lc,Sel,Cases,Dflt,Tp) =>
+      Alg.onCase(Nv,Lc,foldExp(Sel,Nv,Alg),Cases,foldExp(Dflt,Nv,Alg),Tp)
+    | .cIxCase(Lc,Sel,Cases,Dflt,Tp) =>
+      Alg.onIxCase(Nv,Lc,foldExp(Sel,Nv,Alg),Cases,foldExp(Dflt,Nv,Alg),Tp)
+    | .cMatch(Lc,P,E) => Alg.onMatch(Nv,Lc,foldExp(P,Nv,Alg),foldExp(E,Nv,Alg))
+    | .cResum(Lc,T,M,Tp) => Alg.onResum(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp)
+    | .cSusp(Lc,T,M,Tp) => Alg.onSusp(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp)
+    | .cRetyr(Lc,T,M,Tp) => Alg.onRetyr(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp)
+    | .cVarNme(Lc,N,V,E) => Alg.onVarNme(Nv,Lc,N,foldExp(V,Nv,Alg),foldExp(E,Nv,Alg))
+    | .cAbort(Lc,Ms,Tp) => Alg.onAbort(Nv,Lc,Ms,Tp)
+    | .cTry(Lc,B,E,H,Tp) => Alg.onTry(Nv,Lc,foldExp(B,Nv,Alg),foldExp(E,Nv,Alg),foldExp(H,Nv,Alg),Tp)
+    | .cThrw(Lc,E,Tp) => Alg.onThrw(Nv,Lc,foldExp(E,Nv,Alg),Tp)
+    | .cValof(Lc,A,Tp) => Alg.onValof(Nv,Lc,foldAct(A,Nv,Alg),Tp)
+  }.
+
+  foldExps:all env,r,ra ~~ (cons[cExp],env,treeAlgebra[env,r,ra]) => cons[r].
+  foldExps(Es,Nv,Alg) => (Es//(E)=>foldExp(E,Nv,Alg)).
+
+  foldCasesE:all env,r,ra ~~ (cons[cCase[cExp]],env,treeAlgebra[env,r,ra]) => cons[cCase[r]].
+  foldCasesE(Cs,Nv,Alg) => (Cs//((Lc,Ptn,Rep))=>(Lc,Ptn,foldExp(Rep,Nv,Alg))).
+
+  public foldAct:all env,r,ra ~~ (aAction,env,treeAlgebra[env,r,ra]) => ra.
+  foldAct(Ac,Nv,Alg) => Ov ?= Alg.onARaw(Nv,Ac) ?? Ov || case Ac in {
+    | .aNop(Lc) => Alg.onANop(Nv,Lc)
+    | .aSeq(Lc,L,R) => Alg.onASeq(Nv,Lc,foldAct(L,Nv,Alg),foldAct(R,Nv,Alg))
+    | .aLbld(Lc,L,A) => Alg.onALbld(Nv,Lc,L,foldAct(A,Nv,Alg))
+    | .aBreak(Lc,L) => Alg.onABreak(Nv,Lc,L)
+    | .aValis(Lc,E) => Alg.onAValis(Nv,Lc,foldExp(E,Nv,Alg))
+    | .aDo(Lc,E) => Alg.onADo(Nv,Lc,foldExp(E,Nv,Alg))
+    | .aSetNth(Lc,V,Ix,E) => Alg.onASetNth(Nv,Lc,foldExp(V,Nv,Alg),Ix,foldExp(E,Nv,Alg))
+    | .aDefn(Lc,V,E) => Alg.onADefn(Nv,Lc,foldExp(V,Nv,Alg),foldExp(E,Nv,Alg))
+    | .aMatch(Lc,V,E) => Alg.onAMatch(Nv,Lc,foldExp(V,Nv,Alg),foldExp(E,Nv,Alg))
+    | .aAsgn(Lc,V,E) => Alg.onAAsgn(Nv,Lc,foldExp(V,Nv,Alg),foldExp(E,Nv,Alg))
+    | .aCase(Lc,G,Cs,D) => Alg.onACase(Nv,Lc,foldExp(G,Nv,Alg),Cs,foldAct(D,Nv,Alg))
+    | .aIxCase(Lc,G,Cs,D) => Alg.onAIxCase(Nv,Lc,foldExp(G,Nv,Alg),Cs,foldAct(D,Nv,Alg))
+    | .aIftte(Lc,C,L,R) => Alg.onAIftte(Nv,Lc,foldExp(C,Nv,Alg),foldAct(L,Nv,Alg),foldAct(R,Nv,Alg))
+    | .aWhile(Lc,C,B) => Alg.onAWhile(Nv,Lc,foldExp(C,Nv,Alg),foldAct(B,Nv,Alg))
+    | .aTry(Lc,B,E,Hs) => Alg.onATry(Nv,Lc,foldAct(B,Nv,Alg),foldExp(E,Nv,Alg),foldAct(Hs,Nv,Alg))
+    | .aThrw(Lc,E) => Alg.onAThrw(Nv,Lc,foldExp(E,Nv,Alg))
+    | .aLtt(Lc,V,D,A) => Alg.onALtt(Nv,Lc,V,foldExp(D,Nv,Alg),foldAct(A,Alg.extendLtt(Nv,V),Alg))
+    | .aVarNme(Lc,N,V,E) => Alg.onAVarNme(Nv,Lc,N,foldExp(V,Nv,Alg),foldAct(E,Nv,Alg))
+    | .aAbort(Lc,Ms) => Alg.onAAbort(Nv,Lc,Ms)
+  }.
+
+  foldCasesA:all env,r,ra ~~ (cons[cCase[aAction]],env,treeAlgebra[env,r,ra]) => cons[cCase[ra]].
+  foldCasesA(Cs,Nv,Alg) => (Cs//((Lc,Ptn,Rep))=>(Lc,Ptn,foldAct(Rep,Nv,Alg))).
+
+  /* Rebuild-only baseline: foldExp(E,Nv,identityAlgebra) == E for any Nv, same as rwTerm
+     with an always-.none test. Every other walker is either this with a handful of fields
+     overridden, or a genuinely different result type (r=integer for a counter, r=boolean
+     for a search, r=cExp with substitution for a rewriter). */
+  public identityAlgebra:all env ~~ treeAlgebra[env,cExp,aAction].
+  identityAlgebra = treeAlgebra{
+    onVoid(_,Lc)=>.cVoid(Lc).
+    onAnon(_,Lc,Tp)=>.cAnon(Lc,Tp).
+    onUnrch(_,Lc,Tp)=>.cUnrch(Lc,Tp).
+    onVar(_,Lc,V)=>.cVar(Lc,V).
+    onCel(_,Lc,E,Tp)=>.cCel(Lc,E,Tp).
+    onGet(_,Lc,E,Tp)=>.cGet(Lc,E,Tp).
+    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
+    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
+    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
+    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
+    onString(_,Lc,Sx)=>.cString(Lc,Sx).
+    onTerm(_,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,Tp).
+    onNth(_,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,Tp).
+    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
+    onClos(_,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,Tp).
+    onSv(_,Lc,Tp)=>.cSv(Lc,Tp).
+    onSvDrf(_,Lc,E,Tp)=>.cSvDrf(Lc,E,Tp).
+    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
+    onCall(_,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,Tp).
+    onOCall(_,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,Tp).
+    onXCall(_,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,Tp,ErTp).
+    onXOCall(_,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,Tp,ErTp).
+    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
+    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
+    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
+    onNeg(_,Lc,R)=>.cNeg(Lc,R).
+    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
+    onLtt(_,Lc,V,D,E)=>.cLtt(Lc,V,D,E).
+    onCase(Nv,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,foldCasesE(Cases,Nv,identityAlgebra),Dflt,Tp).
+    onIxCase(Nv,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,foldCasesE(Cases,Nv,identityAlgebra),Dflt,Tp).
+    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
+    onResum(_,Lc,T,M,Tp)=>.cResum(Lc,T,M,Tp).
+    onSusp(_,Lc,T,M,Tp)=>.cSusp(Lc,T,M,Tp).
+    onRetyr(_,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,Tp).
+    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
+    onAbort(_,Lc,Ms,Tp)=>.cAbort(Lc,Ms,Tp).
+    onTry(_,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,Tp).
+    onThrw(_,Lc,E,Tp)=>.cThrw(Lc,E,Tp).
+    onValof(_,Lc,A,Tp)=>.cValof(Lc,A,Tp).
+
+    onANop(_,Lc)=>.aNop(Lc).
+    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
+    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
+    onABreak(_,Lc,L)=>.aBreak(Lc,L).
+    onAValis(_,Lc,E)=>.aValis(Lc,E).
+    onADo(_,Lc,E)=>.aDo(Lc,E).
+    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
+    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
+    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
+    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
+    onACase(Nv,Lc,G,Cs,D)=>.aCase(Lc,G,foldCasesA(Cs,Nv,identityAlgebra),D).
+    onAIxCase(Nv,Lc,G,Cs,D)=>.aIxCase(Lc,G,foldCasesA(Cs,Nv,identityAlgebra),D).
+    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
+    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
+    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
+    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
+    onALtt(_,Lc,V,D,A)=>.aLtt(Lc,V,D,A).
+    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
+    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
+
+    extendLtt(Nv,_)=>Nv.
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
+  /* rwTerm/rwAct: replace matching variables with replacement expression */
+  public rewriteAlgebra:treeAlgebra[(cExp)=>option[cExp],cExp,aAction].
+  rewriteAlgebra = treeAlgebra{
+    onVoid(_,Lc)=>.cVoid(Lc).
+    onAnon(_,Lc,Tp)=>.cAnon(Lc,Tp).
+    onUnrch(_,Lc,Tp)=>.cUnrch(Lc,Tp).
+    onVar(Tst,Lc,V)=>Vl?=Tst(.cVar(Lc,V)) ?? Vl || .cVar(Lc,V).
+    onCel(_,Lc,E,Tp)=>.cCel(Lc,E,Tp).
+    onGet(_,Lc,E,Tp)=>.cGet(Lc,E,Tp).
+    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
+    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
+    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
+    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
+    onString(_,Lc,Sx)=>.cString(Lc,Sx).
+    onTerm(_,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,Tp).
+    onNth(_,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,Tp).
+    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
+    onClos(_,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,Tp).
+    onSv(_,Lc,Tp)=>.cSv(Lc,Tp).
+    onSvDrf(_,Lc,E,Tp)=>.cSvDrf(Lc,E,Tp).
+    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
+    onCall(_,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,Tp).
+    onOCall(_,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,Tp).
+    onXCall(_,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,Tp,ErTp).
+    onXOCall(_,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,Tp,ErTp).
+    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
+    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
+    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
+    onNeg(_,Lc,R)=>.cNeg(Lc,R).
+    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
+    onLtt(_,Lc,V,D,E)=>.cLtt(Lc,V,D,E).
+    onCase(Tst,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,rwCasesE(Cases,Tst),Dflt,Tp).
+    onIxCase(Tst,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,rwCasesE(Cases,Tst),Dflt,Tp).
+    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
+    onResum(_,Lc,T,M,Tp)=>.cResum(Lc,T,M,Tp).
+    onSusp(_,Lc,T,M,Tp)=>.cSusp(Lc,T,M,Tp).
+    onRetyr(_,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,Tp).
+    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
+    onAbort(_,Lc,Ms,Tp)=>.cAbort(Lc,Ms,Tp).
+    onTry(_,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,Tp).
+    onThrw(_,Lc,E,Tp)=>.cThrw(Lc,E,Tp).
+    onValof(_,Lc,A,Tp)=>.cValof(Lc,A,Tp).
+
+    onANop(_,Lc)=>.aNop(Lc).
+    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
+    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
+    onABreak(_,Lc,L)=>.aBreak(Lc,L).
+    onAValis(_,Lc,E)=>.aValis(Lc,E).
+    onADo(_,Lc,E)=>.aDo(Lc,E).
+    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
+    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
+    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
+    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
+    onACase(Tst,Lc,G,Cs,D)=>.aCase(Lc,G,rwCasesA(Cs,Tst),D).
+    onAIxCase(Tst,Lc,G,Cs,D)=>.aIxCase(Lc,G,rwCasesA(Cs,Tst),D).
+    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
+    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
+    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
+    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
+    onALtt(_,Lc,V,D,A)=>.aLtt(Lc,V,D,A).
+    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
+    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
+
+    extendLtt(Tst,V)=>dropVar(cName(V),Tst).
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
+  rwCasesE:(cons[cCase[cExp]],(cExp)=>option[cExp]) => cons[cCase[cExp]].
+  rwCasesE(Cs,Tst) => (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Tst,rewriteAlgebra),foldExp(Rep,Tst,rewriteAlgebra))).
+
+  rwCasesA:(cons[cCase[aAction]],(cExp)=>option[cExp]) => cons[cCase[aAction]].
+  rwCasesA(Cs,Tst) => (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Tst,rewriteAlgebra),foldAct(Rep,Tst,rewriteAlgebra))).
+
+  rwTerm:(cExp,(cExp)=>option[cExp]) => cExp.
+  rwTerm(E,Tst) => foldExp(E,Tst,rewriteAlgebra).
+
+  rwAct:(aAction,(cExp)=>option[cExp]) => aAction.
+  rwAct(A,Tst) => foldAct(A,Tst,rewriteAlgebra).
+
+  public implementation measured[cDefn->>integer] => {
+    [|.fnDef(_,_,_,_,Vl)|] => termCnt(Vl).
+    [|.prDef(_,_,_,_,Act)|] => actCnt(Act).
+    [|.glDef(_,_,_,Vl)|] => termCnt(Vl).
+    [|.tpDef(_,_,_,_)|] => 0.
+    [|.lblDef(_,_,_,_)|] => 0.
+  }
+
+  /* termCnt/actCnt: one treeAlgebra[(),integer,integer] instance (countAlgebra, below)
+     instead of two hand-written case-matches over cExp/aAction. sum1/sum0 are the only
+     two recursion shapes actually in play: "sum the folded children, +1 for this node"
+     and "sum the folded children, no +1" (cSeq, cValof, cLbld, the two Ix-case forms). */
+  termCnt:(cExp) => integer.
+  termCnt(E) => foldExp(E,(),countAlgebra).
+
+  actCnt:(aAction) => integer.
+  actCnt(A) => foldAct(A,(),countAlgebra).
+
+  sum1:(cons[integer]) => integer.
+  sum1(Ns) => foldLeft((N,Cx)=>N+Cx,1,Ns).
+
+  sum0:(cons[integer]) => integer.
+  sum0(Ns) => foldLeft((N,Cx)=>N+Cx,0,Ns).
+
+  caseSumE:(cons[cCase[cExp]],(),integer) => integer.
+  caseSumE(Cs,Nv,Base) => foldLeft(((_,Ptn,Rep),Cx)=>termCnt(Ptn)+foldExp(Rep,Nv,countAlgebra)+1+Cx,Base,Cs).
+
+  caseSumA:(cons[cCase[aAction]],(),integer) => integer.
+  caseSumA(Cs,Nv,Base) => foldLeft(((_,Ptn,Rep),Cx)=>termCnt(Ptn)+foldAct(Rep,Nv,countAlgebra)+1+Cx,Base,Cs).
+
+  countAlgebra:treeAlgebra[(),integer,integer].
+  countAlgebra = treeAlgebra{
+    onVoid(_,_)=>1. onAnon(_,_,_)=>1. onUnrch(_,_,_)=>1. onVar(_,_,_)=>1.
+    onInt(_,_,_)=>1. onChar(_,_,_)=>1. onBig(_,_,_)=>1. onFlt(_,_,_)=>1.
+    onString(_,_,_)=>1. onSv(_,_,_)=>1. onAbort(_,_,_,_)=>1.
+
+    onCel(_,_,E,_)=>sum1([E]).
+    onGet(_,_,E,_)=>sum1([E]).
+    onTerm(_,_,_,As,_)=>sum1(As).
+    onNth(_,_,R,_,_)=>sum1([R]).
+    onSetNth(_,_,R,_,E)=>sum1([R,E]).
+    onClos(_,_,_,_,F,_)=>sum1([F]).
+    onSvDrf(_,_,E,_)=>sum1([E]).
+    onSvSet(_,_,E,V)=>sum1([E,V]).
+    onCall(_,_,_,As,_)=>sum1(As).
+    onOCall(_,_,Op,As,_)=>sum1([Op,..As]).
+    onXCall(_,_,_,As,_,_)=>sum1(As).
+    onXOCall(_,_,Op,As,_,_)=>sum1([Op,..As]).
+    onThrw(_,_,E,_)=>sum1([E]).
+    onSeq(_,_,L,R)=>sum0([L,R]).
+    onCnj(_,_,L,R)=>sum1([L,R]).
+    onDsj(_,_,L,R)=>sum1([L,R]).
+    onNeg(_,_,R)=>sum1([R]).
+    onCnd(_,_,G,L,R)=>sum1([G,L,R]).
+    onLtt(_,_,_,D,E)=>sum1([D,E]).
+    onCase(Nv,_,Sel,Cases,Dflt,_)=>caseSumE(Cases,Nv,Sel)+Dflt+1.
+    onIxCase(Nv,_,Sel,Cases,Dflt,_)=>caseSumE(Cases,Nv,Sel)+Dflt+1.
+    onMatch(_,_,P,E)=>sum1([P,E]).
+    onResum(_,_,T,M,_)=>sum1([T,M]).
+    onSusp(_,_,T,M,_)=>sum1([T,M]).
+    onRetyr(_,_,T,M,_)=>sum1([T,M]).
+    onVarNme(_,_,_,_,E)=>sum1([E]).
+    onTry(_,_,B,_,H,_)=>sum1([B,H]).
+    onValof(_,_,A,_)=>A.
+
+    onANop(_,_)=>1. onABreak(_,_,_)=>1. onAAbort(_,_,_)=>1.
+    onALbld(_,_,_,A)=>A.
+    onASeq(_,_,L,R)=>sum0([L,R]).
+    onAValis(_,_,E)=>sum1([E]).
+    onADo(_,_,E)=>E.
+    onASetNth(_,_,V,_,E)=>sum1([V,E]).
+    onADefn(_,_,_,E)=>sum1([E]).
+    onAMatch(_,_,V,E)=>sum1([V,E]).
+    onAAsgn(_,_,V,E)=>sum1([V,E]).
+    onACase(Nv,_,G,Cs,D)=>caseSumA(Cs,Nv,G)+D+1.
+    onAIxCase(Nv,_,G,Cs,D)=>caseSumA(Cs,Nv,G)+D+1.
+    onAIftte(_,_,C,L,R)=>sum1([C,L,R]).
+    onAWhile(_,_,C,B)=>sum1([C,B]).
+    onATry(_,_,B,_,Hs)=>sum1([B,Hs]).
+    onAThrw(_,_,E)=>sum1([E]).
+    onALtt(_,_,_,D,A)=>sum1([D,A]).
+    onAVarNme(_,_,_,_,E)=>E.
+
+    extendLtt(Nv,_)=>Nv.
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
   public freshenE:(cExp,map[termLbl,cExp])=>cExp.
-  freshenE(E,Mp) => frshnE(E,[Mp]).
+  freshenE(E,Mp) => foldExp(E,[Mp],frshnAlgebra).
 
   scope ~> cons[map[termLbl,cExp]].
-
-  frshnE:(cExp,scope)=>cExp.
-  frshnE(Trm,Sc) => case Trm in {
-    | .cVoid(_) => Trm
-    | .cAnon(_,_) => Trm
-    | .cUnrch(_,_) => Trm
-    | .cVar(Lc,V) => (Rp ?= hasBinding(lName(V),Sc) ?? Rp || Trm)
-    | .cInt(Lc,Ix) => Trm
-    | .cBig(Lc,Ix) => Trm
-    | .cFlt(Lc,Dx) => Trm
-    | .cChar(Lc,Cx) => Trm
-    | .cString(Lc,Sx) => Trm
-    | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,frshnEs(Args,Sc),Tp)
-    | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,frshnE(R,Sc),Ix,Tp)
-    | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,frshnE(R,Sc),Ix,frshnE(E,Sc))
-    | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,frshnE(F,Sc),Tp)
-    | .cSv(_,_) => Trm
-    | .cSvDrf(Lc,E,Tp) => .cSvDrf(Lc,frshnE(E,Sc),Tp)
-    | .cSvSet(Lc,E,V) => .cSvSet(Lc,frshnE(E,Sc),frshnE(V,Sc))
-    | .cCel(Lc,E,Tp) => .cCel(Lc,frshnE(E,Sc),Tp)
-    | .cGet(Lc,E,Tp) => .cGet(Lc,frshnE(E,Sc),Tp)
-    | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,frshnEs(Args,Sc),Tp)
-    | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp)
-    | .cXCall(Lc,Op,Args,Tp,ErTp) => .cXCall(Lc,Op,frshnEs(Args,Sc),Tp,ErTp)
-    | .cXOCall(Lc,Op,Args,Tp,ErTp) => .cXOCall(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp,ErTp)
-    | .cThrw(Lc,E,Tp) =>.cThrw(Lc,frshnE(E,Sc),Tp)
-    | .cSeq(Lc,L,R) =>.cSeq(Lc,frshnE(L,Sc),frshnE(R,Sc))
-    | .cCnd(Lc,G,L,R) => valof{
-      Sc1 = newVars(glVars(G,[]),Sc);
-      valis .cCnd(Lc,frshnE(G,Sc1),frshnE(L,Sc1),frshnE(R,Sc))
-    }
-    | .cCnj(Lc,L,R) => valof{
-      Sc1 = newVars(glVars(L,[]),Sc);
-      valis .cCnj(Lc,frshnE(L,Sc1),frshnE(R,Sc1))
-    }
-    | .cDsj(Lc,L,R) =>valof{
-      Sc1 = newVars(glVars(Trm,[]),Sc);
-      valis .cDsj(Lc,frshnE(L,Sc1),frshnE(R,Sc1))
-    }
-    | .cNeg(Lc,R) =>.cNeg(Lc,frshnE(R,Sc))
-    | .cMatch(Lc,P,E) => .cMatch(Lc,frshnE(P,Sc),frshnE(E,Sc))
-    | .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,frshnE(D,Sc),frshnE(E,pushScope(Sc)))
-    | .cCase(Lc,Sel,Cs,Dflt,Tp) => .cCase(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),frshnE(Dflt,Sc),Tp)
-    | .cIxCase(Lc,Sel,Cs,Dflt,Tp) => .cIxCase(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),frshnE(Dflt,Sc),Tp)
-    | .cTry(Lc,B,E,H,Tp) => valof{
-      Sc0 = pushScope(Sc);
-      Sc1 = newVars(ptnVrs(E,[]),Sc0);
-      valis .cTry(Lc,frshnE(B,Sc0),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
-    }
-    | .cResum(Lc,T,M,Tp) => .cResum(Lc,frshnE(T,Sc),frshnE(M,Sc),Tp)
-    | .cSusp(Lc,T,M,Tp) => .cSusp(Lc,frshnE(T,Sc),frshnE(M,Sc),Tp)
-    | .cRetyr(Lc,T,M,Tp) => .cRetyr(Lc,frshnE(T,Sc),frshnE(M,Sc),Tp)
-    | .cVarNme(Lc,N,V,E) => .cVarNme(Lc,N,frshnE(V,Sc),frshnE(E,Sc))
-    | .cValof(Lc,A,Tp) => .cValof(Lc,frshnA(A,pushScope(Sc)),Tp)
-    | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
-  }
 
   hasBinding:(termLbl,scope) => option[cExp].
   hasBinding(_,[]) => .none.
@@ -692,54 +971,130 @@ star.compiler.term{
   vName(.cV(Nm,_)) => Nm.
 
   public freshenA:(aAction,map[termLbl,cExp])=>aAction.
-  freshenA(A,Mp) => frshnA(A,[Mp]).
+  freshenA(A,Mp) => foldAct(A,[Mp],frshnAlgebra).
 
-  frshnA:(aAction,scope)=>aAction.
-  frshnA(Ac,Sc) => case Ac in {
-    | .aNop(Lc) => .aNop(Lc)
-    | .aSeq(Lc,.aDefn(LL,P,E),R) => valof{
+  /* frshnE/frshnA: freshen an expression with new variables */
+
+  frshnAlgebra:treeAlgebra[scope,cExp,aAction].
+  frshnAlgebra = treeAlgebra{
+    onVoid(_,Lc)=>.cVoid(Lc).
+    onAnon(_,Lc,Tp)=>.cAnon(Lc,Tp).
+    onUnrch(_,Lc,Tp)=>.cUnrch(Lc,Tp).
+    onVar(Sc,Lc,V)=>(Rp?=hasBinding(lName(V),Sc) ?? Rp || .cVar(Lc,V)).
+    onCel(_,Lc,E,Tp)=>.cCel(Lc,E,Tp).
+    onGet(_,Lc,E,Tp)=>.cGet(Lc,E,Tp).
+    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
+    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
+    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
+    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
+    onString(_,Lc,Sx)=>.cString(Lc,Sx).
+    onTerm(_,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,Tp).
+    onNth(_,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,Tp).
+    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
+    onClos(_,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,Tp).
+    onSv(_,Lc,Tp)=>.cSv(Lc,Tp).
+    onSvDrf(_,Lc,E,Tp)=>.cSvDrf(Lc,E,Tp).
+    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
+    onCall(_,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,Tp).
+    onOCall(_,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,Tp).
+    onXCall(_,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,Tp,ErTp).
+    onXOCall(_,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,Tp,ErTp).
+    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
+    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
+    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
+    onNeg(_,Lc,R)=>.cNeg(Lc,R).
+    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
+    onLtt(_,Lc,V,D,E)=>.cLtt(Lc,V,D,E).
+    onCase(Sc,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,frshnCasesE(Cases,Sc),Dflt,Tp).
+    onIxCase(Sc,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,frshnCasesE(Cases,Sc),Dflt,Tp).
+    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
+    onResum(_,Lc,T,M,Tp)=>.cResum(Lc,T,M,Tp).
+    onSusp(_,Lc,T,M,Tp)=>.cSusp(Lc,T,M,Tp).
+    onRetyr(_,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,Tp).
+    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
+    onAbort(_,Lc,Ms,Tp)=>.cAbort(Lc,Ms,Tp).
+    onTry(_,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,Tp).
+    onThrw(_,Lc,E,Tp)=>.cThrw(Lc,E,Tp).
+    onValof(_,Lc,A,Tp)=>.cValof(Lc,A,Tp).
+
+    onANop(_,Lc)=>.aNop(Lc).
+    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
+    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
+    onABreak(_,Lc,L)=>.aBreak(Lc,L).
+    onAValis(_,Lc,E)=>.aValis(Lc,E).
+    onADo(_,Lc,E)=>.aDo(Lc,E).
+    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
+    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
+    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
+    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
+    onACase(Sc,Lc,G,Cs,D)=>.aCase(Lc,G,frshnCasesA(Cs,Sc),D).
+    onAIxCase(Sc,Lc,G,Cs,D)=>.aIxCase(Lc,G,frshnCasesA(Cs,Sc),D).
+    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
+    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
+    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
+    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
+    onALtt(_,Lc,V,D,A)=>.aLtt(Lc,V,D,A).
+    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
+    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
+
+    extendLtt(Sc,_)=>pushScope(Sc).
+    onRaw=frshnOnRaw.
+    onARaw=frshnOnARaw.
+    }.
+
+  frshnOnRaw:(scope,cExp) => option[cExp].
+  frshnOnRaw(Sc,.cCnd(Lc,G,L,R)) => .some(valof{
+      Sc1 = newVars(glVars(G,[]),Sc);
+      valis .cCnd(Lc,foldExp(G,Sc1,frshnAlgebra),foldExp(L,Sc1,frshnAlgebra),foldExp(R,Sc,frshnAlgebra))
+    }).
+  frshnOnRaw(Sc,.cCnj(Lc,L,R)) => .some(valof{
+      Sc1 = newVars(glVars(L,[]),Sc);
+      valis .cCnj(Lc,foldExp(L,Sc1,frshnAlgebra),foldExp(R,Sc1,frshnAlgebra))
+    }).
+  frshnOnRaw(Sc,Trm) where .cDsj(Lc,L,R).=Trm => .some(valof{
+      Sc1 = newVars(glVars(Trm,[]),Sc);
+      valis .cDsj(Lc,foldExp(L,Sc1,frshnAlgebra),foldExp(R,Sc1,frshnAlgebra))
+    }).
+  frshnOnRaw(Sc,.cTry(Lc,B,E,H,Tp)) => .some(valof{
+      Sc0 = pushScope(Sc);
+      Sc1 = newVars(ptnVrs(E,[]),Sc0);
+      valis .cTry(Lc,foldExp(B,Sc0,frshnAlgebra),foldExp(E,Sc1,frshnAlgebra),foldExp(H,Sc1,frshnAlgebra),Tp)
+    }).
+  frshnOnRaw(Sc,.cValof(Lc,Act,Tp)) =>
+    .some(.cValof(Lc,foldAct(Act,pushScope(Sc),frshnAlgebra),Tp)).
+  frshnOnRaw(_,_) default => .none.
+
+  frshnOnARaw:(scope,aAction) => option[aAction].
+  frshnOnARaw(Sc,.aSeq(Lc,.aDefn(LL,P,E),R)) => .some(valof{
       Sc1 = newVars(ptnVrs(P,[]),Sc);
-      valis .aSeq(Lc,.aDefn(LL,frshnE(P,Sc1),frshnE(E,Sc)),frshnA(R,Sc1))
-    }
-    | .aSeq(Lc,.aMatch(LL,P,E),R) => valof{
+      valis .aSeq(Lc,.aDefn(LL,foldExp(P,Sc1,frshnAlgebra),foldExp(E,Sc,frshnAlgebra)),foldAct(R,Sc1,frshnAlgebra))
+    }).
+  frshnOnARaw(Sc,.aSeq(Lc,.aMatch(LL,P,E),R)) => .some(valof{
       Sc1 = newVars(ptnVrs(P,[]),Sc);
-      valis .aSeq(Lc,.aMatch(LL,frshnE(P,Sc1),frshnE(E,Sc)),frshnA(R,Sc1))
-    }
-    | .aSeq(Lc,L,R) => .aSeq(Lc,frshnA(L,Sc),frshnA(R,Sc))
-    | .aLbld(Lc,L,A) => .aLbld(Lc,L,frshnA(A,Sc))
-    | .aBreak(Lc,L) => .aBreak(Lc,L)
-    | .aValis(Lc,E) => .aValis(Lc,frshnE(E,Sc))
-    | .aDo(Lc,E) => .aDo(Lc,frshnE(E,Sc))
-    | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,frshnE(V,Sc),Ix,frshnE(E,Sc))
-    | .aDefn(Lc,V,E) => .aDefn(Lc,frshnE(V,Sc),frshnE(E,Sc))
-    | .aMatch(Lc,V,E) => .aMatch(Lc,frshnE(V,Sc),frshnE(E,Sc))
-    | .aAsgn(Lc,V,E) => .aAsgn(Lc,frshnE(V,Sc),frshnE(E,Sc))
-    | .aCase(Lc,G,Cs,D) => .aCase(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
-    | .aIxCase(Lc,G,Cs,D) => .aIxCase(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
-    | .aIftte(Lc,C,L,R) => valof{
+      valis .aSeq(Lc,.aMatch(LL,foldExp(P,Sc1,frshnAlgebra),foldExp(E,Sc,frshnAlgebra)),foldAct(R,Sc1,frshnAlgebra))
+    }).
+  frshnOnARaw(Sc,.aIftte(Lc,C,L,R)) => .some(valof{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(glVars(C,[]),Sc0);
-      valis .aIftte(Lc,frshnE(C,Sc1),frshnA(L,Sc1),frshnA(R,Sc))
-    }
-    | .aWhile(Lc,C,B) => valof{
+      valis .aIftte(Lc,foldExp(C,Sc1,frshnAlgebra),foldAct(L,Sc1,frshnAlgebra),foldAct(R,Sc,frshnAlgebra))
+    }).
+  frshnOnARaw(Sc,.aWhile(Lc,C,B)) => .some(valof{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(glVars(C,[]),Sc0);
-      valis .aWhile(Lc,frshnE(C,Sc1),frshnA(B,Sc1))
-    }
-    | .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,frshnE(D,Sc),frshnA(A,pushScope(Sc)))
-    | .aTry(Lc,B,E,H) => .aTry(Lc,frshnA(B,Sc),frshnE(E,Sc),frshnA(H,Sc))
-    | .aThrw(Lc,E) => .aThrw(Lc,frshnE(E,Sc))
-    | .aVarNme(Lc,N,V,E) => .aVarNme(Lc,N,frshnE(V,Sc),frshnA(E,Sc))
-    | .aAbort(Lc,Ms) => .aAbort(Lc,Ms)
-  }
+      valis .aWhile(Lc,foldExp(C,Sc1,frshnAlgebra),foldAct(B,Sc1,frshnAlgebra))
+    }).
+  frshnOnARaw(_,_) default => .none.
 
-  frshnEs:(cons[cExp],scope)=>cons[cExp].
-  frshnEs(Els,Sc) => (Els//(E)=>frshnE(E,Sc)).
+  frshnCasesE:(cons[cCase[cExp]],scope) => cons[cCase[cExp]].
+  frshnCasesE(Cs,Sc) => (Cs//((Lc,Ptn,Rep)) => valof{
+      Sc1 = newVars(ptnVrs(Ptn,[]),pushScope(Sc));
+      valis (Lc,foldExp(Ptn,Sc1,frshnAlgebra),foldExp(Rep,Sc1,frshnAlgebra))
+    }).
 
-  frCases:all e ~~ (cons[cCase[e]],scope,(e,scope)=>e) => cons[cCase[e]].
-  frCases(Cs,Sc,F) => (Cs//((Lc,Ptn,Rep)) => valof{
-      Sc1=newVars(ptnVrs(Ptn,[]),pushScope(Sc));
-      valis (Lc,frshnE(Ptn,Sc1),F(Rep,Sc1))
+  frshnCasesA:(cons[cCase[aAction]],scope) => cons[cCase[aAction]].
+  frshnCasesA(Cs,Sc) => (Cs//((Lc,Ptn,Rep)) => valof{
+      Sc1 = newVars(ptnVrs(Ptn,[]),pushScope(Sc));
+      valis (Lc,foldExp(Ptn,Sc1,frshnAlgebra),foldAct(Rep,Sc1,frshnAlgebra))
     }).
 
   public implementation hasLoc[cDefn] => {
@@ -1071,22 +1426,22 @@ star.compiler.term{
   }
 
   public implementation present[cExp] => {
-    present(E,F) => presentInE(E,(_)=>.false,F)
+    present(E,F) => presentInExp(E,F)
   }
 
   public implementation present[aAction] => {
-    present(A,F) => presentInA(A,(_)=>.false,F)
+    present(A,F) => presentInAct(A,F)
   }
 
   public implementation present[cDefn] => {
-    present(.fnDef(_,_,_,_,E),F) => presentInE(E,(_)=>.false,F).
-    present(.prDef(_,_,_,_,A),F) => presentInA(A,(_)=>.false,F).
-    present(.glDef(_,_,_,E),F) => presentInE(E,(_)=>.false,F).
+    present(.fnDef(_,_,_,_,E),F) => presentInExp(E,F).
+    present(.prDef(_,_,_,_,A),F) => presentInAct(A,F).
+    present(.glDef(_,_,_,E),F) => presentInExp(E,F).
     present(_,_) default => .false
   }
 
   public lblUsed:(aAction,string) => boolean.
-  lblUsed(A,Lb) => presentInA(A,(T)=>isBreak(T,Lb),(_)=>.false).
+  lblUsed(A,Lb) => foldAct(A,((T)=>isBreak(T,Lb),(_)=>.false),presentAlgebra).
 
   public varUsed:all T ~~ present[T] |= (T,cV) => boolean.
   varUsed(T,V) => present(T,(Ex)=>(.cVar(_,VV).=Ex ?? VV==V || .false)).
@@ -1094,85 +1449,96 @@ star.compiler.term{
   isBreak(.aBreak(_,Lb),Lb) => .true.
   isBreak(_,_) default => .false.
 
-  presentInA(Ac,C,T) => C(Ac) ?? .true ||
-    case Ac in {
-    | .aNop(_) => .false
-    | .aSeq(_,A1,A2) => presentInA(A1,C,T) || presentInA(A2,C,T)
-    | .aLbld(_,_,A) => presentInA(A,C,T)
-    | .aBreak(_,L) => .false
-    | .aValis(_,E) => presentInE(E,C,T)
-    | .aDo(_,E) => presentInE(E,C,T)
-    | .aSetNth(_,V,_,E) => presentInE(V,C,T) || presentInE(E,C,T)
-    | .aDefn(_,_,E) => presentInE(E,C,T)
-    | .aMatch(_,P,E) => presentInE(P,C,T) || presentInE(E,C,T)
-    | .aAsgn(_,L,V) => presentInE(L,C,T) || presentInE(V,C,T)
-    | .aCase(_,G,Cs,D) =>
-      presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T)
-    | .aIxCase(_,G,Cs,D) =>
-      presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T)
-    | .aIftte(_,G,Th,E) =>
-      presentInE(G,C,T) || presentInA(Th,C,T) || presentInA(E,C,T)
-    | .aWhile(_,G,B) => presentInE(G,C,T) || presentInA(B,C,T)
-    | .aTry(_,B,E,H) => presentInA(B,C,T) || presentInE(E,C,T) || presentInA(H,C,T)
-    | .aThrw(_,E) => presentInE(E,C,T)
-    | .aLtt(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T)
-    | .aVarNme(_,_,_,B) => presentInA(B,C,T)
-    | .aAbort(_,_) => .false
+  /* present: check something being present */
+  presentAlgebra:treeAlgebra[((aAction)=>boolean,(cExp)=>boolean),boolean,boolean].
+  presentAlgebra = treeAlgebra{
+    onVoid((_,ET),Lc)=>ET(.cVoid(Lc)).
+    onAnon((_,ET),Lc,Tp)=>ET(.cAnon(Lc,Tp)).
+    onUnrch((_,ET),Lc,Tp)=>ET(.cUnrch(Lc,Tp)).
+    onVar((_,ET),Lc,V)=>ET(.cVar(Lc,V)).
+    onCel(_,_,E,_)=>E.
+    onGet(_,_,E,_)=>E.
+    onInt((_,ET),Lc,Ix)=>ET(.cInt(Lc,Ix)).
+    onChar((_,ET),Lc,Cx)=>ET(.cChar(Lc,Cx)).
+    onBig((_,ET),Lc,Ix)=>ET(.cBig(Lc,Ix)).
+    onFlt((_,ET),Lc,Dx)=>ET(.cFlt(Lc,Dx)).
+    onString((_,ET),Lc,Sx)=>ET(.cString(Lc,Sx)).
+    onTerm(_,_,_,Args,_)=>orAll(Args).
+    onNth(_,_,R,_,_)=>R.
+    onSetNth(_,_,R,_,E)=>R||E.
+    onClos(_,_,_,_,F,_)=>F.
+    onSv((_,ET),Lc,Tp)=>ET(.cSv(Lc,Tp)).
+    onSvDrf(_,_,E,_)=>E.
+    onSvSet(_,_,E,V)=>E||V.
+    onCall(_,_,_,Args,_)=>orAll(Args).
+    onOCall(_,_,Op,Args,_)=>Op||orAll(Args).
+    onXCall(_,_,_,Args,_,_)=>orAll(Args).
+    onXOCall(_,_,Op,Args,_,_)=>Op||orAll(Args).
+    onSeq(_,_,L,R)=>L||R.
+    onCnj(_,_,L,R)=>L||R.
+    onDsj(_,_,L,R)=>L||R.
+    onNeg(_,_,R)=>R.
+    onCnd(_,_,T,L,R)=>T||L||R.
+    onLtt(_,_,_,D,E)=>D||E.
+    onCase(Env,_,Sel,Cases,Dflt,_)=>Sel||presentCasesE(Cases,Env)||Dflt.
+    onIxCase(Env,_,Sel,Cases,Dflt,_)=>Sel||presentCasesE(Cases,Env)||Dflt.
+    onMatch(_,_,P,E)=>P||E.
+    onResum(_,_,T,M,_)=>T||M.
+    onSusp(_,_,T,M,_)=>T||M.
+    onRetyr(_,_,T,M,_)=>T||M.
+    onVarNme(_,_,_,_,E)=>E.
+    onAbort((_,ET),Lc,Ms,Tp)=>ET(.cAbort(Lc,Ms,Tp)).
+    onTry(_,_,B,E,H,_)=>B||E||H.
+    onThrw(_,_,E,_)=>E.
+    onValof(_,_,A,_)=>A.
+
+    onANop((AT,_),Lc)=>AT(.aNop(Lc)).
+    onASeq(_,_,L,R)=>L||R.
+    onALbld(_,_,_,A)=>A.
+    onABreak((AT,_),Lc,L)=>AT(.aBreak(Lc,L)).
+    onAValis(_,_,E)=>E.
+    onADo(_,_,E)=>E.
+    onASetNth(_,_,V,_,E)=>V||E.
+    onADefn(_,_,_,E)=>E.
+    onAMatch(_,_,P,E)=>P||E.
+    onAAsgn(_,_,L,V)=>L||V.
+    onACase(Env,_,G,Cs,D)=>G||presentCasesA(Cs,Env)||D.
+    onAIxCase(Env,_,G,Cs,D)=>G||presentCasesA(Cs,Env)||D.
+    onAIftte(_,_,G,Th,El)=>G||Th||El.
+    onAWhile(_,_,G,B)=>G||B.
+    onATry(_,_,B,E,H)=>B||E||H.
+    onAThrw(_,_,E)=>E.
+    onALtt(_,_,_,D,B)=>D||B.
+    onAVarNme(_,_,_,_,B)=>B.
+    onAAbort((AT,_),Lc,Ms)=>AT(.aAbort(Lc,Ms)).
+
+    extendLtt(Nv,_)=>Nv.
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
+  orAll:(cons[boolean]) => boolean.
+  orAll(Bs) => foldLeft((B,Sf)=>B||Sf,.false,Bs).
+
+  presentCasesE:(cons[cCase[cExp]],((aAction)=>boolean,(cExp)=>boolean)) => boolean.
+  presentCasesE(Cs,Env) => case Cs in {
+    | [] => .false
+    | [(_,Ptn,Rep),..Rest] =>
+      foldExp(Ptn,Env,presentAlgebra) || foldExp(Rep,Env,presentAlgebra) || presentCasesE(Rest,Env)
   }.
 
-  presentInE:(cExp,(aAction)=>boolean,(cExp)=>boolean) => boolean.
-  presentInE(T,A,C) => C(T) ?? .true || case T in {
-    | .cVoid(_) => .false
-    | .cAnon(_,_) => .false
-    | .cUnrch(_,_) => .false
-    | .cVar(_,_) => .false
-    | .cInt(_,_) => .false
-    | .cBig(_,_) => .false
-    | .cChar(_,_) => .false
-    | .cString(_,_) => .false
-    | .cFlt(_,_) => .false
-    | .cTerm(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}
-    | .cNth(_,R,_,_) => presentInE(R,A,C)
-    | .cSetNth(_,R,_,V) => presentInE(R,A,C) || presentInE(V,A,C)
-    | .cClos(_,_,_,F,_) => presentInE(F,A,C)
-    | .cSv(_,_) => .false
-    | .cSvDrf(_,E,_) => presentInE(E,A,C)
-    | .cSvSet(_,E,V) => presentInE(E,A,C) || presentInE(V,A,C)
-    | .cCel(_,E,_) => presentInE(E,A,C)
-    | .cGet(_,E,_) => presentInE(E,A,C)
-    | .cCall(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}
-    | .cOCall(_,Op,Args,_) =>
-      presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}
-    | .cXCall(_,_,Args,_,_) => {? E in Args && presentInE(E,A,C) ?}
-    | .cXOCall(_,Op,Args,_,_) =>
-      presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}
-    | .cThrw(_,E,_) => presentInE(E,A,C)
-    | .cSeq(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C)
-    | .cCnj(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C)
-    | .cDsj(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C)
-    | .cNeg(_,R) => presentInE(R,A,C)
-    | .cCnd(_,Ts,L,R) => presentInE(Ts,A,C) || presentInE(L,A,C) || presentInE(R,A,C)
-    | .cLtt(_,_,V,E) => presentInE(V,A,C) || presentInE(E,A,C)
-    | .cCase(_,G,Cs,D,_) =>
-      presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C)
-    | .cIxCase(_,G,Cs,D,_) =>
-      presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C)
-    | .cMatch(_,V,E) => presentInE(V,A,C) || presentInE(E,A,C)
-    | .cResum(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
-    | .cSusp(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
-    | .cRetyr(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
-    | .cVarNme(_,_,_,E) => presentInE(E,A,C)
-    | .cAbort(_,_,_) => .false
-    | .cTry(_,B,E,H,_) =>
-      presentInE(B,A,C) || presentInE(E,A,C) || presentInE(H,A,C)
-    | .cValof(_,Act,_) => presentInA(Act,A,C)
-  }
+  presentCasesA:(cons[cCase[aAction]],((aAction)=>boolean,(cExp)=>boolean)) => boolean.
+  presentCasesA(Cs,Env) => case Cs in {
+    | [] => .false
+    | [(_,Ptn,Rep),..Rest] =>
+      foldExp(Ptn,Env,presentAlgebra) || foldAct(Rep,Env,presentAlgebra) || presentCasesA(Rest,Env)
+  }.
 
-  presentInCases:all e ~~ (cons[cCase[e]],(e,(aAction)=>boolean,(cExp)=>boolean)=>boolean,
-    (aAction)=>boolean,(cExp)=>boolean)=>boolean.
-  presentInCases([],_,_,_) => .false.
-  presentInCases([(_,A,E),..Cs],P,C,T) =>
-    presentInE(A,C,T) || P(E,C,T) || presentInCases(Cs,P,C,T).
+  presentInExp:(cExp,(cExp)=>boolean) => boolean.
+  presentInExp(E,F) => foldExp(E,((_)=>.false,F),presentAlgebra).
+
+  presentInAct:(aAction,(cExp)=>boolean) => boolean.
+  presentInAct(A,F) => foldAct(A,((_)=>.false,F),presentAlgebra).
 
   public freezeDefn:(cDefn) => data.
   freezeDefn(D) => case D in {
