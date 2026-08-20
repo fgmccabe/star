@@ -627,6 +627,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       mov(glb, IM((integer) glbVr));
       // Check if global is set
       ldr(RTV, OF(glb, OffsetOf(GlobalRecord, content)));
+      releaseReg(jit, glb); // glb is not needed past this point
       codeLblPo haveContent = newLabel(ctx);
       mov(RTS, IM(0));
       cbnz(RTV, haveContent);
@@ -658,7 +659,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       blr(X16);
       dropArguments(state, nextPc);
       bind(haveContent);
-      releaseReg(jit, glb);
       pc = nextPc;
       continue;
     }
