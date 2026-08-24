@@ -165,6 +165,21 @@ star.compiler.dict{
   declaredTypeVar(Dict,Nm) where (_,Tp,.typeExists(_,_),_) ?= findType(Dict,Nm) => .some(Tp).
   declaredTypeVar(_,_) default => .none.
 
+  -- the type variables declareTypeVars put in scope, marked by their
+  -- self-referential .typeExists(Tp,Tp) rule (distinguishing them from a
+  -- real, user-defined type's rule).
+  public quantifiedTypeVars:(dict) => cons[tipe].
+  quantifiedTypeVars(.dict(Scs,_)) => valof{
+    Acc := ([]:cons[tipe]);
+    for scope{types=Tps} in Scs do{
+      for _->TDef in Tps do{
+	if .tpDefn(_,_,Tp,.typeExists(T2,T2),_).=TDef && Tp==T2 then
+	  Acc := [Tp,..Acc!]
+      }
+    };
+    valis Acc!
+  }
+
   public emptyDict:dict.
   emptyDict = .dict([scope{
 	types=[].

@@ -301,7 +301,7 @@ star.compiler.ssa{
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
   findLocal:(string,map[string,integer])=> data.
-  findLocal(Nm,Lcs) => .intgr(try ? Lcs[Nm] catch { _ => unreachable }).
+  findLocal(Nm,Lcs) => .intgr(try ? Lcs[Nm] catch { _ => valof { showMsg("Variable $(Nm) not in scope"); unreachable} }).
 
   findLocals:(cons[string],map[string,integer]) => cons[data].
   findLocals(Vrs,Lcs) => (Vrs//((V)=> findLocal(V,Lcs))).

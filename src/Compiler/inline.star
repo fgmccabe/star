@@ -27,9 +27,11 @@ star.compiler.inline{
   simplifyGroups:(cons[cons[cDefn]],map[defnSp,cDefn]) => cons[cons[cDefn]].
   simplifyGroups([],_) => [].
   simplifyGroups([Gp,..Gps],Map) => valof{
-    SGp = Gp//(D)=>simplifyDefn(D,Map);
-    if traceInline! then
-      showMsg("Group simplifies to $(SGp)");
+    SGp = Gp//(D)=>valof{
+      if traceInline! then showMsg("Simplify defn $(D)");
+      SD = simplifyDefn(D,Map);
+      if traceInline! then showMsg("Simplified defn $(SD)");
+      valis SD};
 
     valis [SGp,..simplifyGroups(Gps,foldLeft(pickupDefn,Map,SGp))]
   }
@@ -345,11 +347,7 @@ star.compiler.inline{
   /* Specializing a generic function's body for one call site, requires
   propagating type information into the function from the call site.  */
 
-  -- freshen only opens the outermost quantifier; access functions (see
-  -- parsetype.star's makeAccessor) nest another after an arrow. Open that
-  -- one too, but only if CallTp shows it as applied -- if CallTp is also
-  -- quantified there it's genuinely still polymorphic, and sameType already
-  -- matches quantified-vs-quantified.
+  -- freshen opens the outermost quantifier.
   alignQuants:(tipe,tipe,dict) => (cons[(string,tipe)],tipe).
   alignQuants(Tp,CallTp,Dict) => valof{
     (Q1,Tp1) = freshen(Tp,Dict);
@@ -367,13 +365,14 @@ star.compiler.inline{
   isNotAllType(.allType(_,_)) => .false.
   isNotAllType(_) default => .true.
 
-  specializeTypes:(tipe,tipe,cons[(string,tipe)],cExp,option[locn],string) => cExp.
-  specializeTypes(FreshFTp,CallTp,Quants,Rep,Lc,Nm) =>
+  -- specializeTypes replaces the types in a cExp with freshened version.
+  specializeTypes:(tipe,tipe,cons[(string,tipe)],cons[cV],cExp,option[locn],string) => (cons[cV],cExp).
+  specializeTypes(FreshFTp,CallTp,Quants,Vrs,Rep,Lc,Nm) =>
     sameType(FreshFTp,CallTp,emptyDict) ??
-      substTypesE(Rep,Quants)
+      (Vrs//(V)=>substCV(V,Quants), substTypesE(Rep,Quants))
     || valof{
       reportError("cannot align types when inlining #(Nm)\: $(FreshFTp) vs $(CallTp)",Lc);
-      valis Rep
+      valis (Vrs,Rep)
     }.
 
   substTp:(tipe,cons[(string,tipe)]) => tipe.
@@ -473,13 +472,13 @@ star.compiler.inline{
     CallTp = .funType(.tupleType(Args//typeOf),Tp,.voidType);
     (Quants,FreshFTp) = alignQuants(FTp,CallTp,emptyDict);
     if traceInline! then{
-      showMsg("Inlining call to #(Nm)\:$(FTp) @ $(Lc), expecting $(CallTp)");
+      showMsg("Inlining call #(Nm)$(Args) @ $(Lc), expecting $(CallTp)");
       showMsg("Freshened callee type $(FreshFTp)");
     }
 
-    SpecRep = specializeTypes(FreshFTp,CallTp,Quants,Rep,Lc,Nm);
+    (SpecVrs,SpecRep) = specializeTypes(FreshFTp,CallTp,Quants,Vrs,Rep,Lc,Nm);
 
-    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+    RwMap = { lName(V)->A | (V,A) in zip(SpecVrs,Args)};
 
     inlined = simplifyExp(freshenE(SpecRep,RwMap),Map[~.varSp(Nm)],Depth-1);
 
@@ -500,9 +499,9 @@ star.compiler.inline{
     if traceInline! then
       showMsg("Inlining xcall to #(Nm)\:$(FTp)");
 
-    SpecRep = specializeTypes(FreshFTp,CallTp,Quants,Rep,Lc,Nm);
+    (SpecVrs,SpecRep) = specializeTypes(FreshFTp,CallTp,Quants,Vrs,Rep,Lc,Nm);
 
-    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+    RwMap = { lName(V)->A | (V,A) in zip(SpecVrs,Args)};
     valis simplifyExp(freshenE(SpecRep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
   inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) default => .cXCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).

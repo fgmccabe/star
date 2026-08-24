@@ -84,6 +84,8 @@ star.compiler.normalize{
 	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
 	  .cXCall(Lc,FullNm,ClArgs,ResType,ErTp) ||
 	  .cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	if traceNormalize! then
+	  showMsg("closure entry #(ClosureNm) params=$([ClVar,..ClVars]) = $(ClosEntry)");
 	valis [Func,ClosEntry,..Ex1]
       } else {
 	ClosEntry =
@@ -91,6 +93,8 @@ star.compiler.normalize{
 	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
 	  .cXCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),ResType,ErTp) ||
 	  .cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
+	if traceNormalize! then
+	  showMsg("closure entry #(ClosureNm) params=$([ClVar,..ClVars]) = $(ClosEntry)");
 	valis [Func,ClosEntry,..Ex1]
       }
     } catch {

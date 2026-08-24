@@ -56,6 +56,11 @@ star.compiler.resolve{
     valis Def
   }
 
+  -- names a quantified type var, for declareTypeVars((Nm,Tp) pairs); Qx's
+  -- elements are always .kVar/.kFun (see freshQuants).
+  quantNm(.kVar(Nm)) => Nm.
+  quantNm(.kFun(Nm,_)) => Nm.
+
   overloadFunction:(dict,option[locn],string,cons[eqn],cons[constraint],tipe)=>
     canonDef.
   overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp) => valof{
@@ -63,10 +68,11 @@ star.compiler.resolve{
       showMsg("overload function $(Nm) = $(Eqns), Cx=$(Cx), Tp=$(Tp)");
     };
 
-    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
-      
-    REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (Qx,Qt) = deQuant(Tp);
+    (Extra,CDict0) = defineCVars(Lc,Cx,[],Dict);
+    CDict = declareTypeVars(Qx//(V)=>(quantNm(V),V),CDict0);
+
+    REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (_,ITp) = deConstrain(Qt);
     (Atp,Rtp,Etp) = splitupProgramType(Lc,CDict,ITp);
     if .tupleType(AITp).=deRef(Atp) && RITp .= deRef(Rtp) then {
@@ -90,11 +96,12 @@ star.compiler.resolve{
   overloadProcedure(Dict,Lc,Nm,Rls,Cx,Tp) => valof{
     if traceResolve! then
       showMsg("overload procedure $(Nm) = $(Rls), Cx=$(Cx)");
-    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
+    (Qx,Qt) = deQuant(Tp);
+    (Extra,CDict0) = defineCVars(Lc,Cx,[],Dict);
+    CDict = declareTypeVars(Qx//(V)=>(quantNm(V),V),CDict0);
 
     RRls = Rls//(Eq)=>resolveRule(Eq,Extra,CDict);
-    
-    (Qx,Qt) = deQuant(Tp);
+
     (_,ITp) = deConstrain(Qt);
     if (ATp,ETp) ?= isPrType(ITp) then{
       if .tupleType(AITp).=deRef(ATp) then {
@@ -126,10 +133,11 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
     if traceResolve! then
       showMsg("overload definition $(Nm) = $(Val), Cx=$(Cx)");
-  
-    (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
-    RVal = overload(Val,CDict);
+
     (Qx,Qt) = deQuant(Tp);
+    (Cvrs,CDict0) = defineCVars(Lc,Cx,[],Dict);
+    CDict = declareTypeVars(Qx//(V)=>(quantNm(V),V),CDict0);
+    RVal = overload(Val,CDict);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funcType(Cx//typeOf,ITp));
 
@@ -151,26 +159,28 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (Cx,ITp) = deConstrain(Qt);
 
-    (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
+    (Cvrs,CDict0) = defineCVars(Lc,Cx,[],Dict);
+    CDict = declareTypeVars(Qx//(V)=>(quantNm(V),V),CDict0);
 
     if traceResolve! then
       showMsg("Qx = $(Qx), Cx=$(Cx), NtTp=$(ITp)");
 
     RVal = overload(Val,CDict);
-    RQVal = requantifyBody(Qx,RVal);
 
     if isEmpty(Cvrs) then {
       CTp = reQuant(Qx,ITp);
-      valis .implDef(Lc,Nm,FullNm,RQVal,[],Tp)
+      valis .implDef(Lc,Nm,FullNm,RVal,[],Tp)
     } else {
       CTp = reQuant(Qx,funcType(Cx//genContractType,ITp));
-      valis .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RQVal),CTp),[],Tp)
+      valis .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp)
     }
   }
 
-  -- A generic implementation's private fields keep the outer `all x ~~ ...`
-  -- as a free x, not their own quantifier -- fine until lifted to top-level,
-  -- where x is then unbound. Requantify each one here, post-resolution.
+  -- A generic definition's private, let-bound helpers keep the outer
+  -- `all x ~~ ...` as a free x, not their own quantifier -- fine until
+  -- lifted to top-level, where x is then unbound. overloadTerm's .letExp/
+  -- .letRec cases requantify each one using whatever's currently declared
+  -- in Dict (see quantifiedTypeVars), so this works at any nesting depth.
   requantifyDef:(cons[tipe],canonDef) => canonDef.
   requantifyDef(Vs,.varDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .varDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
   requantifyDef(Vs,.funDef(Lc,Nm,Eqs,Cx,Tp)) => .funDef(Lc,Nm,Eqs,Cx,reQuant(Vs,Tp)).
@@ -178,13 +188,6 @@ star.compiler.resolve{
   requantifyDef(Vs,.typeDef(Lc,Nm,Tp,TpRl)) => .typeDef(Lc,Nm,reQuant(Vs,Tp),TpRl).
   requantifyDef(Vs,.cnsDef(Lc,Nm,Ix,Tp)) => .cnsDef(Lc,Nm,Ix,reQuant(Vs,Tp)).
   requantifyDef(Vs,.implDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .implDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
-
-  requantifyBody:(cons[tipe],canon) => canon.
-  requantifyBody(Qx,.letExp(Lc,Gp,Decls,Rhs)) =>
-    .letExp(Lc,Gp//(D)=>requantifyDef(Qx,D),Decls,requantifyBody(Qx,Rhs)).
-  requantifyBody(Qx,.letRec(Lc,Gp,Decls,Rhs)) =>
-    .letRec(Lc,Gp//(D)=>requantifyDef(Qx,D),Decls,requantifyBody(Qx,Rhs)).
-  requantifyBody(_,V) default => V.
 
   genContractType(.conTract(Nm,Tps,Dps)) => mkConType(Nm,Tps,Dps).
   genContractType(.implicit(Nm,Tp)) => Tp.
@@ -429,14 +432,16 @@ star.compiler.resolve{
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     TDict = declareDecls(Decls,Dict);
     (RDfs,_) = overloadGroup(Gp,TDict);
+    RQDfs = RDfs//(D)=>requantifyDef(quantifiedTypeVars(TDict),D);
     (RRhs,St1) = overloadTerm(Rhs,TDict,St);
-    valis (.letExp(Lc,RDfs,Decls,RRhs),St1)
+    valis (.letExp(Lc,RQDfs,Decls,RRhs),St1)
   }
   overloadTerm(.letRec(Lc,Gp,Decs,Rhs),Dict,St) => valof{
     LDict = declareDecls(Decs,Dict);
     (RDfs,RDct) = overloadGroup(Gp,LDict);
+    RQDfs = RDfs//(D)=>requantifyDef(quantifiedTypeVars(LDict),D);
     (RRhs,St2) = overloadTerm(Rhs,RDct,St);
-    valis (.letRec(Lc,RDfs,Decs,RRhs),St2)
+    valis (.letRec(Lc,RQDfs,Decs,RRhs),St2)
   }
   overloadTerm(.csexp(Lc,Gov,Cases,Tp),Dict,St) => valof{
     (RGov,St1) = overloadTerm(Gov,Dict,St);

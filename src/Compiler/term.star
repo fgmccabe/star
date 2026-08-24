@@ -1037,10 +1037,12 @@ star.compiler.term{
     onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
     onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
 
-    extendLtt(Sc,_)=>pushScope(Sc).
+    -- shadow V with itself so an outer Mp entry of the same name can't leak
+    -- into the body; onLtt never sees this scope, so V can't be renamed here.
+    extendLtt(Sc,V)=>[[][lName(V)->.cVar(.none,V)],..Sc].
     onRaw=frshnOnRaw.
     onARaw=frshnOnARaw.
-    }.
+  }.
 
   frshnOnRaw:(scope,cExp) => option[cExp].
   frshnOnRaw(Sc,.cCnd(Lc,G,L,R)) => .some(valof{
