@@ -75,13 +75,21 @@ star.compiler.normalize{
 
       ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
 
+      if traceNormalize! then
+	showMsg("closure #(ClosureNm)\:$(ClosTp)");
+
       if Exv?=Extra then {
 	ClosEntry =
-	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
+	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
+	  .cXCall(Lc,FullNm,ClArgs,ResType,ErTp) ||
+	  .cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
 	valis [Func,ClosEntry,..Ex1]
       } else {
 	ClosEntry =
 	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
+	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
+	  .cXCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),ResType,ErTp) ||
 	  .cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
 	valis [Func,ClosEntry,..Ex1]
       }
@@ -118,12 +126,18 @@ star.compiler.normalize{
 
       if Exv?=Extra then {
 	ClosEntry =
-	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.aDo(Lc,.cCall(Lc,FullNm,ClArgs,.voidType)));
+	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.aDo(Lc,
+	  (_,_,ErTp)?=isThrowingFunType(Tp) ??
+	  .cXCall(Lc,FullNm,ClArgs,.voidType,ErTp) ||
+	    .cCall(Lc,FullNm,ClArgs,.voidType)));
 	valis [Proc,ClosEntry,..Ex1]
       } else {
 	ClosEntry =
 	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
-	  .aDo(Lc,.cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType)));
+	  .aDo(Lc,
+	    (_,_,ErTp)?=isThrowingFunType(Tp) ??
+	    .cXCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType,ErTp) ||
+	    .cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType)));
 	valis [Proc,ClosEntry,..Ex1]
       }
     } catch {
@@ -486,7 +500,7 @@ star.compiler.normalize{
     valis .cTerm(Lc,Enum,[V],Tp)
   }
   implementVarExp(Lc,.moduleFun(V,_),_,Tp) => V.
-  implementVarExp(Lc,.globalVar(Nm,GTp),_,Tp) => .cVar(Lc,.cV(Nm,GTp)).
+  implementVarExp(Lc,.globalVar(Nm,GTp),_,Tp) => .cVar(Lc,.cV(Nm,Tp)).
   implementVarExp(Lc,.localArg(ThVr,Ix),_,Tp) => .cNth(Lc,ThVr,Ix,Tp).
   implementVarExp(Lc,E,_,Tp) => valof{
     reportError("cannot transform variable $(E)",Lc);
@@ -529,7 +543,7 @@ star.compiler.normalize{
   implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
     (.cOCall(Lc,Vr,Args,Tp),Ex).
   implementFunCall(Lc,.globalVar(Nm,GTp),_,Args,Tp,Map,Ex) =>
-    (.cOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp),Ex).
+    (.cOCall(Lc,.cVar(Lc,.cV(Nm,Tp)),Args,Tp),Ex).
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
     reportError("illegal variable $(Vr) - $(V)",Lc);
     valis (.cVoid(Lc),[])
@@ -556,7 +570,7 @@ star.compiler.normalize{
       valis (.cXOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp,ErTp),Ex)
     }
     | .localVar(Vr) => (.cXOCall(Lc,Vr,Args,Tp,ErTp),Ex)
-    | .globalVar(Nm,GTp) => (.cXOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp,ErTp),Ex)
+    | .globalVar(Nm,GTp) => (.cXOCall(Lc,.cVar(Lc,.cV(Nm,Tp)),Args,Tp,ErTp),Ex)
     | _ default => valof{
       reportError("illegal call variable $(Nm)",Lc);
       valis (.cVoid(Lc),[])

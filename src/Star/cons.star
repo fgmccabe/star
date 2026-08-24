@@ -7,7 +7,7 @@ star.cons{
   import star.strings.
 
   public implementation all x ~~ equality[x] |= equality[cons[x]] => let{.
-    smList:all x ~~ equality[x] |= (cons[x],cons[x]) => boolean.
+    smList:(cons[x],cons[x]) => boolean.
     smList(.nil,.nil) => .true.
     smList(.cons(x,xr),.cons(y,yr)) => x==y && smList(xr,yr).
     smList(_,_) default => .false.

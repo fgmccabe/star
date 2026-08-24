@@ -161,6 +161,10 @@ star.compiler.dict{
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,.none,Tp,.typeExists(Tp,Tp),Env)).
 
+  public declaredTypeVar:(dict,string) => option[tipe].
+  declaredTypeVar(Dict,Nm) where (_,Tp,.typeExists(_,_),_) ?= findType(Dict,Nm) => .some(Tp).
+  declaredTypeVar(_,_) default => .none.
+
   public emptyDict:dict.
   emptyDict = .dict([scope{
 	types=[].

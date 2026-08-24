@@ -138,7 +138,10 @@ star.compiler{
 	  if errorFree() && ~ typeCheckOnly! then {
 	    AllDecls = IDecls++Decls;
 	    N = normalize(PkgSpec,Defs,AllDecls);
-	    
+
+	    if traceNormalize! then
+	      showMsg("normalized code #(dispCrProg(N))");
+
 	    Inlined = valof{
 	      if optimization! ==.inlining /* && mainDefined(AllDecls) */ then{
 		(Imported,Merged) = mergePkgs(

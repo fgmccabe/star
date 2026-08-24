@@ -84,6 +84,10 @@ star.compiler.types{
   public setBinding:(tipe,tipe) => ().
   setBinding(.tVar(B,_),T) where 0==hasKind(T) => bnd(B,T).
   setBinding(.tFun(B,Ar,_),T) where hasKind(T)==Ar => bnd(B,T).
+  setBinding(V,T) => valof{
+    logMsg(.info,"Cannot bind $(V) to $(T)");
+    unreachable
+  }
 
   bnd:(tv,tipe) => ().
   bnd(B,T) where B.binding! == .none => valof {
@@ -233,7 +237,7 @@ star.compiler.types{
     | .anonType => "_"
     | .voidType => "void"
     | .kVar(Nm) => "%%#(Nm)"
-    | .kFun(Nm,Ar) => "#(Nm)/$(Ar)"
+    | .kFun(Nm,Ar) => "%%#(Nm)/$(Ar)"
     | .tVar(V,Nm) => "%#(Nm)"
     | .tFun(_,Ar,Nm) => "%#(Nm)/$(Ar)"
     | .nomnal(Nm) => Nm

@@ -429,7 +429,9 @@ star.compiler.typeparse{
   parseHeadArgs:(cons[ast],cons[tipe],dict) => cons[tipe].
   parseHeadArgs([],ArgTps,_) => reverse(ArgTps).
   parseHeadArgs([A,..As],Args,Env) where (_,Nm) ?= isName(A) =>
-    parseHeadArgs(As,[.kVar(Nm),..Args],Env).
+    (Tp ?= declaredTypeVar(Env,Nm) ??
+      parseHeadArgs(As,[Tp,..Args],Env) ||
+      parseHeadArgs(As,[.kVar(Nm),..Args],Env)).
   parseHeadArgs([A,.._],_,_) => valof{
     reportError("invalid argument in type: $(A)",locOf(A));
     valis []
@@ -765,6 +767,10 @@ star.compiler.typeparse{
       Acc = .funDef(Lc,AccFnNm,AcEqs,Cx,AccFnTp);
       AccDec = .accDec(Lc,RcTp,Fld,AccFnNm,AccFnTp);
       AccFnDec = .funDec(Lc,AccFnNm,AccFnNm,AccFnTp);
+
+      if traceCanon! then
+	showMsg("accessor for $(Fld) in $(RcTp) = #(AccFnNm)\:$(AccFnTp) at $(Lc)");
+
       valis ([Acc],[AccDec,AccFnDec])
     }
     makeAccessor(_,_,_) default => ([],[]).

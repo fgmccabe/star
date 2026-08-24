@@ -1288,8 +1288,11 @@ star.compiler.term{
     | .cGet(_,E,_) => validE(E,Vrs)
     | .cCall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}
     | .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}
-    | .cXCall(_,_,Args,_,_) => {? E in Args *> validE(E,Vrs) ?}
-    | .cXOCall(_,Op,Args,_,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}
+    | .cXCall(_,_,Args,_,ErTp) =>
+      {? E in Args *> validE(E,Vrs) ?} && ~.voidType.=deRef(ErTp)
+    | .cXOCall(_,Op,Args,_,ErTp) => validE(Op,Vrs) &&
+	{? E in Args *> validE(E,Vrs) ?} &&
+	    ~.voidType.=deRef(ErTp)
     | .cThrw(_,E,_) => validE(E,Vrs)
     | .cSeq(_,L,R) => validE(L,Vrs) && validE(R,Vrs)
     | .cCnj(_,L,R) => valof{

@@ -146,30 +146,45 @@ star.compiler.resolve{
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp) => valof{
     if traceResolve! then{
       showMsg("overload implementation definition $(Nm) = $(Val)\:$(Tp)");
-      showMsg("leq? #(showVar("leq",Dict))");
     }
 
     (Qx,Qt) = deQuant(Tp);
     (Cx,ITp) = deConstrain(Qt);
 
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
-    if traceResolve! then{
-      showMsg("leq? #(showVar("leq",CDict))");
-    }
 
     if traceResolve! then
       showMsg("Qx = $(Qx), Cx=$(Cx), NtTp=$(ITp)");
 
     RVal = overload(Val,CDict);
+    RQVal = requantifyBody(Qx,RVal);
 
     if isEmpty(Cvrs) then {
       CTp = reQuant(Qx,ITp);
-      valis .implDef(Lc,Nm,FullNm,RVal,[],Tp)
+      valis .implDef(Lc,Nm,FullNm,RQVal,[],Tp)
     } else {
       CTp = reQuant(Qx,funcType(Cx//genContractType,ITp));
-      valis .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp)
+      valis .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RQVal),CTp),[],Tp)
     }
   }
+
+  -- A generic implementation's private fields keep the outer `all x ~~ ...`
+  -- as a free x, not their own quantifier -- fine until lifted to top-level,
+  -- where x is then unbound. Requantify each one here, post-resolution.
+  requantifyDef:(cons[tipe],canonDef) => canonDef.
+  requantifyDef(Vs,.varDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .varDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
+  requantifyDef(Vs,.funDef(Lc,Nm,Eqs,Cx,Tp)) => .funDef(Lc,Nm,Eqs,Cx,reQuant(Vs,Tp)).
+  requantifyDef(Vs,.prcDef(Lc,Nm,Rls,Cx,Tp)) => .prcDef(Lc,Nm,Rls,Cx,reQuant(Vs,Tp)).
+  requantifyDef(Vs,.typeDef(Lc,Nm,Tp,TpRl)) => .typeDef(Lc,Nm,reQuant(Vs,Tp),TpRl).
+  requantifyDef(Vs,.cnsDef(Lc,Nm,Ix,Tp)) => .cnsDef(Lc,Nm,Ix,reQuant(Vs,Tp)).
+  requantifyDef(Vs,.implDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .implDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
+
+  requantifyBody:(cons[tipe],canon) => canon.
+  requantifyBody(Qx,.letExp(Lc,Gp,Decls,Rhs)) =>
+    .letExp(Lc,Gp//(D)=>requantifyDef(Qx,D),Decls,requantifyBody(Qx,Rhs)).
+  requantifyBody(Qx,.letRec(Lc,Gp,Decls,Rhs)) =>
+    .letRec(Lc,Gp//(D)=>requantifyDef(Qx,D),Decls,requantifyBody(Qx,Rhs)).
+  requantifyBody(_,V) default => V.
 
   genContractType(.conTract(Nm,Tps,Dps)) => mkConType(Nm,Tps,Dps).
   genContractType(.implicit(Nm,Tp)) => Tp.
@@ -661,6 +676,9 @@ star.compiler.resolve{
     Tp = typeOf(Con);
     if Impl?=findImplementation(Dict,ImpNm) then {
       if sameType(typeOf(Impl),Tp,Dict) then {
+	if traceResolve! then
+	  showMsg("found implementation $(Impl)\:$(Tp) @ $(Lc)");
+
 	valis overloadTerm(Impl,Dict,markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),.fatal(Lc,"implementation $(typeOf(Impl)) not consistent with $(Con)"))
