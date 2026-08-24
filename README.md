@@ -23,8 +23,8 @@ compile on load). The JIT compiler is pretty 'rough'; it is not intended to be a
 optimizing compiler. The byte code interpreter is there for scenarios where jitting is not 
 permitted or supported.
 
-Currently, the only supported architecture is ARM64. There will be an X64 jit compiler at some
-time. There is currently no intention to support 32-bit architectures.
+Currently, the only supported architectures are ARM64 and X64. There is
+currently no intention to support 32-bit architectures.
 
 
 
