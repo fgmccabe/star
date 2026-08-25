@@ -293,11 +293,7 @@ int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
 }
 
 int32 flushArguments(codeGenPo state, int32 pc) {
-  int32 minOffset = processLocals(state, pc, flushArg, Null);
-  int32 arity = mtdArity(state->mtd);
-  int32 frameSize = state->numLocals - arity;
-  voidOutFrameLocals(state, pc, -frameSize);
-  return minOffset;
+  return processLocals(state, pc, flushArg, Null);
 }
 
 int32 processLocals(codeGenPo state, int32 pc, localVarProc vProc, void* cl) {
