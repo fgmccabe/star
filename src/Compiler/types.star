@@ -768,4 +768,48 @@ star.compiler.types{
     unbVrsTps(LTs,unbVrsTps(DTs,unbVrs(deRef(T),Vrs))).
   unbVrsRule(.typeLambda(L,R),Vrs) => unbVrs(deRef(L),unbVrs(deRef(R),Vrs)).
   unbVrsRule(.allRule(_,Rl),Vrs) => unbVrsRule(Rl,Vrs).
+
+  -- Collects the free type variables of a type -- named (kVar/kFun) and
+  -- genuinely unbound (tVar/tFun) alike. Ign are variable names we should not collect.
+  public collectFreeTypeVars:(tipe,cons[string]) => cons[tipe].
+  collectFreeTypeVars(Tp,Ign) => catv(deRef(Tp),Ign,[]).
+
+  catvNm(.kVar(Nm)) => Nm.
+  catvNm(.kFun(Nm,_)) => Nm.
+
+  catv:(tipe,cons[string],cons[tipe]) => cons[tipe].
+  catv(V,Ign,Vrs) where isUnbound(V) => let{
+    Nm = vrNm(V).
+  } in ({? Nm in Ign ?} ?? Vrs || Vrs\+V).
+  catv(.kVar(Nm),Ign,Vrs) =>
+    ({? Nm in Ign ?} ?? Vrs || Vrs\+.kVar(Nm)).
+  catv(.kFun(Nm,Ar),Ign,Vrs) =>
+    ({? Nm in Ign ?} ?? Vrs || Vrs\+.kFun(Nm,Ar)).
+  catv(.tpExp(O,A),Ign,Vrs) => catv(deRef(O),Ign,catv(deRef(A),Ign,Vrs)).
+  catv(.funType(A,R,E),Ign,Vrs) =>
+    catv(deRef(A),Ign,catv(deRef(R),Ign,catv(deRef(E),Ign,Vrs))).
+  catv(.prcType(A,E),Ign,Vrs) => catv(deRef(A),Ign,catv(deRef(E),Ign,Vrs)).
+  catv(.cnsType(A,R),Ign,Vrs) => catv(deRef(A),Ign,catv(deRef(R),Ign,Vrs)).
+  catv(.tupleType(Els),Ign,Vrs) => catvTps(Els,Ign,Vrs).
+  catv(.allType(V,B),Ign,Vrs) => catv(deRef(B),Ign\+catvNm(V),Vrs).
+  catv(.existType(V,B),Ign,Vrs) => catv(deRef(B),Ign\+catvNm(V),Vrs).
+  catv(.faceType(Flds,Tps),Ign,Vrs) => catvPrs(Flds,Ign,catvRules(Tps,Ign,Vrs)).
+  catv(.constrainedType(T,C),Ign,Vrs) => catv(deRef(T),Ign,catvCon(C,Ign,Vrs)).
+  catv(_,_,Vrs) default => Vrs.
+
+  catvCon(.conTract(_,Els,Dps),Ign,Vrs) => catvTps(Els,Ign,catvTps(Dps,Ign,Vrs)).
+  catvCon(.hasField(T,_,F),Ign,Vrs) => catv(deRef(T),Ign,catv(deRef(F),Ign,Vrs)).
+  catvCon(.implicit(_,T),Ign,Vrs) => catv(deRef(T),Ign,Vrs).
+
+  catvTps(Tps,Ign,Vrs) => foldLeft((T,Vs)=>catv(deRef(T),Ign,Vs),Vrs,Tps).
+
+  catvPrs(Prs,Ign,Vrs) => foldLeft(((_,T),Vs)=>catv(deRef(T),Ign,Vs),Vrs,Prs).
+
+  catvRules(Rls,Ign,Vrs) => foldLeft(((_,R),Vs) => catvRule(R,Ign,Vs),Vrs,Rls).
+
+  catvRule(.typeExists(L,R),Ign,Vrs) => catv(deRef(L),Ign,catv(deRef(R),Ign,Vrs)).
+  catvRule(.contractExists(_,LTs,DTs,T),Ign,Vrs) =>
+    catvTps(LTs,Ign,catvTps(DTs,Ign,catv(deRef(T),Ign,Vrs))).
+  catvRule(.typeLambda(L,R),Ign,Vrs) => catv(deRef(L),Ign,catv(deRef(R),Ign,Vrs)).
+  catvRule(.allRule(_,Rl),Ign,Vrs) => catvRule(Rl,Ign,Vrs).
 }

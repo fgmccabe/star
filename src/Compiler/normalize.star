@@ -56,24 +56,182 @@ star.compiler.normalize{
   transformDef(.cnsDef(Lc,FullNm,Ix,Tp),Map,_,_,_,Ex) =>
     transformConsDef(Lc,FullNm,Ix,Tp,Map,Ex).
 
+  /* Lambda lifting flattens all functions. This implies that we must also
+  implement a form of let generalization, even though this is not done for user
+  code.
+  */
+
+  quantNm(.kVar(Nm)) => Nm.
+  quantNm(.kFun(Nm,_)) => Nm.
+
+  varId(.kVar(Nm)) => Nm.
+  varId(.kFun(Nm,_)) => Nm.
+  varId(.tVar(_,Nm)) => Nm.
+  varId(.tFun(_,_,Nm)) => Nm.
+
+  closureFreeVars(Tp,Extra) => valof{
+    (OwnQ,_) = deQuant(deRef(Tp));
+    OwnQNames = OwnQ//quantNm;
+    valis (Exv?=Extra ?? collectFreeTypeVars(typeOf(Exv),OwnQNames) || [])
+  }
+
+  skolemizeFreeVars:(cons[tipe]) => (cons[tipe],cons[(string,tipe)]).
+  skolemizeFreeVars(Vs) => valof{
+    Quants := ([]:cons[tipe]);
+    Subst := ([]:cons[(string,tipe)]);
+    for V in Vs do{
+      if isUnbound(V) then{
+	New = skolemFresh(V);
+	Subst := [(varId(V),New),..Subst!];
+	Quants := [New,..Quants!]
+      } else{
+	Quants := [V,..Quants!]
+      }
+    };
+    valis (Quants!,Subst!)
+  }
+
+  skolemFresh(.tVar(_,Nm)) => .kVar(genSym(Nm)).
+  skolemFresh(.tFun(_,Ar,Nm)) => .kFun(genSym(Nm),Ar).
+
+  closeOverVars:(cons[tipe],tipe) => tipe.
+  closeOverVars([],Tp) => Tp.
+  closeOverVars([V,..Vs],Tp) => .allType(V,closeOverVars(Vs,Tp)).
+
+  lookupSubst(_,[]) => .none.
+  lookupSubst(Nm,[(N2,Tp),..Rest]) => (Nm==N2 ?? .some(Tp) || lookupSubst(Nm,Rest)).
+
+  skolSubstTp:(tipe,cons[(string,tipe)]) => tipe.
+  skolSubstTp(Tp,Subst) => sst(deRef(Tp),Subst).
+
+  sst(T,Subst) where isUnbound(T) => (New?=lookupSubst(varId(T),Subst) ?? New || T).
+  sst(.kVar(Nm),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kVar(Nm)).
+  sst(.kFun(Nm,Ar),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kFun(Nm,Ar)).
+  sst(.tpExp(O,A),Subst) => .tpExp(skolSubstTp(O,Subst),skolSubstTp(A,Subst)).
+  sst(.tupleType(Es),Subst) => .tupleType(Es//(E)=>skolSubstTp(E,Subst)).
+  sst(.funType(A,R,E),Subst) => .funType(skolSubstTp(A,Subst),skolSubstTp(R,Subst),skolSubstTp(E,Subst)).
+  sst(.prcType(A,E),Subst) => .prcType(skolSubstTp(A,Subst),skolSubstTp(E,Subst)).
+  sst(.cnsType(A,R),Subst) => .cnsType(skolSubstTp(A,Subst),skolSubstTp(R,Subst)).
+  sst(.allType(V,T),Subst) => .allType(V,skolSubstTp(T,Subst)).
+  sst(.existType(V,T),Subst) => .existType(V,skolSubstTp(T,Subst)).
+  sst(.constrainedType(T,C),Subst) => .constrainedType(skolSubstTp(T,Subst),C).
+  sst(T,_) default => T.
+
+  skolSubstCV(.cV(Nm,Tp),Subst) => .cV(Nm,skolSubstTp(Tp,Subst)).
+
+  substOptExp(.none,_) => .none.
+  substOptExp(.some(E),Subst) => .some(skolSubstExp(E,Subst)).
+
+  substEqns(Eqs,[]) => Eqs.
+  substEqns(Eqs,Subst) =>
+    (Eqs//((L,Ptns,Test,Val))=>
+      (L,Ptns//(P)=>skolSubstExp(P,Subst),substOptExp(Test,Subst),skolSubstExp(Val,Subst))).
+
+  substRules(Rs,[]) => Rs.
+  substRules(Rs,Subst) =>
+    (Rs//((L,Ptns,Test,Act))=>
+      (L,Ptns//(P)=>skolSubstExp(P,Subst),substOptExp(Test,Subst),skolSubstAct(Act,Subst))).
+
+  skolSubstExp:(cExp,cons[(string,tipe)]) => cExp.
+  skolSubstExp(E,Subst) => foldExp(E,Subst,skolSubstAlgebra).
+
+  skolSubstAct:(aAction,cons[(string,tipe)]) => aAction.
+  skolSubstAct(A,Subst) => foldAct(A,Subst,skolSubstAlgebra).
+
+  skolSubstCasesE(Cs,Subst) =>
+    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Subst,skolSubstAlgebra),foldExp(Rep,Subst,skolSubstAlgebra))).
+
+  skolSubstCasesA(Cs,Subst) =>
+    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Subst,skolSubstAlgebra),foldAct(Rep,Subst,skolSubstAlgebra))).
+
+  skolSubstAlgebra:treeAlgebra[cons[(string,tipe)],cExp,aAction].
+  skolSubstAlgebra = treeAlgebra{
+    onVoid(_,Lc)=>.cVoid(Lc).
+    onAnon(Q,Lc,Tp)=>.cAnon(Lc,skolSubstTp(Tp,Q)).
+    onUnrch(Q,Lc,Tp)=>.cUnrch(Lc,skolSubstTp(Tp,Q)).
+    onVar(Q,Lc,V)=>.cVar(Lc,skolSubstCV(V,Q)).
+    onCel(Q,Lc,E,Tp)=>.cCel(Lc,E,skolSubstTp(Tp,Q)).
+    onGet(Q,Lc,E,Tp)=>.cGet(Lc,E,skolSubstTp(Tp,Q)).
+    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
+    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
+    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
+    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
+    onString(_,Lc,Sx)=>.cString(Lc,Sx).
+    onTerm(Q,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,skolSubstTp(Tp,Q)).
+    onNth(Q,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,skolSubstTp(Tp,Q)).
+    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
+    onClos(Q,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,skolSubstTp(Tp,Q)).
+    onSv(Q,Lc,Tp)=>.cSv(Lc,skolSubstTp(Tp,Q)).
+    onSvDrf(Q,Lc,E,Tp)=>.cSvDrf(Lc,E,skolSubstTp(Tp,Q)).
+    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
+    onCall(Q,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,skolSubstTp(Tp,Q)).
+    onOCall(Q,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,skolSubstTp(Tp,Q)).
+    onXCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,skolSubstTp(Tp,Q),skolSubstTp(ErTp,Q)).
+    onXOCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,skolSubstTp(Tp,Q),skolSubstTp(ErTp,Q)).
+    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
+    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
+    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
+    onNeg(_,Lc,R)=>.cNeg(Lc,R).
+    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
+    onLtt(Q,Lc,V,D,E)=>.cLtt(Lc,skolSubstCV(V,Q),D,E).
+    onCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,skolSubstCasesE(Cases,Q),Dflt,skolSubstTp(Tp,Q)).
+    onIxCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,skolSubstCasesE(Cases,Q),Dflt,skolSubstTp(Tp,Q)).
+    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
+    onResum(Q,Lc,T,M,Tp)=>.cResum(Lc,T,M,skolSubstTp(Tp,Q)).
+    onSusp(Q,Lc,T,M,Tp)=>.cSusp(Lc,T,M,skolSubstTp(Tp,Q)).
+    onRetyr(Q,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,skolSubstTp(Tp,Q)).
+    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
+    onAbort(Q,Lc,Ms,Tp)=>.cAbort(Lc,Ms,skolSubstTp(Tp,Q)).
+    onTry(Q,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,skolSubstTp(Tp,Q)).
+    onThrw(Q,Lc,E,Tp)=>.cThrw(Lc,E,skolSubstTp(Tp,Q)).
+    onValof(Q,Lc,A,Tp)=>.cValof(Lc,A,skolSubstTp(Tp,Q)).
+
+    onANop(_,Lc)=>.aNop(Lc).
+    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
+    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
+    onABreak(_,Lc,L)=>.aBreak(Lc,L).
+    onAValis(_,Lc,E)=>.aValis(Lc,E).
+    onADo(_,Lc,E)=>.aDo(Lc,E).
+    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
+    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
+    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
+    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
+    onACase(Q,Lc,G,Cs,D)=>.aCase(Lc,G,skolSubstCasesA(Cs,Q),D).
+    onAIxCase(Q,Lc,G,Cs,D)=>.aIxCase(Lc,G,skolSubstCasesA(Cs,Q),D).
+    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
+    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
+    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
+    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
+    onALtt(Q,Lc,V,D,A)=>.aLtt(Lc,skolSubstCV(V,Q),D,A).
+    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
+    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
+
+    extendLtt(Q,_)=>Q.
+    onRaw(_,_)=>.none.
+    onARaw(_,_)=>.none.
+    }.
+
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
       showMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) @ $(Lc)");
     };
-    ATp = extendFunTp(deRef(Tp),Extra);
-    
-    (Eqs,Ex1) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex);
+    (Quants,Subst) = skolemizeFreeVars(closureFreeVars(Tp,Extra));
+    ExtraS = (.cVar(ELc,Exv0)?=Extra ?? .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) || Extra);
+    ATp = closeOverVars(Quants,extendFunTp(deRef(Tp),ExtraS));
+
+    (Eqs0,Ex1) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex);
+    Eqs = substEqns(Eqs0,Subst);
     try{
       Func = ? functionMatcher(Lc,FullNm,ATp,Map,Eqs);
       if traceNormalize! then
 	showMsg("transformed function $(Func)");
 
       ClosureNm = closureNm(FullNm);
-      ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cV("_",unitTp));
-      ClVars = makeFunVars(Tp);
+      ClVar = (.cVar(_,Exv)?=ExtraS ?? Exv || .cV("_",unitTp));
+      ClVars = makeFunVars(Tp)//(V)=>skolSubstCV(V,Subst);
       ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
 
-      ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
+      ClosTp = closeOverVars(Quants,extendFunTp(deRef(Tp),.some(ClVar)));
 
       if traceNormalize! then
 	showMsg("closure #(ClosureNm)\:$(ClosTp)");
@@ -109,8 +267,11 @@ star.compiler.normalize{
     if traceNormalize! then{
       showMsg("transform procedure $(.prcDef(Lc,FullNm,Rls,[],Tp)) @ $(Lc)");
     };
-    ATp = extendFunTp(deRef(Tp),Extra);
-    (Eqs,Ex1) = transformRules(Rls,Map,Outer,Q,Extra,Ex);
+    (Quants,Subst) = skolemizeFreeVars(closureFreeVars(Tp,Extra));
+    ExtraS = (.cVar(ELc,Exv0)?=Extra ?? .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) || Extra);
+    ATp = closeOverVars(Quants,extendFunTp(deRef(Tp),ExtraS));
+    (Eqs0,Ex1) = transformRules(Rls,Map,Outer,Q,Extra,Ex);
+    Eqs = substRules(Eqs0,Subst);
 
     if traceNormalize! then
       showMsg("transformed rules $(Eqs)");
@@ -122,11 +283,11 @@ star.compiler.normalize{
 	showMsg("transformed procedure $(Proc)");
 
       ClosureNm = closureNm(FullNm);
-      ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cV("_",unitTp));
-      ClVars = makeFunVars(Tp);
+      ClVar = (.cVar(_,Exv)?=ExtraS ?? Exv || .cV("_",unitTp));
+      ClVars = makeFunVars(Tp)//(V)=>skolSubstCV(V,Subst);
       ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
 
-      ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
+      ClosTp = closeOverVars(Quants,extendFunTp(deRef(Tp),.some(ClVar)));
 
       if Exv?=Extra then {
 	ClosEntry =
