@@ -114,8 +114,8 @@ star.compiler.normalize.meta{
     valis Map[Nm->Entry][FullNm->Entry]
   }
   declMdlGlobal(.tpeDec(_,_,_,_,_),Map) => Map.
-  declMdlGlobal(.accDec(_,_,_,_,_),Map) => Map.
-  declMdlGlobal(.updDec(_,_,_,_,_),Map) => Map.
+  declMdlGlobal(.accDec(_,_,_,_,_,_),Map) => Map.
+  declMdlGlobal(.updDec(_,_,_,_,_,_),Map) => Map.
   declMdlGlobal(.conDec(_,_,_,_),Map) => Map.
   declMdlGlobal(.implDec(_,_,_,_),Map) => Map.
 

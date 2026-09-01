@@ -192,7 +192,7 @@ star.compiler.typeparse{
   doTypeFun(Tp,[]) => Tp.
 
   parseTypeFields:(cons[ast],tipes,rules,dict) => (tipes,rules).
-  parseTypeFields([],Flds,Tps,_) => (Flds,Tps).
+  parseTypeFields([],Flds,Tps,_) => (sort(Flds,cmpField),sort(Tps,cmpField)).
   parseTypeFields([A,..L],Flds,Tps,Env) where _ ?= isAnnotation(A) =>
     parseTypeFields(L,Flds,Tps,Env).
   parseTypeFields([A,..L],Flds,Tps,Env) => valof{
@@ -459,7 +459,7 @@ star.compiler.typeparse{
     DepTps = parseHeadArgs(Ds,[],QEnv);
     (Flds,Tps) = parseTypeFields(Els,[],[],QEnv);
 
-    Face = .faceType(sort(Flds,cmpField),Tps);
+    Face = .faceType(Flds,Tps);
 
     if traceCanon! then
       showMsg("contract type vars $(Qv), contract fields $(Face)");
@@ -495,7 +495,7 @@ star.compiler.typeparse{
     valis ([],[])
   }
 
-  cmpField:((string,tipe),(string,tipe))=>boolean.
+  cmpField:all t ~~ ((string,t),(string,t))=>boolean.
   cmpField((F1,_),(F2,_)) => F1<F2.
 
   public parseAlgebraicType:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,string) => (cons[canonDef],cons[decl]).
@@ -751,8 +751,8 @@ star.compiler.typeparse{
 
   buildAccessors:(tipes,ast,tipes,cons[constraint],tipe,string)=>(cons[canonDef],cons[decl]).
   buildAccessors(Fields,B,Q,Cx,RcTp,Path) => let{.
-    makeAccessor:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
-    makeAccessor(Fld,FldTp,B) => valof{
+    makeAccessor:(string,option[integer],tipe,ast)=> (cons[canonDef],cons[decl]).
+    makeAccessor(Fld,Ix,FldTp,B) => valof{
       (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
       AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funcType([RcTp],FTp))));
       Lc = locOf(B);
@@ -765,7 +765,7 @@ star.compiler.typeparse{
       AccFnNm = qualifiedName(tpName(RcTp),.fldMark,Fld);
       
       Acc = .funDef(Lc,AccFnNm,AcEqs,Cx,AccFnTp);
-      AccDec = .accDec(Lc,RcTp,Fld,AccFnNm,AccFnTp);
+      AccDec = .accDec(Lc,RcTp,Fld,AccFnNm,Ix,AccFnTp);
       AccFnDec = .funDec(Lc,AccFnNm,AccFnNm,AccFnTp);
 
       if traceCanon! then
@@ -773,7 +773,7 @@ star.compiler.typeparse{
 
       valis ([Acc],[AccDec,AccFnDec])
     }
-    makeAccessor(_,_,_) default => ([],[]).
+    makeAccessor(_,_,_,_) default => ([],[]).
 
     accessorEqns:(ast,string,tipe,cons[eqn]) => cons[eqn].
     accessorEqns(TB,Fld,FldTp,SoFar) where (_,L,R)?=isBinary(TB,"|") =>
@@ -801,13 +801,12 @@ star.compiler.typeparse{
     accessorEqns(TB,Fld,FldTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
       accessorEqns(I,Fld,FldTp,Eqns).
     accessorEqns(_,_,_,Eqns) default => Eqns.
-  .} in collapsePairs(Fields//((Fld,FTp))=>makeAccessor(Fld,FTp,B)).
-
+  .} in collapsePairs(Fields//+(Ix,(Fld,FTp))=>makeAccessor(Fld,.some(Ix),FTp,B)).
 
   buildUpdaters:(tipes,ast,tipes,cons[constraint],tipe,string)=>(cons[canonDef],cons[decl]).
   buildUpdaters(Fields,B,Q,Cx,RcTp,Path) => let{.
-    makeUpdater:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
-    makeUpdater(Fld,FldTp,B) => valof{
+    makeUpdater:(string,option[integer],tipe,ast)=> (cons[canonDef],cons[decl]).
+    makeUpdater(Fld,Ix,FldTp,B) => valof{
       (XQ,ITp) = deQuantX(FldTp); -- special rule for existentials
       UpdFnTp = reQ(Q, reQuant(XQ,wrapConstraints(Cx,funcType([RcTp,ITp],RcTp))));
       Lc = locOf(B);
@@ -819,11 +818,11 @@ star.compiler.typeparse{
       UpdFnNm = qualifiedName(tpName(RcTp),.overMark,Fld);
 
       Upd = .funDef(Lc,UpdFnNm,AcEqs,Cx,UpdFnTp);
-      UpdDec = .updDec(Lc,RcTp,Fld,UpdFnNm,UpdFnTp);
+      UpdDec = .updDec(Lc,RcTp,Fld,UpdFnNm,Ix,UpdFnTp);
       UpdFnDec = .funDec(Lc,UpdFnNm,UpdFnNm,UpdFnTp);
       valis ([Upd],[UpdDec,UpdFnDec])
     }
-    makeUpdater(_,_,_) default => ([],[]).
+    makeUpdater(_,_,_,_) default => ([],[]).
 
     updaterEqns:(ast,string,tipe,cons[eqn]) => cons[eqn].
     updaterEqns(TB,Fld,FldTp,SoFar) where (Lc,L,R)?=isBinary(TB,"|") =>
@@ -844,7 +843,7 @@ star.compiler.typeparse{
     updaterEqns(TB,Fld,FldTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
       updaterEqns(I,Fld,FldTp,Eqns).
     updaterEqns(_,_,_,Eqns) default => Eqns.
-  .} in collapsePairs(Fields//((Fld,FTp))=>makeUpdater(Fld,FTp,B)).
+  .} in collapsePairs(Fields//+(Ix,(Fld,FTp))=>makeUpdater(Fld,.some(Ix),FTp,B)).
 
   isFieldOfFc([F,..Els],Fld) where (_,Fld,_) ?= isTypeDecl(F) => .true.
   isFieldOfFc([_,..Els],Fld) => isFieldOfFc(Els,Fld).

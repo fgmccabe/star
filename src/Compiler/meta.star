@@ -9,8 +9,8 @@ star.compiler.meta{
   import star.compiler.types.
 
   public decl ::= .implDec(option[locn],string,string,tipe) |
-  .accDec(option[locn],tipe,string,string,tipe) |
-  .updDec(option[locn],tipe,string,string,tipe) |
+  .accDec(option[locn],tipe,string,string,option[integer],tipe) |
+  .updDec(option[locn],tipe,string,string,option[integer],tipe) |
   .conDec(option[locn],string,string,typeRule) |
   .tpeDec(option[locn],string,tipe,typeRule,indexMap) |
   .varDec(option[locn],string,string,tipe) |
@@ -77,8 +77,8 @@ star.compiler.meta{
     disp(Dc) => case Dc in {
       | .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)"
       | .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)[#(ImplNm)]\:$(ImplTp)"
-      | .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)"
-      | .updDec(_,Tp,Fld,Fun,FunTp) => "Upd $(Tp).#(Fld) using #(Fun)\:$(FunTp)"
+      | .accDec(_,Tp,Fld,Fun,Ix,FunTp) => "Acc $(Tp).#(Fld) ($(Ix)) using #(Fun)\:$(FunTp)"
+      | .updDec(_,Tp,Fld,Fun,Ix,FunTp) => "Upd $(Tp).#(Fld) ($(Ix)) using #(Fun)\:$(FunTp)"
       | .tpeDec(_,Nm,_,TpRl,Map) => "Type #(Nm)\::$(TpRl) $(Map)"
       | .varDec(_,Nm,FullNm,Tp) => "Var #(Nm)[#(FullNm)]\:$(Tp)"
       | .funDec(_,Nm,FullNm,Tp) => "Fun #(Nm)[#(FullNm)]\:$(Tp)"

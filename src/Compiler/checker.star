@@ -900,7 +900,6 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Nm)?=isName(Op) => valof{
     if traceCanon! then{
       showMsg("brace record: $(A)\:$(Tp)");
-      showMsg("leq? #(showVar("leq",Env))");
     };
     
     FceTp = newTypeVar("_");
@@ -975,7 +974,7 @@ star.compiler.checker{
 	      .eqn(Lc,[Rc],.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
 	    [],AccTp);
 	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);
-	  ADec = .accDec(Lc,Tp,Fld,AccNm,AccTp);
+	  ADec = .accDec(Lc,Tp,Fld,AccNm,.some(Ix),AccTp);
 	  valis (Ix+1,[Acc,..ADfs],[Dec,ADec,..ADcs])},
 	(0,.nil,.nil),
 	sortedFlds);
@@ -1365,12 +1364,13 @@ star.compiler.checker{
     AtTp = .tupleType(Vrs);
     FnTp = newTypeVar("F");
     FETp = newTypeVar("E");
+    RTp = newTypeVar("_");
     Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
 
     if traceCanon! then
       showMsg("Check call: $(Op)($(As)) Op:$(FnTp)");
 
-    if sameType(FnTp,.funType(AtTp,newTypeVar("_"),FETp),Env) then{
+    if sameType(FnTp,.funType(AtTp,RTp,FETp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
 
       if traceCanon! then
@@ -1378,15 +1378,15 @@ star.compiler.checker{
 
       if ErTp==.voidType then{
 	if sameType(FETp,.voidType,Env) then
-	  valis .apply(Lc,Fun,Args,.voidType)
+	  valis .apply(Lc,Fun,Args,RTp)
 	else{
 	  reportError("$(Op)\:$(FnTp) throws $(FETp) outside a try/catch",Lc);
 	  valis .vr(Lc,"_",.voidType)
 	}
       } else if .voidType == FETp then
-	valis .apply(Lc,Fun,Args,.voidType)
+	valis .apply(Lc,Fun,Args,RTp)
       else if sameType(FETp,ErTp,Env) then
-	valis .tapply(Lc,Fun,Args,.voidType,ErTp)
+	valis .tapply(Lc,Fun,Args,RTp,ErTp)
       else{
 	reportError("$(Op) throws $(FETp), which not consistent with $(ErTp)",Lc);
 	valis .vr(Lc,"_",.voidType)

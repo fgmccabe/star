@@ -153,25 +153,49 @@ star.compiler.encode{
     _coerce(T) => encodeSig(T)
   }
 
+  implementation coercion[typeRule,data->>void] => {
+    _coerce(Rl) => .strg(encodeTpRlSignature(Rl))
+  }
+
+  public implementation coercion[importSpec,data->>void] => {
+    _coerce(.pkgImp(_,Vz,Pk)) => .term("import",[Vz::data,Pk::data])
+  }
+
+  public implementation all e,x ~~ coercion[e,data->>x] |= coercion[cons[e],data->>x] => {
+    _coerce(L)=>mkTpl(L//(e)=>e::data)
+  }
+
   public implementation coercion[decl,data->>_] => {
     _coerce(D) => case D in {
-	| .implDec(_,ConNm,ImplNm,Tp) =>
-	  mkCons("imp",[.strg(ConNm),.strg(ImplNm),encodeSig(Tp)])
-	| .accDec(_,Tp,Fld,Fn,AccTp) =>
-	  mkCons("acc",[encodeSig(Tp),.strg(Fld),.strg(Fn),encodeSig(AccTp)])
-	| .updDec(_,Tp,Fld,Fn,AccTp) =>
-	  mkCons("upd",[encodeSig(Tp),.strg(Fld),.strg(Fn),encodeSig(AccTp)])
-	| .conDec(_,Nm,FullNm,TpRl) =>
-	  mkCons("con",[.strg(Nm),.strg(FullNm),.strg(encodeTpRlSignature(TpRl))])
-	| .tpeDec(_,Nm,Tp,TpRl,IxMap) =>
-	  mkCons("tpe",[.strg(Nm),encodeSig(Tp),.strg(encodeTpRlSignature(TpRl)),encodeMap(IxMap)])
-	| .cnsDec(_,Nm,FullNm,Tp) =>
-	  mkCons("cns",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
-	| .varDec(_,Nm,FullNm,Tp) =>
-	  mkCons("var",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
-	| .funDec(_,Nm,FullNm,Tp) =>
-	  mkCons("fun",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
-      }.
+      | .implDec(_,ConNm,ImplNm,Tp) =>
+	mkCons("imp",[.strg(ConNm),.strg(ImplNm),encodeSig(Tp)])
+      | .accDec(_,Tp,Fld,Fn,Ix,AccTp) =>
+	mkCons("acc",[encodeSig(Tp),.strg(Fld),.strg(Fn),
+	  encodeIndex(Ix),encodeSig(AccTp)])
+      | .updDec(_,Tp,Fld,Fn,Ix,AccTp) =>
+	mkCons("upd",[encodeSig(Tp),.strg(Fld),.strg(Fn),
+	  encodeIndex(Ix),encodeSig(AccTp)])
+      | .conDec(_,Nm,FullNm,TpRl) =>
+	mkCons("con",[.strg(Nm),.strg(FullNm),.strg(encodeTpRlSignature(TpRl))])
+      | .tpeDec(_,Nm,Tp,TpRl,IxMap) =>
+	mkCons("tpe",[.strg(Nm),encodeSig(Tp),.strg(encodeTpRlSignature(TpRl)),encodeMap(IxMap)])
+      | .cnsDec(_,Nm,FullNm,Tp) =>
+	mkCons("cns",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+      | .varDec(_,Nm,FullNm,Tp) =>
+	mkCons("var",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+      | .funDec(_,Nm,FullNm,Tp) =>
+	mkCons("fun",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+    }.
+  }
+
+  encodeIndex(.none) => .symb(.tLbl("none",0)).
+  encodeIndex(.some(Ix)) => .term("some",[.intgr(Ix)]).
+
+  public implementation coercion[pkgSpec,data->>void] => let{
+    mkTerm(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}) =>
+      .term("pkgSpec",[Pkg::data,Imports::data,mkTpl(Decls//(D)=>(D::data))]).
+  } in {
+    _coerce(S) => mkTerm(S).
   }
 
   encodeMap:(indexMap)=>data.
@@ -180,6 +204,18 @@ star.compiler.encode{
 
   public pkgTerm:(pkg)=>data.
   pkgTerm(.pkg(Pk,Ver))=>mkCons("pkg",[.strg(Pk),versTerm(Ver)]).
+
+  implementation coercion[pkg,data->>void] => {
+    _coerce(.pkg(P,.defltVersion)) => .term("pkg",[.strg(P),.symb(.tLbl("*",0))]).
+    _coerce(.pkg(P,.vers(V))) => .term("pkg",[.strg(P),.strg(V)]).
+  }
+
+  implementation coercion[visibility,data->>void] => {
+    _coerce(.priVate) => .strg("private").
+    _coerce(.pUblic) => .strg("public").
+    _coerce(.transItive) => .strg("transitive").
+  }
+
 
   public versTerm:(version)=>data.
   versTerm(.defltVersion) => .symb(.tLbl("*",0)).

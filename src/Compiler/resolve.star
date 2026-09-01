@@ -56,8 +56,7 @@ star.compiler.resolve{
     valis Def
   }
 
-  -- names a quantified type var, for declareTypeVars((Nm,Tp) pairs); Qx's
-  -- elements are always .kVar/.kFun (see freshQuants).
+  -- quantified variables are always .kVar/.kFun.
   quantNm(.kVar(Nm)) => Nm.
   quantNm(.kFun(Nm,_)) => Nm.
 
@@ -169,13 +168,26 @@ star.compiler.resolve{
 
     if isEmpty(Cvrs) then {
       CTp = reQuant(Qx,ITp);
-      valis .implDef(Lc,Nm,FullNm,RVal,[],Tp)
+
+      OverImp = .implDef(Lc,Nm,FullNm,RVal,[],Tp);
+
+      if traceResolve! then
+	showMsg("overloaded implementation $(OverImp)");
+
+      valis OverImp
     } else {
       CTp = reQuant(Qx,funcType(Cx//genContractType,ITp));
-      valis .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp)
+
+      OverImp = .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp);
+
+      if traceResolve! then
+	showMsg("overloaded implementation $(OverImp)");
+
+      valis OverImp
     }
   }
 
+  /*
   -- A generic definition's private, let-bound helpers keep the outer
   -- `all x ~~ ...` as a free x, not their own quantifier -- fine until
   -- lifted to top-level, where x is then unbound. overloadTerm's .letExp/
@@ -188,6 +200,7 @@ star.compiler.resolve{
   requantifyDef(Vs,.typeDef(Lc,Nm,Tp,TpRl)) => .typeDef(Lc,Nm,reQuant(Vs,Tp),TpRl).
   requantifyDef(Vs,.cnsDef(Lc,Nm,Ix,Tp)) => .cnsDef(Lc,Nm,Ix,reQuant(Vs,Tp)).
   requantifyDef(Vs,.implDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .implDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
+  */
 
   genContractType(.conTract(Nm,Tps,Dps)) => mkConType(Nm,Tps,Dps).
   genContractType(.implicit(Nm,Tp)) => Tp.
@@ -206,7 +219,7 @@ star.compiler.resolve{
     Vtp = funcType([Tp],FTp);
     valis defineCVars(Lc,Tps,[.vr(Lc,Vnm,Vtp),..Vrs],
       declareVar(Vnm,Vnm,Lc,Vtp,.none,
-	declareAccessor(Lc,Tp,Nm,Vnm,Vtp,D)))
+	declareAccessor(Lc,Tp,Nm,Vnm,.none,Vtp,D)))
   }
   defineCVars(Lc,[.implicit(Nm,Tp),..Tps],Vrs,D) => valof{
     valis defineCVars(Lc,Tps,[.vr(Lc,Nm,Tp),..Vrs],
@@ -432,16 +445,16 @@ star.compiler.resolve{
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     TDict = declareDecls(Decls,Dict);
     (RDfs,_) = overloadGroup(Gp,TDict);
-    RQDfs = RDfs//(D)=>requantifyDef(quantifiedTypeVars(TDict),D);
+--    RQDfs = RDfs//(D)=>requantifyDef(quantifiedTypeVars(TDict),D);
     (RRhs,St1) = overloadTerm(Rhs,TDict,St);
-    valis (.letExp(Lc,RQDfs,Decls,RRhs),St1)
+    valis (.letExp(Lc,RDfs,Decls,RRhs),St1)
   }
   overloadTerm(.letRec(Lc,Gp,Decs,Rhs),Dict,St) => valof{
     LDict = declareDecls(Decs,Dict);
     (RDfs,RDct) = overloadGroup(Gp,LDict);
-    RQDfs = RDfs//(D)=>requantifyDef(quantifiedTypeVars(LDict),D);
+--    RQDfs = RDfs//(D)=>requantifyDef(quantifiedTypeVars(LDict),D);
     (RRhs,St2) = overloadTerm(Rhs,RDct,St);
-    valis (.letRec(Lc,RQDfs,Decs,RRhs),St2)
+    valis (.letRec(Lc,RDfs,Decs,RRhs),St2)
   }
   overloadTerm(.csexp(Lc,Gov,Cases,Tp),Dict,St) => valof{
     (RGov,St1) = overloadTerm(Gov,Dict,St);
@@ -716,7 +729,11 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("resolve $(Rc).#(Fld)\:$(Tp) @ $(Lc)");
     RcTp = typeOf(Rc);
-    if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
+    if Ix ?= fieldOffset(Lc,RcTp,Fld,Dict) then{
+      if traceResolve! then
+	showMsg("field $(Tp).#(Fld) access at $(Ix)");
+      valis (.tdot(Lc,Rc,Ix,Tp),markResolved(St))
+    } else if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
       if traceResolve! then
 	showMsg("access function $(AccFn)\:$(typeOf(AccFn))");
       

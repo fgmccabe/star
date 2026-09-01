@@ -110,17 +110,20 @@ star.compiler.impawt{
   pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) => 
     .some(.implDec(Lc,Nm,FNm,decodeSig(Sig))).
   pickupDeclaration(.term("acc",
-      [Sig,.strg(Fld),.strg(FNm),AccSig]),Lc) => valof{
+      [Sig,.strg(Fld),.strg(FNm),Idx,AccSig]),Lc) => valof{
     Tp = decodeSig(Sig);
     AccTp = decodeSig(AccSig);
-    valis .some(.accDec(Lc,Tp,Fld,FNm,AccTp))
+    valis .some(.accDec(Lc,Tp,Fld,FNm,decodeIndex(Idx),AccTp))
   }
   pickupDeclaration(.term("upd",
-      [.strg(Sig),.strg(Fld),.strg(FNm),.strg(AccSig)]),Lc) => valof{
+      [.strg(Sig),.strg(Fld),.strg(FNm),Idx,.strg(AccSig)]),Lc) => valof{
     Tp = decodeSignature(Sig);
     AccTp = decodeSignature(AccSig);
-    valis .some(.updDec(Lc,Tp,Fld,FNm,AccTp))
+    valis .some(.updDec(Lc,Tp,Fld,FNm,decodeIndex(Idx),AccTp))
   }.
+
+  decodeIndex(.symb(.tLbl("none",0))) => .none.
+  decodeIndex(.term("some",[.intgr(Ix)])) => .some(Ix).
 
   pickupDeclaration(.term("con",[.strg(Nm),.strg(CnNm),.strg(Sig)]),Lc) =>
     .some(.conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig))).
@@ -143,62 +146,6 @@ star.compiler.impawt{
   }
 
   decodeIndexMap(Els) => foldLeft((.term(_,[.symb(Lbl),.intgr(Ix)]),Mp) => Mp[Lbl->Ix],[],Els).
-
-  implementation coercion[pkg,data->>void] => {
-    _coerce(.pkg(P,.defltVersion)) => .term("pkg",[.strg(P),.symb(.tLbl("*",0))]).
-    _coerce(.pkg(P,.vers(V))) => .term("pkg",[.strg(P),.strg(V)]).
-  }
-
-  implementation coercion[visibility,data->>void] => {
-    _coerce(.priVate) => .strg("private").
-    _coerce(.pUblic) => .strg("public").
-    _coerce(.transItive) => .strg("transitive").
-  }
-
-  implementation coercion[tipe,data->>void] => {
-    _coerce(Tp) => .strg(encodeSignature(Tp)).
-  }
-
-  implementation coercion[typeRule,data->>void] => {
-    _coerce(Rl) => .strg(encodeTpRlSignature(Rl))
-  }
-  
-  implementation coercion[importSpec,data->>void] => {
-    _coerce(.pkgImp(_,Vz,Pk)) => .term("import",[Vz::data,Pk::data])
-  }
-
-  implementation all e,x ~~ coercion[e,data->>x] |= coercion[cons[e],data->>x] => {
-    _coerce(L)=>mkTpl(L//(e)=>e::data)
-  }
-
-  public implementation coercion[pkgSpec,data->>void] => let{
-    mkTerm(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}) =>
-      .term("pkgSpec",[Pkg::data,Imports::data,mkTpl(Decls//(D)=>(D::data))]).
-  } in {
-    _coerce(S) => mkTerm(S).
-  }
-
-  public implementation coercion[decl,data->>void] => let{
-    mkTerm(.implDec(_,Nm,FullNm,Tp)) =>
-      .term("imp",[.strg(Nm),.strg(FullNm),Tp::data]).
-    mkTerm(.accDec(_,Tp,Fld,Acc,AccTp)) =>
-      .term("acc",[Tp::data,.strg(Fld),.strg(Acc),AccTp::data]).
-    mkTerm(.updDec(_,Tp,Fld,Acc,AccTp)) =>
-      .term("upd",[Tp::data,.strg(Fld),.strg(Acc),AccTp::data]).
-    mkTerm(.conDec(_,Nm,FlNm,CtRl)) =>
-      .term("con",[.strg(Nm),.strg(FlNm),CtRl::data]).
-    mkTerm(.tpeDec(_,Nm,Tp,Rl,Map)) =>
-      .term("tpe",[.strg(Nm),Tp::data,Rl::data,
-	mkTpl(ixLeft((Lbl,Ix,Lst)=>[mkTpl([.symb(Lbl),.intgr(Ix)]),..Lst],[],Map))]).
-    mkTerm(.varDec(_,Nm,FlNm,Tp)) =>
-      .term("var",[.strg(Nm),.strg(FlNm),Tp::data]).
-    mkTerm(.funDec(_,Nm,FlNm,Tp)) =>
-      .term("fun",[.strg(Nm),.strg(FlNm),Tp::data]).
-    mkTerm(.cnsDec(_,Nm,FlNm,Tp)) =>
-      .term("cns",[.strg(Nm),.strg(FlNm),Tp::data]).
-  } in {
-    _coerce(D) => mkTerm(D).
-  }
 
   public importLowered:(pkg,termRepo) => option[cons[cDefn]].
   importLowered(Pkg,R) => valof{

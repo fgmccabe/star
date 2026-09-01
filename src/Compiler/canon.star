@@ -230,8 +230,8 @@ star.compiler.canon{
   public implementation reQuant[decl] => {
     reQuant(Qs,Dc) => case Dc in {
       | .implDec(Lc,Nm,FlNm,Tp) => .implDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
-      | .accDec(Lc,Tp,Nm,FlNm,ATp) => .accDec(Lc,reQuant(Qs,Tp),Nm,FlNm,reQuant(Qs,ATp))
-      | .updDec(Lc,Tp,Nm,FlNm,ATp) => .updDec(Lc,reQuant(Qs,Tp),Nm,FlNm,reQuant(Qs,ATp))
+      | .accDec(Lc,Tp,Nm,FlNm,Ix,ATp) => .accDec(Lc,reQuant(Qs,Tp),Nm,FlNm,Ix,reQuant(Qs,ATp))
+      | .updDec(Lc,Tp,Nm,FlNm,Ix,ATp) => .updDec(Lc,reQuant(Qs,Tp),Nm,FlNm,Ix,reQuant(Qs,ATp))
       | .conDec(Lc,Nm,FlNm,TpRl) => .conDec(Lc,Nm,FlNm,reQuant(Qs,TpRl))
       | .tpeDec(Lc,Nm,Tp,TpRl,Map) => .tpeDec(Lc,Nm,reQuant(Qs,Tp),reQuant(Qs,TpRl),Map)
       | .varDec(Lc,Nm,FlNm,Tp) => .varDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
@@ -240,8 +240,8 @@ star.compiler.canon{
     }
     reQuantX(Qs,Dc) => case Dc in {
       | .implDec(Lc,Nm,FlNm,Tp) => .implDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
-      | .accDec(Lc,Tp,Nm,FlNm,ATp) => .accDec(Lc,reQuantX(Qs,Tp),Nm,FlNm,reQuantX(Qs,ATp))
-      | .updDec(Lc,Tp,Nm,FlNm,ATp) => .updDec(Lc,reQuantX(Qs,Tp),Nm,FlNm,reQuantX(Qs,ATp))
+      | .accDec(Lc,Tp,Nm,FlNm,Ix,ATp) => .accDec(Lc,reQuantX(Qs,Tp),Nm,FlNm,Ix,reQuantX(Qs,ATp))
+      | .updDec(Lc,Tp,Nm,FlNm,Ix,ATp) => .updDec(Lc,reQuantX(Qs,Tp),Nm,FlNm,Ix,reQuantX(Qs,ATp))
       | .conDec(Lc,Nm,FlNm,TpRl) => .conDec(Lc,Nm,FlNm,reQuantX(Qs,TpRl))
       | .tpeDec(Lc,Nm,Tp,TpRl,IxMp) => .tpeDec(Lc,Nm,reQuantX(Qs,Tp),reQuantX(Qs,TpRl),IxMp)
       | .varDec(Lc,Nm,FlNm,Tp) => .varDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
@@ -296,7 +296,7 @@ star.compiler.canon{
     | .cell(_,I,_) => "ref #(showCanon(I,0,Sp))"
     | .get(_,I,_) => "#(showCanon(I,0,Sp))!"
     | .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2))} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
+      "#(leftParen(OPr,Pr))let {\n#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2))} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
@@ -370,12 +370,12 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
-    | .funDef(_,Nm,Rls,Cx,Tp) => "Fun: #(Nm)\:#(showCx(Cx))$(Tp)\n#(showEqs(Nm,Rls,Sp))"
-    | .prcDef(_,Nm,Rls,Cx,Tp) => "Prc: #(Nm)\:#(showCx(Cx))$(Tp)\n#(showPRls(Nm,Rls,Sp))"
-    | .varDef(_,Nm,LongNm,V,Cx,Tp) => "Var: #(Nm)[#(LongNm)]\:#(showCx(Cx))$(Tp) = #(showCanon(V,0,Sp))"
-    | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
-    | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
-    | .implDef(_,Nm,FullNm,Exp,Cx,Tp) => "Implementation: #(Nm)[#(FullNm)]#(showCx(Cx))\:$(Tp) = $(Exp)"
+    | .funDef(_,Nm,Rls,Cx,Tp) => "#(Sp)Fun: #(Nm)\:#(showCx(Cx))$(Tp)\n#(Sp)#(showEqs(Nm,Rls,Sp))"
+    | .prcDef(_,Nm,Rls,Cx,Tp) => "#(Sp)Prc: #(Nm)\:#(showCx(Cx))$(Tp)\n#(Sp)#(showPRls(Nm,Rls,Sp))"
+    | .varDef(_,Nm,LongNm,V,Cx,Tp) => "#(Sp)Var: #(Nm)[#(LongNm)]\:#(showCx(Cx))$(Tp) = #(showCanon(V,0,Sp))"
+    | .typeDef(_,Nm,_,Rl) => "#(Sp)Type: $(Rl)"
+    | .cnsDef(_,Nm,Ix,Tp) => "#(Sp)Constructor: #(Nm)[$(Ix)]\:$(Tp)"
+    | .implDef(_,Nm,FullNm,Exp,Cx,Tp) => "#(Sp)Implementation: #(Nm)[#(FullNm)]#(showCx(Cx))\:$(Tp) = $(Exp)"
   }
 
   showEqs:(string,cons[eqn],string) => string.

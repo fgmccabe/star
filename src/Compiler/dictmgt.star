@@ -48,16 +48,25 @@ star.compiler.dict.mgt{
 
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
-    if .accEntry(_,Nm,T) ?= getFieldAccess(Tp,Fld,Env) then{
+    if .accEntry(_,Nm,_,T) ?= getFieldAccess(Tp,Fld,Env) then{
       valis .some(refreshVar(Lc,Nm,.true,T,Env))
     }
     else
       valis .none
   }
 
+  public fieldOffset:(option[locn],tipe,string,dict) => option[integer].
+  fieldOffset(Lc,Tp,Fld,Env) => valof{
+    if .accEntry(_,Nm,Ix,T) ?= getFieldAccess(Tp,Fld,Env) then{
+      valis Ix
+    }
+    else
+    valis .none
+  }
+
   public findUpdate:(option[locn],tipe,string,dict) => option[canon].
   findUpdate(Lc,Tp,Fld,Env) => valof{
-    if .accEntry(_,Nm,T) ?= getFieldUpdate(Tp,Fld,Env) then{
+    if .accEntry(_,Nm,_,T) ?= getFieldUpdate(Tp,Fld,Env) then{
       valis .some(refreshVar(Lc,Nm,.true,T,Env))
     }
     else
@@ -199,10 +208,10 @@ star.compiler.dict.mgt{
 
   declareDecl(Dc,Dict) => case Dc in {
     | .implDec(Lc,Nm,ImplNm,Tp) => declareImplementation(Lc,Nm,ImplNm,Tp,Dict)
-    | .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict))
-    | .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict))
+    | .accDec(Lc,Tp,Fld,AccFn,Ix,AccTp) =>
+      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,Ix,AccTp,Dict))
+    | .updDec(Lc,Tp,Fld,AccFn,Ix,AccTp) =>
+      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,Ix,AccTp,Dict))
     | .conDec(Lc,Nm,ConNm,ConRl) => declareContract(Lc,Nm,ConRl,Dict)
     | .tpeDec(Lc,Nm,Tp,TpRl,Map) => declareType(Nm,Lc,Tp,TpRl,Dict)
     | .varDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)

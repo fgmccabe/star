@@ -14,7 +14,7 @@ star.compiler.dict{
 
   public implEntry ::= .implEntry(option[locn],string,tipe).
 
-  public accEntry ::= .accEntry(option[locn],string,tipe).
+  public accEntry ::= .accEntry(option[locn],string,option[integer],tipe).
 
   public scope ::= scope{
     types:map[string,tpDef].
@@ -61,7 +61,7 @@ star.compiler.dict{
   }
 
   public implementation display[accEntry] => {
-    disp(.accEntry(Lc,Fn,FnTp))=>"Acc:#(Fn)\:$(FnTp)@$(Lc)"
+    disp(.accEntry(Lc,Fn,Ix,FnTp))=>"Acc:#(Fn)\:$(FnTp) - $(Ix) @$(Lc)"
   }
 
   public vrType:(vrEntry)=>tipe.
@@ -100,10 +100,10 @@ star.compiler.dict{
   undeclareImplementation(Nm,.dict([Scope,..Env],Br)) =>
     .dict([Scope.impls=Scope.impls[~Nm],..Env],Br).
 
-  public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
-  declareAccessor(Lc,Tp,Fld,AccFn,AccTp,.dict([Scope,..Env],Br)) => valof{
+  public declareAccessor:(option[locn],tipe,string,string,option[integer],tipe,dict) => dict.
+  declareAccessor(Lc,Tp,Fld,AccFn,Ix,AccTp,.dict([Scope,..Env],Br)) => valof{
     Key = tpName(Tp);
-    Entry = .accEntry(Lc,AccFn,AccTp);
+    Entry = .accEntry(Lc,AccFn,Ix,AccTp);
     Accs = Scope.accessors;
 
     if AccOrs ?= Accs[Key] then{
@@ -124,10 +124,10 @@ star.compiler.dict{
   .} in getField(Scs).
 
 
-  public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
-  declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,.dict([Scope,..Env],Br)) => valof{
+  public declareUpdater:(option[locn],tipe,string,string,option[integer],tipe,dict) => dict.
+  declareUpdater(Lc,Tp,Fld,UpdFn,Ix,UpdTp,.dict([Scope,..Env],Br)) => valof{
     Key = tpName(Tp);
-    Entry = .accEntry(Lc,UpdFn,UpdTp);
+    Entry = .accEntry(Lc,UpdFn,Ix,UpdTp);
     Ups = Scope.updaters;
     
     if AccOrs ?= Ups[Key] then{
