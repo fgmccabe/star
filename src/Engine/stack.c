@@ -521,20 +521,16 @@ void detachStack(enginePo P, stackPo top) {
   assert(stackState(top) == active && top->bottom == Null);
   assert(isAttachedStack(base, top));
 
-  top->bottom = base;
   stackPo s = base;
-  while (s != top) {
+  stackPo parent = top->attachment;
+
+  do {
     assert(s->state == active);
     s->state = suspended;
     s->bottom = base;
     s = s->attachment;
   }
-
-  assert(s == top);
-  stackPo parent = top->attachment;
-  s->attachment = Null;
-  s->state = suspended;
-  s->bottom = base;
+  while (s != parent);
 
 #ifdef TRACESTACK
   if (traceStack > noTracing) {

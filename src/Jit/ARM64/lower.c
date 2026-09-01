@@ -1248,39 +1248,35 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       adr(tmp, rtn);
       str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
 
-      ArgSpec specs[] = {
-        argSpec(localFlex(state, pc, opand(1)), RG(X1)),
-        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
-        argSpec(IM(0), RG(RTS))
-      };
+      loadRegister(state, tmp, localFlex(state, pc, opand(2)));
+      stp(tmp, XZR, PRX(SP,-16)); // tmp and xzr are going to end up at RTV and RTS
+      releaseReg(jit, tmp);
 
-      shuffleVars(jit, specs, 3, &jit->freeRegs);
-      stp(RTV, RTS, PRX(SP,-16));
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)detachStack, 2, (FlexOp[]){
-                        RG(PR), RG(X1)
+                        RG(PR), localFlex(state, pc, opand(1))
                       }, True, 0, (FlexOp[]){});
+
       ldp(RTV, RTS, PSX(SP,16));
       ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
       br(X16);
       bind(rtn);
-      releaseReg(jit, tmp);
       pc += insSize;
       continue;
     }
     case sResume: {
       int32 insSize = 3;
       codeLblPo rtn = newLabel(ctx);
-      adr(X16, rtn);
-      str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      ArgSpec specs[3] = {
-        argSpec(localFlex(state, pc, opand(1)), RG(X1)),
-        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
-        argSpec(IM(0), RG(RTS))
-      };
-      shuffleVars(jit, specs, 3, &jit->freeRegs);
-      stp(RTV, RTS, PRX(SP,-16));
+      armReg tmp = findARegister(state, pc);
+
+      adr(tmp, rtn);
+      str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
+
+      loadRegister(state, tmp, localFlex(state, pc, opand(2)));
+      stp(tmp, XZR, PRX(SP,-16)); // tmp and xzr are going to end up at RTV and RTS
+      releaseReg(jit, tmp);
+
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)attachStack, 2, (FlexOp[]){
-                        RG(PR), RG(X1)
+                        RG(PR), localFlex(state, pc, opand(1))
                       }, True, 0, (FlexOp[]){});
       ldp(RTV, RTS, PSX(SP,16));
       ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
@@ -1962,7 +1958,7 @@ int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 ar
     int32 argSlot = currVarLimit - arity + ix;
     operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
   }
-  registerMap tmpMap = addReg(fixedRegSet(X18),X16);
+  registerMap tmpMap = addReg(fixedRegSet(X18), X16);
   shuffleVars(state->jit, operands, arity, &tmpMap);
   voidOutFrameLocals(state, livePc, currVarLimit); // void out gaps in the locals map
   return currVarLimit - arity; // return how must space is needed to preserve current locals and arguments.
