@@ -320,6 +320,49 @@ star.compiler.types{
 
   showDeps([],_) => "".
   showDeps(Els,Dp) => "->>#(showTypes(Els,Dp)*)".
+
+  -- validType return .none if the type is valid, otherwise it returns a reason it is not
+  public validType:(tipe,boolean) => option[string].
+  validType(T,Allow) => validTp(deRef(T),[],Allow).
+
+  validTp:(tipe,cons[tipe],boolean) => option[string].
+  validTp(Tp,Q, Allow) => case Tp in {
+    | .anonType => .none
+    | .voidType => .none
+    | .kVar(Nm) => ({? Tp in Q ?} ?? .none || .some("unexpected quantified var $(Tp)"))
+    | .kFun(Nm,Ar) => ({? Tp in Q ?} ?? .none || .some("unexpected quantified var $(Tp)"))
+    | .tVar(V,Nm) => (Allow ?? .none || .some("unexpected free var $(Tp)"))
+    | .tFun(_,Ar,Nm) => (Allow ?? .none || .some("unexpected free var $(Tp)"))
+    | .nomnal(Nm) => .none
+    | .tpFun(Nm,Ar) => .none
+    | .tpExp(O,A) => (Msg ?= validTp(deRef(O),Q,Allow) ?? .some(Msg) || validTp(deRef(A),Q,Allow))
+    | .tupleType(A) => validTps(A,Q,Allow)
+    | .funType(A,R,E) => (Msg ?= validTp(deRef(A),Q,Allow) ?? .some(Msg) ||
+      Msg ?= validTp(deRef(R),Q,Allow) ?? .some(Msg) ||
+      validTp(deRef(E),Q,Allow))
+    | .prcType(A,E) => (Msg ?= validTp(deRef(A),Q,Allow) ?? .some(Msg) ||
+      validTp(deRef(E),Q,Allow))
+    | .cnsType(A,R) =>(Msg ?= validTp(deRef(A),Q,Allow) ?? .some(Msg) ||
+      validTp(deRef(R),Q,Allow))
+    | .allType(A,T) => validTp(deRef(T),[A,..Q],Allow)
+    | .existType(A,T) => validTp(deRef(T),[A,..Q],Allow)
+    | .faceType(Els,Tps) => validFldTps(Els,Q,Allow)
+    | .constrainedType(T,C) => (Msg ?= validTp(deRef(T),Q,Allow) ?? .some(Msg) || validCon(C,Q,Allow))
+  }
+
+  validTps([],_,_) => .none.
+  validTps([Tp,..Tps],Q,Allow) =>
+    (Msg ?= validTp(deRef(Tp),Q,Allow) ?? .some(Msg) || validTps(Tps,Q,Allow)).
+
+  validFldTps([],_,_) => .none.
+  validFldTps([(_,Tp),..Tps],Q,Allow) =>
+    (Msg ?= validTp(deRef(Tp),Q,Allow) ?? .some(Msg) || validFldTps(Tps,Q,Allow)).
+
+  validCon(.conTract(_,T,D),Q,Allow) =>
+    (Msg ?= validTps(T,Q,Allow) ?? .some(Msg) || validTps(D,Q,Allow)).
+  validCon(.hasField(T,_,FT),Q,Allow) =>
+    (Msg ?= validTp(T,Q,Allow) ?? .some(Msg) || validTp(FT,Q,Allow)).
+  validCon(.implicit(_,T),Q,Allow) => validTp(T,Q,Allow).
   
   -- in general, hashing types is not reliable because of unification
   public implementation hashable[tipe] => let{.
@@ -770,14 +813,14 @@ star.compiler.types{
   unbVrsRule(.allRule(_,Rl),Vrs) => unbVrsRule(Rl,Vrs).
 
   -- Collects the free type variables of a type -- named (kVar/kFun) and
-  -- genuinely unbound (tVar/tFun) alike. Ign are variable names we should not collect.
-  public collectFreeTypeVars:(tipe,cons[string]) => cons[tipe].
-  collectFreeTypeVars(Tp,Ign) => catv(deRef(Tp),Ign,[]).
+  -- tVar/tFun) alike.
+  public freeTypeVars:(tipe) => set[tipe].
+  freeTypeVars(Tp) => catv(deRef(Tp),[],[]).
 
   catvNm(.kVar(Nm)) => Nm.
   catvNm(.kFun(Nm,_)) => Nm.
 
-  catv:(tipe,cons[string],cons[tipe]) => cons[tipe].
+  catv:(tipe,cons[string],set[tipe]) => set[tipe].
   catv(V,Ign,Vrs) where isUnbound(V) => let{
     Nm = vrNm(V).
   } in ({? Nm in Ign ?} ?? Vrs || Vrs\+V).
