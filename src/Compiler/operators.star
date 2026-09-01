@@ -74,6 +74,7 @@ star.compiler.operators{
     | ".~." => [.prefixOp(650,649)]
     | "/" => [.infixOp(700,700,699)]
     | "//" => [.infixOp(960,960,959)]
+    | "//+" => [.infixOp(960,960,959)]
     | "///" => [.infixOp(960,960,959)]
     | "/\\" => [.infixOp(700,700,699)]
     | ":" => [.infixOp(1249,1250,1249)]
@@ -281,6 +282,7 @@ star.compiler.operators{
   follows("/",`.`) => .some("/.").
   follows("/",`/`) => .some("//").
   follows("/",`\\`) => .some("/\\").
+  follows("//",`+`) => .some("//+").
   follows("//",`/`) => .some("///").
   follows(":",`:`) => .some("::").
   follows(":",`=`) => .some(":=").
@@ -370,6 +372,7 @@ star.compiler.operators{
     | "/" => .true  /* division */
     | "/." => .true  /* regexp expression */
     | "//" => .true  /* map over */
+    | "//+" => .true  /* map over */
     | "///" => .true  /* indexed map over */
     | "/\\" => .true  /* intersection */
     | ":" => .true  /* type declaration/annotation */

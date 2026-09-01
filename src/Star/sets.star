@@ -1,5 +1,6 @@
 star.sets{
   import star.core.
+  import star.arith.
   import star.coerce.
   import star.index.
   import star.collection.
@@ -77,7 +78,14 @@ star.sets{
 
   public implementation all e,f ~~ equality[e],equality[f],
   hashable[e],hashable[f] |= mapping[set->>e,f] => {
-    (.set(C)//F) => .set(ixRight((E,_,X)=>X[F(E)->()],[],C))
+    (.set(C)//F) => .set(ixRight((E,_,X)=>X[F(E)->()],[],C)).
+    (.set(C)//+F) => valof{
+      Cx := 0;
+      valis .set(ixRight((E,_,X) => valof{
+	    El = X[F(Cx!,E)->()];
+	    Cx := Cx!+1;
+	    valis El},[],C))
+    }
   }
 
   public implementation all e ~~ equality[e] |= membership[cons[e] ->> e] => let{.

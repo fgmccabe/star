@@ -80,8 +80,19 @@ star.multi{
     multiMapOver:all x ~~ (cons[multi[e]],(e)=>f throws x)=>cons[multi[f]] throws x.
     multiMapOver(.nil,F) => .nil.
     multiMapOver(.cons(H,T),F) => .cons(mapOver(H,F),multiMapOver(T,F)).
+
+    plF:all xx ~~ ((integer,e)=>f throws xx)=>(e)=>f throws xx.
+    plF(F) => valof{
+      Cx := 0;
+      valis ((E) => valof{
+	Rx = F(Cx!,E);
+	Cx := Cx!+1;
+	  valis Rx})
+    }
+
   .} in {
-    (M//F) => mapOver(M,F)
+    (M//F) => mapOver(M,F).
+    (M//+F) => mapOver(M,plF(F)).
   }
 
   public implementation all e ~~ sizeable[multi[e]] => {

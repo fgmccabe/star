@@ -57,6 +57,7 @@
   operator(".~.", [prefixOp(650, 649)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("//", [infixOp(960, 960, 959)]).
+  operator("//+", [infixOp(960, 960, 959)]).
   operator("///", [infixOp(960, 960, 959)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
@@ -228,6 +229,7 @@
   follows('/','.','/.').
   follows('/','/','//').
   follows('/','\\','/\\').
+  follows('//','+','//+').
   follows('//','/','///').
   follows(':',':','::').
   follows(':','=',':=').
@@ -314,6 +316,7 @@
   final('/',"/").	 /* division */
   final('/.',"/.").	 /* regexp expression */
   final('//',"//").	 /* map over */
+  final('//+',"//+").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('/\\',"/\\").	 /* intersection */
   final(':',":").	 /* type declaration/annotation */

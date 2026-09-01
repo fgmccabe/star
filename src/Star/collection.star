@@ -25,10 +25,11 @@ star.collection{
 
   public contract all m/1,e,f ~~ mapping[m->>e,f] ::= {
     (//):all xx ~~ (m[e],(e)=>f throws xx) => m[f] throws xx.
+    (//+):all xx ~~ (m[e],(integer,e)=>f throws xx) => m[f] throws xx.
   }
 
-  public contract all m/2 ~~ ixmap[m] ::= {
-    (///):all k,e,f,xx ~~ (m[k,e],(k,e)=>f throws xx)=>m[k,f] throws xx.
+  public contract all m/2,k,e,f ~~ ixmap[m->>k,e,f] ::= {
+    (///):all xx ~~ (m[k,e],(k,e)=>f throws xx)=>m[k,f] throws xx.
   }
 
   public contract all k,v,m ~~ ixfilter[m->>k,v] ::= {
@@ -68,8 +69,13 @@ star.collection{
     mapOverList:all x ~~ (cons[e],(e)=>f throws x)=>cons[f] throws x.
     mapOverList(.nil,_) => .nil.
     mapOverList(.cons(H,T),F) => .cons(F(H),mapOverList(T,F)).
+
+    mapPlus:all x ~~ (cons[e],integer,(integer,e)=>f throws x)=>cons[f] throws x.
+    mapPlus(.nil,_,_) => .nil.
+    mapPlus(.cons(H,T),Ix,F) => .cons(F(Ix,H),mapPlus(T,Ix+1,F)).
   .} in {
-    (//) = mapOverList
+    (//) = mapOverList.
+    (L //+ F) => mapPlus(L,0,F).
   }
 
   public implementation all e ~~ folding[cons[e]->>e] => {.
@@ -95,7 +101,10 @@ star.collection{
 
   public implementation all e,f ~~ mapping[option->>e,f] => {
     (.none // _) => .none.
-    (.some(X) // F) => .some(F(X))
+    (.some(X) // F) => .some(F(X)).
+
+    (.none //+ _) => .none.
+    (.some(X) //+ F) => .some(F(0,X)).
   }
 
   public implementation all x ~~ folding[option[x]->>x] => let{

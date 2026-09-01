@@ -599,17 +599,27 @@ star.vector{
   }
 
   public implementation all e,f ~~ mapping[vect->>e,f] => let{.
-    mpVct:all xx ~~ (vct[e],((e)=>f throws xx))=>vct[f] throws xx.
-    mpVct(.e,_) => .e.
-    mpVct(.lf1(x),F) => .lf1(F(x)).
-    mpVct(.lf2(x1,x2),F) => .lf2(F(x1),F(x2)).
-    mpVct(.lf3(x1,x2,x3),F) => .lf3(F(x1),F(x2),F(x3)).
-    mpVct(.lf4(x1,x2,x3,x4),F) => .lf4(F(x1),F(x2),F(x3),F(x4)).
-    mpVct(.vct1(V),F) => .vct1(mpVct(V,F)).
-    mpVct(.vct2(V1,V2),F) => .vct2(mpVct(V1,F),mpVct(V2,F)).
-    mpVct(.vct3(V1,V2,V3),F) => .vct3(mpVct(V1,F),mpVct(V2,F),mpVct(V3,F)).
-    mpVct(.vct4(V1,V2,V3,V4),F) => .vct4(mpVct(V1,F),mpVct(V2,F),mpVct(V3,F),mpVct(V4,F)).
+    mpV:all xx ~~ (vct[e],((e)=>f throws xx))=>vct[f] throws xx.
+    mpV(.e,_) => .e.
+    mpV(.lf1(x),F) => .lf1(F(x)).
+    mpV(.lf2(x1,x2),F) => .lf2(F(x1),F(x2)).
+    mpV(.lf3(x1,x2,x3),F) => .lf3(F(x1),F(x2),F(x3)).
+    mpV(.lf4(x1,x2,x3,x4),F) => .lf4(F(x1),F(x2),F(x3),F(x4)).
+    mpV(.vct1(V),F) => .vct1(mpV(V,F)).
+    mpV(.vct2(V1,V2),F) => .vct2(mpV(V1,F),mpV(V2,F)).
+    mpV(.vct3(V1,V2,V3),F) => .vct3(mpV(V1,F),mpV(V2,F),mpV(V3,F)).
+    mpV(.vct4(V1,V2,V3,V4),F) => .vct4(mpV(V1,F),mpV(V2,F),mpV(V3,F),mpV(V4,F)).
+
+    plF:all xx ~~ ((integer,e)=>f throws xx)=>(e)=>f throws xx.
+    plF(F) => valof{
+      Cx := 0;
+      valis ((E) => valof{
+	Rx = F(Cx!,E);
+	Cx := Cx!+1;
+	  valis Rx})
+    }
   .} in {
-    (.vector(Dp,V) // F) => .vector(Dp,mpVct(V,F))
+    (.vector(Dp,V) // F) => .vector(Dp,mpV(V,F)).
+    (.vector(Dp,V) //+ F) => .vector(Dp,mpV(V,plF(F))).
   }
 }

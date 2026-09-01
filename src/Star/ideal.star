@@ -183,14 +183,14 @@ star.ideal{
   foldLeafs(.nil,_,u)=>u.
   foldLeafs(.cons(k->v,l),f,u) => foldLeafs(l,f,f(k,v,u)).
 
-  public implementation ixmap[map] => let {.
-    ixMap:all k,v,w,xx ~~ (map[k,v],(k,v)=>w throws xx) => map[k,w] throws xx.
+  public implementation all k,e,f ~~ ixmap[map->>k,e,f] => let {.
+    ixMap:all ix ~~ (map[k,e],(k,e)=>f throws ix) => map[k,f] throws ix.
     ixMap(.ihNil,_) => .ihNil.
     ixMap(.ihNode(A1,A2,A3,A4),f) =>
       .ihNode(ixMap(A1,f),ixMap(A2,f),ixMap(A3,f),ixMap(A4,f)).
     ixMap(.ihLeaf(Hash,Els),f) => .ihLeaf(Hash,applyF(Els,f)).
 
-    private applyF:all k,v,w,xx ~~ (cons[keyval[k,v]],(k,v)=>w throws xx)=>cons[keyval[k,w]] throws xx.
+    private applyF:all ax ~~ (cons[keyval[k,e]],(k,e)=>f throws ax)=>cons[keyval[k,f]] throws ax.
     applyF(.nil,_) => .nil.
     applyF(.cons(K->V,L),f) => .cons(K->f(K,V),applyF(L,f)).
  .}
@@ -210,16 +210,16 @@ star.ideal{
   checkEntry(_,_,So,_) => So.
 
   public implementation all k,v ~~ ixfold[map[k,v]->>k,v] => let{.
-    idealRight:all x,xx ~~ ((k,v,x) => x throws xx, x, map[k,v])=>x throws xx.
+    idealRight:all x,yx ~~ ((k,v,x) => x throws yx, x, map[k,v])=>x throws yx.
     idealRight(F,U,.ihNil) => U.
     idealRight(F,U,.ihLeaf(_,Els)) => consIxRight(F,U,Els).
     idealRight(F,U,.ihNode(A1,A2,A3,A4)) => idealRight(F,idealRight(F,idealRight(F,idealRight(F,U,A4),A3),A2),A1).
 
-    consIxRight:all x,xx ~~ (((k,v,x) => x throws xx),x,cons[keyval[k,v]]) => x throws xx.
+    consIxRight:all x,cx ~~ (((k,v,x) => x throws cx),x,cons[keyval[k,v]]) => x throws cx.
     consIxRight(F,U,.nil) => U.
     consIxRight(F,U,.cons(K->V,T)) => F(K,V,consIxRight(F,U,T)).
 
-    idealLeft:all x,xx ~~ ((k,v,x) => x throws xx, x, map[k,v])=>x throws xx.
+    idealLeft:all x,lx ~~ ((k,v,x) => x throws lx, x, map[k,v])=>x throws lx.
     idealLeft(F,U,.ihNil) => U.
     idealLeft(F,U,.ihLeaf(_,Els)) => consIxLeft(F,U,Els).
     idealLeft(F,U,.ihNode(A1,A2,A3,A4)) => idealLeft(F,idealLeft(F,idealLeft(F,idealLeft(F,U,A1),A2),A3),A4).

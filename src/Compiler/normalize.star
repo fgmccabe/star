@@ -20,6 +20,10 @@ star.compiler.normalize{
   import star.compiler.location.
   import star.compiler.data.
 
+  /* Lambda lifting flattens all functions. This implies that we must also
+  implement a form of let generalization, even though this is not done for user
+  code.  */
+
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
     Map = pkgMap(Decls,pkgMap(stdTypes,[]));
@@ -55,11 +59,6 @@ star.compiler.normalize{
     transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex).
   transformDef(.cnsDef(Lc,FullNm,Ix,Tp),Map,_,_,_,Ex) =>
     transformConsDef(Lc,FullNm,Ix,Tp,Map,Ex).
-
-  /* Lambda lifting flattens all functions. This implies that we must also
-  implement a form of let generalization, even though this is not done for user
-  code.
-  */
 
   quantNm(.kVar(Nm)) => Nm.
   quantNm(.kFun(Nm,_)) => Nm.

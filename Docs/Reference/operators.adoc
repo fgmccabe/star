@@ -68,6 +68,7 @@ interpretation.
 |`+++.~.+++` | 650 | non-associative prefix | bitwise 1's complement
 |`+++/+++` | 700 | left associative infix | division
 |`+++//+++` | 960 | left associative infix | map over
+|`+++//++++` | 960 | left associative infix | map over
 |`+++///+++` | 960 | left associative infix | indexed map over
 |`+++/\+++` | 700 | left associative infix | intersection
 |`+++:+++` | 1250 | non-associative infix | type declaration/annotation
