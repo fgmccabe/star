@@ -47,8 +47,16 @@ star.compiler.normalize{
     transformProcedure(Lc,FullNm,Rls,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
-  transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
+  transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
+    if traceNormalize! then{
+      showMsg("transform var $(.varDef(Lc,Nm,FullNm,Val,Cx,Tp)) @ $(Lc)");
+    };
+
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
+    if traceNormalize! then{
+      showMsg("transformed var $(.glDef(Lc,FullNm,Tp,Vl)) @ $(Lc)");
+    };
+
     valis [uniqify(.glDef(Lc,FullNm,Tp,Vl)),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
@@ -68,13 +76,7 @@ star.compiler.normalize{
   varId(.tVar(_,Nm)) => Nm.
   varId(.tFun(_,_,Nm)) => Nm.
 
-  closureFreeVars(Tp,Extra) => valof{
-    (OwnQ,_) = deQuant(deRef(Tp));
-    OwnQNames = OwnQ//quantNm;
-    valis (Exv?=Extra ?? collectFreeTypeVars(typeOf(Exv),OwnQNames) || [])
-  }
-
-  skolemizeFreeVars:(cons[tipe]) => (cons[tipe],cons[(string,tipe)]).
+  skolemizeFreeVars:(set[tipe]) => (cons[tipe],cons[(string,tipe)]).
   skolemizeFreeVars(Vs) => valof{
     Quants := ([]:cons[tipe]);
     Subst := ([]:cons[(string,tipe)]);
@@ -208,15 +210,35 @@ star.compiler.normalize{
     extendLtt(Q,_)=>Q.
     onRaw(_,_)=>.none.
     onARaw(_,_)=>.none.
-    }.
+  }.
 
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
       showMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) @ $(Lc)");
+      showMsg("extra = $(Extra)");
     };
-    (Quants,Subst) = skolemizeFreeVars(closureFreeVars(Tp,Extra));
-    ExtraS = (.cVar(ELc,Exv0)?=Extra ?? .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) || Extra);
-    ATp = closeOverVars(Quants,extendFunTp(deRef(Tp),ExtraS));
+
+    (_,TpX) = deQuant(Tp);
+
+    TpE = extendFunTp(TpX,Extra);
+
+    if traceNormalize! then{
+      showMsg("TpX = $(TpX), TpE = $(TpE)")
+    };
+
+    (Quants,Subst) = skolemizeFreeVars(freeTypeVars(TpE));
+    ExtraS = (.cVar(ELc,Exv0)?=Extra ??
+      .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) ||
+      Extra);
+
+    ATp = reQuant(Quants,skolSubstTp(TpE,Subst));
+
+    if traceNormalize! then{
+      showMsg("lifted type of $(Tp) = $(ATp) @ $(Lc)");
+    };
+
+    if Msg ?= validType(ATp,.false) then
+      reportError("Lifted type $(ATp) of $(Tp) is not valid",Lc);
 
     (Eqs0,Ex1) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex);
     Eqs = substEqns(Eqs0,Subst);
@@ -226,32 +248,36 @@ star.compiler.normalize{
 	showMsg("transformed function $(Func)");
 
       ClosureNm = closureNm(FullNm);
-      ClVar = (.cVar(_,Exv)?=ExtraS ?? Exv || .cV("_",unitTp));
-      ClVars = makeFunVars(Tp)//(V)=>skolSubstCV(V,Subst);
-      ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
+      ClVars = makeFunVars(TpX)//(V)=>skolSubstCV(V,Subst);
 
-      ClosTp = closeOverVars(Quants,extendFunTp(deRef(Tp),.some(ClVar)));
+      if .cVar(_,Exv)?=Extra then {
+	ClArgs = ([Exv,..ClVars]//(V)=>.cVar(Lc,V));
 
-      if traceNormalize! then
-	showMsg("closure #(ClosureNm)\:$(ClosTp)");
+	ClosTp = reQuant(Quants,skolSubstTp(TpE,Subst));
 
-      if Exv?=Extra then {
+	if traceNormalize! then
+	  showMsg("closure #(ClosureNm)\:$(ClosTp)");
+
+	ClosEntry =
+	  .fnDef(Lc,ClosureNm,ClosTp,[Exv,..ClVars],
+	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
+	  .cXCall(Lc,FullNm,ClArgs,ResType,ErTp) ||
+	  .cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	if traceNormalize! then
+	  showMsg("closure entry $(ClosEntry)");
+	valis [Func,ClosEntry,..Ex1]
+      } else {
+	ClVar = .cV("_",unitTp);
+	ClosTp = reQuant(Quants,skolSubstTp(extendFunTp(TpX,.some(ClVar)),Subst));
+	ClArgs = (ClVars//(V)=>.cVar(Lc,V));
+
 	ClosEntry =
 	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
 	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
 	  .cXCall(Lc,FullNm,ClArgs,ResType,ErTp) ||
 	  .cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
 	if traceNormalize! then
-	  showMsg("closure entry #(ClosureNm) params=$([ClVar,..ClVars]) = $(ClosEntry)");
-	valis [Func,ClosEntry,..Ex1]
-      } else {
-	ClosEntry =
-	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
-	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
-	  .cXCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),ResType,ErTp) ||
-	  .cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
-	if traceNormalize! then
-	  showMsg("closure entry #(ClosureNm) params=$([ClVar,..ClVars]) = $(ClosEntry)");
+	  showMsg("closure entry $(ClosEntry)");
 	valis [Func,ClosEntry,..Ex1]
       }
     } catch {
@@ -266,14 +292,31 @@ star.compiler.normalize{
     if traceNormalize! then{
       showMsg("transform procedure $(.prcDef(Lc,FullNm,Rls,[],Tp)) @ $(Lc)");
     };
-    (Quants,Subst) = skolemizeFreeVars(closureFreeVars(Tp,Extra));
-    ExtraS = (.cVar(ELc,Exv0)?=Extra ?? .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) || Extra);
-    ATp = closeOverVars(Quants,extendFunTp(deRef(Tp),ExtraS));
+
+    (_,TpX) = deQuant(Tp);
+
+    TpE = extendFunTp(TpX,Extra);
+
+    if traceNormalize! then{
+      showMsg("TpX = $(TpX), TpE = $(TpE)")
+    };
+
+    (Quants,Subst) = skolemizeFreeVars(freeTypeVars(TpE));
+    ExtraS = (.cVar(ELc,Exv0)?=Extra ??
+      .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) ||
+      Extra);
+
+    ATp = reQuant(Quants,skolSubstTp(TpE,Subst));
+
+    if traceNormalize! then{
+      showMsg("lifted type of $(Tp) = $(ATp) @ $(Lc)");
+    };
+
+    if Msg ?= validType(ATp,.false) then
+      reportError("Lifted type $(ATp) of $(Tp) is not valid",Lc);
+
     (Eqs0,Ex1) = transformRules(Rls,Map,Outer,Q,Extra,Ex);
     Eqs = substRules(Eqs0,Subst);
-
-    if traceNormalize! then
-      showMsg("transformed rules $(Eqs)");
 
     try{
       Proc = ?procMatcher(Lc,FullNm,ATp,Map,Eqs);
@@ -282,26 +325,36 @@ star.compiler.normalize{
 	showMsg("transformed procedure $(Proc)");
 
       ClosureNm = closureNm(FullNm);
-      ClVar = (.cVar(_,Exv)?=ExtraS ?? Exv || .cV("_",unitTp));
-      ClVars = makeFunVars(Tp)//(V)=>skolSubstCV(V,Subst);
-      ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
+      ClVars = makeFunVars(TpX)//(V)=>skolSubstCV(V,Subst);
 
-      ClosTp = closeOverVars(Quants,extendFunTp(deRef(Tp),.some(ClVar)));
+      if .cVar(_,Exv)?=Extra then {
+	ClArgs = ([Exv,..ClVars]//(V)=>.cVar(Lc,V));
 
-      if Exv?=Extra then {
+	ClosTp = reQuant(Quants,skolSubstTp(TpE,Subst));
+
+	if traceNormalize! then
+	  showMsg("closure #(ClosureNm)\:$(ClosTp)");
+
+	ClosEntry =
+	  .prDef(Lc,ClosureNm,ClosTp,[Exv,..ClVars],.aDo(Lc,
+	    (_,_,ErTp)?=isThrowingFunType(Tp) ??
+	  .cXCall(Lc,FullNm,ClArgs,.voidType,ErTp) ||
+	    .cCall(Lc,FullNm,ClArgs,.voidType)));
+	if traceNormalize! then
+	  showMsg("closure entry $(ClosEntry)");
+	valis [Proc,ClosEntry,..Ex1]
+      } else {
+	ClVar = .cV("_",unitTp);
+	ClosTp = reQuant(Quants,skolSubstTp(extendFunTp(TpX,.some(ClVar)),Subst));
+	ClArgs = (ClVars//(V)=>.cVar(Lc,V));
+
 	ClosEntry =
 	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.aDo(Lc,
 	  (_,_,ErTp)?=isThrowingFunType(Tp) ??
 	  .cXCall(Lc,FullNm,ClArgs,.voidType,ErTp) ||
 	    .cCall(Lc,FullNm,ClArgs,.voidType)));
-	valis [Proc,ClosEntry,..Ex1]
-      } else {
-	ClosEntry =
-	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
-	  .aDo(Lc,
-	    (_,_,ErTp)?=isThrowingFunType(Tp) ??
-	    .cXCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType,ErTp) ||
-	    .cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType)));
+	if traceNormalize! then
+	  showMsg("closure entry $(ClosEntry)");
 	valis [Proc,ClosEntry,..Ex1]
       }
     } catch {

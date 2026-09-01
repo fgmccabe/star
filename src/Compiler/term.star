@@ -93,9 +93,9 @@ star.compiler.term{
   dspDef:(cDefn,string) => string.
   dspDef(Df,Off) => case Df in {
     | .fnDef(_Lc,Nm,Tp,Args,Rep) =>
-      "fn: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))"
+      "#(Nm)\:$(Tp)\nfn: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))"
     | .prDef(_Lc,Nm,Tp,Args,Act) =>
-      "pr: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspAct(Act,Off))"
+      "#(Nm)\:$(Tp)\npr: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspAct(Act,Off))"
     | .glDef(_Lc,Nm,Tp,Rep) => "vr: #(Nm)=#(dspExp(Rep,Off))"
     | .tpDef(_Lc,Tp,TpRl,Map) => "tp: $(TpRl) with $(Map)"
     | .lblDef(_Lc,Lbl,Tp,Ix) => "lb: $(Lbl)\:$(Tp)@$(Ix)"
@@ -1175,7 +1175,8 @@ star.compiler.term{
       valis .cCnd(Lc,Tst,Th,El).
     }
 
-    decorateVar(Lc,Nm,Vr,Val) => .cVarNme(Lc,Nm,Vr,Val).
+    decorateVar(Lc,Nm,Vr,Val) where present(Val,(V)=>V==Vr) => .cVarNme(Lc,Nm,Vr,Val).
+    decorateVar(Lc,Nm,Vr,Val) => Val.
 
     pullWhere(.cTerm(Lc,Lbl,Args,Tp)) where (NArgs,Gx) .= pullWheres(Args) =>
       (.cTerm(Lc,Lbl,NArgs,Tp),Gx).
@@ -1475,10 +1476,10 @@ star.compiler.term{
     onSv((_,ET),Lc,Tp)=>ET(.cSv(Lc,Tp)).
     onSvDrf(_,_,E,_)=>E.
     onSvSet(_,_,E,V)=>E||V.
-    onCall(_,_,_,Args,_)=>orAll(Args).
-    onOCall(_,_,Op,Args,_)=>Op||orAll(Args).
-    onXCall(_,_,_,Args,_,_)=>orAll(Args).
-    onXOCall(_,_,Op,Args,_,_)=>Op||orAll(Args).
+    onCall((_,ET),Lc,Nm,Args,Tp)=>ET(.cCall(Lc,Nm,[],Tp))||orAll(Args).
+    onOCall((_,ET),Lc,Op,Args,Tp)=>ET(.cOCall(Lc,.cVoid(Lc),[],Tp))||Op||orAll(Args).
+    onXCall((_,ET),Lc,Nm,Args,Tp,ErTp)=>ET(.cXCall(Lc,Nm,[],Tp,ErTp))||orAll(Args).
+    onXOCall((_,ET),Lc,Op,Args,Tp,ErTp)=>ET(.cXOCall(Lc,.cVoid(Lc),[],Tp,ErTp))||Op||orAll(Args).
     onSeq(_,_,L,R)=>L||R.
     onCnj(_,_,L,R)=>L||R.
     onDsj(_,_,L,R)=>L||R.
