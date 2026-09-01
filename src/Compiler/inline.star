@@ -246,11 +246,20 @@ star.compiler.inline{
   
   inlineVar(Lc,.cV("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cV(Id,Tp),Map,Depth) where
-      .glDef(_,_,_,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
-    Sim = simplify(Vl,Map,Depth);
+      .glDef(_,_,GlTp,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
+    (Quants,FreshFTp) = freshen(GlTp,emptyDict);
+    if traceInline! then{
+      showMsg("Inlining global #(Id)\:$(GlTp) @ $(Lc), expecting $(Tp)");
+      showMsg("Freshened globaltype $(FreshFTp)");
+    }
+
+    (SpecVrs,SpecVl) = specializeTypes(FreshFTp,Tp,Quants,[],Vl,Lc,Id);
+
+    SimGl = simplifyExp(freshenE(SpecVl,[]),Map[~.varSp(Id)],Depth-1);
+
     if traceInline! then
-      showMsg("Replace global var #(Id) with $(Sim)");
-    valis Sim
+      showMsg("Replace global var #(Id) with $(SimGl)");
+    valis SimGl
       }
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
@@ -371,7 +380,7 @@ star.compiler.inline{
     sameType(FreshFTp,CallTp,emptyDict) ??
       (Vrs//(V)=>substCV(V,Quants), substTypesE(Rep,Quants))
     || valof{
-      reportError("cannot align types when inlining #(Nm)\: $(FreshFTp) vs $(CallTp)",Lc);
+      reportError("cannot align types of #(Nm)\: $(FreshFTp) to call type $(CallTp)",Lc);
       valis (Vrs,Rep)
     }.
 
@@ -467,7 +476,7 @@ star.compiler.inline{
 
   inlineCall:(option[locn],string,cons[cExp],tipe,map[defnSp,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) where Depth>0 &&
-      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) =>
+      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) && ~ isThrowingType(FTp) =>
     valof{
     CallTp = .funType(.tupleType(Args//typeOf),Tp,.voidType);
     (Quants,FreshFTp) = alignQuants(FTp,CallTp,emptyDict);
@@ -552,7 +561,9 @@ star.compiler.inline{
   isLeafDef:(cDefn) => boolean.
   isLeafDef(D) => ~present(D,(Cll) =>
       (.cOCall(_,_,_,_).=Cll ||
-      (.cCall(_,Nm,_,_) .= Cll && ~isEscape(Nm)))).
+      (.cCall(_,Nm,_,_) .= Cll && ~ isEscape(Nm))||
+      .cXOCall(_,_,_,_,_).=Cll ||
+      (.cXCall(_,N,_,_,_) .= Cll && ~isEscape(N)))).
 
   isSmall:(cDefn) => boolean.
   isSmall(Df) => isLeafDef(Df) || [|Df|] < 32.
