@@ -173,6 +173,7 @@ Argument N  oprefix."
   ;; to ensure that the cache is consistent.
   (setq-local after-change-functions
 	      (cons 'star-after-change-function after-change-functions))
+  (setq-local show-trailing-whitespace t)
 
   (use-local-map star-mode-map)
 

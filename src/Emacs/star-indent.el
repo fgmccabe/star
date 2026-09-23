@@ -38,7 +38,7 @@
   "regular expression that matches numeric literals")
 
 (defconst star-id-regexp
-  "\\(\\(?:[a-zA-Z_][a-zA-Z_0-9]*\\)\\|'\\(?:.*\\)*'\\)"
+  "\\(\\(?:[a-zA-Z_][a-zA-Z_0-9]*\\)\\|'\\(?:\\\\.\\|[^'\n]\\)*'\\)"
   "regular expression that matches identifiers")
 
 (defconst star-char-regexp
@@ -64,7 +64,14 @@
     (goto-char pos)
     (let ((done nil))
       (while (and (not done) (< (point) limit))
-	(cond ((looking-at star-line-comment-regexp)
+	(cond ;; Resuming a cached scan can land inside an already-open
+	      ;; block comment (its opener isn't at point); detect that
+	      ;; via the syntax parser and skip to the comment's end,
+	      ;; rather than tokenizing the comment's text as code.
+	      ((nth 4 (syntax-ppss (point)))
+	       (goto-char (nth 8 (syntax-ppss (point))))
+	       (forward-comment 1))
+	      ((looking-at star-line-comment-regexp)
 	       (star-skip-line-comment))
 	      ((looking-at "[ \n\t]")
 	       (skip-chars-forward " \n\t"))
@@ -333,50 +340,47 @@
 			 (setq state (car stack)
 			       stack (cdr stack))))
 		      ((eq tktype 'operator)
-		       (cond ((star-is-prefixop op)
-			      (if (star-is-at-bol start)
-				  (let* ((spec (star-is-prefixop op))
-					 (rprior (2nd spec))
-					 (bkt-indent (star-state-bkt-indent state)))
-				    (if (star-is-hanging op)
-					(setq stack (cons state stack)
-					      state (star-create-state
-						     'operator
-						     (star-operator-hanging-indent bkt-indent op)
-						     bkt-indent
-						     rprior nil))
-				      (setq stack (cons state stack)
-					    state (star-create-state
-						   'operator
-						   (star-operator-indent (star-state-indent state) op)
-						   bkt-indent
-						   rprior nil)
-					    )))))
-			     ((star-is-infixop op)
-			      (if (or (star-is-at-bol start) (star-is-at-eol end))
-				  (let* ((spec (star-is-infixop op))
-					 (lprior (1st spec))
-					 (rprior (3rd spec)))
-				    (while (and stack
-						(<= (state-priority state) lprior))
-				      (setq state (car stack)
-					    stack (cdr stack)))
+		       (cond ((and (star-is-prefixop op) (star-is-at-bol start))
+			      (let* ((spec (star-is-prefixop op))
+				     (rprior (2nd spec))
+				     (bkt-indent (star-state-bkt-indent state)))
+				(if (star-is-hanging op)
 				    (setq stack (cons state stack)
 					  state (star-create-state
 						 'operator
-						 (star-operator-indent (star-state-indent state) op)
-						 (star-state-bkt-indent state)							 rprior nil)
-					  ))))
-			     ((star-is-postfixop op)
-			      (if (star-is-at-eol end)
-				  (let* ((spec (star-is-postfixop op))
-					 (lprior (1st spec)))
-				    (while (and stack
-						(<= (state-priority state) lprior))
-				      (setq state (car stack)
-					    stack (cdr stack)))
-				    ))
-			      )
+						 (star-operator-hanging-indent bkt-indent op)
+						 bkt-indent
+						 rprior nil))
+				  (setq stack (cons state stack)
+					state (star-create-state
+					       'operator
+					       (star-operator-indent (star-state-indent state) op)
+					       bkt-indent
+					       rprior nil)
+					))))
+			     ((and (star-is-infixop op) (or (star-is-at-bol start) (star-is-at-eol end)))
+			      (let* ((spec (star-is-infixop op))
+				     (lprior (1st spec))
+				     (rprior (3rd spec)))
+				(while (and stack
+					    (<= (state-priority state) lprior))
+				  (setq state (car stack)
+					stack (cdr stack)))
+				(setq stack (cons state stack)
+				      state (star-create-state
+					     'operator
+					     (star-operator-indent (star-state-indent state) op)
+					     (star-state-bkt-indent state)
+					     rprior nil)
+				      )))
+			     ((and (star-is-postfixop op) (star-is-at-eol end))
+			      (let* ((spec (star-is-postfixop op))
+				     (lprior (1st spec)))
+				(while (and stack
+					    (<= (state-priority state) lprior))
+				  (setq state (car stack)
+					stack (cdr stack)))
+				))
 			 ))
 		      ((eq tktype 'bracket)
 		       (if (star-is-left op)
