@@ -9,6 +9,7 @@ star.compiler.ssa{
   import star.compiler.location.
   import star.compiler.data.
   import star.compiler.meta.
+  import star.compiler.misc.
   import star.compiler.types.
   import star.compiler.encode.
   import star.compiler.ltipe.
@@ -447,13 +448,6 @@ star.compiler.ssa{
 
   showPc:(integer, integer) => string.
   showPc(Pc,Sps) => "$(Pc):    9; #(spaces(Sps))".
-
-  spaces:(integer)=>string.
-  spaces(Ln) where Ln>=0 => let{.
-    sp(0) => [].
-    sp(N) => [` `,..sp(N-1)].
-  .} in _implode(sp(Ln)).
-  spaces(_) => "".
 
   showLocals:(cons[string]) => string.
   showLocals(Lcls) => "(#(interleave(Lcls,", ")*))".

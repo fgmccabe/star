@@ -32,19 +32,6 @@ star.compiler.rewrite{
   extractVars(.aMatch(_,P,_)) => ptnVrs(P,[]).
   extractVars(_) default => [].
 
-/*  public freshenE:(cExp,rwMap)=>cExp.
-  freshenE(Term,Mp) =>
-    rwTerm(Term,Mp,extendE).
-
-  extendE(.inLet(V),Map) => Map[vName(V)->newVar(V)].
-  extendE(.inPttrn(P),Map) =>
-    foldRight((V,M)=>M[vName(V)->newVar(V)],Map,ptnVrs(P,[])).
-  extendE(.inGoal(G),Map) =>
-    foldRight((V,M)=>M[vName(V)->newVar(V)],Map,glVars(G,[])).
-  extendE(.inSeq(A),Map) =>
-  foldRight((V,M)=>M[vName(V)->newVar(V)],Map,extractVars(A)).
-  */
-
   rwTerm:(cExp,rwMap,extMap)=>cExp.
   rwTerm(Trm,Mp,ExtFn) => case Trm in {
     | .cVoid(_) => Trm
@@ -56,7 +43,7 @@ star.compiler.rewrite{
     | .cFlt(Lc,Dx) => Trm
     | .cChar(Lc,Cx) => Trm
     | .cString(Lc,Sx) => Trm
-    | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,rwTerms(Args,Mp,ExtFn),Tp)
+    | .cTerm(Lc,Op,Ix,Args) => .cTerm(Lc,Op,Ix,rwTerms(Args,Mp,ExtFn))
     | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,rwTerm(R,Mp,ExtFn),Ix,Tp)
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,rwTerm(R,Mp,ExtFn),Ix,rwTerm(E,Mp,ExtFn))
     | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,rwTerm(F,Mp,ExtFn),Tp)
@@ -106,7 +93,7 @@ star.compiler.rewrite{
     | .cRetyr(Lc,T,M,Tp) => .cRetyr(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
     | .cVarNme(Lc,N,V,E) => .cVarNme(Lc,N,rwTerm(V,Mp,ExtFn),rwTerm(E,Mp,ExtFn))
     | .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Mp,ExtFn),Tp)
-    | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
+    | .cAbort(Lc,Ms) => .cAbort(Lc,Ms)
   }.
 
   rwTerms:(cons[cExp],rwMap,extMap)=>cons[cExp].
@@ -129,7 +116,7 @@ star.compiler.rewrite{
     | .cFlt(Lc,Dx) => Ptn
     | .cChar(Lc,Cx) => Ptn
     | .cString(Lc,Sx) => Ptn
-    | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,rwPtns(Args,Mp,ExtFn),Tp)
+    | .cTerm(Lc,Op,Ix,Args) => .cTerm(Lc,Op,Ix,rwPtns(Args,Mp,ExtFn))
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,rwPtn(R,Mp,ExtFn),Ix,rwPtn(E,Mp,ExtFn))
     | .cSvDrf(Lc,E,Tp) => .cSvDrf(Lc,rwPtn(E,Mp,ExtFn),Tp)
   }
@@ -173,7 +160,7 @@ star.compiler.rewrite{
     MTpl = rwTerm(VTpl,Mp,ExtFn);
     valis .cMatch(Lc,mcSome(Lc,MTpl),
       .cCnd(Lc,Lx,mcSome(Lc,LPtn),
-	.cCnd(Lc,Rx,mcSome(Lc,RPtn),mcNone(Lc,typeOf(MTpl)))))
+	.cCnd(Lc,Rx,mcSome(Lc,RPtn),mcNone(Lc))))
   }
 
   pullOutDis(G,Tpl,ExtFn) => valof{

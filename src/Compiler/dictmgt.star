@@ -27,7 +27,7 @@ star.compiler.dict.mgt{
     dictV([Sc,.._]) where Entry?=Sc.vars[Nm] => .some(Entry).
     dictV([_,..Env]) => dictV(Env).
   .} in dictV(Scs).
-	  
+
   public showVar:(string,dict) => string.
   showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)?=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
@@ -44,7 +44,6 @@ star.compiler.dict.mgt{
     findImpl([_,..Rest]) => findImpl(Rest).
     findImpl([]) => .none.
   .} in findImpl(Scs).
-  
 
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
@@ -203,7 +202,7 @@ star.compiler.dict.mgt{
 
   public declareDecls:(cons[decl],dict)=>dict.
   declareDecls([],Dict) => Dict.
-  declareDecls([D,..Ds],Dict) => 
+  declareDecls([D,..Ds],Dict) =>
     declareDecls(Ds,declareDecl(D,Dict)).
 
   declareDecl(Dc,Dict) => case Dc in {
@@ -216,7 +215,7 @@ star.compiler.dict.mgt{
     | .tpeDec(Lc,Nm,Tp,TpRl,Map) => declareType(Nm,Lc,Tp,TpRl,Dict)
     | .varDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)
     | .funDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)
-    | .cnsDec(Lc,Nm,FullNm,Tp) => declareConstructor(Nm,FullNm,Lc,Tp,Dict)
+    | .cnsDec(Lc,Nm,FullNm,Ix,Tp) => declareConstructor(Nm,FullNm,Lc,Tp,Dict)
   }
 
   public pushFace:(tipe,option[locn],dict,string) => dict.
@@ -229,7 +228,7 @@ star.compiler.dict.mgt{
   pushSig:(tipe,option[locn],(string,tipe,dict)=>dict,dict) => dict.
   pushSig(.faceType(Vrs,Tps),Lc,Mkr,Env) =>
     pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
-  
+
   pushFlds:(cons[(string,tipe)],option[locn],(string,tipe,dict)=>dict,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
   pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env)  =>

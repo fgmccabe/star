@@ -16,4 +16,4 @@ test.a0{
     _logmsg(_stringOf(fact(3),0))
   }
 }
-  
+

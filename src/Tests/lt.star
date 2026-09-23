@@ -21,11 +21,10 @@ test.lt{
     zero = 0.
   }.
 
-  
   main:(){}.
   main(){
     show ll(1);
     show ll(2);
     show pl(zero,1);
   }
-}  
+}

@@ -6,6 +6,7 @@ star.compiler.data{
   import star.sort.
 
   import star.compiler.location.
+  import star.compiler.ltipe.
   import star.compiler.misc.
   import star.compiler.types.
 
@@ -18,7 +19,7 @@ star.compiler.data{
   | .strg(string)
   | .term(string,cons[data])
   | .symb(termLbl)
-  | .clos(termLbl,data,tipe).
+  | .clos(termLbl,data,ltipe).
 
   public implementation display[termLbl] => {
     disp(.tLbl(Nm,Ar)) => "#(Nm)/$(Ar)".
@@ -146,5 +147,13 @@ star.compiler.data{
   public implementation all e,x ~~ coercion[data,e->>x] |= coercion[data,option[e]->>_] => {
     _coerce(.symb(.tLbl("none",0))) => .none.
     _coerce(.term("some",[T])) => .some(T::e)
+  }
+
+  public implementation coercion[ltipe,data->>void] => {
+    _coerce(Tp) => .strg((encTp(Tp)::cons[char])::string)
+  }
+
+  public implementation coercion[data,ltipe->>exception] => {
+    _coerce(.strg(Sig)) where (Tp,[]) .= decTp(Sig::cons[char]) => Tp
   }
 }

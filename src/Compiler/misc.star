@@ -30,7 +30,7 @@ star.compiler.misc{
   qualifiedName(Pth,Mrk,Nm) => Pth++markerString(Mrk)++Nm.
 
   public localName:(string,markerType)=>string.
-  localName(QNm,M) where Ix?=strFind(QNm,markerString(M),0) 
+  localName(QNm,M) where Ix?=strFind(QNm,markerString(M),0)
       && MX .= [|markerString(M)|] =>
     subString(QNm,Ix+MX,[|QNm|]-Ix-MX).
   localName(Nm,_) default => Nm.
@@ -52,6 +52,13 @@ star.compiler.misc{
 
   public packageName:(pkg)=>string.
   packageName(.pkg(P,_))=>P.
+
+  public spaces:(integer)=>string.
+  spaces(Ln) where Ln>=0 => let{.
+    sp(0) => [].
+    sp(N) => [` `,..sp(N-1)].
+  .} in _implode(sp(Ln)).
+  spaces(_) => "".
 
   public pickFailures:all e,x ~~ (cons[either[x,e]])=>either[cons[x],e].
   pickFailures(Ls) => let{.

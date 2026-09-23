@@ -41,6 +41,7 @@ star.compiler.opts{
   public traceResolve = ref .false.
   public showNormalize = ref .false.
   public traceNormalize = ref .false.
+  public normalizeOnly = ref .false.
   public optimization = ref .base.
   public traceCodegen = ref .false.
   public traceInline = ref .false.
@@ -75,7 +76,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       forceCompile := .true;
-      
+
       valis Opts
     }
   }
@@ -100,7 +101,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       traceAst := .true;
-      
+
       valis Opts
     }
   }
@@ -173,7 +174,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       traceCanon := .true;
-      
+
       valis Opts
     }
   }
@@ -186,7 +187,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       showCanon := .true;
-      
+
       valis Opts
     }
   }
@@ -211,7 +212,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       showNormalize := .true;
-      
+
       valis Opts
     }
   }
@@ -224,7 +225,19 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       traceNormalize := .true;
-      
+
+      valis Opts
+    }
+  }
+
+  public normalizeOnlyOption:cmdOption[compilerOptions].
+  normalizeOnlyOption = cmdOption{
+    shortForm = "-n".
+    alternatives = ["--normalize-only"].
+    usage = "-c -- normalize-only".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      normalizeOnly := .true;
       valis Opts
     }
   }
@@ -237,7 +250,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       traceCodegen := .true;
-      
+
       valis Opts
     }
   }
@@ -250,7 +263,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       showCode := .true;
-      
+
       valis Opts
     }
   }
@@ -287,7 +300,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       traceInline := .true;
-      
+
       valis Opts
     }
   }
@@ -332,7 +345,7 @@ star.compiler.opts{
     validator = .none.
     setOption(_,Opts) => valof{
       traceWasm := .true;
-      
+
       valis Opts
     }
   }
@@ -367,5 +380,5 @@ star.compiler.opts{
       valis Opts
     }
   }
-}  
-  
+}
+

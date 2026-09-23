@@ -51,7 +51,6 @@ test.proc{
 
   -- q:all e ~~ ((e)=>()) => (e,e){}.
   -- q(F) => (X,_){ F(X) }
-  
 
   visitList:all e ~~ (cons[e],(e){}){}.
   visitList([],_) do {}.

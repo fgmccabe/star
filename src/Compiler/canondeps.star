@@ -3,7 +3,6 @@ star.compiler.canondeps{
 
   import star.compiler.canon.
   import star.compiler.freevars.
-  import star.compiler.term.
   import star.compiler.types.
   import star.topsort.
 
@@ -34,9 +33,9 @@ star.compiler.canondeps{
     disp(.tpSp(T)) => "type: $(T)".
   }
 
-  pickVar(.varSp(V,T),Q) => Q\+.cV(V,T).
+  pickVar(.varSp(V,T),Q) => Q\+.var(V,T).
   pickVar(_,Q) => Q.
-    
+
   definedName:(canonDef)=>defnSp.
   definedName(.funDef(_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
   definedName(.varDef(_,Nm,_,_,_,Tp))=>.varSp(Nm,Tp).
@@ -54,16 +53,16 @@ star.compiler.canondeps{
   implementation display[defSpec] => {
     disp(.defSpec(V,R,_)) => "$(V) -> $(R)".
   }
-  
-  findRefs:(canonDef,canonDef,set[cV],set[defnSp])=>defSpec.
+
+  findRefs:(canonDef,canonDef,set[canonVar],set[defnSp])=>defSpec.
   findRefs(Df,D,Q,All) => case Df in {
     | .funDef(_,Nm,Rls,_,Tp) => valof{
       Free = foldRight((Rl,F)=>freeVarsInEqn(Rl,Q,F),[],Rls);
-      valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .cV(V,T) in Free},D)
+      valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .var(V,T) in Free},D)
     }
     | .prcDef(_,Nm,Rls,_,Tp) => valof{
       Free = foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),[],Rls);
-      valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .cV(V,T) in Free},D)
+      valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .var(V,T) in Free},D)
     }
     | .varDef(_,Nm,_,Val,_,Tp) => .defSpec(.varSp(Nm,Tp),freeRefs(Val,Q,All),D)
     | .cnsDef(_,Nm,_,Tp) => .defSpec(.varSp(Nm,Tp),[],D)
@@ -72,5 +71,5 @@ star.compiler.canondeps{
 
   freeRefs(Val,Q,All) => let{
     Free = findFree(Val,Q).
-  } in { .varSp(V,T) | .cV(V,T) in Free}.
+  } in { .varSp(V,T) | .var(V,T) in Free}.
 }

@@ -187,21 +187,6 @@ star.compiler.resolve{
     }
   }
 
-  /*
-  -- A generic definition's private, let-bound helpers keep the outer
-  -- `all x ~~ ...` as a free x, not their own quantifier -- fine until
-  -- lifted to top-level, where x is then unbound. overloadTerm's .letExp/
-  -- .letRec cases requantify each one using whatever's currently declared
-  -- in Dict (see quantifiedTypeVars), so this works at any nesting depth.
-  requantifyDef:(cons[tipe],canonDef) => canonDef.
-  requantifyDef(Vs,.varDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .varDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
-  requantifyDef(Vs,.funDef(Lc,Nm,Eqs,Cx,Tp)) => .funDef(Lc,Nm,Eqs,Cx,reQuant(Vs,Tp)).
-  requantifyDef(Vs,.prcDef(Lc,Nm,Rls,Cx,Tp)) => .prcDef(Lc,Nm,Rls,Cx,reQuant(Vs,Tp)).
-  requantifyDef(Vs,.typeDef(Lc,Nm,Tp,TpRl)) => .typeDef(Lc,Nm,reQuant(Vs,Tp),TpRl).
-  requantifyDef(Vs,.cnsDef(Lc,Nm,Ix,Tp)) => .cnsDef(Lc,Nm,Ix,reQuant(Vs,Tp)).
-  requantifyDef(Vs,.implDef(Lc,Nm,FullNm,Val,Cx,Tp)) => .implDef(Lc,Nm,FullNm,Val,Cx,reQuant(Vs,Tp)).
-  */
-
   genContractType(.conTract(Nm,Tps,Dps)) => mkConType(Nm,Tps,Dps).
   genContractType(.implicit(Nm,Tp)) => Tp.
 
@@ -229,7 +214,7 @@ star.compiler.resolve{
   defineArgVars(Ptns,D) =>
     foldLeft(defineArg,D,ptnTplVars(Ptns,[],[])).
 
-  defineArg(.cV(Nm,Tp),D) => declareVar(Nm,Nm,.none,Tp,.none,D).
+  defineArg(.var(Nm,Tp),D) => declareVar(Nm,Nm,.none,Tp,.none,D).
 
   overload:all e ~~ resolve[e] |= (e,dict) => e.
   overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
@@ -592,7 +577,7 @@ star.compiler.resolve{
   }
   overloadAction(.doExp(Lc,E),Dict,St) => valof{
     (EE,St1) = overloadTerm(E,Dict,St);
-    
+
     valis (.doExp(Lc,EE),St1)
   }
 
@@ -626,7 +611,7 @@ star.compiler.resolve{
   implementation resolve[prle] => {
     resolve(T,D,S) => overloadRule([],T,D,S)
   }
-    
+
   overloadRules:(cons[canon],cons[prle],dict,resolveState) => (cons[prle],resolveState).
   overloadRules(_,[],Dict,St) => ([],St).
   overloadRules(Extra,[Rl,..Rls],Dict,St) => valof{
@@ -651,7 +636,7 @@ star.compiler.resolve{
   }
 
   addExtra(Els,Extra) => Extra++Els.
-  
+
   overloadTerms:all e ~~ resolve[e] |= (cons[e],cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTerms([],Els,Dict,St) => (reverse(Els),St).
   overloadTerms([T,..Ts],Els,Dict,St) => valof{
@@ -661,7 +646,7 @@ star.compiler.resolve{
 
   overloadTplEls:all e ~~ resolve[e] |= (cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTplEls(Els,Dict,St) => overloadTerms(Els,[],Dict,St).
-    
+
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
     if traceResolve! then
@@ -729,14 +714,7 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("resolve $(Rc).#(Fld)\:$(Tp) @ $(Lc)");
     RcTp = typeOf(Rc);
-    if Ix ?= fieldOffset(Lc,RcTp,Fld,Dict) then{
-      if traceResolve! then
-	showMsg("field $(Tp).#(Fld) access at $(Ix)");
-      valis (.tdot(Lc,Rc,Ix,Tp),markResolved(St))
-    } else if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
-      if traceResolve! then
-	showMsg("access function $(AccFn)\:$(typeOf(AccFn))");
-      
+    if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funcType([RcTp],Ft),Dict) then{
 	FrFt = snd(freshen(Ft,Dict));
@@ -744,9 +722,15 @@ star.compiler.resolve{
 
 	if sameType(Tp,FldT,Dict) then{
 	if traceResolve! then
-	  showMsg("check field type $(Ft)=$(FldT) against $(Tp)");
+	    showMsg("check field type $(Ft)=$(FldT) against $(Tp)");
 
-	  valis (manageConstraints(FrFt,Lc,(TT)=>.apply(Lc,AccFn,[Rc],FldT)),markResolved(St))
+	  if Ix ?= fieldOffset(Lc,RcTp,Fld,Dict) then{
+	    if traceResolve! then
+	      showMsg("field $(Tp).#(Fld) access at $(Ix)");
+	    valis (manageConstraints(FrFt,Lc,(TT)=>.tdot(Lc,Rc,Ix,Tp)),markResolved(St))
+	  } else{
+	    valis (manageConstraints(FrFt,Lc,(TT)=>.apply(Lc,AccFn,[Rc],FldT)),markResolved(St))
+	  }
 	} else {
 	  valis (.dot(Lc,Rc,Fld,Tp),
 	    .fatal(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).
@@ -823,7 +807,7 @@ star.compiler.resolve{
     .resolved |
     .active(option[locn],string) |
     .fatal(option[locn],string).
-  
+
   markResolved(.inactive) => .resolved.
   markResolved(St) => St.
 

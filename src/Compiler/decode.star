@@ -1,6 +1,7 @@
 star.compiler.decode{
   import star.
   
+  import star.compiler.ltipe.
   import star.compiler.types.
   import star.compiler.data.
   import star.compiler.meta.
@@ -41,7 +42,7 @@ star.compiler.decode{
     | `p` => valof{
       (Op,L0) = decodeLabel(Ls);
       (Fr,L1) = decodeTerm(L0);
-      (Tp,Lx) = decodeType(L1);
+      (Tp,Lx) = decTp(L1);
       valis (.clos(Op,Fr,Tp),Lx)
     }
     | `n` => valof{

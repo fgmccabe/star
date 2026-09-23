@@ -21,7 +21,7 @@ star.compiler.encode{
     | .chr(Cx) => [`c`,..encodeChar(Cx,`\\`)]
     | .strg(Tx) => [`s`,..encodeText(Tx)]
     | .symb(Sym) => encodeL(Sym)
-    | .clos(Lb,F,T) => [`p`]++encodeL(Lb)++encData(F)++encData(encodeSig(T))
+    | .clos(Lb,F,T) => [`p`]++encodeL(Lb)++encData(F)++encData(T::data)
     | .term("[]",Els) => [`l`]++encodeNat(size(Els))++encodeTerms(Els)
     | .term(Op,Args) => [`n`]++encodeNat(size(Args))++encodeL(.tLbl(Op,size(Args)))++encodeTerms(Args)
   }
@@ -179,8 +179,8 @@ star.compiler.encode{
 	mkCons("con",[.strg(Nm),.strg(FullNm),.strg(encodeTpRlSignature(TpRl))])
       | .tpeDec(_,Nm,Tp,TpRl,IxMap) =>
 	mkCons("tpe",[.strg(Nm),encodeSig(Tp),.strg(encodeTpRlSignature(TpRl)),encodeMap(IxMap)])
-      | .cnsDec(_,Nm,FullNm,Tp) =>
-	mkCons("cns",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+      | .cnsDec(_,Nm,FullNm,Ix,Tp) =>
+	mkCons("cns",[.strg(Nm),.strg(FullNm),.intgr(Ix),encodeSig(Tp)])
       | .varDec(_,Nm,FullNm,Tp) =>
 	mkCons("var",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
       | .funDec(_,Nm,FullNm,Tp) =>

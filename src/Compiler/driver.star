@@ -56,9 +56,10 @@ star.compiler{
 	      macroOnlyOption,
 	      showNormalizeOption,
 	      traceNormalizeOption,
+	      normalizeOnlyOption,
 	      noCodeOption,
-	      showCodegenOption,	    
-	      traceCodegenOption,	    
+	      showCodegenOption,
+	      traceCodegenOption,
 	      optimizeLvlOption,
 	      traceInlineOption,
 	      genDebugOption,
@@ -85,7 +86,7 @@ star.compiler{
   handleCmds:((compilerOptions,cons[string]))=>().
   handleCmds((Opts,Args)) => valof{
     Repo = openupRepo(Opts.repo,Opts.cwd);
-    
+
     if CatUri ?= parseUri("catalog") && CatU ?= resolveUri(Opts.cwd,CatUri) &&
 	Cat ?= loadCatalog(CatU) then{
       if forceCompile! then{
@@ -128,13 +129,13 @@ star.compiler{
 	if showMacrod! then{
 	  showMsg("Macroed package $(M)")
 	};
-	
+
 	if errorFree() && ~ macroOnly! then{
 	  (PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
 	  if showCanon! then {
 	    showMsg("type checked definitions:\n#(displayDefs(Defs))");
 	  };
-	  
+
 	  if errorFree() && ~ typeCheckOnly! then {
 	    AllDecls = IDecls++Decls;
 	    N = normalize(PkgSpec,Defs,AllDecls);
@@ -157,36 +158,39 @@ star.compiler{
 	    };
 	    if .base .= optimization! then
 	      validProg(Inlined,AllDecls);
-	    if errorFree() && genCode! then{
+	    if errorFree() && ~normalizeOnly! then{
 	      Segs = compProg(P,Inlined,AllDecls);
-	      
+
 	      if showCode! then{
 		showMsg("Generated code:");
 		for Sg in Segs do{
 		  showMsg("$(Sg)");
 		}
 	      };
-	      PkgSig = mkTpl([pkgTerm(CPkg),
-		  mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		  mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
 
-	      Code = mkTpl([pkgTerm(CPkg),
-		  .intgr(opcodeHash),
-		  mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		  mkTpl([]),		
-		  mkTpl([]),
-		  mkTpl(Segs//assem)]);
-	      Bytes = (.strg(Code::string)::string);
-	      
-	      InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
-	      
-	      if errorFree() then{
-		valis addSpec(PkgSpec,
-		  addSource(addLoweredSource(
-		      addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
-	      }
-	    } else
-	    showMsg("no code generated");
+	      if genCode! then{
+		PkgSig = mkTpl([pkgTerm(CPkg),
+		    mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		    mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
+
+		Code = mkTpl([pkgTerm(CPkg),
+		    .intgr(opcodeHash),
+		    mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		    mkTpl([]),
+		    mkTpl([]),
+		    mkTpl(Segs//assem)]);
+		Bytes = (.strg(Code::string)::string);
+
+		InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
+
+		if errorFree() then{
+		  valis addSpec(PkgSpec,
+		    addSource(addLoweredSource(
+			addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
+		}
+	      } else
+	      showMsg("no code generated");
+	    }
 	  }
 	};
 	if ~warningFree() then

@@ -9,6 +9,7 @@ star.compiler.normalize{
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.freevars.
+  import star.compiler.ltipe.
   import star.compiler.matcher.
   import star.compiler.meta.
   import star.compiler.normalize.meta.
@@ -30,7 +31,7 @@ star.compiler.normalize{
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
-  transformGroup:(cons[canonDef],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+  transformGroup:(cons[canonDef],nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) =>
     cons[cDefn].
   transformGroup([],_,_,_,_,D) => D.
   transformGroup([D,..Ds],Map,Outer,Q,Extra,Ex) => valof {
@@ -40,7 +41,7 @@ star.compiler.normalize{
 
   all e ~~ crFlow[e] ~> (e,cons[cDefn]).
 
-  transformDef:(canonDef,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) => cons[cDefn].
+  transformDef:(canonDef,nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) => cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.prcDef(Lc,FullNm,Rls,_,Tp),Map,Outer,Q,Extra,Ex) =>
@@ -53,11 +54,12 @@ star.compiler.normalize{
     };
 
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
+
     if traceNormalize! then{
-      showMsg("transformed var $(.glDef(Lc,FullNm,Tp,Vl)) @ $(Lc)");
+      showMsg("transformed var $(.glDef(Lc,FullNm,Tp::ltipe,Vl)):t; @ $(Lc)");
     };
 
-    valis [uniqify(.glDef(Lc,FullNm,Tp,Vl)),..Defs]
+    valis [uniqify(.glDef(Lc,FullNm,Tp::ltipe,Vl)),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[.eqn(Lc,[],.none,Val)],funcType([],Tp),Map,Outer,Q,Extra,Ex).
@@ -68,216 +70,47 @@ star.compiler.normalize{
   transformDef(.cnsDef(Lc,FullNm,Ix,Tp),Map,_,_,_,Ex) =>
     transformConsDef(Lc,FullNm,Ix,Tp,Map,Ex).
 
-  quantNm(.kVar(Nm)) => Nm.
-  quantNm(.kFun(Nm,_)) => Nm.
-
-  varId(.kVar(Nm)) => Nm.
-  varId(.kFun(Nm,_)) => Nm.
-  varId(.tVar(_,Nm)) => Nm.
-  varId(.tFun(_,_,Nm)) => Nm.
-
-  skolemizeFreeVars:(set[tipe]) => (cons[tipe],cons[(string,tipe)]).
-  skolemizeFreeVars(Vs) => valof{
-    Quants := ([]:cons[tipe]);
-    Subst := ([]:cons[(string,tipe)]);
-    for V in Vs do{
-      if isUnbound(V) then{
-	New = skolemFresh(V);
-	Subst := [(varId(V),New),..Subst!];
-	Quants := [New,..Quants!]
-      } else{
-	Quants := [V,..Quants!]
-      }
-    };
-    valis (Quants!,Subst!)
-  }
-
-  skolemFresh(.tVar(_,Nm)) => .kVar(genSym(Nm)).
-  skolemFresh(.tFun(_,Ar,Nm)) => .kFun(genSym(Nm),Ar).
-
-  closeOverVars:(cons[tipe],tipe) => tipe.
-  closeOverVars([],Tp) => Tp.
-  closeOverVars([V,..Vs],Tp) => .allType(V,closeOverVars(Vs,Tp)).
-
-  lookupSubst(_,[]) => .none.
-  lookupSubst(Nm,[(N2,Tp),..Rest]) => (Nm==N2 ?? .some(Tp) || lookupSubst(Nm,Rest)).
-
-  skolSubstTp:(tipe,cons[(string,tipe)]) => tipe.
-  skolSubstTp(Tp,Subst) => sst(deRef(Tp),Subst).
-
-  sst(T,Subst) where isUnbound(T) => (New?=lookupSubst(varId(T),Subst) ?? New || T).
-  sst(.kVar(Nm),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kVar(Nm)).
-  sst(.kFun(Nm,Ar),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kFun(Nm,Ar)).
-  sst(.tpExp(O,A),Subst) => .tpExp(skolSubstTp(O,Subst),skolSubstTp(A,Subst)).
-  sst(.tupleType(Es),Subst) => .tupleType(Es//(E)=>skolSubstTp(E,Subst)).
-  sst(.funType(A,R,E),Subst) => .funType(skolSubstTp(A,Subst),skolSubstTp(R,Subst),skolSubstTp(E,Subst)).
-  sst(.prcType(A,E),Subst) => .prcType(skolSubstTp(A,Subst),skolSubstTp(E,Subst)).
-  sst(.cnsType(A,R),Subst) => .cnsType(skolSubstTp(A,Subst),skolSubstTp(R,Subst)).
-  sst(.allType(V,T),Subst) => .allType(V,skolSubstTp(T,Subst)).
-  sst(.existType(V,T),Subst) => .existType(V,skolSubstTp(T,Subst)).
-  sst(.constrainedType(T,C),Subst) => .constrainedType(skolSubstTp(T,Subst),C).
-  sst(T,_) default => T.
-
-  skolSubstCV(.cV(Nm,Tp),Subst) => .cV(Nm,skolSubstTp(Tp,Subst)).
-
-  substOptExp(.none,_) => .none.
-  substOptExp(.some(E),Subst) => .some(skolSubstExp(E,Subst)).
-
-  substEqns(Eqs,[]) => Eqs.
-  substEqns(Eqs,Subst) =>
-    (Eqs//((L,Ptns,Test,Val))=>
-      (L,Ptns//(P)=>skolSubstExp(P,Subst),substOptExp(Test,Subst),skolSubstExp(Val,Subst))).
-
-  substRules(Rs,[]) => Rs.
-  substRules(Rs,Subst) =>
-    (Rs//((L,Ptns,Test,Act))=>
-      (L,Ptns//(P)=>skolSubstExp(P,Subst),substOptExp(Test,Subst),skolSubstAct(Act,Subst))).
-
-  skolSubstExp:(cExp,cons[(string,tipe)]) => cExp.
-  skolSubstExp(E,Subst) => foldExp(E,Subst,skolSubstAlgebra).
-
-  skolSubstAct:(aAction,cons[(string,tipe)]) => aAction.
-  skolSubstAct(A,Subst) => foldAct(A,Subst,skolSubstAlgebra).
-
-  skolSubstCasesE(Cs,Subst) =>
-    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Subst,skolSubstAlgebra),foldExp(Rep,Subst,skolSubstAlgebra))).
-
-  skolSubstCasesA(Cs,Subst) =>
-    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Subst,skolSubstAlgebra),foldAct(Rep,Subst,skolSubstAlgebra))).
-
-  skolSubstAlgebra:treeAlgebra[cons[(string,tipe)],cExp,aAction].
-  skolSubstAlgebra = treeAlgebra{
-    onVoid(_,Lc)=>.cVoid(Lc).
-    onAnon(Q,Lc,Tp)=>.cAnon(Lc,skolSubstTp(Tp,Q)).
-    onUnrch(Q,Lc,Tp)=>.cUnrch(Lc,skolSubstTp(Tp,Q)).
-    onVar(Q,Lc,V)=>.cVar(Lc,skolSubstCV(V,Q)).
-    onCel(Q,Lc,E,Tp)=>.cCel(Lc,E,skolSubstTp(Tp,Q)).
-    onGet(Q,Lc,E,Tp)=>.cGet(Lc,E,skolSubstTp(Tp,Q)).
-    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
-    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
-    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
-    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
-    onString(_,Lc,Sx)=>.cString(Lc,Sx).
-    onTerm(Q,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,skolSubstTp(Tp,Q)).
-    onNth(Q,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,skolSubstTp(Tp,Q)).
-    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
-    onClos(Q,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,skolSubstTp(Tp,Q)).
-    onSv(Q,Lc,Tp)=>.cSv(Lc,skolSubstTp(Tp,Q)).
-    onSvDrf(Q,Lc,E,Tp)=>.cSvDrf(Lc,E,skolSubstTp(Tp,Q)).
-    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
-    onCall(Q,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,skolSubstTp(Tp,Q)).
-    onOCall(Q,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,skolSubstTp(Tp,Q)).
-    onXCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,skolSubstTp(Tp,Q),skolSubstTp(ErTp,Q)).
-    onXOCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,skolSubstTp(Tp,Q),skolSubstTp(ErTp,Q)).
-    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
-    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
-    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
-    onNeg(_,Lc,R)=>.cNeg(Lc,R).
-    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
-    onLtt(Q,Lc,V,D,E)=>.cLtt(Lc,skolSubstCV(V,Q),D,E).
-    onCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,skolSubstCasesE(Cases,Q),Dflt,skolSubstTp(Tp,Q)).
-    onIxCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,skolSubstCasesE(Cases,Q),Dflt,skolSubstTp(Tp,Q)).
-    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
-    onResum(Q,Lc,T,M,Tp)=>.cResum(Lc,T,M,skolSubstTp(Tp,Q)).
-    onSusp(Q,Lc,T,M,Tp)=>.cSusp(Lc,T,M,skolSubstTp(Tp,Q)).
-    onRetyr(Q,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,skolSubstTp(Tp,Q)).
-    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
-    onAbort(Q,Lc,Ms,Tp)=>.cAbort(Lc,Ms,skolSubstTp(Tp,Q)).
-    onTry(Q,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,skolSubstTp(Tp,Q)).
-    onThrw(Q,Lc,E,Tp)=>.cThrw(Lc,E,skolSubstTp(Tp,Q)).
-    onValof(Q,Lc,A,Tp)=>.cValof(Lc,A,skolSubstTp(Tp,Q)).
-
-    onANop(_,Lc)=>.aNop(Lc).
-    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
-    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
-    onABreak(_,Lc,L)=>.aBreak(Lc,L).
-    onAValis(_,Lc,E)=>.aValis(Lc,E).
-    onADo(_,Lc,E)=>.aDo(Lc,E).
-    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
-    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
-    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
-    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
-    onACase(Q,Lc,G,Cs,D)=>.aCase(Lc,G,skolSubstCasesA(Cs,Q),D).
-    onAIxCase(Q,Lc,G,Cs,D)=>.aIxCase(Lc,G,skolSubstCasesA(Cs,Q),D).
-    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
-    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
-    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
-    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
-    onALtt(Q,Lc,V,D,A)=>.aLtt(Lc,skolSubstCV(V,Q),D,A).
-    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
-    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
-
-    extendLtt(Q,_)=>Q.
-    onRaw(_,_)=>.none.
-    onARaw(_,_)=>.none.
-  }.
-
+  transformFunction:(option[locn],string,cons[eqn],tipe,nameMap,nameMap,set[canonVar],
+    option[canonVar],cons[cDefn]) => cons[cDefn].
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
       showMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) @ $(Lc)");
-      showMsg("extra = $(Extra)");
     };
 
-    (_,TpX) = deQuant(Tp);
+    TpE = extendFunTipe(Tp::ltipe,fmap((X)=>typeOf(X)::ltipe,Extra));
+    ClosTp = extendFunTipe(Tp::ltipe,.some(.ptr));
 
-    TpE = extendFunTp(TpX,Extra);
-
-    if traceNormalize! then{
-      showMsg("TpX = $(TpX), TpE = $(TpE)")
-    };
-
-    (Quants,Subst) = skolemizeFreeVars(freeTypeVars(TpE));
-    ExtraS = (.cVar(ELc,Exv0)?=Extra ??
-      .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) ||
-      Extra);
-
-    ATp = reQuant(Quants,skolSubstTp(TpE,Subst));
-
-    if traceNormalize! then{
-      showMsg("lifted type of $(Tp) = $(ATp) @ $(Lc)");
-    };
-
-    if Msg ?= validType(ATp,.false) then
-      reportError("Lifted type $(ATp) of $(Tp) is not valid",Lc);
-
-    (Eqs0,Ex1) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex);
-    Eqs = substEqns(Eqs0,Subst);
+    (Eqs,Ex1) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex);
     try{
-      Func = ? functionMatcher(Lc,FullNm,ATp,Map,Eqs);
+      Func = ? functionMatcher(Lc,FullNm,TpE,Map,Eqs);
       if traceNormalize! then
 	showMsg("transformed function $(Func)");
 
       ClosureNm = closureNm(FullNm);
-      ClVars = makeFunVars(TpX)//(V)=>skolSubstCV(V,Subst);
+      ClVars = makeFunVars(Tp::ltipe);
 
-      if .cVar(_,Exv)?=Extra then {
-	ClArgs = ([Exv,..ClVars]//(V)=>.cVar(Lc,V));
-
-	ClosTp = reQuant(Quants,skolSubstTp(TpE,Subst));
-
-	if traceNormalize! then
-	  showMsg("closure #(ClosureNm)\:$(ClosTp)");
+      if .var(Exv,ExTp)?=Extra then {
+	ClArgs = [.cV(Exv,ExTp::ltipe),..ClVars]//(V)=>.cVar(Lc,V);
 
 	ClosEntry =
-	  .fnDef(Lc,ClosureNm,ClosTp,[Exv,..ClVars],
+	  .fnDef(Lc,ClosureNm,ClosTp,[.cV(Exv,ExTp::ltipe),..ClVars],
 	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
-	  .cXCall(Lc,FullNm,ClArgs,ResType,ErTp) ||
-	  .cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	  .cXCall(Lc,FullNm,ClArgs,reduceTp(ResType),reduceTp(ErTp)) ||
+	  .cCall(Lc,FullNm,ClArgs,reduceTp(funTypeRes(Tp))));
 	if traceNormalize! then
-	  showMsg("closure entry $(ClosEntry)");
+	  showMsg("closure entry $(ClosEntry):t;");
 	valis [Func,ClosEntry,..Ex1]
       } else {
-	ClVar = .cV("_",unitTp);
-	ClosTp = reQuant(Quants,skolSubstTp(extendFunTp(TpX,.some(ClVar)),Subst));
+	ClVar = .cV("_",.ptr);
 	ClArgs = (ClVars//(V)=>.cVar(Lc,V));
 
 	ClosEntry =
 	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
 	  (_,ResType,ErTp)?=isThrowingFunType(Tp) ??
-	  .cXCall(Lc,FullNm,ClArgs,ResType,ErTp) ||
-	  .cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	  .cXCall(Lc,FullNm,ClArgs,reduceTp(ResType),reduceTp(ErTp)) ||
+	  .cCall(Lc,FullNm,ClArgs,reduceTp(funTypeRes(Tp))));
 	if traceNormalize! then
-	  showMsg("closure entry $(ClosEntry)");
+	  showMsg("closure entry $(ClosEntry):t;");
 	valis [Func,ClosEntry,..Ex1]
       }
     } catch {
@@ -293,66 +126,41 @@ star.compiler.normalize{
       showMsg("transform procedure $(.prcDef(Lc,FullNm,Rls,[],Tp)) @ $(Lc)");
     };
 
-    (_,TpX) = deQuant(Tp);
+    TpE = extendFunTipe(Tp::ltipe,fmap((X)=>typeOf(X)::ltipe,Extra));
+    ClosTp = extendFunTipe(Tp::ltipe,.some(.ptr));
 
-    TpE = extendFunTp(TpX,Extra);
-
-    if traceNormalize! then{
-      showMsg("TpX = $(TpX), TpE = $(TpE)")
-    };
-
-    (Quants,Subst) = skolemizeFreeVars(freeTypeVars(TpE));
-    ExtraS = (.cVar(ELc,Exv0)?=Extra ??
-      .some(.cVar(ELc,skolSubstCV(Exv0,Subst))) ||
-      Extra);
-
-    ATp = reQuant(Quants,skolSubstTp(TpE,Subst));
-
-    if traceNormalize! then{
-      showMsg("lifted type of $(Tp) = $(ATp) @ $(Lc)");
-    };
-
-    if Msg ?= validType(ATp,.false) then
-      reportError("Lifted type $(ATp) of $(Tp) is not valid",Lc);
-
-    (Eqs0,Ex1) = transformRules(Rls,Map,Outer,Q,Extra,Ex);
-    Eqs = substRules(Eqs0,Subst);
+    (Eqs,Ex1) = transformRules(Rls,Map,Outer,Q,Extra,Ex);
 
     try{
-      Proc = ?procMatcher(Lc,FullNm,ATp,Map,Eqs);
+      Proc = ?procMatcher(Lc,FullNm,TpE,Map,Eqs);
 
       if traceNormalize! then
 	showMsg("transformed procedure $(Proc)");
 
       ClosureNm = closureNm(FullNm);
-      ClVars = makeFunVars(TpX)//(V)=>skolSubstCV(V,Subst);
+      ClVars = makeFunVars(Tp::ltipe);
 
-      if .cVar(_,Exv)?=Extra then {
-	ClArgs = ([Exv,..ClVars]//(V)=>.cVar(Lc,V));
-
-	ClosTp = reQuant(Quants,skolSubstTp(TpE,Subst));
-
-	if traceNormalize! then
-	  showMsg("closure #(ClosureNm)\:$(ClosTp)");
+      if .var(Exv,ExTp)?=Extra then {
+	ClArgs = ([.cV(Exv,ExTp::ltipe),..ClVars]//(Vr)=>.cVar(Lc,Vr));
 
 	ClosEntry =
-	  .prDef(Lc,ClosureNm,ClosTp,[Exv,..ClVars],.aDo(Lc,
+	  .prDef(Lc,ClosureNm,ClosTp,[.cV(Exv,ExTp::ltipe),..ClVars],
+	  .aDo(Lc,
 	    (_,_,ErTp)?=isThrowingFunType(Tp) ??
-	  .cXCall(Lc,FullNm,ClArgs,.voidType,ErTp) ||
-	    .cCall(Lc,FullNm,ClArgs,.voidType)));
+	    .cXCall(Lc,FullNm,ClArgs,.vdTipe,reduceTp(ErTp)) ||
+	    .cCall(Lc,FullNm,ClArgs,.vdTipe)));
 	if traceNormalize! then
 	  showMsg("closure entry $(ClosEntry)");
 	valis [Proc,ClosEntry,..Ex1]
       } else {
-	ClVar = .cV("_",unitTp);
-	ClosTp = reQuant(Quants,skolSubstTp(extendFunTp(TpX,.some(ClVar)),Subst));
+	ClVar = .cV("_",.ptr);
 	ClArgs = (ClVars//(V)=>.cVar(Lc,V));
 
 	ClosEntry =
 	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.aDo(Lc,
-	  (_,_,ErTp)?=isThrowingFunType(Tp) ??
-	  .cXCall(Lc,FullNm,ClArgs,.voidType,ErTp) ||
-	    .cCall(Lc,FullNm,ClArgs,.voidType)));
+	    (_,_,ErTp)?=isThrowingFunType(Tp) ??
+	    .cXCall(Lc,FullNm,ClArgs,.vdTipe,reduceTp(ErTp)) ||
+	    .cCall(Lc,FullNm,ClArgs,.vdTipe)));
 	if traceNormalize! then
 	  showMsg("closure entry $(ClosEntry)");
 	valis [Proc,ClosEntry,..Ex1]
@@ -366,17 +174,17 @@ star.compiler.normalize{
   }
 
   transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex) => valof{
-    if ConsMap ?= findIndexMap(Nm,Map) then
+    if ConsMap ?= lookupTypeMap(Nm,Map) then
       valis [.tpDef(Lc,Tp,TpRl,ConsMap),..Ex]
     else
     valis [.tpDef(Lc,Tp,TpRl,[]),..Ex]
   }
 
-  transformConsDef(Lc,Nm,Ix,Tp,Map,Ex) => 
+  transformConsDef(Lc,Nm,Ix,Tp,Map,Ex) =>
     [.lblDef(Lc,.tLbl(Nm,arity(Tp)),Tp,Ix),..Ex].
 
   contract all e,t ~~ transform[e->>t] ::= {
-    transform:(e,nameMap,set[cV],cons[cDefn]) => (t,cons[cDefn]).
+    transform:(e,nameMap,set[canonVar],cons[cDefn]) => (t,cons[cDefn]).
   }
 
   implementation transform[canon->>cExp] => {
@@ -398,6 +206,8 @@ star.compiler.normalize{
   }
 
   implementation letify[cExp] => {
+    letify(Lc,Df,B) where .cValof(VLc,A,ATp).=B =>
+      .cValof(Lc, flattenSeq(.aSeq(Lc,Df,A)),ATp).
     letify(Lc,Df,B) => .cValof(Lc,
       flattenSeq(.aSeq(Lc,Df,.aValis(Lc,B))),
       typeOf(B)).
@@ -409,7 +219,7 @@ star.compiler.normalize{
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .aSeq(Lc,.aSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
-  transformEqns:(cons[eqn],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+  transformEqns:(cons[eqn],nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) =>
     (cons[(option[locn],cons[cExp],option[cExp],cExp)],cons[cDefn]).
   transformEqns([],_,_,_,_,Ex) => ([],Ex).
   transformEqns([Eqn,..Eqns],Map,Outer,Q,Extra,Ex) => valof{
@@ -418,7 +228,7 @@ star.compiler.normalize{
     valis ([Trple,..Rest],Exx)
   }
 
-  transformEqn:(eqn,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+  transformEqn:(eqn,nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],cExp),cons[cDefn]).
   transformEqn(.eqn(Lc,Args,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnTplVars(Args,Q,[]);
@@ -428,11 +238,11 @@ star.compiler.normalize{
     GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
     (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
     (Rep,Exx) = liftExp(Val,Map,GEQ,Ex2);
-    
-    valis ((Lc,addExtra(Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
+
+    valis ((Lc,addExtra(Lc,Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
   }
 
-  transformRules:(cons[prle],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+  transformRules:(cons[prle],nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) =>
     (cons[(option[locn],cons[cExp],option[cExp],aAction)],cons[cDefn]).
   transformRules([],_,_,_,_,Ex) => ([],Ex).
   transformRules([Rl,..Rs],Map,Outer,Q,Extra,Ex) => valof{
@@ -441,7 +251,7 @@ star.compiler.normalize{
     valis ([Trple,..Rest],Exx)
   }
 
-  transformRule:(prle,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+  transformRule:(prle,nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) =>
     ((option[locn],cons[cExp],option[cExp],aAction),cons[cDefn]).
   transformRule(.prle(Lc,Args,Test,Act),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnTplVars(Args,Q,[]);
@@ -455,8 +265,8 @@ star.compiler.normalize{
     GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
     (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
     (Rep,Exx) = liftAction(Act,Map,GEQ,Ex2);
-    
-    valis ((Lc,addExtra(Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
+
+    valis ((Lc,addExtra(Lc,Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
   }
 
   liftGoal(.none,_,_,Ex) => (.none,Ex).
@@ -464,14 +274,14 @@ star.compiler.normalize{
     (C1,Ex1) = liftExp(C,Map,Q,Ex);
     valis (.some(C1),Ex1)
   }
-  
-  addExtra(.none,Args) => Args.
-  addExtra(.some(P),Args) => [P,..Args].
 
-  liftPtn:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
-  liftPtn(.anon(Lc,Tp),Map,_,Ex) => (.cAnon(Lc,Tp),Ex).
+  addExtra(_,.none,Args) => Args.
+  addExtra(Lc,.some(P),Args) => [.cVar(Lc,P::cV),..Args].
+
+  liftPtn:(canon,nameMap,set[canonVar],cons[cDefn]) => crFlow[cExp].
+  liftPtn(.anon(Lc,Tp),Map,_,Ex) => (.cAnon(Lc,Tp::ltipe),Ex).
   liftPtn(.vr(Lc,Nm,Tp),Map,Q,Ex) => trVarPtn(Lc,Nm,Tp,Map,Q,Ex).
-  liftPtn(.enm(Lc,Nm,Tp),Map,Q,Ex) => liftPtnCallOp(Lc,Nm,[],Tp,Map,Q,Ex).
+  liftPtn(.enm(Lc,Nm,Tp),Map,Q,Ex) => liftPtnCallOp(Lc,Nm,[],Map,Q,Ex).
   liftPtn(.intr(Lc,Ix),Map,_,Ex) =>  (.cInt(Lc,Ix),Ex).
   liftPtn(.bintr(Lc,Ix),Map,_,Ex) => (.cBig(Lc,Ix),Ex).
   liftPtn(.flt(Lc,Dx),Map,_,Ex) => (.cFlt(Lc,Dx),Ex).
@@ -483,24 +293,23 @@ star.compiler.normalize{
   }
   liftPtn(.apply(Lc,.vr(VLc,VNm,_),Els,Tp),Map,Q,Ex) => valof{
     (LArgs,Ex1) = liftPtns(Els,Map,Q,Ex);
-    valis liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Q,Ex1)
+    valis liftPtnCallOp(Lc,VNm,LArgs,Map,Q,Ex1)
   }
   liftPtn(.apply(Lc,.enm(VLc,Nm,ETp),Els,Tp),Map,Q,Ex) => valof{
     (LArgs,Ex1) = liftPtns(Els,Map,Q,Ex);
-
-    valis liftPtnCallOp(Lc,Nm,LArgs,Tp,Map,Q,Ex1)
+    valis liftPtnCallOp(Lc,Nm,LArgs,Map,Q,Ex1)
   }
   liftPtn(.svGet(Lc,S,Tp),Map,Q,Ex) => valof{
     (SS,Ex1) = liftExp(S,Map,Q,Ex);
-    valis (.cSvDrf(Lc,SS,Tp),Ex1)
+    valis (.cSvDrf(Lc,SS,Tp::ltipe),Ex1)
   }
   liftPtn(Cn,_,_,Ex) => valof{
     Lc = locOf(Cn);
     reportError("may not have $(Cn) as a pattern",Lc);
     valis (.cVoid(Lc),Ex)
   }
-  
-  liftPtns:(cons[canon],nameMap,set[cV],cons[cDefn]) => (cons[cExp],cons[cDefn]).
+
+  liftPtns:(cons[canon],nameMap,set[canonVar],cons[cDefn]) => (cons[cExp],cons[cDefn]).
   liftPtns([],_,_,Ex) => ([],Ex).
   liftPtns([P,..Ps],Map,Q,Ex) => valof{
     (A,Ex1) = liftPtn(P,Map,Q,Ex);
@@ -508,35 +317,35 @@ star.compiler.normalize{
     valis ([A,..As],Exx)
   }
 
-  liftPtnCallOp:(option[locn],string,cons[cExp],tipe,nameMap,set[cV],cons[cDefn]) =>
+  liftPtnCallOp:(option[locn],string,cons[cExp],nameMap,set[canonVar],cons[cDefn]) =>
     (cExp,cons[cDefn]).
-  liftPtnCallOp(Lc,Nm,Args,Tp,Map,Q,Ex) where Entry ?= lookupVarName(Map,Nm) =>
-    implementPtnCall(Lc,Entry,Args,Tp,Map,Q,Ex).
+  liftPtnCallOp(Lc,Nm,Args,Map,Q,Ex) where Entry ?= lookupVarName(Map,Nm) =>
+    implementPtnCall(Lc,Entry,Args,Map,Q,Ex).
 
-  implementPtnCall(Lc,.moduleCons(Nm,CTp),Args,Tp,_,_,Ex) =>
-    (.cTerm(Lc,Nm,Args,Tp),Ex).
-  implementPtnCall(Lc,.localCons(Nm,CTp,Vr),Args,Tp,_,_,Ex) =>
-    (.cTerm(Lc,Nm,[.cVar(Lc,Vr),..Args],Tp),Ex).
-  
-  trVarPtn(Lc,Nm,Tp,Map,Q,Ex) => ({? .cV(Nm,Tp) in Q ?} ??
-    (.cVar(Lc,.cV(Nm,Tp)),Ex) ||
+  implementPtnCall(Lc,.moduleCons(Nm,Ix,CTp),Args,_,_,Ex) =>
+    (.cTerm(Lc,Nm,Ix,Args),Ex).
+  implementPtnCall(Lc,.localCons(Vr,Nm,CTp,Ix),Args,Map,_,Ex) =>
+    (.cTerm(Lc,Nm,Ix,[liftVarExp(Lc,Vr,Map),..Args]),Ex).
+
+  trVarPtn(Lc,Nm,Tp,Map,Q,Ex) => ({? .var(Nm,Tp) in Q ?} ??
+    (.cVar(Lc,.cV(Nm,Tp::ltipe)),Ex) ||
     implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex)).
 
-  implementVarPtn(Lc,Nm,.none,Tp,_,Ex) => (.cVar(Lc,.cV(Nm,Tp)),Ex).
-  implementVarPtn(Lc,Nm,.some(.moduleCons(Enum,CTp)),Tp,_,Ex) where ETp?=isEnumType(CTp) =>
-    (.cTerm(Lc,Enum,[],ETp),Ex).
-  implementVarPtn(Lc,Nm,.some(.localCons(Enum,CTp,Vr)),Tp,_,Ex) =>
-    (.cTerm(Lc,Enum,[.cVar(Lc,Vr)],Tp),Ex).
+  implementVarPtn(Lc,Nm,.none,Tp,_,Ex) => (.cVar(Lc,.cV(Nm,Tp::ltipe)),Ex).
+  implementVarPtn(Lc,Nm,.some(.moduleCons(Enum,Ix,CTp)),Tp,_,Ex) where ETp?=isEnumType(CTp) =>
+    (.cTerm(Lc,Enum,Ix,[]),Ex).
+  implementVarPtn(Lc,Nm,.some(.localCons(Vr,Enum,CTp,Ix)),Tp,Map,Ex) =>
+    (.cTerm(Lc,Enum,Ix,[liftVarExp(Lc,Vr,Map)]),Ex).
   implementVarPtn(Lc,Nm,.some(V),Tp,_Map,Ex) => valof{
     reportError("not permitted to match against $(Nm)\:$(V)",Lc);
     valis (.cVoid(Lc),Ex)
-  }.
+  }
 
-  liftExp:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
-  liftExp(.anon(Lc,Tp),Map,Q,Ex) => (.cAnon(Lc,Tp),Ex).
-  liftExp(.unreach(Lc,Tp),Map,Q,Ex) => (.cUnrch(Lc,Tp),Ex).
+  liftExp:(canon,nameMap,set[canonVar],cons[cDefn]) => crFlow[cExp].
+  liftExp(.anon(Lc,Tp),Map,Q,Ex) => (.cAnon(Lc,Tp::ltipe),Ex).
+  liftExp(.unreach(Lc,Tp),Map,Q,Ex) => (.cUnrch(Lc,Tp::ltipe),Ex).
   liftExp(.vr(Lc,Nm,Tp),Map,Q,Ex) => valof{
-    VV = liftVarExp(Lc,Nm,Tp,Map);
+    VV = liftVarExp(Lc,.var(Nm,Tp),Map);
     valis (VV,Ex)
   }
   liftExp(.intr(Lc,Ix),Map,_,Ex) => (.cInt(Lc,Ix),Ex).
@@ -545,7 +354,7 @@ star.compiler.normalize{
   liftExp(.kar(Lc,Cx),Map,_,Ex) => (.cChar(Lc,Cx),Ex).
   liftExp(.strng(Lc,Sx),Map,_,Ex) => (.cString(Lc,Sx),Ex).
   liftExp(.enm(Lc,Nm,Tp),Map,_,Ex) => valof{
-    VV = liftVarExp(Lc,Nm,Tp,Map);
+    VV = liftVarExp(Lc,.var(Nm,Tp),Map);
     valis (VV,Ex)
   }
   liftExp(.tple(Lc,Els),Map,Q,Ex) => valof{
@@ -554,11 +363,11 @@ star.compiler.normalize{
   }
   liftExp(.apply(Lc,Op,Els,Tp),Map,Q,Ex) => valof{
     (LEls,Ex1) = liftExps(Els,Q,Map,Ex);
-    valis liftExpCallOp(Lc,Op,LEls,Tp,Map,Q,Ex1)
+    valis liftExpCallOp(Lc,Op,LEls,Tp::ltipe,Map,Q,Ex1)
   }
   liftExp(.tapply(Lc,Op,Els,Tp,ErTp),Map,Q,Ex) => valof{
     (LEls,Ex1) = liftExps(Els,Q,Map,Ex);
-    valis liftThrowingOp(Lc,Op,LEls,Tp,ErTp,Map,Q,Ex1)
+    valis liftThrowingOp(Lc,Op,LEls,Tp::ltipe,ErTp::ltipe,Map,Q,Ex1)
   }
   liftExp(.dot(Lc,Rc,Fld,Tp),Map,Q,Ex) => valof{
     reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
@@ -566,7 +375,7 @@ star.compiler.normalize{
   }
   liftExp(.tdot(Lc,Rc,Ix,Tp),Map,Q,Ex) => valof{
     (LRc,Ex1) = liftExp(Rc,Map,Q,Ex);
-    valis (.cNth(Lc,LRc,Ix,Tp),Ex1)
+    valis (.cNth(Lc,LRc,Ix,Tp::ltipe),Ex1)
   }
   liftExp(.conj(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftExp(L,Map,Q,Ex);
@@ -603,12 +412,13 @@ star.compiler.normalize{
   liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letRec(Lc,Grp,Decs,Bnd),Q);
     if traceNormalize! then
-      showMsg("free vars in let rec exp $(Free)");
+      showMsg("lift let rec $(.letRec(Lc,Grp,Decs,Bnd))");
+
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
-  liftExp(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex) => 
+  liftExp(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex) =>
     liftLambda(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex).
-  liftExp(.prc(Lc,FullNm,Rl,Tp),Map,Q,Ex) => 
+  liftExp(.prc(Lc,FullNm,Rl,Tp),Map,Q,Ex) =>
     liftPrc(Lc,FullNm,Rl,Tp,Map,Q,Ex).
   liftExp(.thunk(Lc,Lm,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
@@ -619,21 +429,21 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
     (Thk,Ex1) = liftExp(Th,Map,Q,Ex);
-    valis (.cOCall(Lc,Thk,[],Tp),Ex1)
+    valis (.cOCall(Lc,Thk,[],Tp::ltipe),Ex1)
   }
-  liftExp(.newSav(Lc,Tp),Map,Q,Ex) => (.cSv(Lc,Tp),Ex).
+  liftExp(.newSav(Lc,Tp),Map,Q,Ex) => (.cSv(Lc,.ptr),Ex).
   liftExp(.svSet(Lc,S,V),Map,Q,Ex) => valof{
     (SS,Ex1) = liftExp(S,Map,Q,Ex);
     (VV,Ex2) = liftExp(V,Map,Q,Ex1);
     valis (.cSvSet(Lc,SS,VV),Ex2)
   }
-  liftExp(.cell(Lc,V,Tp),Map,Q,Ex) => valof{
+  liftExp(.cell(Lc,V,_Tp),Map,Q,Ex) => valof{
     (VV,Ex1) = liftExp(V,Map,Q,Ex);
-    valis (.cCel(Lc,VV,Tp),Ex1)
+    valis (.cCel(Lc,VV,.ptr),Ex1)
   }
   liftExp(.get(Lc,V,Tp),Map,Q,Ex) => valof{
     (VV,Ex1) = liftExp(V,Map,Q,Ex);
-    valis (.cGet(Lc,VV,Tp),Ex1)
+    valis (.cGet(Lc,VV,Tp::ltipe),Ex1)
   }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
@@ -645,48 +455,48 @@ star.compiler.normalize{
       showMsg("case rules: $(Cs)");
 
     if .cVar(_,GVr).=LGov then{
-      Reslt = caseMatcher(Lc,Map,GVr,.cAbort(Lc,"no matches",Tp),Cs);
+      Reslt = caseMatcher(Lc,Map,GVr,.cAbort(Lc,"no matches"),Cs);
       valis (Reslt,Ex2)
     } else {
       V = genVar("C",typeOf(LGov));
-      Res = caseMatcher(Lc,Map,V,.cAbort(Lc,"no matches",Tp),Cs);
+      Res = caseMatcher(Lc,Map,V,.cAbort(Lc,"no matches"),Cs);
       valis (.cValof(Lc,
 	  .aSeq(Lc,
 	    .aDefn(Lc,.cVar(Lc,V),LGov),
-	    .aValis(Lc,Res)),Tp),Ex2)
+	    .aValis(Lc,Res)),Tp::ltipe),Ex2)
     }
   }
   liftExp(.trycatch(Lc,B,E,H,Tp),Map,Q,Ex) => valof{
     (BB,Ex1) = liftExp(B,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
     (HH,Ex3) = liftExp(H,Map,Q,Ex2);
-    valis (.cTry(Lc,BB,EE,HH,Tp),Ex3)
+    valis (.cTry(Lc,BB,EE,HH,Tp::ltipe),Ex3)
   }
   liftExp(.thrw(Lc,E,Tp),Map,Q,Ex) => valof{
     (LE,Ex2) = liftExp(E,Map,Q,Ex);
-    valis (.cThrw(Lc,LE,Tp),Ex)
+    valis (.cThrw(Lc,LE,Tp::ltipe),Ex)
   }
   liftExp(.resum(Lc,T,M,Tp),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (MM,Ex2) = liftExp(M,Map,Q,Ex1);
-    valis (.cResum(Lc,TT,MM,Tp),Ex2)
+    valis (.cResum(Lc,TT,MM,Tp::ltipe),Ex2)
   }
   liftExp(.susp(Lc,T,M,Tp),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (MM,Ex2) = liftExp(M,Map,Q,Ex1);
-    valis (.cSusp(Lc,TT,MM,Tp),Ex2)
+    valis (.cSusp(Lc,TT,MM,Tp::ltipe),Ex2)
   }
   liftExp(.retyre(Lc,T,M,Tp),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (MM,Ex2) = liftExp(M,Map,Q,Ex1);
-    valis (.cRetyr(Lc,TT,MM,Tp),Ex2)
+    valis (.cRetyr(Lc,TT,MM,Tp::ltipe),Ex2)
   }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
-    valis (.cValof(Lc,Acts,Tp),Ex1)
+    valis (.cValof(Lc,Acts,Tp::ltipe),Ex1)
   }
-  
-  liftExps:(cons[canon],set[cV],nameMap,cons[cDefn]) => (cons[cExp],cons[cDefn]).
+
+  liftExps:(cons[canon],set[canonVar],nameMap,cons[cDefn]) => (cons[cExp],cons[cDefn]).
   liftExps([],_,_,Ex) => ([],Ex).
   liftExps([P,..Ps],Q,Map,Ex) => valof{
     (A,Ex1) = liftExp(P,Map,Q,Ex);
@@ -694,44 +504,42 @@ star.compiler.normalize{
     valis ([A,..As],Exx)
   }
 
-  liftVarExp:(option[locn],string,tipe,nameMap) => cExp.
-  liftVarExp(Lc,Nm,Tp,Map) where Entry ?= lookupVarName(Map,Nm) =>
-    implementVarExp(Lc,Entry,Map,Tp).
-  liftVarExp(Lc,Nm,Tp,Map) => .cVar(Lc,.cV(Nm,Tp)).
+  liftVarExp:(option[locn],canonVar,nameMap) => cExp.
+  liftVarExp(Lc,Vr,Map) where Entry ?= lookupVarName(Map,nameOf(Vr)) =>
+    implementVarExp(Lc,Entry,typeOf(Vr),Map).
+  liftVarExp(Lc,Vr,Map) => .cVar(Lc,.cV(nameOf(Vr),typeOf(Vr)::ltipe)).
 
-  implementVarExp:(option[locn],nameMapEntry,nameMap,tipe) => cExp.
-  implementVarExp(Lc,.localFun(_,ClNm,Ar,ThVr),Map,Tp) =>
-    .cClos(Lc,ClNm,Ar,liftVarExp(Lc,cName(ThVr),typeOf(ThVr),Map),Tp).
-  implementVarExp(Lc,.thunkArg(Base,VFn,_),Map,Tp) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis .cCall(Lc,VFn,[V],Tp)
-  }
-  implementVarExp(Lc,.labelArg(Base,Ix),Map,Tp) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis .cNth(Lc,V,Ix,Tp)
+  implementVarExp:(option[locn],nameMapEntry,tipe,nameMap) => cExp.
+  implementVarExp(Lc,.localFun(ThVr,_,ClNm,Ar,Tp),_,Map) =>
+    .cClos(Lc,ClNm,Ar,liftVarExp(Lc,ThVr,Map),Tp).
+  implementVarExp(Lc,.thunkArg(Base,VFn,_),Tp,Map) =>
+    .cCall(Lc,VFn,[liftVarExp(Lc,Base,Map)],Tp::ltipe).
+  implementVarExp(Lc,.labelArg(Base,Ix),Tp,Map) => valof{
+    V = liftVarExp(Lc,Base,Map);
+    valis .cNth(Lc,V,Ix,Tp::ltipe)
   }.
-  implementVarExp(Lc,.localVar(Vr),_,Tp) => Vr.
-  implementVarExp(Lc,.moduleCons(Enum,CTp),_,Tp) => .cTerm(Lc,Enum,[],Tp).
-  implementVarExp(Lc,.localCons(Enum,CTp,Vr),Map,Tp) => valof{
-    V = liftVarExp(Lc,cName(Vr),typeOf(Vr),Map);
-    valis .cTerm(Lc,Enum,[V],Tp)
+  implementVarExp(Lc,.moduleCons(Enum,Ix,CTp),_,_) => .cTerm(Lc,Enum,Ix,[]).
+  implementVarExp(Lc,.localCons(Vr,Enum,CTp,Ix),_,Map) => valof{
+    V = liftVarExp(Lc,Vr,Map);
+    valis .cTerm(Lc,Enum,Ix,[V])
   }
-  implementVarExp(Lc,.moduleFun(V,_),_,Tp) => V.
-  implementVarExp(Lc,.globalVar(Nm,GTp),_,Tp) => .cVar(Lc,.cV(Nm,Tp)).
-  implementVarExp(Lc,.localArg(ThVr,Ix),_,Tp) => .cNth(Lc,ThVr,Ix,Tp).
-  implementVarExp(Lc,E,_,Tp) => valof{
+  implementVarExp(Lc,.moduleFun(Clos,_,_),_,_) => Clos.
+  implementVarExp(Lc,.globalVar(Nm,GTp),_,_) => .cVar(Lc,.cV(Nm,GTp)).
+  implementVarExp(Lc,.localArg(ThVr,Ix),Tp,Map) =>
+    .cNth(Lc,liftVarExp(Lc,ThVr,Map),Ix,Tp::ltipe).
+  implementVarExp(Lc,E,_,_) => valof{
     reportError("cannot transform variable $(E)",Lc);
     valis .cVoid(Lc)
   }
 
-  liftExpCallOp:(option[locn],canon,cons[cExp],tipe,nameMap,set[cV],cons[cDefn]) =>
+  liftExpCallOp:(option[locn],canon,cons[cExp],ltipe,nameMap,set[canonVar],cons[cDefn]) =>
     crFlow[cExp].
   liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where isEscape(Nm) =>
     (.cCall(Lc,Nm,Args,Tp),Ex).
   liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
   liftExpCallOp(Lc,.enm(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
-    implConstructor(Lc,Entry,Nm,Args,Tp,Map,Ex).
+    implConstructor(Lc,Entry,Nm,Args,Map,Ex).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex) => valof{
     (LOp,Ex0) = liftExp(Op,Map,Q,Ex);
     valis (.cOCall(Lc,LOp,Args,Tp),Ex0)
@@ -741,55 +549,44 @@ star.compiler.normalize{
     valis (.cVoid(Lc),[])
   }.
 
-  implementFunCall:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
+  implementFunCall:(option[locn],nameMapEntry,string,cons[cExp],ltipe,nameMap,cons[cDefn]) =>
     crFlow[cExp].
-  implementFunCall(Lc,.moduleFun(_,Fn),_,Args,Tp,Map,Ex) =>
+  implementFunCall(Lc,.moduleFun(_,Fn,Tp),_,Args,_,Map,Ex) =>
     (.cCall(Lc,Fn,Args,Tp),Ex).
-  implementFunCall(Lc,.localFun(Nm,_,_,Th),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
-    valis (.cCall(Lc,Nm,[V,..Args],Tp),Ex)
-  }
-  implementFunCall(Lc,.labelArg(Base,Ix),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis (.cOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp),Ex)
-  }
-  implementFunCall(Lc,.thunkArg(Base,VFn,Ix),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis (.cOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp),Ex)
-  }
-  implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
-    (.cOCall(Lc,Vr,Args,Tp),Ex).
+  implementFunCall(Lc,.localFun(Th,Nm,_,_,Tp),_,Args,_,Map,Ex) =>
+    (.cCall(Lc,Nm,[liftVarExp(Lc,Th,Map),..Args],Tp),Ex).
+  implementFunCall(Lc,.labelArg(Base,Ix),_,Args,Tp,Map,Ex) =>
+    (.cOCall(Lc,.cNth(Lc,liftVarExp(Lc,Base,Map),Ix,.ptr),Args,Tp),Ex).
+  implementFunCall(Lc,.thunkArg(Base,VFn,_),_,Args,Tp,Map,Ex) =>
+    (.cOCall(Lc,.cCall(Lc,VFn,[liftVarExp(Lc,Base,Map)],.ptr),Args,Tp),Ex).
   implementFunCall(Lc,.globalVar(Nm,GTp),_,Args,Tp,Map,Ex) =>
-    (.cOCall(Lc,.cVar(Lc,.cV(Nm,Tp)),Args,Tp),Ex).
+    (.cOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp),Ex).
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
     reportError("illegal variable $(Vr) - $(V)",Lc);
     valis (.cVoid(Lc),[])
   }
 
-  liftThrowingOp:(option[locn],canon,cons[cExp],tipe,tipe,nameMap,set[cV],cons[cDefn]) =>
+  liftThrowingOp:(option[locn],canon,cons[cExp],ltipe,ltipe,nameMap,set[canonVar],cons[cDefn]) =>
     crFlow[cExp].
   liftThrowingOp(Lc,.vr(_,Nm,_),Args,Tp,ErTp,Map,_,Ex) where isEscape(Nm) =>
     (.cXCall(Lc,Nm,Args,Tp,ErTp),Ex).
   liftThrowingOp(Lc,.vr(_,Nm,_),Args,Tp,ErTp,Map,_,Ex)
       where Entry ?= lookupVarName(Map,Nm) =>
     case Entry in {
-    | .moduleFun(_,Fn) => (.cXCall(Lc,Fn,Args,Tp,ErTp),Ex)
-    | .localFun(Nm,_,_,Th) => valof{
-      V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
+    | .moduleFun(_,Fn,_) => (.cXCall(Lc,Fn,Args,Tp,ErTp),Ex)
+    | .localFun(Th,Nm,_,_,_) => valof{
+      V = liftVarExp(Lc,Th,Map);
       valis (.cXCall(Lc,Nm,[V,..Args],Tp,ErTp),Ex)
     }
     | .labelArg(Base,Ix) => valof{
-      V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-      valis (.cXOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp,ErTp),Ex)
+      V = liftVarExp(Lc,Base,Map);
+      valis (.cXOCall(Lc,.cNth(Lc,V,Ix,.ptr),Args,Tp,ErTp),Ex)
     }
-    | .thunkArg(Base,VFn,Ix) => valof{
-      V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-      valis (.cXOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp,ErTp),Ex)
-    }
-    | .localVar(Vr) => (.cXOCall(Lc,Vr,Args,Tp,ErTp),Ex)
-    | .globalVar(Nm,GTp) => (.cXOCall(Lc,.cVar(Lc,.cV(Nm,Tp)),Args,Tp,ErTp),Ex)
+    | .thunkArg(Base,VFn,_) =>
+      (.cXOCall(Lc,.cCall(Lc,VFn,[liftVarExp(Lc,Base,Map)],.ptr),Args,Tp,ErTp),Ex)
+    | .globalVar(Nm,GTp) => (.cXOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp,ErTp),Ex)
     | _ default => valof{
-      reportError("illegal call variable $(Nm)",Lc);
+      reportError("illegal call variable $(Nm)\:$(Entry)",Lc);
       valis (.cVoid(Lc),[])
     }
     }.
@@ -802,44 +599,41 @@ star.compiler.normalize{
     valis (.cVoid(Lc),[])
   }.
 
-  implConstructor:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
+  implConstructor:(option[locn],nameMapEntry,string,cons[cExp],nameMap,cons[cDefn]) =>
     crFlow[cExp].
-  implConstructor(Lc,.moduleCons(Fn,FTp),_,Args,Tp,Map,Ex) =>
-    (.cTerm(Lc,Fn,Args,Tp),Ex).
-  implConstructor(Lc,.localCons(Fn,FTp,Vr),_,Args,Tp,Map,Ex) => valof{
-    VV=liftVarExp(Lc,cName(Vr),typeOf(Vr),Map);
-    valis (.cTerm(Lc,Fn,[VV,..Args],Tp),Ex)
+  implConstructor(Lc,.moduleCons(Fn,Ix,FTp),_,Args,Map,Ex) =>
+    (.cTerm(Lc,Fn,Ix,Args),Ex).
+  implConstructor(Lc,.localCons(Vr,Fn,FTp,Ix),_,Args,Map,Ex) => valof{
+    VV=liftVarExp(Lc,Vr,Map);
+    valis (.cTerm(Lc,Fn,Ix,[VV,..Args]),Ex)
   }
-  implConstructor(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
+  implConstructor(Lc,V,Vr,Args,Map,Ex) => valof{
     reportError("illegal constructor variable $(Vr) - $(V)",Lc);
     valis (.cVoid(Lc),[])
   }
 
-  liftLambda:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
+  liftLambda:(canon,nameMap,set[canonVar],cons[cDefn]) => crFlow[cExp].
   liftLambda(.lambda(Lc,FullNm,Eqn,Tp),Outer,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift lambda $(.lambda(Lc,FullNm,Eqn,Tp))\:$(Tp)");
 
     Free = findFree(.lambda(Lc,FullNm,Eqn,Tp),Q);
-    rawFree = freeLabelVars(Free,Outer)::cons[cV];
+    rawFree = freeLabelVars(Free,Outer)::cons[canonVar];
     varParents = freeParents(rawFree,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
 
-    ThV = genVar("_ThVr",typeOf(freeVars));
-    ThVr = .cVar(Lc,ThV);
+    ThV = mkeVar("_ThVr",.tupleType(freeVars//typeOf));
 
-    ATp = extendFunTp(deRef(Tp),.some(ThVr));
-    
     L = collectLabelVars(freeVars,ThV,0,[]);
 
     M = [.lyr(.some(ThV),L,[]),..Outer];
 
-    freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
+    freeArgs = (freeVars//(Vr)=>liftVarExp(Lc,Vr,Outer));
     LamFree = crTpl(Lc,freeArgs);
 
-    Exx = transformFunction(Lc,FullNm,[Eqn],Tp,M,Outer,Q\+ThV,.some(ThVr),Ex);
+    Exx = transformFunction(Lc,FullNm,[Eqn],Tp,M,Outer,Q\+ThV,.some(ThV),Ex);
 
-    Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
+    Closure = .cClos(Lc,FullNm,arity(Tp)+1,LamFree,Tp::ltipe);
 
     if traceNormalize! then
       showMsg("lambda lifted to $(Closure)");
@@ -847,32 +641,27 @@ star.compiler.normalize{
     valis (Closure,Exx)
   }
 
-  liftPrc:(option[locn],string,prle,tipe,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
+  liftPrc:(option[locn],string,prle,tipe,nameMap,set[canonVar],cons[cDefn]) => crFlow[cExp].
   liftPrc(Lc,FullNm,Rl,Tp,Outer,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift lambda proc $(.prc(Lc,FullNm,Rl,Tp))\:$(Tp)");
 
     Free = findFree(.prc(Lc,FullNm,Rl,Tp),Q);
-    rawFree = freeLabelVars(Free,Outer)::cons[cV];
+    rawFree = freeLabelVars(Free,Outer)::cons[canonVar];
     varParents = freeParents(rawFree,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
 
-    ThV = genVar("_ThVr",typeOf(freeVars));
-    ThVr = .cVar(Lc,ThV);
+    ThV = mkeVar("_ThVr",.tupleType(freeVars//typeOf));
 
-    ATp = extendFunTp(deRef(Tp),.some(ThVr));
-    
     L = collectLabelVars(freeVars,ThV,0,[]);
-
     M = [.lyr(.some(ThV),L,[]),..Outer];
 
-    freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
+    freeArgs = (freeVars//(Vr)=>liftVarExp(Lc,Vr,Outer));
     LamFree = crTpl(Lc,freeArgs);
 
-    Exx = transformProcedure(Lc,FullNm,[Rl],Tp,M,Outer,Q\+ThV,.some(ThVr),Ex);
-    
+    Exx = transformProcedure(Lc,FullNm,[Rl],Tp,M,Outer,Q\+ThV,.some(ThV),Ex);
 
-    Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
+    Closure = .cClos(Lc,FullNm,arity(Tp)+1,LamFree,Tp::ltipe);
 
     if traceNormalize! then
       showMsg("lambda lifted to $(Closure)");
@@ -881,40 +670,38 @@ star.compiler.normalize{
   }
 
   liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |=
-    (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],cons[cDefn]) =>
-      crFlow[x].
+  (option[locn],cons[canonDef],cons[decl],e,nameMap,
+    set[canonVar],set[canonVar],cons[cDefn]) =>
+    crFlow[x].
   liftLet(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
     (lclVars,vrDefs) = unzip(varDefs(Grp));
 
     GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
 
-    rawGrpFree = freeLabelVars(Free,Outer)::cons[cV];
-
+    rawGrpFree = freeLabelVars(Free,Outer)::cons[canonVar];
     ffreeVars = rawGrpFree \ lclVars;
-
     varParents = freeParents(ffreeVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
-    
+
     if traceNormalize! then{
       showMsg("var definitions in let group $(lclVars)");
       showMsg("fn definitions in let group $(GrpFns)");
       showMsg("freeVars: $(freeVars)");
     };
 
-    ThV = genVar("_ThVr",typeOf(freeVars));
-    ThVr = .cVar(Lc,ThV);
+    ThV = mkeVar("_ThVr",.tupleType(freeVars//typeOf));
 
     TM = makeTypeMap(Decls);
 
     L = collectLabelVars(freeVars,ThV,0,[]);
 
-    LL = collectLocalVars(lclVars,ThVr,size(freeVars),L);
+    LL = collectLocalVars(lclVars,ThV,size(freeVars),L);
 
     MM = [.lyr(.some(ThV),foldRight((D,Ll)=>collectMtd(D,.some(ThV),Ll),L,Decls),TM),..Outer];
 
     M = [.lyr(.some(ThV),L,TM),..Outer];
 
-    FreeTrm = crTpl(Lc,(freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer)));
+    FreeTrm = crTpl(Lc,(freeVars//(Vr)=>liftVarExp(Lc,Vr,Outer)));
 
     GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lclVars),Grp);
 
@@ -922,7 +709,7 @@ star.compiler.normalize{
       showMsg("FreeTrm = $(FreeTrm)");
     };
 
-    (Fx,Ex1) = transformLetDefs(GrpFns,M,MM,GrpQ,.some(ThVr),[],Ex);
+    (Fx,Ex1) = transformLetDefs(GrpFns,M,MM,GrpQ,.some(ThV),[],Ex);
     if traceNormalize! then{
       showMsg("fixups $(Fx)");
     };
@@ -938,8 +725,8 @@ star.compiler.normalize{
 	  showMsg("lift let var $(Vr) = $(Val)");
 	(VV,X1) = liftExp(Val,Outer,Q,X0);
 	VLc = locOf(Val);
-	valis (.aSeq(VLc,.aDefn(VLc,.cVar(VLc,Vr),VV),Df0),X1)},
-      (.aDefn(Lc,ThVr,FreeTrm),Ex2),
+	valis (.aSeq(VLc,.aDefn(VLc,.cVar(VLc,Vr::cV),VV),Df0),X1)},
+      (.aDefn(Lc,liftVarExp(Lc,ThV,M),FreeTrm),Ex2),
       varDefs(Grp));
 
     TxLet = letify(Lc,Vx,BndTrm);
@@ -951,29 +738,34 @@ star.compiler.normalize{
   }
 
   liftLetRec:all e,x ~~ transform[e->>x],letify[x] |=
-    (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],
+  (option[locn],cons[canonDef],cons[decl],e,nameMap,set[canonVar],set[canonVar],
       cons[cDefn]) => crFlow[x].
   liftLetRec(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
-    if traceNormalize! then
-      showMsg("let rec at $(Lc)");
-    
     (lclVars,glDefs) = unzip(varDefs(Grp));
-    lVars = (lclVars//((.cV(Lvn,Ltp))=>.cV(Lvn,savType(Ltp))));
 
-    rawGrpFree = freeLabelVars(Free,Outer)::cons[cV];
-    varParents = freeParents(rawGrpFree \ lVars,Outer);
+    if traceNormalize! then{
+      showMsg("lclVars = $(lclVars)");
+    };
+
+    rawGrpFree = freeLabelVars(Free,Outer)::cons[canonVar];
+    varParents = freeParents(rawGrpFree \ lclVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
 
-    if isEmpty(freeVars) && isEmpty(glDefs) then {
+    if traceNormalize! then{
+      showMsg("rawGrpFree = $(rawGrpFree)");
+      showMsg("freeVars = $(freeVars)");
+    };
+
+    if isEmpty(freeVars) && isEmpty(lclVars) then {
       MM = pkgMap(Decls,Outer);
       Ex1 = transformGroup(Grp,MM,MM,[],.none,Ex);
       valis transform(Bnd,MM,Q,Ex1)
-    } else if [SFr] .= freeVars && isEmpty(glDefs) then {
+    } else if [SFr] .= freeVars && isEmpty(lclVars) then {
       CM = makeTypeMap(Decls);
 
       MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       GrpQ = foldLeft(collectQ,Q\+SFr,Grp);
-      (Fx,Ex1) = transformLetDefs(Grp,MM,MM,GrpQ,.some(.cVar(Lc,SFr)),[],Ex);
+      (Fx,Ex1) = transformLetDefs(Grp,MM,MM,GrpQ,.some(SFr),[],Ex);
       if traceNormalize! then{
 	showMsg("fixups $(Fx)");
       };
@@ -982,31 +774,29 @@ star.compiler.normalize{
 
       valis transform(Bnd,MM,GrpQ,Ex1)
     } else{
-      ThV = genVar("_ThVr",typeOf(freeVars++lVars));
-      ThVr = .cVar(Lc,ThV);
-
+      ThV = mkeVar("_ThVr",.tupleType(freeVars//typeOf));
       CM = makeTypeMap(Decls);
+      FrVar = .some(ThV);
 
-      L = collectThunkVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
-      
-      M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
+      L = collectThunkVars(lclVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
-      freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
-      GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
+      if traceNormalize! then{
+	showMsg("thunk and label vars $(L)");
+      };
+
+      M = [.lyr(FrVar,foldRight((D,LL)=>collectMtd(D,FrVar,LL),L,Decls),CM),..Outer];
+
+      freeArgs = (freeVars//(Vr)=>liftVarExp(Lc,Vr,Outer));
+      GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lclVars),Grp);
 
       cellVoids = (glDefs//(E)=>.cVoid(Lc));
       GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
       if traceNormalize! then{
-	showMsg("lVars = $(lVars)");
-	showMsg("glDefs = $(glDefs)");
 	showMsg("GrpFree = $(GrpFree)");
       };
 
-      if traceNormalize! then{
-	showMsg("free term = $(GrpFree)")
-      };
-      (Fx,Ex2) = transformLetDefs(Grp,M,M,GrpQ,.some(ThVr),[],Ex);
+      (Fx,Ex2) = transformLetDefs(Grp,M,M,GrpQ,FrVar,[],Ex);
       if traceNormalize! then{
 	showMsg("fixups $(Fx)");
       };
@@ -1016,50 +806,49 @@ star.compiler.normalize{
     }
   }
 
+  liftFreeThunk:(option[locn],string,canon,tipe,integer,canonVar,nameMap,set[canonVar],
+    cons[fixUp],cons[cDefn]) => (cons[fixUp],cons[cDefn]).
   liftFreeThunk(Lc,Nm,Val,Tp,Ix,ThVr,Outer,Q,Fx,Ex) => valof{
     if traceNormalize! then
       showMsg("lift $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
 
-    FrTp = typeOf(ThVr);
     (VV,Ex1) = liftExp(Val,Outer,Q,Ex);
-    SV = .cVar(Lc,genVar("_SVr",savType(Tp)));
-    X = .cVar(Lc,genVar("ϕ",Tp));
-    TV = .cVar(Lc,ThVr);
+    SV = .cVar(Lc,genVar("_SVr",.ptr));
+    X = .cVar(Lc,genVar("ϕ",Tp::ltipe));
 
-    ThDf = .fnDef(Lc,Nm,funcType([typeOf(ThVr)],Tp),
-      [ThVr],
+    ThDf = .fnDef(Lc,Nm,.fnTipe([typeOf(ThVr)::ltipe],Tp::ltipe,.vdTipe),
+      [ThVr::cV],
       .cValof(Lc,
 	.aSeq(Lc,
-	  .aDefn(Lc,SV,.cNth(Lc,TV,Ix,savType(Tp))),
-	  .aIftte(Lc,.cMatch(Lc,.cSvDrf(Lc,X,Tp),SV),
+	  .aDefn(Lc,SV,.cNth(Lc,liftVarExp(Lc,ThVr,Outer),Ix,.ptr)),
+	  .aIftte(Lc,.cMatch(Lc,.cSvDrf(Lc,X,Tp::ltipe),SV),
 	    .aValis(Lc,X),
-	    .aValis(Lc,.cSvSet(Lc,SV,VV)))),Tp));
-    valis ([(Nm,Ix,.cSv(Lc,savType(Tp))),..Fx],[ThDf,..Ex1])
+	    .aValis(Lc,.cSvSet(Lc,SV,VV)))),Tp::ltipe));
+    valis ([(Nm,Ix,.cSv(Lc,.ptr)),..Fx],[ThDf,..Ex1])
   }
 
   fixUp ~> (string,integer,cExp).
 
-  computeFixups:all e ~~ letify[e] |= (cons[fixUp],option[locn],cV,cExp,e) => e.
-  computeFixups([],Lc,Vr,Fr,Bnd) => letify(Lc,.aDefn(Lc,.cVar(Lc,Vr),Fr),Bnd).
+  computeFixups:all e ~~ letify[e] |= (cons[fixUp],option[locn],canonVar,cExp,e) => e.
+  computeFixups([],Lc,.var(Vr,Tp),Fr,Bnd) => letify(Lc,.aDefn(Lc,.cVar(Lc,.cV(Vr,Tp::ltipe)),Fr),Bnd).
   computeFixups([(Nm,Ix,Up),..Fx],Lc,Vr,Fr,Bnd) => valof{
     if traceNormalize! then{
       showMsg("compute fixup for $(Nm) at $(Ix) = $(Up)");
-      showMsg("present: $(Vr) in $(Up) $(present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)))");
     };
-    
-    if ~present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)) &&
-	.cTerm(FLc,FOp,FArgs,FTp) .= Fr then{
-	  Fr1 = .cTerm(FLc,FOp,FArgs[Ix->Up],FTp);
-	  if traceNormalize! then
-	    showMsg("fixed up free term $(Fr1)");
-	  valis computeFixups(Fx,Lc,Vr,Fr1,Bnd)
+
+    if ~present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr::cV || .false)) &&
+	.cTerm(FLc,FOp,Ix,FArgs) .= Fr then{
+      Fr1 = .cTerm(FLc,FOp,Ix,FArgs[Ix->Up]);
+      if traceNormalize! then
+	showMsg("fixed up free term $(Fr1)");
+      valis computeFixups(Fx,Lc,Vr,Fr1,Bnd)
 	}
     else{
-      valis computeFixups(Fx,Lc,Vr,Fr,freeUpdate(Lc,.cVar(Lc,Vr),Ix,Up,Bnd))
+      valis computeFixups(Fx,Lc,Vr,Fr,freeUpdate(Lc,.cVar(Lc,Vr::cV),Ix,Up,Bnd))
     }
   }
 
-  transformLetDefs:(cons[canonDef],nameMap,nameMap,set[cV],option[cExp],cons[fixUp],cons[cDefn]) =>
+  transformLetDefs:(cons[canonDef],nameMap,nameMap,set[canonVar],option[canonVar],cons[fixUp],cons[cDefn]) =>
     (cons[fixUp],cons[cDefn]).
   transformLetDefs([],_,_,_,_,Fx,D) => (Fx,D).
   transformLetDefs([D,..Ds],Map,Outer,Q,Extra,Fx,Ex) => valof {
@@ -1067,7 +856,7 @@ star.compiler.normalize{
     valis transformLetDefs(Ds,Map,Outer,Q,Extra,Fx1,Ex1)
   }
 
-  transformLetDef:(canonDef,nameMap,nameMap,set[cV],option[cExp],cons[fixUp],cons[cDefn]) => (cons[fixUp],cons[cDefn]).
+  transformLetDef:(canonDef,nameMap,nameMap,set[canonVar],option[canonVar],cons[fixUp],cons[cDefn]) => (cons[fixUp],cons[cDefn]).
   transformLetDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Fx,Ex) => valof{
     Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
@@ -1082,22 +871,19 @@ star.compiler.normalize{
   }
   transformLetDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    valis (Fx,[uniqify(.glDef(Lc,FullNm,Tp,Vl)),..Defs])
+    valis (Fx,[uniqify(.glDef(Lc,FullNm,Tp::ltipe,Vl)),..Defs])
   }
-  transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
-    if (_,Ix) ?= thunkIndex(FullNm,Map) then{
-      valis liftFreeThunk(Lc,FullNm,Val,Tp,Ix,ThVr,Outer,Q,Fx,Ex)
-    } else if (_,Ix) ?= localIndex(FullNm,Map) then{
-      if traceNormalize! then
-	showMsg("lift le var $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
-
-      FrTp = typeOf(ThVr);
+  transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(Fr),Fx,Ex) => valof{
+    if Ix ?= thunkIndex(FullNm,Map) then{
+      valis liftFreeThunk(Lc,FullNm,Val,Tp,Ix,Fr,Outer,Q,Fx,Ex)
+    } else if Ix ?= localIndex(FullNm,Map) then{
       (VV,Ex1) = liftExp(Val,Outer,Q,Ex);
 
       valis ([(Nm,Ix,VV),..Fx],Ex1)
-    } else
-    reportError("(internal) expecting correct thunk index for $(Nm)",Lc);
-    valis (Fx,Ex)
+    } else{
+      reportError("(internal) expecting correct thunk index for $(Nm)",Lc);
+      valis (Fx,Ex)
+    }
   }
   transformLetDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex) =>
     transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex).
@@ -1110,7 +896,7 @@ star.compiler.normalize{
     valis (Fx,Ex1)
   }
 
-  liftAction:(canonAction,nameMap,set[cV],cons[cDefn]) => (aAction,cons[cDefn]).
+  liftAction:(canonAction,nameMap,set[canonVar],cons[cDefn]) => (aAction,cons[cDefn]).
   liftAction(.doNop(Lc),_,_,Ex) => (.aNop(Lc),Ex).
   liftAction(.doSeq(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftAction(L,Map,Q,Ex);
@@ -1160,7 +946,7 @@ star.compiler.normalize{
       Reslt = caseMatcher(Lc,Map,GVr,.aAbort(Lc,"no matches"),CCs);
       valis (Reslt,Ex2)
     } else {
-      V = genVar("C",typeOf(Gv));
+      V = genVar("C",typeOf(Gv)::ltipe);
       Res = caseMatcher(Lc,Map,V,.aAbort(Lc,"no matches"),CCs);
       valis (.aSeq(Lc,.aDefn(Lc,.cVar(Lc,V),LGv),Res),Ex2)
     }
@@ -1185,7 +971,7 @@ star.compiler.normalize{
 
     if traceNormalize! then
       showMsg("lift let action $(.doLet(Lc,Grp,Dcs,Bnd))");
-    
+
     valis liftLet(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
   liftAction(.doLetRec(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
@@ -1194,112 +980,113 @@ star.compiler.normalize{
       showMsg("free vars in let rec act $(Free)");
     valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
-  
-  varDefs:(cons[canonDef]) => cons[(cV,canon)].
+
+  varDefs:(cons[canonDef]) => cons[(canonVar,canon)].
   varDefs(Defs) => { V | D in Defs && V?=isVarDef(D) }.
 
-  isVarDef(.varDef(_,_,FullNm,Vl,_,Tp)) where ~isFunDef(Vl) =>
-    .some((.cV(FullNm,Tp),Vl)).
+  isVarDef(.varDef(_,_,Nm,Vl,_,Tp)) where ~isFunDef(Vl) =>
+    .some((.var(Nm,Tp),Vl)).
   isVarDef(.implDef(_,_,Nm,Vl,_,Tp)) where ~isFunDef(Vl) =>
-    .some((.cV(Nm,Tp),Vl)).
+    .some((.var(Nm,Tp),Vl)).
   isVarDef(_) default => .none.
 
-  collectLabelVars:(cons[cV],cV,integer,map[string,nameMapEntry]) =>
+  collectLabelVars:(cons[canonVar],canonVar,integer,map[string,nameMapEntry]) =>
     map[string,nameMapEntry].
   collectLabelVars([],_,_,LV) => LV.
-  collectLabelVars([.cV(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
+  collectLabelVars([.var(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->.labelArg(ThV,Ix)]).
-  
-  collectThunkVars:(cons[cV],cV,integer,map[string,nameMapEntry]) =>
+
+  collectThunkVars:(cons[canonVar],canonVar,integer,map[string,nameMapEntry]) =>
     map[string,nameMapEntry].
   collectThunkVars([],_,_,LV) => LV.
-  collectThunkVars([.cV(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
+  collectThunkVars([.var(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
     collectThunkVars(Vrs,ThV,Ix+1,Entries[Nm->.thunkArg(ThV,Nm,Ix)]).
-  
-  collectLocalVars:(cons[cV],cExp,integer,map[string,nameMapEntry]) =>
+
+  collectLocalVars:(cons[canonVar],canonVar,integer,map[string,nameMapEntry]) =>
     map[string,nameMapEntry].
   collectLocalVars([],_,_,LV) => LV.
-  collectLocalVars([.cV(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
+  collectLocalVars([.var(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
     collectLocalVars(Vrs,ThV,Ix+1,Entries[Nm->.localArg(ThV,Ix)]).
 
   -- eliminate free variables that can be computed from other free vars
-  reduceFreeArgs:(cons[cV],nameMap) => cons[cV].
+  reduceFreeArgs:(cons[canonVar],nameMap) => cons[canonVar].
   reduceFreeArgs(FrVrs,Map) => let{.
-    reduceArgs:(cons[cV],cons[cV]) => cons[cV].
+    reduceArgs:(cons[canonVar],cons[canonVar]) => cons[canonVar].
     reduceArgs([],Frs) => Frs.
     reduceArgs([FrV,..FrArgs],Frs) where
-	OTh ?= lookupThetaVar(Map,cName(FrV)) &&
+	OTh ?= lookupThetaVar(Map,nameOf(FrV)) &&
 	OTh .<. Frs =>
       reduceArgs(FrArgs,drop(FrV,Frs)).
     reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
   .} in reduceArgs(FrVrs,FrVrs).
 
-  freeParents:(cons[cV],nameMap) => cons[cV].
+  freeParents:(cons[canonVar],nameMap) => cons[canonVar].
   freeParents(Frs,Map) => foldLeft((F,Fs)=>Fs\+freeParent(F,Map),[],Frs).
 
-  freeParent(V,Map) where ThV ?= lookupThetaVar(Map,cName(V)) =>
+  freeParent(V,Map) where ThV ?= lookupThetaVar(Map,nameOf(V)) =>
     freeParent(ThV,Map).
   freeParent(V,_) default => V.
 
-  collectMtd:(decl,option[cV],map[string,nameMapEntry])=>map[string,nameMapEntry].
+  collectMtd:(decl,option[canonVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
   collectMtd(.funDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => valof{
-    Entry = .localFun(FullNm,closureNm(FullNm),arity(Tp)+1,ThVr);
+    Entry = .localFun(ThVr,FullNm,closureNm(FullNm),arity(Tp)+1,Tp::ltipe);
     valis LL[Nm->Entry][FullNm->Entry]
   }
   collectMtd(.funDec(Lc,Nm,FullNm,Tp),.none,LL) => valof{
-    Entry = .moduleFun(.cClos(Lc,closureNm(FullNm),arity(Tp)+1,crTpl(Lc,[]),Tp),Nm);
+    Entry = .moduleFun(.cClos(Lc,closureNm(FullNm),arity(Tp)+1,crTpl(Lc,[]),Tp::ltipe),Nm,Tp::ltipe);
     valis LL[Nm->Entry][FullNm->Entry]
   }
-  collectMtd(.varDec(Lc,Nm,Val,Tp),.none,LL) => LL[Nm->.globalVar(Nm,Tp)].
+  collectMtd(.varDec(Lc,Nm,Val,Tp),.none,LL) => LL[Nm->.globalVar(Nm,Tp::ltipe)].
   collectMtd(.varDec(Lc,Nm,Val,Tp),.some(ThVr),LL) => LL.
-  collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),_,LL) => LL[Nm->.moduleCons(FullNm,Tp)].
-  -- collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => LL[Nm->.localCons(FullNm,Tp,ThVr)].
+  collectMtd(.cnsDec(Lc,Nm,FullNm,Ix,Tp),_,LL) => LL[Nm->.moduleCons(FullNm,Ix,Tp)].
+  -- collectMtd(.cnsDec(Lc,Nm,FullNm,Ix,Tp),.some(ThVr),LL) => LL[Nm->.localCons(ThVr,FullNm,Tp,Ix)].
   collectMtd(_,_,LL) default => LL.
 
-  collectQ:(canonDef,set[cV]) => set[cV].
-  collectQ(.funDef(_,Nm,_,_,Tp),Q) => Q\+.cV(Nm,Tp).
-  collectQ(.prcDef(_,Nm,_,_,Tp),Q) => Q\+.cV(Nm,Tp).
-  collectQ(.varDef(_,_,Nm,_,_,Tp),Q) => Q\+.cV(Nm,Tp).
-  collectQ(.implDef(_,_,FullNm,_,_,Tp),Q) => Q\+.cV(FullNm,Tp).
+  collectQ:(canonDef,set[canonVar]) => set[canonVar].
+  collectQ(.funDef(_,Nm,_,_,Tp),Q) => Q\+.var(Nm,Tp).
+  collectQ(.prcDef(_,Nm,_,_,Tp),Q) => Q\+.var(Nm,Tp).
+  collectQ(.varDef(_,_,Nm,_,_,Tp),Q) => Q\+.var(Nm,Tp).
+  collectQ(.implDef(_,_,FullNm,_,_,Tp),Q) => Q\+.var(FullNm,Tp).
   collectQ(.typeDef(_,_,_,_),Q) => Q.
   collectQ(.cnsDef(_,_,_,_),Q) => Q.
 
-  freeLabelVars:(set[cV],nameMap)=>set[cV].
+  freeLabelVars:(set[canonVar],nameMap)=>set[canonVar].
   freeLabelVars(Fr,Map) => foldLeft((V,So)=>labelVar(V,Map,So),Fr,Fr).
 
-  labelVar:(cV,nameMap,set[cV])=>set[cV].
-  labelVar(.cV(Nm,_),Map,So) where Entry?=lookupVarName(Map,Nm) =>
+  labelVar:(canonVar,nameMap,set[canonVar])=>set[canonVar].
+  labelVar(.var(Nm,_),Map,So) where Entry?=lookupVarName(Map,Nm) =>
     case Entry in {
     | .labelArg(ThVr,_) => So\+ThVr
     | .thunkArg(ThVr,_,_) => So\+ThVr
-    | .localArg(.cVar(_,ThVr),_) => So\+ThVr
-    | .localFun(_,_,_,ThVr) => So\+ThVr
+    | .localArg(ThVr,_) => So\+ThVr
+    | .localFun(ThVr,_,_,_,_) => So\+ThVr
     | _ => So
     }.
   labelVar(_,_,So) default => So.
 
-  thunkIndex:(string,nameMap) => option[(cV,integer)].
+  thunkIndex:(string,nameMap) => option[integer].
   thunkIndex(Nm,Map) => valof{
     if E?=lookupVarName(Map,Nm) then{
       case E in {
-	| .thunkArg(Thv,_,Ix) do valis .some((Thv,Ix))
+	| .thunkArg(Thv,_,Ix) do valis .some(Ix)
 	| _ do valis .none
       }
     } else
     valis .none
   }
 
-  localIndex:(string,nameMap) => option[(cExp,integer)].
+  localIndex:(string,nameMap) => option[integer].
   localIndex(Nm,Map) => valof{
     if E?=lookupVarName(Map,Nm) then{
       case E in {
-	| .localArg(Thv,Ix) do valis .some((Thv,Ix))
+	| .localArg(Thv,Ix) do valis .some(Ix)
 	| _ do valis .none
       }
     } else
     valis .none
   }
 
-  makeFunVars:(tipe)=>cons[cV].
-  makeFunVars(Tp) where .tupleType(Es)?= funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
+  makeFunVars:(ltipe)=>cons[cV].
+  makeFunVars(.fnTipe(As,_,_)) => (As//(T)=>genVar("_",T)).
+  makeFunVars(.prTipe(As,_)) => (As//(T)=>genVar("_",T)).
 }

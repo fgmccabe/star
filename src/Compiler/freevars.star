@@ -12,20 +12,20 @@ star.compiler.freevars{
   import star.compiler.types.
 
   public contract all e ~~ freevars[e] ::= {
-    findFree:(e,set[cV]) => set[cV].
+    findFree:(e,set[canonVar]) => set[canonVar].
   }
 
   public implementation freevars[canon] => {
     findFree(E,Q) => freeVarsInExp(E,Q,[])
   }
 
-  public freeVarsInExp:(canon,set[cV],set[cV]) => set[cV].
+  freeVarsInExp:(canon,set[canonVar],set[canonVar]) => set[canonVar].
   freeVarsInExp(Exp,Q,Fv) => case Exp in {
     | .anon(_,_) => Fv
     | .unreach(_,_) => Fv
-    | .vr(Lc,Nm,Tp) where {? .cV(Nm,_) in Fv ?} => Fv
+    | .vr(Lc,Nm,Tp) where {? .var(Nm,_) in Fv ?} => Fv
     | .vr(_,Nm,_) where isEscape(Nm) => Fv
-    | .vr(Lc,Nm,Tp) => ({? .cV(Nm,_) in Q ?} ?? Fv\+.cV(Nm,Tp) || Fv)
+    | .vr(Lc,Nm,Tp) => ({? .var(Nm,_) in Q ?} ?? Fv\+.var(Nm,Tp) || Fv)
     | .intr(_,_) => Fv
     | .bintr(_,_) => Fv
     | .kar(_,_) => Fv
@@ -117,7 +117,7 @@ star.compiler.freevars{
   freeVarsInTuple(Els,Q,Fv) =>
     foldRight((E,F)=>freeVarsInExp(E,Q,F),Fv,Els).
 
-  freeVarsInCond:(canon,set[cV],set[cV]) => set[cV].
+  freeVarsInCond:(canon,set[canonVar],set[canonVar]) => set[canonVar].
   freeVarsInCond(.cond(_,T,L,R),Q,Fv) =>
     freeVarsInCond(T,Q,freeVarsInExp(L,Q,freeVarsInExp(R,Q,Fv))).
   freeVarsInCond(.match(_,P,S),Q,Fv) =>
@@ -129,7 +129,7 @@ star.compiler.freevars{
   freeVarsInCond(.neg(Lc,R),Q,Fv) => freeVarsInCond(R,Q,Fv).
   freeVarsInCond(T,Q,Fv) => freeVarsInExp(T,Q,Fv).
 
-  public freeVarsInEqn:(eqn,set[cV],set[cV])=>set[cV].
+  public freeVarsInEqn:(eqn,set[canonVar],set[canonVar])=>set[canonVar].
   freeVarsInEqn(.eqn(_,Ptns,.none,Exp),Q,Fv) => valof{
     Q1 = dropVars(Ptns,Q);
     valis freeVarsInExp(Exp,Q1,freeVarsInTuple(Ptns,Q1,Fv))
@@ -139,7 +139,7 @@ star.compiler.freevars{
     valis freeVarsInExp(Exp,Q1,freeVarsInTuple(Ptns,Q1,freeVarsInCond(Wh,Q1,Fv)))
   }
 
-  public freeVarsInRule:(prle,set[cV],set[cV])=>set[cV].
+  public freeVarsInRule:(prle,set[canonVar],set[canonVar])=>set[canonVar].
   freeVarsInRule(.prle(_,Ptns,.none,Act),Q,Fv) => valof{
     Q1 = dropVars(Ptns,Q);
     valis freeVarsInAct(Act,Q1,freeVarsInTuple(Ptns,Q1,Fv))
@@ -149,23 +149,23 @@ star.compiler.freevars{
     valis freeVarsInAct(Act,Q1,freeVarsInTuple(Ptns,Q1,Fv))
   }
 
-  public freeVarsInGroup:(cons[canonDef],set[cV])=>set[cV].
+  public freeVarsInGroup:(cons[canonDef],set[canonVar])=>set[canonVar].
   freeVarsInGroup(Defs,Q) => let{
     QD = dropDefs(Defs,Q)
   } in foldLeft((D,F)=>freeVarsInDef(D,QD,F),[],Defs).
 
-  public freeVarsInLetRec:(cons[canonDef],canon,set[cV])=>set[cV].
+  freeVarsInLetRec:(cons[canonDef],canon,set[canonVar])=>set[canonVar].
   freeVarsInLetRec(Defs,Bnd,Q) => let{
     QD = dropDefs(Defs,Q)
   } in foldLeft((D,F)=>freeVarsInDef(D,QD,F),
     freeVarsInExp(Bnd,QD,[]),Defs).
 
-  public freeVarsInLetGroup:(cons[canonDef],canon,set[cV])=>set[cV].
+  freeVarsInLetGroup:(cons[canonDef],canon,set[canonVar])=>set[canonVar].
   freeVarsInLetGroup(Defs,Bnd,Q) =>let{
     QD = dropDefs(Defs,Q)
   } in foldLeft((D,F)=>freeVarsInDef(D,Q,F),freeVarsInExp(Bnd,QD,[]),Defs).
 
-  public freeVarsInDef:(canonDef,set[cV],set[cV])=>set[cV].
+  freeVarsInDef:(canonDef,set[canonVar],set[canonVar])=>set[canonVar].
   freeVarsInDef(.funDef(_,_,Rls,_,_),Q,Fv) =>
     foldRight((Rl,F)=>freeVarsInEqn(Rl,Q,F),Fv,Rls).
   freeVarsInDef(.prcDef(_,_,Rls,_,_),Q,Fv) =>
@@ -174,21 +174,21 @@ star.compiler.freevars{
   freeVarsInDef(.implDef(_,_,_,Val,_,_),Q,Fv) => freeVarsInExp(Val,Q,Fv).
   freeVarsInDef(_,_,Fv) default => Fv.
 
-  freeVarsInDefs:(cons[canonDef],set[cV],set[cV])=>set[cV].
+  freeVarsInDefs:(cons[canonDef],set[canonVar],set[canonVar])=>set[canonVar].
   freeVarsInDefs(Defs,Q,Fv)=>foldRight((D,F)=>freeVarsInDef(D,Q,F),Fv,Defs).
 
-  dropVars:(cons[canon],set[cV]) => set[cV].
+  dropVars:(cons[canon],set[canonVar]) => set[canonVar].
   dropVars(Ptns,Q) => Q\ ptnTplVars(Ptns,[],[]).
 
-  dropDefs:(cons[canonDef],set[cV])=>set[cV].
-  dropDefs(Defs,Q) => foldRight((D,QQ) => dropDef(D,QQ),Q,Defs).
+  dropDefs:(cons[canonDef],set[canonVar])=>set[canonVar].
+  dropDefs(Defs,Q) => foldRight(dropDef,Q,Defs).
 
-  dropDef(.funDef(_,Nm,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
-  dropDef(.varDef(_,Nm,_,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
-  dropDef(.implDef(_,Nm,_,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
+  dropDef(.funDef(_,Nm,_,_,Tp),Q) => Q\-.var(Nm,Tp).
+  dropDef(.varDef(_,Nm,_,_,_,Tp),Q) => Q\-.var(Nm,Tp).
+  dropDef(.implDef(_,Nm,_,_,_,Tp),Q) => Q\-.var(Nm,Tp).
   dropDef(_,Q) => Q.
 
-  public condVars:(canon,set[cV]) => set[cV].
+  public condVars:(canon,set[canonVar]) => set[canonVar].
   condVars(.cond(_,T,L,R),Vrs) => condVars(L,condVars(T,Vrs))/\ condVars(R,Vrs).
   condVars(.tple(_,Els),Vrs) =>
     foldRight((E,F)=>condVars(E,F),Vrs,Els).
@@ -197,12 +197,12 @@ star.compiler.freevars{
   condVars(.disj(Lc,L,R),Vrs) => condVars(L,Vrs)/\condVars(R,Vrs).
   condVars(.neg(Lc,R),Vrs) => Vrs.
   condVars(_,Vrs) default => Vrs.
-  
-  public ptnVars:(canon,set[cV],set[cV]) => set[cV].
+
+  public ptnVars:(canon,set[canonVar],set[canonVar]) => set[canonVar].
   ptnVars(Exp,Q,Fv) => case Exp in {
+    | .vr(Lc,Nm,Tp) =>
+      {? .var(Nm,_) in Q || .var(Nm,_) in Fv ?} ?? Q || Q\+.var(Nm,Tp)
     | .anon(_,_) => Q
-    | .vr(Lc,Nm,Tp) => 
-      {? .cV(Nm,Tp) in Q || .cV(Nm,_) in Fv ?} ?? Q || Q\+.cV(Nm,Tp)
     | .intr(_,_) => Q
     | .flt(_,_) => Q
     | .kar(_,_) => Q
@@ -226,11 +226,11 @@ star.compiler.freevars{
     | .letRec(_,B,_,E) => Q
   }
 
-  public ptnTplVars:(cons[canon],set[cV],set[cV])=>set[cV].
+  public ptnTplVars:(cons[canon],set[canonVar],set[canonVar])=>set[canonVar].
   ptnTplVars(Els,Q,Fv) => foldRight((E,F)=>ptnVars(E,F,Fv),Q,Els).
 
   -- Variables that might be introduced in an action
-  public actnVars:(canonAction,set[cV]) => set[cV].
+  public actnVars:(canonAction,set[canonVar]) => set[canonVar].
   actnVars(Ac,Q) => case Ac in {
     | .doDefn(_,P,_) => ptnVars(P,Q,[])
     | .doMatch(_,P,_) => ptnVars(P,Q,[])

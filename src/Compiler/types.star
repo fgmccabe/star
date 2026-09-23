@@ -144,7 +144,7 @@ star.compiler.types{
   public implementation equality[typeRule] => {
     T1==T2 => identTypeRule(T1,T2,[]).
   }
-  
+
   eqType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
   eqType(T1,T2,L) => identType(deRef(T1),deRef(T2),L).
 
@@ -415,8 +415,8 @@ star.compiler.types{
     hash(Rl) => hshRl(Rl)
   }
 
-  public contract all c ~~ hasType[c] ::= {
-    typeOf:(c)=>tipe.
+  public contract all c,t ~~ hasType[c->>t] ::= {
+    typeOf:(c)=>t.
   }
 
   public tpName:(tipe)=>string.
@@ -481,17 +481,17 @@ star.compiler.types{
   cmpFlds:all x ~~ ((string,x),(string,x))=>boolean.
   cmpFlds((N1,_),(N2,_))=>N1<N2.
 
-  public implementation hasType[tipe] => {
+  public implementation hasType[tipe->>tipe] => {
     typeOf = id
   }
 
-  public implementation hasType[constraint] => {
+  public implementation hasType[constraint->>tipe] => {
     typeOf(.conTract(Nm,T,D)) => mkConType(Nm,T,D).
     typeOf(.hasField(Tp,_,FTp)) => .funType(.tupleType([Tp]),FTp,.voidType).
     typeOf(.implicit(_,Tp)) => Tp.
   }
 
-  public implementation all t ~~ hasType[t] |= hasType[cons[t]] => {
+  public implementation all e ~~ hasType[e->>tipe] |= hasType[cons[e]->>tipe] => {
     typeOf(L) => .tupleType(L//typeOf)
   }
 
@@ -547,7 +547,7 @@ star.compiler.types{
   funRes(.existType(_,Tp)) => funTypeRes(Tp).
   funRes(.constrainedType(T,_))=>funTypeRes(T).
 
-  extendArgType:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
+  extendArgType:all x ~~ hasType[x->>tipe] |= (tipe,option[x])=>tipe.
   extendArgType(Tp,.none) => Tp.
   extendArgType(Tp,.some(C))
       where .tupleType(Els).=deRef(Tp) => .tupleType([typeOf(C),..Els]).
@@ -565,7 +565,7 @@ star.compiler.types{
     thrFnTp(_) default => .none.
   .} in thrFnTp(deRef(Tp)).
 
-  public extendFunTp:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
+  public extendFunTp:(tipe,option[tipe])=>tipe.
   extendFunTp(Tp,.none) => Tp.
   extendFunTp(Tp,Vs) => case deRef(Tp) in {
     | .allType(V,B) => .allType(V,extendFunTp(B,Vs))
@@ -576,9 +576,9 @@ star.compiler.types{
     | .cnsType(A,R) => .cnsType(extendTplType(deRef(A),Vs),R)
   }
 
-  public extendTplType:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
+  extendTplType:(tipe,option[tipe])=>tipe.
   extendTplType(Es,.none) => Es.
-  extendTplType(.tupleType(Es),.some(E)) => .tupleType([typeOf(E),..Es]).
+  extendTplType(.tupleType(Es),.some(T)) => .tupleType([T,..Es]).
 
   public isFunType:(tipe) => option[(tipe,tipe,tipe)].
   isFunType(.allType(_,Tp)) => isFunType(deRef(Tp)).
@@ -855,4 +855,72 @@ star.compiler.types{
     catvTps(LTs,Ign,catvTps(DTs,Ign,catv(deRef(T),Ign,Vrs))).
   catvRule(.typeLambda(L,R),Ign,Vrs) => catv(deRef(L),Ign,catv(deRef(R),Ign,Vrs)).
   catvRule(.allRule(_,Rl),Ign,Vrs) => catvRule(Rl,Ign,Vrs).
+
+  public generalizeType(Tp) => valof{
+    (Quants,Subst) = skolemizeFreeVars(freeTypeVars(Tp));
+    valis reQuant(Quants,skolSubstTp(Tp,Subst));
+  }
+
+  public skolemizeFreeVars:(set[tipe]) => (cons[tipe],cons[(string,tipe)]).
+  skolemizeFreeVars(Vs) => valof{
+    Quants := ([]:cons[tipe]);
+    Subst := ([]:cons[(string,tipe)]);
+    for V in Vs do{
+      if isUnbound(V) then{
+	New = skolemFresh(V);
+	Subst := [(varId(V),New),..Subst!];
+	Quants := [New,..Quants!]
+      } else{
+	Quants := [V,..Quants!]
+      }
+    };
+    valis (Quants!,Subst!)
+  }
+
+  skolemFresh(.tVar(_,Nm)) => .kVar(genSym(Nm)).
+  skolemFresh(.tFun(_,Ar,Nm)) => .kFun(genSym(Nm),Ar).
+
+  public skolSubstTp:(tipe,cons[(string,tipe)]) => tipe.
+  skolSubstTp(Tp,Subst) => sst(deRef(Tp),Subst).
+
+  sst(T,Subst) where isUnbound(T) => (New?=lookupSubst(varId(T),Subst) ?? New || T).
+  sst(.kVar(Nm),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kVar(Nm)).
+  sst(.kFun(Nm,Ar),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kFun(Nm,Ar)).
+  sst(.tpExp(O,A),Subst) => .tpExp(skolSubstTp(O,Subst),skolSubstTp(A,Subst)).
+  sst(.tupleType(Es),Subst) => .tupleType(skolSubstTs(Es,Subst)).
+  sst(.funType(A,R,E),Subst) => .funType(skolSubstTp(A,Subst),skolSubstTp(R,Subst),skolSubstTp(E,Subst)).
+  sst(.prcType(A,E),Subst) => .prcType(skolSubstTp(A,Subst),skolSubstTp(E,Subst)).
+  sst(.cnsType(A,R),Subst) => .cnsType(skolSubstTp(A,Subst),skolSubstTp(R,Subst)).
+  sst(.faceType(Es,Rls),Subst) => .faceType(skolTpEls(Es,Subst),skolTpRls(Rls,Subst)).
+  sst(.allType(V,T),Subst) => .allType(V,skolSubstTp(T,Subst)).
+  sst(.existType(V,T),Subst) => .existType(V,skolSubstTp(T,Subst)).
+  sst(.constrainedType(T,C),Subst) => .constrainedType(skolSubstTp(T,Subst),C).
+  sst(T,_) default => T.
+
+  skolSubstTs(Ts,Subst) => (Ts//(E)=>skolSubstTp(E,Subst)).
+
+  skolTpEls(Els,Subst) => (Els//((F,T))=>(F,skolSubstTp(T,Subst))).
+
+  skolTpRls(Rls,Subst) => (Rls//((F,Rl))=>(F,skolTpRl(Rl,Subst))).
+
+  skolTpRl(.typeExists(P,R),Subst) =>
+    .typeExists(skolSubstTp(P,Subst),skolSubstTp(R,Subst)).
+  skolTpRl(.typeLambda(P,R),Subst) =>
+    .typeLambda(skolSubstTp(P,Subst),skolSubstTp(R,Subst)).
+  skolTpRl(.contractExists(C,As,Ds,R),Subst) =>
+    .contractExists(C,skolSubstTs(As,Subst),skolSubstTs(Ds,Subst),
+    skolSubstTp(R,Subst)).
+  skolTpRl(.allRule(V,R),Subst) =>
+    .allRule(V,skolTpRl(R,Subst)).
+
+  varId(.kVar(Nm)) => Nm.
+  varId(.kFun(Nm,_)) => Nm.
+  varId(.tVar(_,Nm)) => Nm.
+  varId(.tFun(_,_,Nm)) => Nm.
+
+  lookupSubst(_,[]) => .none.
+  lookupSubst(Nm,[(N2,Tp),..Rest]) => (Nm==N2 ?? .some(Tp) || lookupSubst(Nm,Rest)).
+
+
+
 }

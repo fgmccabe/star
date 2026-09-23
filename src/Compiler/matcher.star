@@ -4,6 +4,7 @@ star.compiler.matcher{
 
   import star.compiler.data.
   import star.compiler.errors.
+  import star.compiler.ltipe.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.normalize.meta.
@@ -17,29 +18,29 @@ star.compiler.matcher{
   all e ~~ triple[e] ~>
     (cons[cExp],(option[locn],cons[(string,cV)],option[cExp],e),integer).
 
-  public functionMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],cExp)]) => option[cDefn].
-  functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
-    if FTp ?= funTypeArg(Tp) then{
-      NVrs = genVars(Lc,FTp);
+  public functionMatcher:(option[locn],string,ltipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],cExp)]) => option[cDefn].
+  functionMatcher(Lc,Nm,Ft,Map,Eqns) => valof{
+    if .fnTipe(As,Rt,Et).= Ft then{
+      NVrs = genVars(Lc,As);
       Trpls = makeTriples(Eqns);
 
       -- if traceNormalize! then
       -- 	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
 
-      Error = genRaise(Lc,"function match failure #(Nm)",funTypeRes(Tp));
+      Error = genRaise(Lc,"function match failure #(Nm)",Rt);
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-      valis .some(uniqify(.fnDef(Lc,Nm,Tp,NVrs,Reslt)))
+      valis .some(uniqify(.fnDef(Lc,Nm,Ft,NVrs,Reslt)))
     }
     else{
-      reportError("Cant create a match for non function type $(Tp)",Lc);
+      reportError("Cant create a match for non function type $(Ft)",Lc);
       valis .none
     }
   }
 
-  public procMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],aAction)]) => option[cDefn].
-  procMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
-    if ATp ?= funTypeArg(Tp) then{
-      NVrs = genVars(Lc,ATp);
+  public procMatcher:(option[locn],string,ltipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],aAction)]) => option[cDefn].
+  procMatcher(Lc,Nm,Pt,Map,Eqns) => valof{
+    if .prTipe(As,Et) .= Pt then {
+      NVrs = genVars(Lc,As);
       Trpls = makeTriples(Eqns);
 
       -- if traceNormalize! then
@@ -47,10 +48,10 @@ star.compiler.matcher{
 
       Error = .aAbort(Lc,"function match failure #(Nm)");
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-      valis .some(uniqify(.prDef(Lc,Nm,Tp,NVrs,Reslt)))
+      valis .some(uniqify(.prDef(Lc,Nm,Pt,NVrs,Reslt)))
     }
     else{
-      reportError("Cant create a match for non procedure type $(Tp)",Lc);
+      reportError("Cant create a match for non procedure type $(Pt)",Lc);
       valis .none
     }
   }
@@ -62,11 +63,8 @@ star.compiler.matcher{
     valis matchTriples(Lc,[Gov],Trpls,Deflt,0,Map)
   }
 
-  genVars:(option[locn],tipe) => cons[cV].
-  genVars(Lc,.tupleType(L)) => let{.
-    genV([]) => [].
-    genV([T,..Ts]) => [.cV(genId("_"),T),..genV(Ts)].
-  .} in genV(L).
+  genVars:(option[locn],cons[ltipe]) => cons[cV].
+  genVars(Lc,L) => (L//(T) => .cV(genId("_"),T)).
 
   makeTriples:all e ~~ reform[e] |= (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
   makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=> valof{
@@ -74,7 +72,7 @@ star.compiler.matcher{
       valis [(Args,(Lc,[],mergeGoal(Lc,Cnd,Wh),Vl),Ix),..Ts]
     },[],Eqns).
 
-  genRaise(Lc,Msg,Tp) => .cAbort(Lc,Msg,Tp).
+  genRaise(Lc,Msg,_) => .cAbort(Lc,Msg).
 
   matchTriples:all e~~reform[e],rewrite[e],display[e] |= (option[locn],cons[cV],cons[triple[e]],e,integer,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_,_) => conditionalize(Triples,Deflt).
@@ -186,9 +184,7 @@ star.compiler.matcher{
     (cons[triple[e]],cons[cV],option[locn],e,integer,nameMap)=>e.
   matchScalars(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     ST = sort(Seg,compareScalarTriple);
---    showMsg("Sorted triples: $(ST)");
     Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt,Depth+1,Map);
---    showMsg("Scalar cases: $(Cases)");
     valis mkCase(Lc,.cVar(Lc,V),Cases,Deflt)
   }
 
@@ -198,26 +194,12 @@ star.compiler.matcher{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
 
-    if Index ?= findIndexMap(tpName(typeOf(V)),Map) then{
-      -- if traceNormalize! then{
-      -- 	showMsg("Map type entry for $(typeOf(V)) is $(Index)");
-      -- 	showMsg("Cases: $(Cases)");
-      -- };
-
-      if indexCovered(Index,Cases//snd) then
-	valis mkIndex(Lc,.cVar(Lc,V),Cases,Deflt)
-      else{
-	reportWarning("Not all cases covered",Lc);
-	valis mkIndex(Lc,.cVar(Lc,V),Cases,Deflt)
-      }
-    };
-
     valis mkIndex(Lc,.cVar(Lc,V),Cases,Deflt)
   }
 
   indexCovered:(indexMap,cons[cExp]) => boolean.
   indexCovered(Map,Trms) => {? T in Trms *>
-    ( .cTerm(_,Nm,Args,_) .= T && _ ?= Map[.tLbl(Nm,size(Args))] ) ?}.
+    ( .cTerm(_,Nm,_,Args) .= T && _ ?= Map[.tLbl(Nm,size(Args))] ) ?}.
 
   matchTuples:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cV],option[locn],e,integer,nameMap)=>e.
@@ -267,13 +249,14 @@ star.compiler.matcher{
     (LLc,.cChar(LLc,Cx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
   formCase(([.cString(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
     (LLc,.cString(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
-  formCase(([.cTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Depth,Map) => valof{
+  formCase(([.cTerm(Lc,Lbl,Ix,Args),.._],_,_),Triples,_,Vars,Deflt,Depth,Map) => valof{
     Vrs = (Args//genTplVar);
     NTriples = subTriples(Triples);
     Case = matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Depth,Map);
-    valis (Lc,.cTerm(Lc,Lbl,Vrs//((V)=>.cVar(Lc,V)),Tp),Case)
+    valis (Lc,.cTerm(Lc,Lbl,Ix,Vrs//((V)=>.cVar(Lc,V))),Case)
   }.
 
+  genTplVar:(cExp) => cV.
   genTplVar(Arg) => .cV(genId("V"),typeOf(Arg)).
 
   pickMoreCases:all e ~~ (triple[e],cons[triple[e]],(triple[e],triple[e])=>boolean,
@@ -285,8 +268,8 @@ star.compiler.matcher{
     pickMoreCases(Tr,Triples,Test,InCase,[A,..Others]).
 
   subTriples(Tpls) => (Tpls//subTriple).
-    
-  subTriple(([.cTerm(_,_,CArgs,_),..Args],V,X)) =>
+
+  subTriple(([.cTerm(_,_,_,CArgs),..Args],V,X)) =>
     (CArgs++Args,V,X).
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
@@ -336,7 +319,7 @@ star.compiler.matcher{
   sameConstructorTriple:all e ~~ (triple[e],triple[e])=>boolean.
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
 
-  sameConstructor(.cTerm(_,A,_,_), .cTerm(_,B,_,_)) => A==B.
+  sameConstructor(.cTerm(_,A,IA,_), .cTerm(_,B,IB,_)) => A==B && IA==IB.
   sameConstructor(_,_) default => .false.
 
   pullVarLets:(cons[cExp],cExp)=>(cons[cExp],cExp).

@@ -9,10 +9,10 @@ star.compiler.inline{
   import star.compiler.term.
   import star.compiler.escapes.
   import star.compiler.freevars.
-  import star.compiler.freshen.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.opts.
+  import star.compiler.ltipe.
   import star.compiler.types.
   import star.compiler.unify.
 
@@ -71,7 +71,7 @@ star.compiler.inline{
   ptnMatch(.cFlt(_,Dx),.cFlt(_,Dx),Map) => .matching(Map).
   ptnMatch(.cChar(_,Cx),.cChar(_,Cx),Map) => .matching(Map).
   ptnMatch(.cString(_,Sx),.cString(_,Sx),Map) => .matching(Map).
-  ptnMatch(.cTerm(_,N,A1,_),.cTerm(_,N,A2,_),Map) => ptnMatchArgs(A1,A2,Map).
+  ptnMatch(.cTerm(_,N,Ix,A1),.cTerm(_,N,Ix,A2),Map) => ptnMatchArgs(A1,A2,Map).
   ptnMatch(.cVoid(_),_,_) => .insufficient.  -- void on left does not match anything
   ptnMatch(_,.cVoid(_),_) => .insufficient.  -- void on right does not match anything
   ptnMatch(_,_,_) default => .noMatch.
@@ -106,7 +106,7 @@ star.compiler.inline{
     | .cChar(Lc,Ix) => .cChar(Lc,Ix)
     | .cFlt(Lc,Dx) => .cFlt(Lc,Dx)
     | .cString(Lc,Sx) => .cString(Lc,Sx)
-    | .cTerm(Lc,Fn,Args,Tp) => .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp)
+    | .cTerm(Lc,Fn,Ix,Args) => .cTerm(Lc,Fn,Ix,Args//(A)=>simExp(A,Map,Depth))
     | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) =>
       inlineECall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth)
     | .cCall(Lc,Fn,Args,Tp) => inlineCall(Lc,Fn,Args,Tp,Map,Depth)
@@ -138,7 +138,7 @@ star.compiler.inline{
       inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cMatch(Lc,Ptn,Val) =>
       applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
-    | .cAbort(Lc,Txt,Tp) => .cAbort(Lc,Txt,Tp)
+    | .cAbort(Lc,Txt) => .cAbort(Lc,Txt)
     | .cThrw(Lc,E,Tp) => .cThrw(Lc,simplifyExp(E,Map,Depth),Tp)
     | .cTry(Lc,Inn,E,H,Tp) where .cVar(VLc,EV) .= E => valof{
       NE = genVar(vName(EV),typeOf(EV));
@@ -179,16 +179,26 @@ star.compiler.inline{
   simplifyAct(A,P,D) => simAct(A,P,D).
 
   simAct(.aNop(Lc),_,_) => .aNop(Lc).
-  simAct(.aSeq(Lc,.aDefn(DLc,.cVar(VLc,.cV(VNm,VTp)),E),A2),Map,Depth) where
-      ~ isRefType(VTp) => valof{
+  simAct(.aSeq(Lc,.aDefn(DLc,.cVar(VLc,.cV(VNm,VTp)),E),A2),Map,Depth) => valof{
     if traceInline! then{
-      showMsg("attempt to inline var definition for #(VNm) = $(E)");
+      showMsg("inline var definition for #(VNm)\:$(VTp) = $(E)\:$(typeOf(E))");
     };
     EE = simplifyExp(E,Map,Depth);
-    AA = simplifyAct(A2,Map[.varSp(VNm)->.glDef(VLc,VNm,VTp,EE)],Depth);
+    if traceInline! then{
+      showMsg("inlined def #(VNm) = $(EE)\:$(typeOf(EE))");
+    };
 
-    if ~present(AA,(Exp)=>(.cVar(_,.cV(VNm,_)).=Exp)) then
+    AA = simplifyAct(A2,Map[.varSp(VNm)->.glDef(VLc,VNm,typeOf(EE)/*VTp*/,EE)],Depth);
+    if traceInline! then{
+      showMsg("trying to eliminate #(VNm) in $(AA)");
+    };
+
+    if ~present(AA,(Exp)=>(.cVar(_,.cV(VNm,_)).=Exp)) then{
+      if traceInline! then{
+	showMsg("drop var #(VNm) = $(EE)");
+      };
       valis AA
+    }
     else
     valis .aSeq(Lc,.aDefn(DLc,.cVar(VLc,.cV(VNm,VTp)),EE),AA)
   }
@@ -243,42 +253,36 @@ star.compiler.inline{
 
   getValis(Lc,.cValof(_,A,_)) => A.
   getValis(Lc,E) => .aValis(Lc,E).
-  
+
   inlineVar(Lc,.cV("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cV(Id,Tp),Map,Depth) where
       .glDef(_,_,GlTp,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
-    (Quants,FreshFTp) = freshen(GlTp,emptyDict);
-    if traceInline! then{
-      showMsg("Inlining global #(Id)\:$(GlTp) @ $(Lc), expecting $(Tp)");
-      showMsg("Freshened globaltype $(FreshFTp)");
+    if Tp==GlTp then{
+      if traceInline! then{
+	showMsg("Inlining var #(Id)\:$(Tp) with $(Vl)\:$(GlTp) @ $(Lc)");
+      };
+      valis simplifyExp(Vl,Map[~.varSp(Id)],Depth-1)
+    } else{
+      valis .cVar(Lc,.cV(Id,Tp))
     }
-
-    (SpecVrs,SpecVl) = specializeTypes(FreshFTp,Tp,Quants,[],Vl,Lc,Id);
-
-    SimGl = simplifyExp(freshenE(SpecVl,[]),Map[~.varSp(Id)],Depth-1);
-
-    if traceInline! then
-      showMsg("Replace global var #(Id) with $(SimGl)");
-    valis SimGl
       }
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
-  applyCnj(_,.cTerm(_,"true",[],_),R) => R.
-  applyCnj(_,.cTerm(Lc,"false",[],Tp),R) => .cTerm(Lc,"false",[],Tp).
+  applyCnj(_,Tr where isTrue(Tr),R) => R.
+  applyCnj(_,Fl where isFalse(Fl),R) => Fl.
   applyCnj(Lc,L,R) => .cCnj(Lc,L,R).
 
-  applyDsj(_,.cTerm(_,"false",[],_),R) => R.
-  applyDsj(_,.cTerm(Lc,"true",[],Tp),R) => 
-    .cTerm(Lc,"false",[],Tp).
+  applyDsj(_,Fl where isFalse(Fl),R) => R.
+  applyDsj(_,Tr where isTrue(Tr),R) => Tr.
   applyDsj(Lc,L,R) => .cDsj(Lc,L,R).
 
-  applyNeg(_,.cTerm(Lc,"false",[],Tp)) => .cTerm(Lc,"true",[],Tp).
-  applyNeg(_,.cTerm(Lc,"true",[],Tp)) => .cTerm(Lc,"false",[],Tp).
+  applyNeg(Lc,Fl where isFalse(Fl)) => trueEn(Lc).
+  applyNeg(Lc,Tr where isTrue(Tr)) => falseEn(Lc).
   applyNeg(Lc,Inner) => .cNeg(Lc,Inner).
 
   applyCnd:all e ~~ rewrite[e], reform[e] |= (option[locn],cExp,e,e,map[defnSp,cDefn],integer) => e.
-  applyCnd(_,.cTerm(_,"false",[],_),_L,R,_,_) => R.
-  applyCnd(_,.cTerm(_,"true",[],_),L,_R,_,_) => L.
+  applyCnd(_,Fl where isFalse(Fl),_L,R,_,_) => R.
+  applyCnd(_,Tr where isTrue(Tr),L,_R,_,_) => L.
   applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cV(Vr,_)) .= V =>
     rewrite(L,rwVar({Vr->E})).
   applyCnd(Lc,.cCnj(_,.cMatch(_,V,E),BB),L,R,Map,Dep) where .cVar(_,.cV(Vr,VTp)) .= V &&
@@ -286,23 +290,21 @@ star.compiler.inline{
     applyCnd(Lc,BB,rewrite(L,rwVar({Vr->E})),R,Map,Dep).
   applyCnd(Lc,T,L,R,_,_) => mkCond(Lc,T,L,R).
 
-  inlineTplOff(_,.cTerm(_,_,Els,_),Ix,Tp) where E?=Els[Ix] => E.
+  inlineTplOff(_,.cTerm(_,_,_,Els),Ix,Tp) where E?=Els[Ix] => E.
   inlineTplOff(Lc,T,Ix,Tp) default => .cNth(Lc,T,Ix,Tp).
-  
-  applyTplUpdate(_,.cTerm(Lc,Nm,Args,Tp),Ix,E) =>
-    .cTerm(Lc,Nm,Args[Ix->E],Tp).
+
+  applyTplUpdate(_,.cTerm(Lc,Nm,Ix,Args),Ix,E) =>
+    .cTerm(Lc,Nm,Ix,Args[Ix->E]).
   applyTplUpdate(Lc,T,Ix,E) =>
     .cSetNth(Lc,T,Ix,E).
 
   applyMatch(Lc,Ptn,Exp,_,_) where isGround(Ptn) && isGround(Exp) =>
-    (Ptn==Exp ??
-    .cTerm(Lc,"true",[],boolType) ||
-    .cTerm(Lc,"false",[],boolType)).
-  applyMatch(Lc,.cTerm(_,Lb,A1,_),.cTerm(_,Lb,A2,_),Map,Depth) =>
+    (Ptn==Exp ?? trueEn(Lc) || falseEn(Lc)).
+  applyMatch(Lc,.cTerm(_,Lb,Ix,A1),.cTerm(_,Lb,Ix,A2),Map,Depth) =>
     makeSubMatches(Lc,A1,A2).
   applyMatch(Lc,Ptn,Exp,_,_) => .cMatch(Lc,Ptn,Exp).
 
-  makeSubMatches(Lc,[],[]) => .cTerm(Lc,"true",[],boolType).
+  makeSubMatches(Lc,[],[]) => trueEn(Lc).
   makeSubMatches(Lc,[T1],[T2]) => .cMatch(Lc,T1,T2).
   makeSubMatches(Lc,[P1,..P1s],[T2,..T2s]) => .cCnj(Lc,.cMatch(Lc,P1,T2),makeSubMatches(Lc,P1s,T2s)).
 
@@ -352,179 +354,63 @@ star.compiler.inline{
     mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 
   varFound(Vr) => (T)=>(.cVar(_,VV).=T ?? VV==Vr || .false).
-  
-  /* Specializing a generic function's body for one call site, requires
-  propagating type information into the function from the call site.  */
 
-  -- freshen opens the outermost quantifier.
-  alignQuants:(tipe,tipe,dict) => (cons[(string,tipe)],tipe).
-  alignQuants(Tp,CallTp,Dict) => valof{
-    (Q1,Tp1) = freshen(Tp,Dict);
-    valis alignFurther(Q1,Tp1,CallTp,Dict)
-  }
-
-  alignFurther:(cons[(string,tipe)],tipe,tipe,dict) => (cons[(string,tipe)],tipe).
-  alignFurther(Q1,.funType(A,R,E),CallTp,Dict)
-      where .allType(_,_).=deRef(R) && .funType(_,CR,_).=deRef(CallTp) && isNotAllType(deRef(CR)) => valof{
-    (Q2,R1) = alignQuants(R,CR,Dict);
-    valis (Q1++Q2,.funType(A,R1,E))
-  }
-  alignFurther(Q1,Tp1,_,_) default => (Q1,Tp1).
-
-  isNotAllType(.allType(_,_)) => .false.
-  isNotAllType(_) default => .true.
-
-  -- specializeTypes replaces the types in a cExp with freshened version.
-  specializeTypes:(tipe,tipe,cons[(string,tipe)],cons[cV],cExp,option[locn],string) => (cons[cV],cExp).
-  specializeTypes(FreshFTp,CallTp,Quants,Vrs,Rep,Lc,Nm) =>
-    sameType(FreshFTp,CallTp,emptyDict) ??
-      (Vrs//(V)=>substCV(V,Quants), substTypesE(Rep,Quants))
-    || valof{
-      reportError("cannot align types of #(Nm)\: $(FreshFTp) to call type $(CallTp)",Lc);
-      valis (Vrs,Rep)
-    }.
-
-  substTp:(tipe,cons[(string,tipe)]) => tipe.
-  substTp(Tp,Quants) => refresh(Quants,Tp,emptyDict).
-
-  substCV:(cV,cons[(string,tipe)]) => cV.
-  substCV(.cV(Nm,Tp),Quants) => .cV(Nm,substTp(Tp,Quants)).
-
-  public substTypesE:(cExp,cons[(string,tipe)]) => cExp.
-  substTypesE(E,Quants) => foldExp(E,Quants,substTypesAlgebra).
-
-  public substTypesA:(aAction,cons[(string,tipe)]) => aAction.
-  substTypesA(A,Quants) => foldAct(A,Quants,substTypesAlgebra).
-
-  substCasesTpE:(cons[cCase[cExp]],cons[(string,tipe)]) => cons[cCase[cExp]].
-  substCasesTpE(Cs,Quants) =>
-    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Quants,substTypesAlgebra),foldExp(Rep,Quants,substTypesAlgebra))).
-
-  substCasesTpA:(cons[cCase[aAction]],cons[(string,tipe)]) => cons[cCase[aAction]].
-  substCasesTpA(Cs,Quants) =>
-    (Cs//((Lc,Ptn,Rep))=>(Lc,foldExp(Ptn,Quants,substTypesAlgebra),foldAct(Rep,Quants,substTypesAlgebra))).
-
-  /* Only the fields that actually carry a tipe (or a cV, which carries one) do
-  anything here.  */
-
-  substTypesAlgebra:treeAlgebra[cons[(string,tipe)],cExp,aAction].
-  substTypesAlgebra = treeAlgebra{
-    onVoid(_,Lc)=>.cVoid(Lc).
-    onAnon(Q,Lc,Tp)=>.cAnon(Lc,substTp(Tp,Q)).
-    onUnrch(Q,Lc,Tp)=>.cUnrch(Lc,substTp(Tp,Q)).
-    onVar(Q,Lc,V)=>.cVar(Lc,substCV(V,Q)).
-    onCel(Q,Lc,E,Tp)=>.cCel(Lc,E,substTp(Tp,Q)).
-    onGet(Q,Lc,E,Tp)=>.cGet(Lc,E,substTp(Tp,Q)).
-    onInt(_,Lc,Ix)=>.cInt(Lc,Ix).
-    onChar(_,Lc,Cx)=>.cChar(Lc,Cx).
-    onBig(_,Lc,Ix)=>.cBig(Lc,Ix).
-    onFlt(_,Lc,Dx)=>.cFlt(Lc,Dx).
-    onString(_,Lc,Sx)=>.cString(Lc,Sx).
-    onTerm(Q,Lc,Op,Args,Tp)=>.cTerm(Lc,Op,Args,substTp(Tp,Q)).
-    onNth(Q,Lc,R,Ix,Tp)=>.cNth(Lc,R,Ix,substTp(Tp,Q)).
-    onSetNth(_,Lc,R,Ix,E)=>.cSetNth(Lc,R,Ix,E).
-    onClos(Q,Lc,L,A,F,Tp)=>.cClos(Lc,L,A,F,substTp(Tp,Q)).
-    onSv(Q,Lc,Tp)=>.cSv(Lc,substTp(Tp,Q)).
-    onSvDrf(Q,Lc,E,Tp)=>.cSvDrf(Lc,E,substTp(Tp,Q)).
-    onSvSet(_,Lc,E,V)=>.cSvSet(Lc,E,V).
-    onCall(Q,Lc,Op,Args,Tp)=>.cCall(Lc,Op,Args,substTp(Tp,Q)).
-    onOCall(Q,Lc,Op,Args,Tp)=>.cOCall(Lc,Op,Args,substTp(Tp,Q)).
-    onXCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXCall(Lc,Op,Args,substTp(Tp,Q),substTp(ErTp,Q)).
-    onXOCall(Q,Lc,Op,Args,Tp,ErTp)=>.cXOCall(Lc,Op,Args,substTp(Tp,Q),substTp(ErTp,Q)).
-    onSeq(_,Lc,L,R)=>.cSeq(Lc,L,R).
-    onCnj(_,Lc,L,R)=>.cCnj(Lc,L,R).
-    onDsj(_,Lc,L,R)=>.cDsj(Lc,L,R).
-    onNeg(_,Lc,R)=>.cNeg(Lc,R).
-    onCnd(_,Lc,G,L,R)=>.cCnd(Lc,G,L,R).
-    onLtt(Q,Lc,V,D,E)=>.cLtt(Lc,substCV(V,Q),D,E).
-    onCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cCase(Lc,Sel,substCasesTpE(Cases,Q),Dflt,substTp(Tp,Q)).
-    onIxCase(Q,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,substCasesTpE(Cases,Q),Dflt,substTp(Tp,Q)).
-    onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
-    onResum(Q,Lc,T,M,Tp)=>.cResum(Lc,T,M,substTp(Tp,Q)).
-    onSusp(Q,Lc,T,M,Tp)=>.cSusp(Lc,T,M,substTp(Tp,Q)).
-    onRetyr(Q,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,substTp(Tp,Q)).
-    onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
-    onAbort(Q,Lc,Ms,Tp)=>.cAbort(Lc,Ms,substTp(Tp,Q)).
-    onTry(Q,Lc,B,E,H,Tp)=>.cTry(Lc,B,E,H,substTp(Tp,Q)).
-    onThrw(Q,Lc,E,Tp)=>.cThrw(Lc,E,substTp(Tp,Q)).
-    onValof(Q,Lc,A,Tp)=>.cValof(Lc,A,substTp(Tp,Q)).
-
-    onANop(_,Lc)=>.aNop(Lc).
-    onASeq(_,Lc,L,R)=>.aSeq(Lc,L,R).
-    onALbld(_,Lc,L,A)=>.aLbld(Lc,L,A).
-    onABreak(_,Lc,L)=>.aBreak(Lc,L).
-    onAValis(_,Lc,E)=>.aValis(Lc,E).
-    onADo(_,Lc,E)=>.aDo(Lc,E).
-    onASetNth(_,Lc,V,Ix,E)=>.aSetNth(Lc,V,Ix,E).
-    onADefn(_,Lc,V,E)=>.aDefn(Lc,V,E).
-    onAMatch(_,Lc,V,E)=>.aMatch(Lc,V,E).
-    onAAsgn(_,Lc,V,E)=>.aAsgn(Lc,V,E).
-    onACase(Q,Lc,G,Cs,D)=>.aCase(Lc,G,substCasesTpA(Cs,Q),D).
-    onAIxCase(Q,Lc,G,Cs,D)=>.aIxCase(Lc,G,substCasesTpA(Cs,Q),D).
-    onAIftte(_,Lc,C,L,R)=>.aIftte(Lc,C,L,R).
-    onAWhile(_,Lc,C,B)=>.aWhile(Lc,C,B).
-    onATry(_,Lc,B,E,Hs)=>.aTry(Lc,B,E,Hs).
-    onAThrw(_,Lc,E)=>.aThrw(Lc,E).
-    onALtt(Q,Lc,V,D,A)=>.aLtt(Lc,substCV(V,Q),D,A).
-    onAVarNme(_,Lc,N,V,E)=>.aVarNme(Lc,N,V,E).
-    onAAbort(_,Lc,Ms)=>.aAbort(Lc,Ms).
-
-    extendLtt(Q,_)=>Q.
-    onRaw(_,_)=>.none.
-    onARaw(_,_)=>.none.
-    }.
-
-  inlineCall:(option[locn],string,cons[cExp],tipe,map[defnSp,cDefn],integer) => cExp.
+  inlineCall:(option[locn],string,cons[cExp],ltipe,map[defnSp,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) where Depth>0 &&
-      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) && ~ isThrowingType(FTp) =>
-    valof{
-    CallTp = .funType(.tupleType(Args//typeOf),Tp,.voidType);
-    (Quants,FreshFTp) = alignQuants(FTp,CallTp,emptyDict);
+      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) && ~ isThrowingTipe(FTp) => valof{
+    CallTp = .fnTipe(Args//typeOf,Tp,.vdTipe);
+
     if traceInline! then{
       showMsg("Inlining call #(Nm)$(Args) @ $(Lc), expecting $(CallTp)");
-      showMsg("Freshened callee type $(FreshFTp)");
     }
 
-    (SpecVrs,SpecRep) = specializeTypes(FreshFTp,CallTp,Quants,Vrs,Rep,Lc,Nm);
+    if FTp==CallTp then{
+      RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+      inlined = simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1);
 
-    RwMap = { lName(V)->A | (V,A) in zip(SpecVrs,Args)};
+      if traceInline! then{
+	showMsg("Inlined call to #(Nm) is $(inlined)")
+      };
 
-    inlined = simplifyExp(freshenE(SpecRep,RwMap),Map[~.varSp(Nm)],Depth-1);
-
-    if traceInline! then{
-      showMsg("Inlined call to #(Nm) is $(inlined)")
-    };
-
-    valis inlined
-    }.
+      valis inlined
+    } else {
+      reportError("cannot align types of call to #(Nm)\:$(Tp) with $(CallTp)",Lc);
+      valis .cCall(Lc,Nm,Args,Tp)
+    }
+      }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp).
 
-  inlineXCall:(option[locn],string,cons[cExp],tipe,tipe,map[defnSp,cDefn],integer) => cExp.
+  inlineXCall:(option[locn],string,cons[cExp],ltipe,ltipe,map[defnSp,cDefn],integer) => cExp.
   inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) where Depth>0 &&
       Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) => valof{
-    CallTp = .funType(.tupleType(Args//typeOf),Tp,ErTp);
-    (Quants,FreshFTp) = alignQuants(FTp,CallTp,emptyDict);
+    CallTp = .fnTipe(Args//typeOf,Tp,ErTp);
 
-    if traceInline! then
-      showMsg("Inlining xcall to #(Nm)\:$(FTp)");
+    if traceInline! then{
+      showMsg("inlining xcall #(Nm)$(Args) @ $(Lc), expecting $(CallTp)");
+    }
 
-    (SpecVrs,SpecRep) = specializeTypes(FreshFTp,CallTp,Quants,Vrs,Rep,Lc,Nm);
-
-    RwMap = { lName(V)->A | (V,A) in zip(SpecVrs,Args)};
-    valis simplifyExp(freshenE(SpecRep,RwMap),Map[~.varSp(Nm)],Depth-1)
+    if FTp==CallTp then {
+      RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+      valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
+    }
+    else{
+	reportError("cannot align types of xcall to #(Nm)\:$(Tp) with $(CallTp)",Lc);
+	valis .cXCall(Lc,Nm,Args,Tp,ErTp)
+    }
       }.
   inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) default => .cXCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).
-  inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.
+
+  inlineECall:(option[locn],string,cons[cExp],ltipe,integer) => cExp.
   inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && {? A in Args *> isGround(A) ?} =>
     rewriteECall(Lc,Nm,Args,Tp).
   inlineECall(Lc,Nm,Args,Tp,_) default => .cCall(Lc,Nm,Args,Tp).
 
-  inlineOCall(Lc,.cTerm(OLc,Nm,OArgs,ATp),Args,Tp,Map,Depth) =>
-    simplifyExp(.cCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp),Map,Depth).
+  inlineOCall(Lc,.cTerm(OLc,Nm,Ix,OArgs),Args,Tp,Map,Depth) =>
+    simplifyExp(.cCall(Lc,Nm,[.cTerm(OLc,Nm,Ix,OArgs),..Args],Tp),Map,Depth).
   inlineOCall(Lc,.cClos(OLc,Nm,_,Fr,_),Args,Tp,Map,Depth) =>
     simplifyExp(.cCall(Lc,Nm,[Fr,..Args],Tp),Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args//(A)=>simExp(A,Map,Depth),Tp).
-  
+
   inlineXOCall(Lc,.cTerm(OLc,Nm,OArgs,ATp),Args,Tp,ErTp,Map,Depth) =>
     simplifyExp(.cXCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp,ErTp),Map,Depth).
   inlineXOCall(Lc,.cClos(OLc,Nm,_,Fr,_),Args,Tp,ErTp,Map,Depth) =>
@@ -535,28 +421,28 @@ star.compiler.inline{
   rewriteECall(Lc,"_int_minus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A*B).
   rewriteECall(Lc,"_int_eq",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A == B??"true"||"false"),[],boolType).
+    ( A == B ?? trueEn(Lc) || falseEn(Lc)).
   rewriteECall(Lc,"_int_lt",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A < B??"true"||"false"),[],boolType).
+    ( A < B ?? trueEn(Lc) || falseEn(Lc)).
   rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A >= B??"true"||"false"),[],boolType).
+    ( A >= B ?? trueEn(Lc) || falseEn(Lc)).
 
   rewriteECall(Lc,"_flt_plus",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A+B).
   rewriteECall(Lc,"_flt_minus",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A-B).
   rewriteECall(Lc,"_flt_times",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A*B).
   rewriteECall(Lc,"_flt_eq",[.cFlt(_,A),.cFlt(_,B)],_) =>
-    .cTerm(Lc,(A == B??"true"||"false"),[],boolType).
+    ( A == B ?? trueEn(Lc) || falseEn(Lc)).
   rewriteECall(Lc,"_flt_lt",[.cFlt(_,A),.cFlt(_,B)],_) =>
-    .cTerm(Lc,(A < B??"true"||"false"),[],boolType).
+    ( A < B ?? trueEn(Lc) || falseEn(Lc)).
   rewriteECall(Lc,"_flt_ge",[.cFlt(_,A),.cFlt(_,B)],_) =>
-    .cTerm(Lc,(A >= B??"true"||"false"),[],boolType).
+    ( A >= B ?? trueEn(Lc) || falseEn(Lc)).
 
   rewriteECall(Lc,"_str_multicat",[As],_) where isGround(As) =>
     .cString(Lc,pullStrings(As)*).
   rewriteECall(Lc,Op,Args,Tp) default => .cCall(Lc,Op,Args,Tp).
 
-  pullStrings(.cTerm(_,"nil",[],_)) => [].
-  pullStrings(.cTerm(_,"cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
+  pullStrings(.cTerm(_,"nil",_,[])) => [].
+  pullStrings(.cTerm(_,"cons",_,[.cString(_,S),Tl])) => [S,..pullStrings(Tl)].
 
   isLeafDef:(cDefn) => boolean.
   isLeafDef(D) => ~present(D,(Cll) =>

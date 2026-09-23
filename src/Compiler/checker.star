@@ -42,9 +42,9 @@ star.compiler.checker{
 
 	if ~isEmpty(Opens) then
 	  reportError("open statements $(Opens) not currently supported",Lc);
-    
+
 	(Defs,ThDecls,ThEnv) = checkGroups(Gps,pkgExport(Vis),emptyFace,Annots,PkgEnv,PkgPth);
-	
+
 	(BrDfs,BrDcs) = pullBrDefs(ThEnv);
 	(AllX,All) = squashDecls(ThDecls);
 
@@ -90,7 +90,7 @@ star.compiler.checker{
   formRecordExp(Lc,Lbl,.faceType(Flds,Tps),Defs,XDcs,Decls,Tp) => valof{
     sortedFlds = sortFields(Flds);
     Dcls = getFullNms([(XDcs,Decls)]);
-    
+
     valis .letExp(Lc,Defs,Decls,.apply(Lc,Lbl,
 	(sortedFlds//((FNm,FTp)) => FullNm ?=Dcls[FNm] ?? .vr(Lc,FullNm,FTp) || .vr(Lc,FNm,FTp)),Tp))
   }
@@ -104,7 +104,7 @@ star.compiler.checker{
   formTheta(Lc,Lbl,.faceType(Flds,Tps),Defs,Decls,Tp) => valof{
     sortedFlds = sortFields(Flds);
     Dcls = getFullNms(Decls);
-    
+
     valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),
       .apply(Lc,Lbl,(sortedFlds//(((Nm,FTp)) => (FullNm ?=Dcls[Nm] ?? .vr(Lc,FullNm,FTp) || .vr(Lc,Nm,FTp)))),Tp))
   }
@@ -284,8 +284,8 @@ star.compiler.checker{
     (Q,ETp) = evidence(Tp,Env);
 
     if traceCanon! then
-      showMsg("function type :$(ETp)");
-    
+      showMsg("function type: $(Q) ... $(ETp)");
+
     (Cx,ProgramType) = deConstrain(ETp);
 
     if traceCanon! then{
@@ -299,10 +299,12 @@ star.compiler.checker{
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
     FullNm = qualifiedName(Path,.valMark,Nm);
 
+    EffectiveTp = reQ(Q,wrapConstraints(Cx,ProgramType));
+
     if traceCanon! then
-      showMsg("function $(.funDef(Lc,FullNm,Rls,Cx,Tp))");
-    
-    valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
+      showMsg("function $(.funDef(Lc,FullNm,Rls,Cx,EffectiveTp))");
+
+    valis ([.funDef(Lc,FullNm,Rls,Cx,EffectiveTp)],[.funDec(Lc,Nm,FullNm,EffectiveTp)])
   }
 
   processEqns:(cons[ast],argTyper,tipe,cons[eqn],option[eqn],dict,dict,string) => cons[eqn].
@@ -455,7 +457,7 @@ star.compiler.checker{
     if traceCanon! then{
       showMsg("checking implementation for $(H) = $(B) at $(Lc)");
     };
-    
+
     BV = parseBoundTpVars(Q);
     QEnv = declareTypeVars(BV,Env);
     Cx = parseConstraints(C,QEnv);
@@ -466,23 +468,23 @@ star.compiler.checker{
     };
 
     ConName = localName(conTractName(Cn),.typeMark);
-    
+
     if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
 
       if traceCanon! then
 	showMsg("contract $(CnDps), face type $(ConFaceTp)");
-      
+
       ConTp = mkConType(CnNm,CnTps,CnDps);
 
       if traceCanon! then
 	showMsg("prototype contract $(ConTp)");
-      
+
       if sameType(ConTp,typeOf(Cn),Env) then {
 	if traceCanon! then{
 	  showMsg("contract vars $(BV), Constraints = $(Cx), net type $(ConTp)");
 	};
-	
+
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 
 	Impl = typeOfExp(B,ConTp,.voidType,Es,Path);
@@ -491,7 +493,7 @@ star.compiler.checker{
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
 	if traceCanon! then
 	  showMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
-	
+
 	valis ([.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
 	    (~isEmpty(Cx) ??
@@ -612,7 +614,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
-    valis (.anon(Lc,Tp),.none,Env)    
+    valis (.anon(Lc,Tp),.none,Env)
   }
 
   typeOfArgPtn:argTyper.
@@ -682,7 +684,7 @@ star.compiler.checker{
     reportError("too many arguments: $(P)",locOf(P));
     valis (reverse(Els),Cnd,Env)
   }
-  
+
   typeOfExp:(ast,tipe,tipe,dict,string) => canon.
   typeOfExp(A,Tp,_,Env,Path) where isAnon(A) => valof{
     Lc = locOf(A);
@@ -886,7 +888,7 @@ star.compiler.checker{
       FaceTp = ? faceOfType(ETp,Env);
       (Cx,Face) = deConstrain(FaceTp);
       Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    
+
       (Defs,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base);
 
       valis formTheta(Lc,Fun,Face,Defs,Decls,Tp)
@@ -901,7 +903,7 @@ star.compiler.checker{
     if traceCanon! then{
       showMsg("brace record: $(A)\:$(Tp)");
     };
-    
+
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
 
@@ -912,18 +914,18 @@ star.compiler.checker{
     if traceCanon! then{
       showMsg("type of $(Nm)\: $(Fun)\:$(FceTp) ~> $(ETp)");
     };
-    
+
     if FaceTp ?= faceOfType(ETp,Env) then{
       (Cx,Face) = deConstrain(FaceTp);
       Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-      
+
       (Defs,XDecls,All) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
-      
+
       valis formRecordExp(Lc,Fun,Face,Defs,XDecls,All,Tp)
     } else {
       reportError("can't compute face of $(FceTp)",Lc);
       valis .anon(Lc,Tp)
-    }      
+    }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isBrTuple(A) => valof{
     (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,Tp,Env,Env);
@@ -958,7 +960,7 @@ star.compiler.checker{
 
       CnsTp = reQ(Tps,consType(ArTp,AnTp));
       CnsDf = .cnsDef(Lc,brTplNm,0,CnsTp);
-      CnsDc = .cnsDec(Lc,brTplNm,brTplNm,CnsTp);
+      CnsDc = .cnsDec(Lc,brTplNm,brTplNm,0,CnsTp);
 
       AnTpDef = .typeDef(Lc,brTplNm,Tmplte,AnRl);
       AnTpDec = .tpeDec(Lc,brTplNm,Tmplte,AnRl,[.tLbl(brTplNm,[|Tps|])->0]);
@@ -1004,7 +1006,7 @@ star.compiler.checker{
 
     if traceCanon! then
       showMsg("theta decls: $(Decls)");
-    
+
     El = typeOfExp(Bnd,Tp,ErTp,ThEnv,Path);
 
     valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),El)
@@ -1418,7 +1420,7 @@ star.compiler.checker{
       valis .vr(Lc,"_",.voidType)
     }
   }
-  
+
 
   checkActions:(option[locn],cons[ast],tipe,tipe,actionMode,dict,cons[decl],string) => (canonAction,dict,cons[decl]).
   checkActions(Lc,[],Tp,_ErTp,Mode,Env,Dcls,_Path) => valof{
@@ -1446,7 +1448,7 @@ star.compiler.checker{
   mergeCond:(option[locn],canon,option[canon]) => canon.
   mergeCond(_,Gl,.none) => Gl.
   mergeCond(Lc,Gl,.some(G2)) => .conj(Lc,Gl,G2).
-  
+
   checkCond:(ast,tipe,dict,string) => (canon,dict).
   checkCond(A,ErTp,Env,Path) => checkGoal(A,ErTp,Env,Path).
 

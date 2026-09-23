@@ -15,7 +15,7 @@ star.compiler.meta{
   .tpeDec(option[locn],string,tipe,typeRule,indexMap) |
   .varDec(option[locn],string,string,tipe) |
   .funDec(option[locn],string,string,tipe) |
-  .cnsDec(option[locn],string,string,tipe).
+  .cnsDec(option[locn],string,string,integer,tipe).
 
   public importSpec ::= .pkgImp(option[locn],visibility,pkg).
 
@@ -82,23 +82,23 @@ star.compiler.meta{
       | .tpeDec(_,Nm,_,TpRl,Map) => "Type #(Nm)\::$(TpRl) $(Map)"
       | .varDec(_,Nm,FullNm,Tp) => "Var #(Nm)[#(FullNm)]\:$(Tp)"
       | .funDec(_,Nm,FullNm,Tp) => "Fun #(Nm)[#(FullNm)]\:$(Tp)"
-      | .cnsDec(_,Nm,FullNm,Tp) => "Con #(Nm)[#(FullNm)]\:$(Tp)"
+      | .cnsDec(_,Nm,FullNm,Ix,Tp) => "Con #(Nm)[#(FullNm)]\:$(Tp) @ $(Ix)"
     }
   }
 
-  public contract all e ~~ hasName[e] ::= {
+  public contract all e ~~ lclName[e] ::= {
     lclName:(e) => option[string].
     fullName:(e) => option[string].
   }
 
-  public implementation hasName[decl] => {
+  public implementation lclName[decl] => {
     lclName(D) => case D in {
       | .conDec(_,Nm,_,_) => .some(Nm)
       | .implDec(_,Nm,_,_) => .some(Nm)
       | .tpeDec(_,Nm,_,TpRl,_) => .some(Nm)
       | .varDec(_,Nm,FullNm,Tp) => .some(Nm)
       | .funDec(_,Nm,FullNm,Tp) => .some(Nm)
-      | .cnsDec(_,Nm,FullNm,Tp) => .some(Nm)
+      | .cnsDec(_,Nm,FullNm,_,Tp) => .some(Nm)
       | _ default => .none
     }.
     fullName(D) => case D in {
@@ -107,11 +107,11 @@ star.compiler.meta{
       | .tpeDec(_,Nm,Tp,_,_) => .some(tpName(Tp))
       | .varDec(_,Nm,FullNm,Tp) => .some(FullNm)
       | .funDec(_,Nm,FullNm,Tp) => .some(FullNm)
-      | .cnsDec(_,Nm,FullNm,Tp) => .some(FullNm)
+      | .cnsDec(_,Nm,FullNm,_,Tp) => .some(FullNm)
       | _ default => .none
     }.
   }
-  
+
   public mainDefined:(cons[decl])=>boolean.
   mainDefined(Decs) => {? .funDec(_,"_main",_,_) in Decs ?}.
 
@@ -128,25 +128,25 @@ star.compiler.meta{
     .tpeDec(.none,"float",fltType,.typeExists(fltType,emptyFace),[]),
     .tpeDec(.none,"boolean",boolType,.typeExists(boolType,emptyFace),[
 	.tLbl("false",0)->0, .tLbl("true",0)->1]),
-    .cnsDec(.none,"true","true",enumType(boolType)),
-    .cnsDec(.none,"false","false",enumType(boolType)),
+    .cnsDec(.none,"true","true",1,enumType(boolType)),
+    .cnsDec(.none,"false","false",0,enumType(boolType)),
     .tpeDec(.none,"char",chrType,.typeExists(chrType,emptyFace),[]),
     .tpeDec(.none,"string",strType,.typeExists(strType,emptyFace),[]),
     .tpeDec(.none,"cons",.tpFun("cons",1),
       .allRule(.kVar("e"),
 	.typeExists(lstType(.kVar("e")),emptyFace)),[.tLbl("cons",2)->0,.tLbl("nil",0)->1]),
-    .cnsDec(.none,"cons","cons",
+    .cnsDec(.none,"cons","cons",0,
       .allType(.kVar("e"),consType(.tupleType([.kVar("e"),lstType(.kVar("e"))]),
 	  lstType(.kVar("e"))))),
-    .cnsDec(.none,"nil","nil",
+    .cnsDec(.none,"nil","nil",1,
       .allType(.kVar("e"),consType(.tupleType([]),lstType(.kVar("e"))))),
     .tpeDec(.none,"option",.tpFun("option",1),
       .allRule(.kVar("e"),
 	.typeExists(optType(.kVar("e")),emptyFace)),[.tLbl("none",0)->0,.tLbl("some",1)->1]),
-    .cnsDec(.none,"some","some",
+    .cnsDec(.none,"some","some",1,
       .allType(.kVar("e"),consType(.tupleType([.kVar("e")]),
 	  optType(.kVar("e"))))),
-    .cnsDec(.none,"none","none",
+    .cnsDec(.none,"none","none",0,
       .allType(.kVar("e"),consType(.tupleType([]),optType(.kVar("e"))))),
 
     .tpeDec(.none,"thunk",.tpFun("thunk",1),
@@ -179,20 +179,24 @@ star.compiler.meta{
 	.tLbl("eEOF",0)->12,
 	.tLbl("hasValue",0)->13,
 	.tLbl("noValue",0)->14]),
-    .cnsDec(.none,"eINTRUPT","eINTRUPT",enumType(errorCodeType)),
-    .cnsDec(.none,"eNOTDIR","eNOTDIR",enumType(errorCodeType)),
-    .cnsDec(.none,"eNOFILE","eNOFILE",enumType(errorCodeType)),
-    .cnsDec(.none,"eNOTFND","eNOTFND",enumType(errorCodeType)),
-    .cnsDec(.none,"eINVAL","eINVAL",enumType(errorCodeType)),
-    .cnsDec(.none,"eRANGE","eRANGE",enumType(errorCodeType)),
-    .cnsDec(.none,"eNOPERM","eNOPERM",enumType(errorCodeType)),
-    .cnsDec(.none,"eFAIL","eFAIL",enumType(errorCodeType)),
-    .cnsDec(.none,"eIOERROR","eIOERROR",enumType(errorCodeType)),
-    .cnsDec(.none,"eCONNECT","eCONNECT",enumType(errorCodeType)),
-    .cnsDec(.none,"eDEAD","eDEAD",enumType(errorCodeType)),
-    .cnsDec(.none,"divZero","divZero",enumType(errorCodeType)),
-    .cnsDec(.none,"noValue","noValue",enumType(errorCodeType)),
-    .cnsDec(.none,"hasValue","hasValue",enumType(errorCodeType)),
-    .cnsDec(.none,"eEOF","eEOF",enumType(errorCodeType))
-  ]
+    .cnsDec(.none,"divZero","divZero",0,enumType(errorCodeType)),
+    .cnsDec(.none,"eCONNECT","eCONNECT",1,enumType(errorCodeType)),
+    .cnsDec(.none,"eDEAD","eDEAD",2,enumType(errorCodeType)),
+    .cnsDec(.none,"eFAIL","eFAIL",3,enumType(errorCodeType)),
+    .cnsDec(.none,"eINTRUPT","eINTRUPT",4,enumType(errorCodeType)),
+    .cnsDec(.none,"eIOERROR","eIOERROR",5,enumType(errorCodeType)),
+    .cnsDec(.none,"eNOFILE","eNOFILE",6,enumType(errorCodeType)),
+    .cnsDec(.none,"eNOPERM","eNOPERM",7,enumType(errorCodeType)),
+    .cnsDec(.none,"eNOTDIR","eNOTDIR",8,enumType(errorCodeType)),
+    .cnsDec(.none,"eNOTFND","eNOTFND",9,enumType(errorCodeType)),
+    .cnsDec(.none,"eINVAL","eINVAL",10,enumType(errorCodeType)),
+    .cnsDec(.none,"eRANGE","eRANGE",11,enumType(errorCodeType)),
+    .cnsDec(.none,"eEOF","eEOF",12,enumType(errorCodeType)),
+    .cnsDec(.none,"noValue","noValue",13,enumType(errorCodeType)),
+    .cnsDec(.none,"hasValue","hasValue",14,enumType(errorCodeType))
+  ].
+
+  public contract all x,n ~~ hasName[x->>n] ::= {
+    nameOf:(x)=>n
+  }
 }

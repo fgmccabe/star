@@ -70,10 +70,26 @@ star.compiler.unify{
     smT(.allType(V,T1),.allType(V,T2),Env) =>
       same(T1,T2,Env).
     smT(.allType(V1,T1),.allType(V2,T2),Env) =>
-      same(T1,rewriteType(T2,[V2->V1]),Env).
+      smU(.allType(V1,T1),.allType(V2,T2),Env).
     smT(.constrainedType(T1,C1),.constrainedType(T2,C2),Env) =>
       same(T1,T2,Env) && sameConstraint(C1,C2,Env).
     smT(T1,T2,_) default => resetBindings().
+
+    smU(.allType(V1,T1),.allType(V2,T2),Env) where ~ .allType(_,_).=T1 =>
+      ( V1==V2 ?? same(T1,T2,Env) || same(T1,rewriteType(T2,[V2->V1]),Env)).
+    smU(T1,T2,Env) => valof{
+      (Q1,F1) = freshen(T1,Env);
+      (Q2,F2) = freshen(T2,Env);
+
+      if [|Q1|] == [|Q2|] && same(F1,F2,Env) then {
+	if {? (_,TV1) in Q1 *> {? (_,TV2) in Q2 && deRef(TV1)==deRef(TV2) ?} ?} &&
+	    {? (_,TV2) in Q2 *> {? (_,TV1) in Q1 && deRef(TV1)==deRef(TV2) ?} ?} then
+	  valis .true
+	else
+	valis resetBindings()
+      } else
+      valis resetBindings()
+    }
 
     smTypes([],[],_) => .true.
     smTypes([E1,..L1],[E2,..L2],Env) =>
@@ -153,7 +169,7 @@ star.compiler.unify{
   rewr(.anonType,_) => .anonType.
   rewr(.voidType,_) => .voidType.
   rewr(.kFun(Nm,Ar),Env) where T?=Env[.kFun(Nm,Ar)] => T.
-  rewr(.kVar(Nm),Env) where T?=Env[.kVar(Nm)] => T.
+  rewr(.kVar(Nm),Env) => (T?=Env[.kVar(Nm)] ?? T || .kVar(Nm)).
   rewr(V,_) where isUnbound(V) => V.
   rewr(.kFun(Nm,Ar),Env) => .kFun(Nm,Ar).
   rewr(.nomnal(Nm),Env) => .nomnal(Nm).
@@ -169,6 +185,10 @@ star.compiler.unify{
     .faceType(Flds//((Nm,T))=>(Nm,rewriteType(T,Env)),
       Rls//((Nm,Rl))=>(Nm,rewriteTypeRule(Rl,Env))).
   rewr(.constrainedType(T,C),Env) => .constrainedType(rewriteType(T,Env),rewriteCon(C,Env)).
+  rewr(Tp,_) => valof{
+    showMsg("Cannot rewrite $(Tp)");
+    unreachable
+  }
 
   rewriteTps(Tps,Env) => (Tps//(E)=>rewriteType(E,Env)).
 

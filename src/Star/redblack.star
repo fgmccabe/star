@@ -287,8 +287,8 @@ star.redblack{
       _coerce(T) => pairs(T,[])
     }.
 
-  public implementation ixmap[rbtree] => let{.
-    ixMap:all k,v,w,xx ~~ (rbtree[k,v],((k,v)=>w throws xx)) => rbtree[k,w] throws xx.
+  public implementation all k,v,w ~~ ixmap[rbtree->>k,v,w] => let{.
+    ixMap:all xx ~~ (rbtree[k,v],((k,v)=>w throws xx)) => rbtree[k,w] throws xx.
     ixMap(.lf,_) => .lf.
     ixMap(.nd(Cl,L,K,V,R),f) => .nd(Cl,ixMap(L,f),K,f(K,V),ixMap(R,f)).
   .} in{

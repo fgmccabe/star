@@ -121,10 +121,6 @@ star.compiler.impawt{
     AccTp = decodeSignature(AccSig);
     valis .some(.updDec(Lc,Tp,Fld,FNm,decodeIndex(Idx),AccTp))
   }.
-
-  decodeIndex(.symb(.tLbl("none",0))) => .none.
-  decodeIndex(.term("some",[.intgr(Ix)])) => .some(Ix).
-
   pickupDeclaration(.term("con",[.strg(Nm),.strg(CnNm),.strg(Sig)]),Lc) =>
     .some(.conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig))).
   pickupDeclaration(.term("tpe",[.strg(Nm),.strg(TSig),.strg(RSig),.term(_,Els)]),Lc) => valof{
@@ -138,12 +134,16 @@ star.compiler.impawt{
 
   pickupDeclaration(.term("fun",[.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) =>
     .some(.funDec(Lc,Nm,FlNm,decodeSignature(Sig))).
-  pickupDeclaration(.term("cns",[.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) =>
-    .some(.cnsDec(Lc,Nm,FlNm,decodeSignature(Sig))).
+  pickupDeclaration(.term("cns",[.strg(Nm),.strg(FlNm),.intgr(Ix),.strg(Sig)]),Lc) =>
+    .some(.cnsDec(Lc,Nm,FlNm,Ix,decodeSignature(Sig))).
   pickupDeclaration(T,Lc) => valof{
     reportError("invalid declaration",Lc);
     valis .none
   }
+
+
+  decodeIndex(.symb(.tLbl("none",0))) => .none.
+  decodeIndex(.term("some",[.intgr(Ix)])) => .some(Ix).
 
   decodeIndexMap(Els) => foldLeft((.term(_,[.symb(Lbl),.intgr(Ix)]),Mp) => Mp[Lbl->Ix],[],Els).
 

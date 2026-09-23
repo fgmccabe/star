@@ -4,6 +4,7 @@ star.compiler.canon{
 
   import star.compiler.meta.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.types.
   import star.compiler.operators.
 
@@ -49,6 +50,8 @@ star.compiler.canon{
   .retyre(option[locn],canon,canon,tipe) |
   .resum(option[locn],canon,canon,tipe).
 
+  public canonVar ::= .var(string,tipe).
+
   public canonAction ::= .doNop(option[locn]) |
   .doSeq(option[locn],canonAction,canonAction) |
   .doLbld(option[locn],string,canonAction) |
@@ -69,7 +72,7 @@ star.compiler.canon{
   public eqn ::= .eqn(option[locn],cons[canon],option[canon],canon).
 
   public prle ::= .prle(option[locn],cons[canon],option[canon],canonAction).
-    
+
   public canonDef ::=
     .varDef(option[locn],string,string,canon,cons[constraint],tipe) |
     .funDef(option[locn],string,cons[eqn],cons[constraint],tipe) |
@@ -79,7 +82,7 @@ star.compiler.canon{
     .implDef(option[locn],string,string,canon,cons[constraint],tipe).
 
 
-  public implementation hasType[canon] => {.
+  public implementation hasType[canon->>tipe] => {.
     typeOf(Cn) => case Cn in {
       | .anon(_,T) => T
       | .unreach(_,T) => T
@@ -119,9 +122,33 @@ star.compiler.canon{
       | .vlof(_,_,Tp) => Tp
       | .susp(_,_,_,Tp) => Tp
       | .retyre(_,_,_,Tp) => Tp
-      | .resum(_,_,_,Tp) => Tp
+      | .resum(_,_
+	,_,Tp) => Tp
     }
   .}
+
+  public implementation hasType[canonVar->>tipe] => {
+    typeOf(.var(_,T)) => T
+  }
+
+  public implementation hasName[canonVar->>string] => {
+    nameOf(.var(N,_)) => N
+  }
+
+  public implementation equality[canonVar] => {
+    .var(N1,_) == .var(N2,_) => N1==N2
+  }
+
+  public implementation hashable[canonVar] => {
+    hash(.var(N,_)) => hash(N)
+  }
+
+  public mkeVar:(string,tipe) => canonVar.
+  mkeVar(Pre,Tp) => .var(genId(Pre),Tp).
+
+  public implementation display[canonVar] => {
+    disp(.var(Nm,Tp)) => "#(Nm)".
+  }
 
   public implementation hasLoc[canon] => {
     locOf(Cn) => case Cn in {
@@ -236,7 +263,7 @@ star.compiler.canon{
       | .tpeDec(Lc,Nm,Tp,TpRl,Map) => .tpeDec(Lc,Nm,reQuant(Qs,Tp),reQuant(Qs,TpRl),Map)
       | .varDec(Lc,Nm,FlNm,Tp) => .varDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
       | .funDec(Lc,Nm,FlNm,Tp) => .funDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
-      | .cnsDec(Lc,Nm,FlNm,Tp) => .cnsDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
+      | .cnsDec(Lc,Nm,FlNm,Ix,Tp) => .cnsDec(Lc,Nm,FlNm,Ix,reQuant(Qs,Tp))
     }
     reQuantX(Qs,Dc) => case Dc in {
       | .implDec(Lc,Nm,FlNm,Tp) => .implDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
@@ -246,7 +273,7 @@ star.compiler.canon{
       | .tpeDec(Lc,Nm,Tp,TpRl,IxMp) => .tpeDec(Lc,Nm,reQuantX(Qs,Tp),reQuantX(Qs,TpRl),IxMp)
       | .varDec(Lc,Nm,FlNm,Tp) => .varDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
       | .funDec(Lc,Nm,FlNm,Tp) => .funDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
-      | .cnsDec(Lc,Nm,FlNm,Tp) => .cnsDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
+      | .cnsDec(Lc,Nm,FlNm,Ix,Tp) => .cnsDec(Lc,Nm,FlNm,Ix,reQuantX(Qs,Tp))
     }
   }
 
@@ -347,7 +374,7 @@ star.compiler.canon{
     | .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
 	(Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))"
-    | .doExp(_,E) => "do #(showCanon(E,Pr,Sp))"
+    | .doExp(_,E) => "#(showCanon(E,Pr,Sp))"
   }
 
   showActSeq(.doSeq(_,L,R),Pr,Sp) => "#(showAct(L,Pr-1,Sp));\n#(Sp)#(showActSeq(R,Pr,Sp))".
@@ -370,8 +397,8 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
-    | .funDef(_,Nm,Rls,Cx,Tp) => "#(Sp)Fun: #(Nm)\:#(showCx(Cx))$(Tp)\n#(Sp)#(showEqs(Nm,Rls,Sp))"
-    | .prcDef(_,Nm,Rls,Cx,Tp) => "#(Sp)Prc: #(Nm)\:#(showCx(Cx))$(Tp)\n#(Sp)#(showPRls(Nm,Rls,Sp))"
+    | .funDef(_,Nm,Rls,Cx,Tp) => "#(Sp)Fun: #(Nm)\:$(Tp)\n#(Sp)#(showEqs(Nm,Rls,Sp))"
+    | .prcDef(_,Nm,Rls,Cx,Tp) => "#(Sp)Prc: #(Nm)\:$(Tp)\n#(Sp)#(showPRls(Nm,Rls,Sp))"
     | .varDef(_,Nm,LongNm,V,Cx,Tp) => "#(Sp)Var: #(Nm)[#(LongNm)]\:#(showCx(Cx))$(Tp) = #(showCanon(V,0,Sp))"
     | .typeDef(_,Nm,_,Rl) => "#(Sp)Type: $(Rl)"
     | .cnsDef(_,Nm,Ix,Tp) => "#(Sp)Constructor: #(Nm)[$(Ix)]\:$(Tp)"
@@ -379,18 +406,18 @@ star.compiler.canon{
   }
 
   showEqs:(string,cons[eqn],string) => string.
-  showEqs(Nm,Eqs,Sp) => interleave(Eqs//(Eq)=>showEq(Nm,Eq,Sp),"\n"++Sp++"| ")*.
+  showEqs(Nm,Eqs,Sp) => Sp++"| "++interleave(Eqs//(Eq)=>showEq(Nm,Eq,Sp),"\n"++Sp++"| ")*.
 
   showEq:(string,eqn,string) => string.
   showEq(Nm,.eqn(_,Ptns,G,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
     "#(Nm)#(showTuple(Ptns,Sp)) #(showGuard(G,Sp))=> #(showCanon(Val,Rp,Sp))".
 
   showPRls:(string,cons[prle],string) => string.
-  showPRls(Nm,Eqs,Sp) => interleave(Eqs//(Eq)=>showPRl(Nm,Eq,Sp),"\n"++Sp++"| ")*.
+  showPRls(Nm,Eqs,Sp) => Sp++"| "++interleave(Eqs//(Eq)=>showPRl(Nm,Eq,Sp),"\n"++Sp++"| ")*.
 
   showPRl:(string,prle,string) => string.
   showPRl(Nm,.prle(_,Ptns,G,Act),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
-    "#(Nm)#(showTuple(Ptns,Sp)) #(showGuard(G,Sp))do #(showAct(Act,Rp,Sp))".
+    "#(Nm)#(showTuple(Ptns,Sp)) #(showGuard(G,Sp)){#(showAct(Act,Rp,Sp))}".
 
   showGuard(.none,_) => "".
   showGuard(.some(C),Sp) => "where #(showCanon(C,900,Sp)) ".
