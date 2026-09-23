@@ -32,7 +32,6 @@ ValueReturn run(enginePo P) {
   ValueReturn RSLT; // Result variable
 
   for (;;) {
-#ifndef NDEBUG
     pcCount++; /* increment total number of executed */
 
     if (insDebugging) {
@@ -40,7 +39,6 @@ ValueReturn run(enginePo P) {
       insDebug(P);
       restoreRegisters();
     }
-#endif
 
     switch (PC->op.op) {
     case sHalt: {

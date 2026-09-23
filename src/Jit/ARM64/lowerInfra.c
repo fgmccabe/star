@@ -381,8 +381,7 @@ retCode jitError(jitCompPo jit, char* msg, ...) {
 void bailOut(codeGenPo state, int32 pc, ExitCode code) {
   assemCtxPo ctx = assemCtx(state->jit);
   mov(X17, IM((integer)star_exit));
-  mov(X0, RG(PR));
-  mov(X1, IM(code));
+  mov(X0, IM(code));
   br(X17);
 
   /* char buff[MAXLINE]; */

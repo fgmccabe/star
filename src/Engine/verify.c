@@ -14,6 +14,7 @@
 #include "stackP.h"
 #include "char.h"
 #include "disass.h"
+#include "Headers/code.h"
 
 logical enableVerify = True;          // True if we verify code as it is loaded
 tracingLevel traceVerify = noTracing; // Set if tracing code verification
@@ -336,6 +337,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
     case sEntry: {
       int32 insWidth = 3;
       // TODO: Check the arity/localcount
+      int32 arity = operand(1);
+      for (int32 ax = 0; ax < arity; ax++) {
+        initLocal(&ctx,pc,ax);
+      }
+      if (arity!=mtdArity(verifyCtx->mtd))
+        return verifyError(&ctx,".%d: var count %d does not match arity %d", pc, arity, mtdArity(verifyCtx->mtd));
       pc += insWidth;
       continue;
     }

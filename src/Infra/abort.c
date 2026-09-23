@@ -9,7 +9,7 @@
 
 #include "engine.h"
 
-static char *exitCodes[] = {
+static char* exitCodes[] = {
   "normal exit",
   "failing exit",
   "error",
@@ -26,8 +26,8 @@ static char *exitCodes[] = {
 
 void star_exit(ExitCode code) {
   if (code != successCode)
-    outMsg(logFile, "Terminating with code %s (%d)\n", (code <= abortCode ? exitCodes[code] : "unknown exit code"),
-           code);
+    outMsg(logFile, "Terminating with code %d (%s)\n", code,
+           (code <= abortCode ? exitCodes[code] : "unknown exit code"));
 
   exit(code);
 }

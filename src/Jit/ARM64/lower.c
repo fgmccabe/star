@@ -113,15 +113,13 @@ static int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 a
 static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity, armReg lamReg);
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase);
 static void dropArguments(codeGenPo state, int32 pc);
-// `tmpReg` is the register shuffleVars may use to break cycles in the argument
-// permutation; it must not hold anything live across the call. sTCall passes X16, but
-// sTOCall keeps the closure there (emitTOCallInvoke asserts lamReg != X17, so the closure
-// cannot live in X17 instead) and passes X17, which is only used later by the dispatch.
 static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 argPc, int32 arity, armReg tmpReg);
 static void adjustAG(codeGenPo state, int32 pc, int32 tgtOff);
 static localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo);
 static void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var);
 static FlexOp varSrc(codeGenPo state, int32 pc, localVarPo var);
+
+static void srcHasIndex(codeGenPo state, int32 pc, FlexOp src, int32 index);
 
 static void retireExpiredVars(codeGenPo state, int32 pc);
 static logical registerInUse(codeGenPo state, FlexOp src);
@@ -238,6 +236,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       armReg lamReg = X17;
       loadRegister(state, lamReg, lam);
+
+      codeLblPo haveMtd = newLabel(ctx);
+      srcHasIndex(state, pc, RG(lamReg), closureIndex);
+      beq(haveMtd);
+      bailOut(state, pc, undefinedCode);
+
+      bind(haveMtd);
       int32 argPnt = loadLambdaArguments(state, nextPc, pc + 3, numArgs + 1, lamReg);
       emitOCallInvoke(state, pc, nextPc, lamReg, argPnt);
       pc = nextPc;
@@ -307,9 +312,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       }
       flushArguments(state, nextPc);
       stackCheck(state, pc, opand(1), opand(2));
-      if (mtdHasName(state->mtd, "star.ideal@patchVec")) {
-        installBkPt(state, pc);
-      }
+      // if (mtdHasName(state->mtd, "star.core$equality(<star.arith@star.core$equality!integer@Γ%9@==")) {
+      //   installBkPt(state, pc);
+      // }
       pc = nextPc;
       continue;
     }
@@ -539,26 +544,16 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sCLbl: {
       // T,Lbl --> test for a data term, break if not lbl
       int32 insSize = 4;
+
       int32 key = opand(1);
+      labelPo lbl = C_LBL(getConstant(key));
+      int32 index = indexOfLabel(lbl);
       blockPo tgt = targetBlock(block, pc + opand(2), sBlock);
-      armReg tmp = findARegister(state, pc);
-      armReg tmp2 = findARegister(state, pc);
       FlexOp vl = localFlex(state, pc, opand(3));
-      loadRegister(state, tmp, vl);
-      tst(tmp, IM(0b11));
+
+      srcHasIndex(state, pc, vl, index);
       bne(breakLabel(tgt));
 
-      ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
-      labelPo lit = C_LBL(getConstant(key));
-      if (is12bit(lit->labelIndex))
-        cmp_w(tmp, IM(lit->labelIndex));
-      else {
-        mov_w(tmp2, IM(lit->labelIndex));
-        cmp_w(tmp, RG(tmp2));
-      }
-      bne(breakLabel(tgt));
-      releaseReg(jit, tmp);
-      releaseReg(jit, tmp2);
       pc += insSize;
       continue;
     }
@@ -1411,6 +1406,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           FlexOp lamSrc = sourceOperandFlex(state, nextPc, 1); // Pick up the closure
           armReg lamReg = X17;
           loadRegister(state, lamReg, lamSrc);
+
+          codeLblPo haveMtd = newLabel(ctx);
+          srcHasIndex(state, pc, RG(lamReg), closureIndex);
+          beq(haveMtd);
+          bailOut(state, pc, undefinedCode);
+
+          bind(haveMtd);
           int32 argPnt = loadLambdaArguments(state, afterCallPc, nextPc + 3, numArgs + 1, lamReg);
 
           FlexOp lam = localFlex(state, pc, operand(state, nextPc, 1));
@@ -1821,16 +1823,11 @@ void emitTCallInvoke(codeGenPo state, int32 pc, int32 key, int32 tgtOff) {
 void emitOCallInvoke(codeGenPo state, int32 pc, int32 nextPc, armReg lamReg, int32 argPnt) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
+  pushFrme(state, pc, argPnt);
+
   ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
   // pick up the pointer to the method
   ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
-  codeLblPo haveMtd = newLabel(ctx);
-  cbnz(lamReg, haveMtd);
-
-  bailOut(state, pc, undefinedCode);
-
-  bind(haveMtd);
-  pushFrme(state, pc, argPnt);
 
   // Pick up the jit code itself
   ldr(X16, OF(lamReg, OffsetOf(MethodRec, jit.code)));
@@ -1938,9 +1935,6 @@ int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
   return currVarLimit - arity; // return how must space is needed to preserve current locals and arguments.
 }
 
-// arity is the lambda's full arity (the free value plus its numArgs proper arguments); argBase
-// points at the numArgs proper arguments, and the free value is read from lamReg and placed
-// ahead of them (slot 0 / X0), so both flow through the same register-vs-stack-slot handling.
 int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity, armReg lamReg) {
   registerMap argRegs = defaultArgRegs();
   ArgSpec operands[arity];
@@ -2173,6 +2167,30 @@ FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax) {
 
 localVarPo operandVar(codeGenPo state, int32 pc, int32 ax) {
   return localSource(state, pc, opand(ax));
+}
+
+void srcHasIndex(codeGenPo state, int32 pc, FlexOp src, int32 index) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  armReg tmp = findARegister(state, pc);
+  codeLblPo flLbl = newLabel(ctx);
+
+  loadRegister(state, tmp, src);
+  tst(tmp, IM(0b11));
+  bne(flLbl);
+
+  ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
+
+  if (is12bit(index))
+    cmp_w(tmp, IM(index));
+  else {
+    armReg tmp2 = findARegister(state, pc);
+    mov_w(tmp2, IM(index));
+    cmp_w(tmp, RG(tmp2));
+    releaseReg(jit, tmp2);
+  }
+  bind(flLbl);
+  releaseReg(jit, tmp);
 }
 
 ValueReturn invokeJitMethod(enginePo P, methodPo mtd) {
