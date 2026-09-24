@@ -56,7 +56,7 @@ star.compiler.grapher{
 	} else{
 	  reportError("cannot parse source $(SrcUri)",.none);
 	  valis []
-	}	  
+	}
       } else{
 	reportError("package in catalog $(CPkg) not compatible with requested package $(Pkg)",.none);
 	valis []

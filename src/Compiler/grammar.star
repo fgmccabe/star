@@ -40,7 +40,7 @@ star.compiler.macro.grammar{
     reportError("cannot parse $(A) as a head of a grammar rule",locOf(A));
     valis .none
   }
-  
+
   parseTerminal(A) => .some(.term(locOf(A),A)).
 
   parseNonTerminal(A) where (Lc,Nm,Args) ?= isRoundTerm(A) =>
@@ -183,7 +183,7 @@ star.compiler.macro.grammar{
     Vr = genName(Lc,"V");
     valis mkConjunct(Lc,makeBody(L,Str,Vr,.none),makeBody(R,Vr,Nxt,V))
   }
-  makeBody(.dis(Lc,L,R),Str,Nxt,V) => 
+  makeBody(.dis(Lc,L,R),Str,Nxt,V) =>
     mkDisjunct(Lc,makeBody(L,Str,Nxt,V), makeBody(R,Str,Nxt,V)).
   makeBody(.opt(Lc,R),Str,Nxt,.none) =>
     makeBody(.dis(Lc,R,.epsilon(Lc)),Str,Nxt,.none).
@@ -249,7 +249,7 @@ star.compiler.macro.grammar{
     Rgt = makeBody(R,S0,S1,.none);
     Lft = mkOptionMatch(Lc,rndTuple(Lc,[X,S2]),roundTerm(Lc,f,[S1]));
     Val = roundTerm(Lc,s,[S2,mkCon(Lc,"cons",[X,SoF])]);
-    
+
     Tst = mkConjunct(Lc,Rgt,Lft);
     Eq1 = mkEquation(Lc,.some(s),.false,rndTuple(Lc,[S0,SoF]),.some(Tst),Val);
     Eq2 = mkEquation(Lc,.some(s),.true,rndTuple(Lc,[S0,SoF]),.none,
@@ -317,7 +317,7 @@ star.compiler.macro.grammar{
     Lc = Rl.lc;
     Rst = genName(Lc,"R");
     Str = genName(Lc,"S");
-    
+
     if ~.block(_).=Rl.body then{
       B = makeBody(Rl.body,Str,Rst,.none);
       valis makePublic(Lc,mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),

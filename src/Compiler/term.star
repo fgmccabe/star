@@ -165,7 +165,7 @@ star.compiler.term{
     | .cRetyr(_,P,E,_) => "#(dspExp(P,ShTp,Off)) retire #(dspExp(E,ShTp,Off))"
     | .cVarNme(_,Nm,V,E) => "<var #(Nm) = #(dspExp(V,ShTp,Off)) in #(dspExp(E,ShTp,Off))>"
     | .cAbort(_,M) => "abort #(M)"
-    | .cTry(_,B,E,H,_)=> 
+    | .cTry(_,B,E,H,_)=>
       "(try #(dspExp(B,ShTp,Off)) catch $(E) in #(dspExp(H,ShTp,Off)))"
     | .cThrw(_,E,_) => "throw #(dspExp(E,ShTp,Off))"
     | .cValof(_,A,_) => "valof #(dspAct(A,ShTp,Off))"
@@ -1205,7 +1205,8 @@ star.compiler.term{
     mkCond(Lc,.cMatch(_,.cVar(_,Vr),Vl),Th,_) => .aLtt(Lc,Vr,Vl,Th).
     mkCond(Lc,Tst,Th,El) => .aIftte(Lc,Tst,Th,El).
 
-    decorateVar(Lc,Nm,Vr,Val) => .aVarNme(Lc,Nm,Vr,Val).
+    decorateVar(Lc,Nm,Vr,Act) where genDebug! && present(Act,(V)=>V==Vr) => .aVarNme(Lc,Nm,Vr,Act).
+    decorateVar(Lc,Nm,Vr,Act) => Act.
 
     pullWhere(A) => (A,.none).
 
@@ -1243,7 +1244,7 @@ star.compiler.term{
 
   public validProg:(cons[cDefn],cons[decl]) => ().
   validProg(Defs,Decls) => valof{
-    
+
     D = dfVars(Defs,dclVrs(Decls,[]));
 
     for Df in Defs do{
@@ -1288,7 +1289,7 @@ star.compiler.term{
     | .cChar(_,_) => .true
     | .cString(_,_) => .true
     | .cFlt(_,_) => .true
-    | .cTerm(_,_,_,Args) => {? E in Args *> validE(E,Vrs) ?} -- 
+    | .cTerm(_,_,_,Args) => {? E in Args *> validE(E,Vrs) ?}
     | .cNth(_,R,_,_) => validE(R,Vrs)
     | .cSetNth(_,R,_,V) => validE(R,Vrs) && validE(V,Vrs)
     | .cClos(_,_,_,F,_) => validE(F,Vrs)
@@ -1350,7 +1351,7 @@ star.compiler.term{
       valis .false
     }
   }
-  
+
   validCases:all e ~~ (cons[cCase[e]],(e,set[cV])=>boolean,set[cV]) => boolean.
   validCases([],_,_) => .true.
   validCases([(_,A,E),..Cs],P,Vrs) => valof{

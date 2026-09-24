@@ -1,4 +1,4 @@
-star.compiler.dict{
+1star.compiler.dict{
   import star.
 
   import star.compiler.canon.
@@ -68,7 +68,7 @@ star.compiler.dict{
   vrType(.vrEntry(_,_,Tp,_))=>Tp.
 
   public vrFace(.vrEntry(_,_,_,Fc))=>Fc.
-  
+
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,.dict([Level,..Rest],Br)) =>
     .dict([Level.types=Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest],Br).
@@ -129,7 +129,7 @@ star.compiler.dict{
     Key = tpName(Tp);
     Entry = .accEntry(Lc,UpdFn,Ix,UpdTp);
     Ups = Scope.updaters;
-    
+
     if AccOrs ?= Ups[Key] then{
       valis .dict([Scope.updaters=Ups[Key->AccOrs[Fld->Entry]],..Env],Br)
     } else{

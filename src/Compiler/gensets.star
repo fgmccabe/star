@@ -6,4 +6,4 @@ star.compiler.macro.gensets{
   import star.compiler.macro.grtypes.
 
 }
-  
+

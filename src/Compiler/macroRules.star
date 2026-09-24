@@ -29,9 +29,9 @@ star.compiler.macro.rules{
     else
     valis Rslt
   }
-  applyRls(A,Cxt,St,[_,..Rls]) => 
+  applyRls(A,Cxt,St,[_,..Rls]) =>
     applyRls(A,Cxt,St,Rls).
-  
+
   macros:map[string,cons[(macroContext,macroRule)]].
   macros = {
     ":=" -> [(.actn,spliceAssignMacro), (.actn,indexAssignMacro)],
@@ -113,7 +113,7 @@ star.compiler.macro.rules{
   -- Convert P?|E to (.some(X).=P ?? X || E)
   optionCondMacro(A,.expression) where (Lc,P,E) ?= isOptionCond(A) => valof{
     X = genName(Lc,"X");
-    
+
     valis .active(mkConditional(Lc,mkMatch(Lc,mkSome(Lc,X),P),X,E))
   }
   optionCondMacro(_,_) default => .inactive.
@@ -137,7 +137,7 @@ star.compiler.macro.rules{
   locationMacro(A,.expression) where
       (Lc,"__loc__") ?= isName(A) =>
     .active(mkLoc(Lc)).
-  
+
   -- Handle occurrences of __pkg__
   pkgNameMacro(A,.expression) where
       (Lc,"__pkg__") ?= isName(A) && .locn(Pkg,_,_,_,_)?=Lc =>
@@ -218,9 +218,9 @@ star.compiler.macro.rules{
 	valis .active(CC)
       }
   testComprehensionMacro(_,_) => .inactive.
-	
+
   makeComprehension:(option[locn],ast,ast) => ast.
-  makeComprehension(Lc,Bnd,Cond) => 
+  makeComprehension(Lc,Bnd,Cond) =>
     makeCondition(Cond,passThru,(St)=>push(Lc,Bnd,St),null(Lc)).
 
   -- Condition processing
@@ -243,7 +243,7 @@ star.compiler.macro.rules{
   genResult(T) => let{
     chk(.grounded(_))=> T.
     chk(.lyfted(St)) => St.
-  } in chk.	
+  } in chk.
 
   /*
   * Ptn in Src
@@ -260,7 +260,7 @@ star.compiler.macro.rules{
       mkConditional(Lc,mkMatch(Lc,Ptn,El),Succ(.grounded(St)),Lift(.grounded(St))));
     valis ternary(Lc,"_iter",Src,Lift(Zed),Lam)
   }
-  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isConjunct(A) => 
+  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isConjunct(A) =>
     makeCondition(L,Lift,(Lf) => makeCondition(R,Lift,Succ,Lf),Zed).
   makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isDisjunct(A) => valof{
     E1 =makeCondition(L,Lift,Succ,Zed);
@@ -306,7 +306,7 @@ star.compiler.macro.rules{
     .active(mkAssignment(Lc,S,
 	  ternary(Lc,"_put",refCell(Lc,S),I,R))).
   indexAssignMacro(_,_) default => .inactive.
-  
+
   sliceMacro(A,.expression) where (Lc,Op,F,T) ?= isSlice(A) =>
     .active(ternary(Lc,"_slice",Op,F,T)).
   sliceMacro(_,_) default => .inactive.
@@ -317,7 +317,7 @@ star.compiler.macro.rules{
 	  roundTerm(Lc,.nme(Lc,"_splice"),
 	    [refCell(Lc,S),F,T,R]))).
   spliceAssignMacro(_,_) default => .inactive.
-  
+
   multicatMacro(A,.expression) where (Lc,E) ?= isUnary(A,"*") =>
     .active(unary(Lc,"_multicat",E)).
   multicatMacro(_,.expression) => .inactive.
@@ -401,7 +401,7 @@ star.compiler.macro.rules{
   incRangeMacro(T,.expression) where (Lc,Lb,Up) ?= isBinary(T,"..<") =>
     .active(mkCon(Lc,"range",[Lb,Up,.nme(Lc,"one")])).
   incRangeMacro(_,_) default => .inactive.
-  
+
 /*
    Lb..>Up
    becomes
@@ -421,7 +421,7 @@ star.compiler.macro.rules{
 	  (_,Lb,Up) ?= isBinary(L,"..<") =>
     .active(mkCon(Lc,"range",[Lb,Up,Step])).
   rangeMacro(_,.expression) => .inactive.
-  
+
   /*
   for P in C do B
   becomes
@@ -520,7 +520,7 @@ star.compiler.macro.rules{
       valis .all
     })
   */
-   
+
   generatorMacro(E,.expression) where
       (Lc,A) ?= isGenerator(E) => valof{
     All = mkValis(Lc,enum(Lc,"_all"));
@@ -618,7 +618,7 @@ star.compiler.macro.rules{
   implementationMacro(A,.statement) where
       (Lc,Q,C,H,E) ?= isImplementationStmt(A) &&
       (_,Nm,_) ?= isSquareTerm(H) &&
-      Ex ?= labelImplExp(E,Nm) => 
+      Ex ?= labelImplExp(E,Nm) =>
     .active(mkImplementationStmt(Lc,Q,C,H,Ex)).
   implementationMacro(_,_) default => .inactive.
 

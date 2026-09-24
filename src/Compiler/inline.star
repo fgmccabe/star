@@ -170,7 +170,7 @@ star.compiler.inline{
 
   valofAct(_,.aValis(_Lc,E),_) => E.
   valofAct(Lc,A,Tp) => .cValof(Lc,A,Tp).
-  
+
   implementation simplify[aAction] => {
     simplify(A,Map,Dp) => simplifyAct(A,Map,Dp)
   }

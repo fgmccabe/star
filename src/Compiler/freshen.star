@@ -37,7 +37,7 @@ star.compiler.freshen{
     (_,RRl) = freshen(Rl,Env);
     valis RRl
   }
-  
+
   genQuants:(typeRule,cons[(string,tipe)],dict)=>(cons[(string,tipe)],typeRule,dict).
   genQuants(.allRule(.kVar(V),R),Q,E) => valof{
     NV = newTypeVar(V);

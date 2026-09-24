@@ -76,7 +76,7 @@ star.compiler.dict.mgt{
   findVarFace(Nm,Env) where .vrEntry(_,_,Tp,Fc) ?=isVar(Nm,Env) =>
     (_?=Fc ?? Fc || faceOfType(Tp,Env)).
   findVarFace(_,_) default => .none.
-    
+
   public varDefined:(string,dict) => boolean.
   varDefined(Nm,Dict) where _ ?= isVar(Nm,Dict) => .true.
   varDefined(_,_) default => .false.
@@ -98,7 +98,7 @@ star.compiler.dict.mgt{
   refreshVr(Lc,Tp,Env,Mkr) => valof{
     (_,VrTp) = freshen(Tp,Env);
     valis manageConstraints(VrTp,Lc,(VTp) => Mkr(Lc,VTp))
-  }    
+  }
 
   refreshVar(Lc,Nm,.true,Tp,Env) =>
     refreshVr(Lc,Tp,Env,(LLc,T)=>.vr(LLc,Nm,T)).

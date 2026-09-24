@@ -33,6 +33,5 @@ star.compiler.coverage{
     checkPtnCoverage(A,Map,typeOf(A));
     valis checkPtnsCoverage(As,Map);
   }
-}    
+}
 
-  

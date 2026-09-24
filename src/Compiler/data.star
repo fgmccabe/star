@@ -83,7 +83,7 @@ star.compiler.data{
     (<) = lt.
     (>=) = ge
   }
-  
+
   public implementation equality[data] => let{.
     eq(D1,D2) => case D1 in {
       | .intgr(X) => .intgr(Y).=D2 && X==Y

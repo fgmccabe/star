@@ -85,10 +85,9 @@ star.compiler.resolve{
     }
   }
 
-  resolveEqn(Rl,Extra,Dict) => 
-    case overload(Rl,Dict) in {
+  resolveEqn(Rl,Extra,Dict) => case overload(Rl,Dict) in {
     | .eqn(Lc,A,C,V) => .eqn(Lc,addExtra(A,Extra),C,V)
-    }.
+  }.
 
   overloadProcedure:(dict,option[locn],string,cons[prle],cons[constraint],tipe)=>
     canonDef.
@@ -120,14 +119,14 @@ star.compiler.resolve{
     }
   }
 
-  resolveRule(Rl,Extra,Dict) => 
+  resolveRule(Rl,Extra,Dict) =>
     case overload(Rl,Dict) in {
     | .prle(Lc,A,C,V) => .prle(Lc,addExtra(A,Extra),C,V)
     }.
- 
+
   overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
     canonDef.
-  overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
+  overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) =>
     .varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
     if traceResolve! then
@@ -269,7 +268,7 @@ star.compiler.resolve{
     (Rc1,St1) = overloadTerm(Rc,Dict,St);
     valis (.owpen(Lc,Rc1),St1);
   }
-  overloadTerm(.mtd(Lc,Nm,Tp),Dict,St) => 
+  overloadTerm(.mtd(Lc,Nm,Tp),Dict,St) =>
     (.mtd(Lc,Nm,Tp),.active(Lc,"cannot resolve unconstrained method #(Nm)\:$(Tp)")).
   overloadTerm(.over(Lc,T,Cx),Dict,St) => valof{
     (DArg,St1) = resolveConstraint(Lc,Cx,Dict,St);
@@ -391,7 +390,7 @@ star.compiler.resolve{
 
       if traceResolve! then
 	showMsg("overloaded lambda $(.lambda(Lc,Nm,RRl,Tp))\:$(Tp)");
-    
+
       valis (.lambda(Lc,Nm,RRl,Tp),St1)
     }
   }
@@ -423,7 +422,7 @@ star.compiler.resolve{
 
       if traceResolve! then
 	showMsg("overloaded rule $(.prc(Lc,Nm,RRl,Tp))\:$(Tp)");
-    
+
       valis (.prc(Lc,Nm,RRl,Tp),St1)
     }
   }

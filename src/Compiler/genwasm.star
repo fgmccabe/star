@@ -39,7 +39,7 @@ star.compiler.wasm.gen{
     | .glDef(Lc,Nm,Tp,_) => declareGlobal(Nm,.glbVar(Nm,Tp),Map)
     | _ default => Map
   }
-  
+
   compDefs:(cons[cDefn],srcMap)=> cons[wasmDefn].
   compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(D,Glbs)).
 
@@ -93,7 +93,7 @@ star.compiler.wasm.gen{
       compExps(Args,Lc,allocCont(.tLbl(Nm,size(Args)),pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cCall(Lc,Nm,Args,Tp) =>
       compExps(Args,callCont(.tLbl(Nm,[|Args|]),TM,pushStack(Tp,Stk),Cont),Ctx,Stk)
-    | .cOCall(Lc,Op,Args,Tp) => 
+    | .cOCall(Lc,Op,Args,Tp) =>
       compExps(Args,expCont(Op,.notLast,oclCont([|Args|]+1,TM,pushStack(Tp,Stk),Cont)),Ctx,Stk)
     | .cNth(Lc,E,Ix,Tp) =>
       compExp(E,.notLast,nthCont(Ix,Cont,pushStack(Tp,Stk)),Ctx,Stk)
@@ -117,7 +117,7 @@ star.compiler.wasm.gen{
       Blk = defineLbl("H",Ctx);
       (TOff,CtxB) = defineLclVar(Th,ThTp,Ctx0);
       (EOff,Ctx1) = defineLclVar(Er,ETp,Ctx);
-      
+
       (Stk1,BCde) = compExp(B,.notLast,Cont,CtxB,Stk); -- critical: body of try is not tail rec
       (Stk2,HCde) = compExp(H,TM,Cont,Ctx1,Stk);
 
@@ -141,7 +141,7 @@ star.compiler.wasm.gen{
       valis Cont.C(Ctx,Stk,[])
     }
   }
-    
+
   compExps:(cons[cExp],codeCtx,stack) => (stack,multi[wOp]).
   compExps([],_Ctx,Stk)=> (Stk,[]).
   compExps([Exp,..Es],Ctx,Stk)=> valof{
@@ -161,7 +161,7 @@ star.compiler.wasm.gen{
     | .cDsj(Lc,L,R) => valof{
       Ctxa = dsjCtx(Ctx,L,R);
       SC = splitCont(Lc,Ctx,ctxCont(Ctxa,Succ));
-      
+
       valis compCond(L,TM,SC,ctxCont(Ctxa,condCont(R,TM,SC,Fail,Stk)),Ctxa,Stk)
     }
     | .cNeg(Lc,R) => compCond(R,TM,ctxCont(Ctx,Fail),ctxCont(Ctx,Succ),Ctx,Stk)
@@ -169,7 +169,7 @@ star.compiler.wasm.gen{
       Ctxa = dsjCtx(Ctx,L,R);
       SC = splitCont(Lc,Ctx,Succ);
       FC = splitCont(Lc,Ctx,Fail);
-      
+
       valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),ctxCont(Ctx,condCont(R,TM,SC,FC,Stk)),Ctx,Stk)
     }
     | .cMatch(Lc,Ptn,Exp) => compExp(Exp,.notLast,ptnCont(Ptn,Succ,Fail),Ctx,Stk)
@@ -228,13 +228,13 @@ star.compiler.wasm.gen{
       (EOff,Ctx1) = defineLclVar(Er,ETp,Ctx);
       AC = splitCont(Lc,Ctx,ACont);
       CC = splitCont(Lc,Ctx,Cont);
-      
+
       (Stk1,BCde) = compAction(B,.notLast,AC,CC,Ctx0,Stk);
       (Stk2,CCde) = compAction(H,TM,AC,CC,Ctx1,Stk);
 
       if ~reconcileable(Stk1,Stk2) then
 	reportError("cannot reconcile try body $(B) with handler $(H)",Lc);
-      
+
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++CCde)
     }
     | .aAbort(Lc,Msg) => abortCont(Lc,Msg).C(Ctx,Stk,[])
@@ -253,7 +253,7 @@ star.compiler.wasm.gen{
     DLbl = defineLbl("CD",Ctx);
     (Stk1,GCode) = compExp(Gv,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv),Stk)),Ctx,Stk);
     (Table,Max) = genCaseTable(Cases);
-    
+
     OC = splitCont(Lc,Ctx,Cont);
     (Stkc,DCode) = Comp(Deflt,OC).C(Ctx,Stk,[]);
 
@@ -310,13 +310,13 @@ star.compiler.wasm.gen{
     | [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CM",Ctx);
-      
+
       (Stk3,RstCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
       (Stk2,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stk3),Ctx,Stk);
       valis (reconcileStack(Stk2,Stk3),[.iLdL(Off)]++RlCde++[.iLbl(Fl)]++RstCde)
     }
   }
-  
+
   compCnsCase:all e ~~ display[e] |= (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
     Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
@@ -332,7 +332,7 @@ star.compiler.wasm.gen{
   cnsCaseCont(Cases,Comp,Cont) => cont{
     C(Ctx,AStk,GCde) => valof{
       (Stk2,JCde,CCde) = compCnsCases(Cases,Comp,Cont,Ctx,AStk);
-    
+
       valis (Stk2,GCde++[.iIndxJmp([|Cases|])]++JCde++CCde)
     }
   }
@@ -387,12 +387,12 @@ star.compiler.wasm.gen{
 
   compPttrn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPttrn(Ptn,Succ,Fail,Ctx,Stk) => compPtn(Ptn,Succ,Fail,Ctx,Stk).
-  
+
   compPtn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtn(Ptn,Succ,Fail,Ctx,Stk) => case Ptn in {
     | .cVar(_,.cV("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
     | .cVar(Lc,.cV(Vr,Tp)) => valof{
-      if Loc ?= locateVar(Vr,Ctx) then 
+      if Loc ?= locateVar(Vr,Ctx) then
 	valis compPtnVar(Lc,Vr,Loc,Succ,Ctx,dropStack(Stk))
       else{
 	LTp = Tp;
@@ -406,7 +406,7 @@ star.compiler.wasm.gen{
       Stk0 = dropStack(Stk);
       Flb = defineLbl("U",Ctx);
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
-      
+
       (Stk2,SCde) = compPtnArgs(Args,Succ,resetCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)),Stk0));
 
       valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
@@ -414,7 +414,7 @@ star.compiler.wasm.gen{
     | _ default => valof{
       if isGround(Ptn) then{
 	Flb = defineLbl("Tst",Ctx);
-	Stk0 = dropStack(Stk); 
+	Stk0 = dropStack(Stk);
 	(Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
 	(Stk2,SCde) = Succ.C(Ctx,Stk0,[]);
 	valis (reconcileStack(Stk1,Stk2),
@@ -520,7 +520,7 @@ star.compiler.wasm.gen{
       Flb = defineLbl("F",Ctx);
       (SStk,SCde) = Succ.C(Ctx,Stk,[.iIfNot(Flb)]);
       (FStk,FCde) = Fail.C(Ctx,Stk,[]);
-      
+
       valis (reconcileStack(SStk,FStk),Cde++SCde++[.iLbl(Flb),..FCde])
     }
   }
@@ -613,10 +613,10 @@ star.compiler.wasm.gen{
 
   nthCont:(integer,Cont,stack)=>Cont.
   nthCont(Ix,Cont,Stk) => cont{
-    C(Ctx,_,Cde) => 
+    C(Ctx,_,Cde) =>
       Cont.C(Ctx,Stk,Cde++[.iNth(Ix)])
   }
-      
+
   setNthCont:(integer,Cont,stack)=>Cont.
   setNthCont(Ix,Cont,Stk) => cont{
     C(Ctx,_SS,Cde) => Cont.C(Ctx,Stk,Cde++[.iStNth(Ix)]).
@@ -637,7 +637,7 @@ star.compiler.wasm.gen{
 
   asgnCont:(Cont,codeCtx,stack) => Cont.
   asgnCont(ACont,Ctx,Stk) => cont{
-    C(_,_,Cde) => 
+    C(_,_,Cde) =>
       ACont.C(Ctx,Stk,Cde++[.iAssign])
   }
 
@@ -670,7 +670,7 @@ star.compiler.wasm.gen{
     Lb = defineLbl("Splt",Ctx0);      -- Create a new label
     tStk = ref .none;
     triggered = ref .false;
-    
+
     valis cont{
       C(Ctx,Stk,Cde) => valof{
 	if triggered! then{
@@ -764,7 +764,7 @@ star.compiler.wasm.gen{
   defineLclVar:(string,tipe,codeCtx) => (integer,codeCtx).
   defineLclVar(Nm,Tp,Ctx) => valof{
     hwm = Ctx.hwm;
-    
+
     Off = hwm!+1;
     hwm := Off;
 
@@ -813,7 +813,7 @@ star.compiler.wasm.gen{
     vars : srcMap.
     end : wasmLbl.
     escape : wasmLbl.
-    lbls : ref integer.  
+    lbls : ref integer.
     min : integer.
     hwm : ref integer.
     brks : map[string,Cont].
@@ -927,7 +927,7 @@ star.compiler.wasm.gen{
   collectCses([],_,Mp) => Mp.
   collectCses([(_,Ptn,Vl),..Cs],F,Mp) =>
     collectSes(Cs,F,collectExpLcls(Ptn,F(Vl,Mp))).
-  
+
   collectActLcls(A,Mp) => case A in {
     | .aNop(_) => Mp
     | .aSeq(_,L,R) => collectActLcls(L,collectActLcls(R,Mp))
@@ -955,5 +955,5 @@ star.compiler.wasm.gen{
   wasmFloat(Dx) => [.FConst(.F64Type,Dx),.StructNew(boxedFltType)].
 
   wasmId(.tLbl(Nm,_)) => Nm.
-  
+
 }

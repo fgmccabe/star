@@ -1,6 +1,6 @@
 star.compiler.rewrite{
   import star.
-  
+
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.term.
@@ -15,7 +15,7 @@ star.compiler.rewrite{
     D = foldRight((Vr,M)=>M[vName(Vr)->.cVar(Lc,Vr)],[],Args);
     valis .prDef(Lc,Nm,Tp,Args,rwAct(Act,D,extendU))
   }
-  uniqify(.glDef(Lc,Nm,Tp,Val)) => 
+  uniqify(.glDef(Lc,Nm,Tp,Val)) =>
     .glDef(Lc,Nm,Tp,rwTerm(Val,[],extendU)).
   uniqify(Df) default => Df.
 

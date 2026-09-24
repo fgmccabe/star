@@ -27,9 +27,4 @@ star.compiler.abstract{
 
   public aTypeRule ::= .aTypeAlias(aType,aType).
 }
-  
 
-  
-
-
-  

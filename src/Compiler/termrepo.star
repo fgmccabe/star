@@ -10,7 +10,7 @@ star.compiler.term.repo{
   import star.compiler.encode.
   import star.compiler.misc.
   import star.compiler.data.
-  
+
   public termRepo ::= .repo(uri,manifest).
 
   public openRepository:(uri) => termRepo.
@@ -37,7 +37,7 @@ star.compiler.term.repo{
     };
     valis .repo(Root,Man);
   }
-  
+
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
@@ -90,7 +90,7 @@ star.compiler.term.repo{
       SU ?= parseUri(S) &&
       SrcFile ?= resolveUri(Root,SU) => .some((SrcFile,CodeFile)).
   packageCode(_,_) default => .none.
-    
+
   public addPackage:(termRepo,pkg,string) => termRepo.
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
 
@@ -122,7 +122,7 @@ star.compiler.term.repo{
   termManifest(.term(_,Els)) => .man(foldRight(termEntry,[],Els)).
 
   termEntry:(data,map[string,pEntry]) => map[string,pEntry].
-  termEntry(.term(_,[.strg(P),.term(_,Els)]),Map) => 
+  termEntry(.term(_,[.strg(P),.term(_,Els)]),Map) =>
     Map[P->.pEntry(P,foldRight(termVersion,[],Els))].
 
   termVersion:(data,cons[(version,mInfo)])=>cons[(version,mInfo)].

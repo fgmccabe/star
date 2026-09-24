@@ -1,6 +1,6 @@
 star.compiler.decode{
   import star.
-  
+
   import star.compiler.ltipe.
   import star.compiler.types.
   import star.compiler.data.
@@ -12,7 +12,7 @@ star.compiler.decode{
       valis T
     }
   }
-  
+
   public decodeTerm:(cons[char])=>(data,cons[char]) throws exception.
   decodeTerm([Ch,..Ls]) => case Ch in {
     | `x` => valof{
@@ -71,14 +71,14 @@ star.compiler.decode{
     (Nm,Lx) = decodeText(L0);
     valis (.tLbl(Nm,Ar),Lx)
   }
-    
+
   decodeInt:(cons[char])=>(integer,cons[char]).
   decodeInt([`-`,..L]) => valof{
     (Px,Lx) = decodeNat(L,0);
     valis (-Px,Lx)
   }
   decodeInt(L) default => decodeNat(L,0).
-  
+
   decodeNat:(cons[char],integer) => (integer,cons[char]).
   decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
   decodeNat(Ls,Ix) default => (Ix,Ls).
@@ -185,7 +185,7 @@ star.compiler.decode{
   }
 
   decodeTypes:(cons[char])=> (cons[tipe],cons[char]).
-  decodeTypes([`)`,..Ts]) => ([],Ts). 
+  decodeTypes([`)`,..Ts]) => ([],Ts).
   decodeTypes(Ts) => valof{
     (ElTp,T0) = decodeType(Ts);
     (Tps,T1) = decodeTypes(T0);
@@ -203,7 +203,7 @@ star.compiler.decode{
     (V,T0) = decodeType(Ts);
     (R,T1) = decodeTypeRule(T0);
     valis (.allRule(V,R),T1)
-  }  
+  }
   decodeTypeRule([`Y`,..Ts]) => valof{
     (A,T0) = decodeType(Ts);
     (R,T1) = decodeType(T0);
@@ -274,4 +274,4 @@ star.compiler.decode{
   collectQuoted([S,..Lx],SoF,S) => (SoF,Lx).
   collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
-}  
+}

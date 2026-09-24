@@ -46,7 +46,7 @@ star.compiler.peephole{
   vrRead(Vr,.iXRet(V)) => V==Vr.
 
   vrRead(Vr,.iRSX(_,V)) => V==Vr. -- special case, because of the jump
-  
+
   vrRead(Vr,.iBlock(As,Is)) => Vr.<.As || varRead(Vr,Is).
   vrRead(Vr,.iResult(_,As)) => Vr .<. As.
   vrRead(Vr,.iFiber(_,V)) => V==Vr.
@@ -113,7 +113,7 @@ star.compiler.peephole{
 
   vrRead(Vr,.iAlloc(_,_,As)) => Vr .<. As.
   vrRead(Vr,.iClosure(_,_,F)) => F==Vr.
-  
+
   vrRead(Vr,.iLbl(_,I)) => vrRead(Vr,I).
   vrRead(_,_) default => .false.
 

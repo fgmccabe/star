@@ -31,6 +31,5 @@ star.compiler.syntax{
   rbr --> [.tok(_,.rgtTok("}"))].
 
   comma --> [.tok(_,.idTok(","))].
-  
-  
+
 }

@@ -36,7 +36,7 @@ star.compiler.encode{
 
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => (encodeType(deRef(Tp))::cons[char])::string.
-  
+
   public encodeTpRlSignature:(typeRule) => string.
   encodeTpRlSignature(Rl) => (encodeTypeRule(Rl)::cons[char])::string.
 
@@ -76,7 +76,7 @@ star.compiler.encode{
   encodeFldTypes:(cons[(string,tipe)])=>multi[char].
   encodeFldTypes(Flds) =>
     [`{`]++encodeFlds(sort(Flds,((N1,_),(N2,_))=>N1<N2))++[`}`].
-  
+
   encodeFlds:(cons[(string,tipe)])=>multi[char].
   encodeFlds([]) => [].
   encodeFlds([(Nm,T),..Tps]) =>
@@ -105,14 +105,14 @@ star.compiler.encode{
   encodeRls([]) => [].
   encodeRls([(Id,Rl),..Rls]) =>
     encodeText(Id)++encodeTypeRule(Rl)++encodeRls(Rls).
-  
+
   encodeText:(string) => multi[char].
   encodeText(Txt) where Chrs .= Txt::cons[char] &&
       D.=findDelim(Chrs,[`|`,`/`,`%`,`'`]) =>
     [D]++encodeQuoted(Chrs,D)++[D].
 
   findDelim:(cons[char],cons[char])=>char.
-  findDelim(Chrs,[]) => `'`. 
+  findDelim(Chrs,[]) => `'`.
   findDelim(Chrs,[D,..Ds]) where {? D in Chrs ?} => findDelim(Chrs,Ds).
   findDelim(Chrs,[D,.._]) => D.
 
@@ -220,5 +220,5 @@ star.compiler.encode{
   public versTerm:(version)=>data.
   versTerm(.defltVersion) => .symb(.tLbl("*",0)).
   versTerm(.vers("*")) => .symb(.tLbl("*",0)).
-  versTerm(.vers(V)) => .strg(V).  
+  versTerm(.vers(V)) => .strg(V).
 }

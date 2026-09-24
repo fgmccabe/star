@@ -188,7 +188,7 @@ star.compiler.opg{
   handleInterpolation(.interpolate(Lc,Toks,Frmt)) where
       (A,_) .= astParse(Toks) => binary(.some(Lc),"_format",A,.str(.some(Lc),Frmt)).
   handleInterpolation(.evaluate(Lc,Toks)) where (A,_) .= astParse(Toks) => A.
-  
+
   checkToken:(tk,cons[token]) => (option[locn],cons[token]).
   checkToken(Tk,[.tok(Lc,Tk),..Toks]) => (.some(Lc),Toks).
   checkToken(Tk,[.tok(Lc,T),..Toks]) => valof{
@@ -196,11 +196,11 @@ star.compiler.opg{
     valis (.some(Lc),[.tok(Lc,T),..Toks])
   }
   checkToken(Tk,[.endTok(Lc),..Toks]) => valof{
-    reportError("missing $(Tk) - end of input",.some(Lc));    
+    reportError("missing $(Tk) - end of input",.some(Lc));
     valis (.some(Lc),[.endTok(Lc),..Toks])
   }.
   checkToken(Tk,[]) => valof{
-    reportError("missing $(Tk) - end of input",.none);    
+    reportError("missing $(Tk) - end of input",.none);
     valis (.none,[])
   }.
 

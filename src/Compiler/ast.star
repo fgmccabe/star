@@ -13,7 +13,7 @@ star.compiler.ast{
   | .str(option[locn],string)
   | .tpl(option[locn],string,cons[ast])
   | .app(option[locn],ast,ast).
-  
+
   public implementation equality[ast] => let{.
     eq(A1,A2) => case A1 in {
       | .nme(_,I1) => .nme(_,I2).=A2 && I1==I2
@@ -96,7 +96,7 @@ star.compiler.ast{
   dispActs(.app(_,.nme(_,";"),.tpl(_,"()",[L])),Sp) =>
     "#(dispAst(L,1250,Sp));".
   dispActs(A,Sp) => dispAst(A,1250,Sp).
-  
+
 
   dispId:(string) => string.
   dispId(S) where isOperator(S) => "(#(S))".
@@ -148,7 +148,7 @@ star.compiler.ast{
   generated:ref map[string,integer].
   public genName:(option[locn],string) => ast.
   genName(Lc,Pr) => .nme(Lc,genId(Pr)).
-  
+
   public mkAnon(Lc) => .nme(Lc,"_").
 
   public isNme:(ast) => option[(option[locn],string)].

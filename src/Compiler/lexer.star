@@ -16,7 +16,7 @@ star.compiler.lexer{
     allToks(Strm,SoFr) where (Nx,.some(Tk)).=nextToken(Strm) => allToks(Nx,[Tk,..SoFr]).
     allToks(Strm,SoFr) default => (Strm,reverse([.endTok(makeLoc(Strm,Strm)),..SoFr])).
   .} in allToks(St,[]).
-  
+
   public nextToken:(tokenState) => (tokenState,option[token]).
   nextToken(St) => nxTok(skipToNx(St)).
 
@@ -161,7 +161,7 @@ star.compiler.lexer{
     bracketCount(St1,St2,Ch,[`]`,..Stk],[`\[`,..Chrs]).
   bracketCount(St,_,_,[],Chrs) => (St,.some(reverse(Chrs)::string)).
   bracketCount(St,St1,C,Stk,Chrs) where (St2,.some(Ch)) .= nextChr(St1) =>
-    bracketCount(St,St2,Ch,Stk,[C,..Chrs]). 
+    bracketCount(St,St2,Ch,Stk,[C,..Chrs]).
   bracketCount(St,St1,_,Bkts,Chrs) where atEof(St1) => valof{
     reportError("missing closing brackets: $(Bkts)",.some(makeLoc(St,St1)));
     valis (St1,.some(reverse(Chrs)::string))

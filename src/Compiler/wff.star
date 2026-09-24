@@ -34,7 +34,7 @@ star.compiler.wff{
   public isKeyword:(ast) => option[(option[locn],string)].
   isKeyword(.nme(Lc,Id)) where keyword(Id) => .some((Lc,Id)).
   isKeyword(_) default => .none.
-  
+
   public isLitAst:(ast) => boolean.
   isLitAst(.int(_,_)) => .true.
   isLitAst(.num(_,_)) => .true.
@@ -53,7 +53,7 @@ star.compiler.wff{
   public squareTermName:(ast) => option[ast].
   squareTermName(A) where (_,Op,_) ?= isSquareTerm(A) => .some(Op).
   squareTermName(_) default => .none.
-  
+
   public isSquareApply:(ast) => option[(option[locn],string,cons[ast])].
   isSquareApply(.app(Lc,Op,.tpl(_,"[]",A))) where
       (_,Id) ?= isName(Op) => .some((Lc,Id,A)).
@@ -282,7 +282,7 @@ star.compiler.wff{
   public mkTypeFunStmt(Lc,Q,C,L,R) =>
     reUQuant(Lc,Q,reConstrain(C,binary(Lc,"~>",L,R))).
 
-  public isAlgebraicTypeStmt:(ast) => 
+  public isAlgebraicTypeStmt:(ast) =>
     option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isAlgebraicTypeStmt(A) => isAlgebraic(A).
 
@@ -332,7 +332,7 @@ star.compiler.wff{
   isBraceCon(A) => isBrCon(A,.none,[],[],"",[]).
 
   isBrCon:(ast,option[locn],cons[ast],cons[ast],string,cons[ast])=>
-    option[(option[locn],cons[ast],cons[ast],string,cons[ast])].  
+    option[(option[locn],cons[ast],cons[ast],string,cons[ast])].
   isBrCon(A,_,Q,X,__,_) where (Lc,N,Els) ?= isBraceTerm(A) && (_,Nm) ?= isName(N) =>
     .some((Lc,Q,X,Nm,Els)).
   isBrCon(A,_,_,X,Nm,Els) where (Lc,Q,I) ?= isQuantified(A) =>
@@ -374,7 +374,7 @@ star.compiler.wff{
   isMapLiteral(_) default => .none.
 
   public mkMapLiteral(Lc,Els) => brTuple(Lc,[reComma(Els)]).
-  
+
   public isComprehension:(ast) => option[(option[locn],ast,ast)].
   isComprehension(A) where (Lc,[T]) ?= isBrTuple(A) &&
       (_,Bnd,Body) ?= isBinary(T,"|") && ~ _ ?= isBinary(Bnd,"<*") => .some((Lc,Bnd,Body)).
@@ -426,7 +426,7 @@ star.compiler.wff{
   public negated(Lc,A) => unary(Lc,"~",A).
 
   public isImplies(A) => isBinary(A,"*>").
-  
+
   public mkImplies(Lc,L,R) => binary(Lc,"*>",L,R).
 
   public isConditional(A) where
@@ -517,7 +517,7 @@ star.compiler.wff{
   isImport(_) default => .none.
 
   public pkgeName:(ast) => pkg.
-  pkgeName(A) where (_,L,R) ?= isBinary(A,"#") => 
+  pkgeName(A) where (_,L,R) ?= isBinary(A,"#") =>
     .pkg(dottedName(L),.vers(dottedName(R))).
   pkgeName(A) => .pkg(dottedName(A),.defltVersion).
 
@@ -546,7 +546,7 @@ star.compiler.wff{
   isRef(A) => isUnary(A,"ref").
 
   public mkRef(Lc,A) => unary(Lc,"ref",A).
-  
+
   public isCellRef:(ast) => option[(option[locn],ast)].
   isCellRef(A) => isUnary(A,"!").
 
@@ -800,7 +800,7 @@ star.compiler.wff{
   public mkWhereEquality:(ast) =>ast.
   mkWhereEquality(Nm) where Lc.=locOf(Nm) && V.=genName(Lc,"_W") =>
     binary(Lc,"where",V,binary(Lc,"==",Nm,V)).
-    
+
   public mkWhereTest:(option[locn],string) =>ast.
   mkWhereTest(Lc,Op) where V.=genName(Lc,"_W") =>
     binary(Lc,"where",V,unary(Lc,Op,V)).
@@ -814,7 +814,7 @@ star.compiler.wff{
 
   public isHat:(ast) => option[(option[locn],ast,ast)].
   isHat(A) => isBinary(A,"?").
-    
+
   public isDefault:(ast) => option[(option[locn],ast)].
   isDefault(A) => isUnary(A,"default").
 
@@ -991,9 +991,9 @@ star.compiler.wff{
 
   public isCons:(ast) => option[(option[locn],ast,ast)].
   isCons(A) => isBinary(A,",..").
-  
+
   public mkCons(Lc,L,R) => binary(Lc,",..",L,R).
-  
+
   public isComma:(ast) => option[(option[locn],ast,ast)].
   isComma(A) => isBinary(A,",").
 

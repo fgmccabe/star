@@ -156,7 +156,7 @@ star.compiler.term.enc{
       (O,C1)?=decExp(C0)&&
       (Ix,C2)?=decInt(C0) &&
       (E,Cx) ?= decExp(C2) => some((crTplUpdate(Lc,O,Ix,E),Cx)).
-  decExp([0cr,..Cs]) where 
+  decExp([0cr,..Cs]) where
       (Nm,C0)?=decText(Cs,id) &&
       (Ar,C1)?=decInt(C0) &&
       (Fs,Cx)?=decFields(Ar,[],C1) =>some((crRecord(Nm,Fs),Cx)).

@@ -30,7 +30,6 @@ star.compiler.mirror{
     mkCon(Lc,"faceTp",[typeElems(Lc,Els,typeField)]).
   reflectType(A) where (Lc,Op,Arg) ?= isSquareTerm(A) && (NLc,Nm)?=isName(Op) =>
     reflectTypeExp(Lc,mkCon(Lc,"tpFun",[.str(NLc,Nm),.int(NLc,argCount(Arg))]),Arg).
-    
 
   typeElems(Lc,[],_) => enum(Lc,"nil").
   typeElems(Lc,[T,..Ts],TF) => mkCon(Lc,"cons",[TF(T),typeElems(Ts)]).

@@ -58,7 +58,7 @@ star.compiler.types{
     | .faceType(_,_) => 0
     | .constrainedType(T,_) => hasKind(T)
   }
-  
+
   public isIdenticalVar:(tipe,tipe) => boolean.
   isIdenticalVar(T1,T2) => isIdent(deRef(T1),deRef(T2)).
 
@@ -258,7 +258,7 @@ star.compiler.types{
 
   shContract(Nm,Tps,[],Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)]".
   shContract(Nm,Tps,Dps,Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)->>#(showTypes(Dps,Dp)*)]".
-  
+
   showTypes:(cons[tipe],integer) => cons[string].
   showTypes(_,0) => ["..."].
   showTypes(E,Dp) => showEls(E,Dp-1,"").
@@ -275,7 +275,7 @@ star.compiler.types{
     ", #(showBound(Q,Dp))#(showMoreQRule(R,Dp))".
   showMoreQRule(R,Dp) =>
     " ~~ #(shTipeRule(R,Dp))".
-  
+
   showEls:(cons[tipe],integer,string) => cons[string].
   showEls([],_,_) => [].
   showEls([T,..Tps],Dp,Sep) => [Sep,showType(T,Dp),..showEls(Tps,Dp,", ")].
@@ -287,9 +287,9 @@ star.compiler.types{
 
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
-  showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
+  showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".
   showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
-  showTpExp(Op,A,Dp) => "#(showType(Op,Dp-1))[#(showTypes(A,Dp-1)*)]".    
+  showTpExp(Op,A,Dp) => "#(showType(Op,Dp-1))[#(showTypes(A,Dp-1)*)]".
 
   shTpExp:(tipe,string,string,integer) => string.
   shTpExp(.tpExp(T,A),Sep,R,Dp) => shTpExp(deRef(T),",","#(showType(A,Dp))#(Sep)#(R)",Dp).
@@ -363,7 +363,7 @@ star.compiler.types{
   validCon(.hasField(T,_,FT),Q,Allow) =>
     (Msg ?= validTp(T,Q,Allow) ?? .some(Msg) || validTp(FT,Q,Allow)).
   validCon(.implicit(_,T),Q,Allow) => validTp(T,Q,Allow).
-  
+
   -- in general, hashing types is not reliable because of unification
   public implementation hashable[tipe] => let{.
     hsh(Tp) => case Tp in {
@@ -402,7 +402,7 @@ star.compiler.types{
 
   public implementation hashable[typeRule] => let{.
     hashEls(Els) => foldLeft((El,Hx)=>Hx*37+hash(deRef(El)),0,Els).
-    
+
     hshRl(Rle) => case Rle in {
       | .typeExists(L,R) => (hash("<~")*37+hash(deRef(L)))*37+hash(deRef(R))
       | .contractExists(N,Ts,Ds,R) =>
@@ -610,7 +610,7 @@ star.compiler.types{
   isConstrained(.existType(_,T)) => isConstrainedType(T).
   isConstrained(.constrainedType(_,T)) => .true.
   isConstrained(_) default => .false.
-  
+
   public isTupleType:(tipe) => option[(integer,cons[tipe])].
   isTupleType(Tp) =>
     (.tupleType(A) .= deRef(Tp) ?? .some((size(A),A)) || .none).
@@ -626,7 +626,7 @@ star.compiler.types{
   ntEnumTp(.existType(V,T))=>.existType(V,netEnumType(T)).
   ntEnumTp(.constrainedType(T,C))=>.constrainedType(netEnumType(T),C).
   ntEnumTp(T) where ET ?= isEnumType(T) => ET.
-  
+
   public unitTp = .tupleType([]).
   public chrType = .nomnal("char").
   public intType = .nomnal("integer").
@@ -920,7 +920,4 @@ star.compiler.types{
 
   lookupSubst(_,[]) => .none.
   lookupSubst(Nm,[(N2,Tp),..Rest]) => (Nm==N2 ?? .some(Tp) || lookupSubst(Nm,Rest)).
-
-
-
 }

@@ -741,7 +741,7 @@ star.compiler.gencode{
     CC = compCaseBranch(Cs,Gv,Hndlr,Df,Brks,Last,Ctx);
     valis chLine(.none,Lc)++[.iLbl(Fl,.iBlock([],PC++EC))]++CC
   }
-    
+
   all e ~~ csEntry[e] ~> (integer,cons[cCase[e]]).
 
   genCaseTable(Cases) where Mx.=nextPrime(size(Cases)) =>
@@ -799,7 +799,7 @@ star.compiler.gencode{
       SCde = compArgPtns(Args,Lc,0,PVr,Fail,Brks,Ctx);
       valis chLine(OLc,Lc)++[.iCLbl(.tLbl(Nm,size(Args)),Fail,PVr)]++SCde
     }
-    | .cTerm(Lc,Nm,Ix,Args) where ~canFail(Nm,Ctx) => 
+    | .cTerm(Lc,Nm,Ix,Args) where ~canFail(Nm,Ctx) =>
       chLine(OLc,Lc)++compArgPtns(Args,Lc,0,PVr,Fail,Brks,Ctx)
     | .cSvDrf(Lc,P,Tp) => valof{
       SVr = defineTmpVar(Tp,Ctx);
@@ -870,7 +870,7 @@ star.compiler.gencode{
   codeCtx ::= codeCtx{
     vars : ref map[identifier,(ltipe,srcLoc)].
     tps : map[identifier,indexMap].
-    lbls : ref integer.  
+    lbls : ref integer.
   }
 
   emptyCtx:(map[identifier,(ltipe,srcLoc)],map[identifier,indexMap])=>codeCtx.

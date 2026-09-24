@@ -1,7 +1,7 @@
 star.compiler.typeparse{
   import star.
   import star.sort.
-  
+
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.data.
@@ -234,7 +234,7 @@ star.compiler.typeparse{
   }
 
   parseTypeName(_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
-    if isLambdaRule(TpRl) then 
+    if isLambdaRule(TpRl) then
       valis (T,.some(TpRl))
     else
     valis (T,.none)
@@ -562,7 +562,7 @@ star.compiler.typeparse{
   collectConstructors:(ast)=>cons[(string,ast)].
   collectConstructors(A) where (Lc,L,R) ?= isBinary(A,"|") =>
     collectConstructors(L) ++ collectConstructors(R).
-  collectConstructors(A) where (Lc,R) ?= isUnary(A,"|") => 
+  collectConstructors(A) where (Lc,R) ?= isUnary(A,"|") =>
     collectConstructors(R).
   collectConstructors(A) where (Lc,Op,_) ?= isRoundTerm(A) && (_,Id)?=isName(Op) =>
     [(Id,A)].

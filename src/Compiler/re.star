@@ -18,7 +18,4 @@ star.compiler.re{
     .startRE(option[locn]) |
     .endRE(option[locn]).
 
-  
-  
-
 }

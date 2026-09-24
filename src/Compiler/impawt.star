@@ -36,7 +36,7 @@ star.compiler.impawt{
   publicImports(Imps) => (Imps ^/ ((.pkgImp(_,Vis,_)) => Vis>=.transItive)).
 
   public importPkg:all r ~~ repo[r] |= (pkg,option[locn],r) => option[pkgSpec].
-  importPkg(Pkg,Lc,Repo) where Sig ?= pkgSignature(Repo,Pkg) => 
+  importPkg(Pkg,Lc,Repo) where Sig ?= pkgSignature(Repo,Pkg) =>
     pickupPkgSpec(Sig,Lc).
   importPkg(Pkg,Lc,_) default => .none.
 
@@ -107,7 +107,7 @@ star.compiler.impawt{
       pickupDeclarations(Ts,Lc)).
 	
   pickupDeclaration:(data,option[locn])=>option[decl].
-  pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) => 
+  pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) =>
     .some(.implDec(Lc,Nm,FNm,decodeSig(Sig))).
   pickupDeclaration(.term("acc",
       [Sig,.strg(Fld),.strg(FNm),Idx,AccSig]),Lc) => valof{
@@ -158,7 +158,7 @@ star.compiler.impawt{
 	}
       }
     };
-      
+
     valis .none
   }
 }

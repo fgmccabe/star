@@ -36,7 +36,7 @@ star.compiler.unify{
     identical(_,_) default => .false.
   .} in let{.
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
-    
+
     sm(.kFun(Nm,Ar),.kFun(Nm,Ar),_) => .true.
     sm(T1,T2,Env) where .tVar(_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where .tVar(_,_) .= T2 => varBinding(T2,T1,Env).
@@ -131,7 +131,7 @@ star.compiler.unify{
     sameConstraint(_,_,_) default => .false.
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
-    varBinding(T1,T2,Env) where ~ occursIn(T1,T2) => 
+    varBinding(T1,T2,Env) where ~ occursIn(T1,T2) =>
       bind(T1,T2,Env).
     varBinding(_,_,_) default => resetBindings().
 
@@ -159,13 +159,13 @@ star.compiler.unify{
       valis .none
     }
   }.
-  
+
   fcTp(.faceType(Flds,Tps)) => .some(.faceType(Flds,Tps)).
   fcTp(_) default => .none.
 
   rewriteType:(tipe,map[tipe,tipe])=>tipe.
   rewriteType(Tp,Env) => rewr(deRef(Tp),Env).
-  
+
   rewr(.anonType,_) => .anonType.
   rewr(.voidType,_) => .voidType.
   rewr(.kFun(Nm,Ar),Env) where T?=Env[.kFun(Nm,Ar)] => T.

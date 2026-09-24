@@ -25,8 +25,8 @@ star.compiler.wasm.type{
   collectConstructors:(cons[decl],map[string,wasmTypeDefn]) => map[string,wasmTypeDefn].
   collectConstructors(Decls,Mp) => foldLeft(collectConstructor,Mp,Decls).
 
-  collectConstructor(tpeDec(Lc,Nm,Tp,Rl),Mp) 
-  
+  collectConstructor(tpeDec(Lc,Nm,Tp,Rl),Mp)
+
 }
 
 

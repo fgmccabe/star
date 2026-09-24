@@ -180,7 +180,7 @@ star.compiler.checker{
   }
 
   parseAnnotation:(string,option[locn],cons[ast],tipe,map[string,ast],dict) => tipe.
-  parseAnnotation(Nm,_,_,_,Annots,Env) where T ?= Annots[Nm] => 
+  parseAnnotation(Nm,_,_,_,Annots,Env) where T ?= Annots[Nm] =>
     parseType(T,Env).
   parseAnnotation(Nm,_,_,.faceType(Vrs,_),_,_) where Tp?={!Tp|(Nm,Tp) in Vrs!} => Tp.
   parseAnnotation(Nm,_,_,_,_,Env) where Tp ?= varType(Nm,Env) => Tp.
