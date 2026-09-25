@@ -362,21 +362,17 @@ star.compiler.inline{
 
     if traceInline! then{
       showMsg("Inlining call #(Nm)$(Args) @ $(Lc), expecting $(CallTp)");
+      showMsg("Function has type $(FTp)");
     }
 
-    if FTp==CallTp then{
-      RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-      inlined = simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1);
+    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+    inlined = simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1);
 
-      if traceInline! then{
-	showMsg("Inlined call to #(Nm) is $(inlined)")
-      };
+    if traceInline! then{
+      showMsg("Inlined call to #(Nm) is $(inlined)")
+    };
 
-      valis inlined
-    } else {
-      reportError("cannot align types of call to #(Nm)\:$(Tp) with $(CallTp)",Lc);
-      valis .cCall(Lc,Nm,Args,Tp)
-    }
+    valis inlined
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp).
 

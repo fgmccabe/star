@@ -43,7 +43,7 @@ star.compiler.ltipe{
       | .fnTipe(A1,R1,E1) => .fnTipe(A2,R2,E2).=Tp2 &&
 	  eqs(A1,A2) && eq(R1,R2) && eq(E1,E2)
       | .prTipe(A1,E1) => .prTipe(A2,E2).=Tp2 && eqs(A1,A2) && eq(E1,E2)
-      | .tplTipe(A1) => .tplTipe(A2).=Tp2 &&eqs(A1,A2)
+      | .tplTipe(A1) => .tplTipe(A2).=Tp2 && eqs(A1,A2)
       | .vdTipe => .vdTipe.=Tp2
     }
 

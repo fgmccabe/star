@@ -101,7 +101,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "new stack of %d words\n%_", sze);
+    outMsg(logFile, "new stack %d of %d words\n%_",stk->hash, sze);
 #endif
 
   stk->prog = labelMtd(underFlow);
@@ -342,9 +342,10 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth,
                 logical alt) {
   stackPo stk = C_STACK(t);
 
-  return outMsg(out, "(.stack %d:[%s] %T.)", stk->hash,
+  return outMsg(out, "(.stack %d:[%s] %T -> %T .)", stk->hash,
                 stackStateName(stk->state),
-                stackState(stk) == moribund ? voidEnum : (termPo)locateMethod((uinteger)stk->pc));
+                stackState(stk) == moribund ? voidEnum : (termPo)locateMethod((uinteger)stk->pc),
+                stk->attachment);
 }
 
 void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
@@ -487,7 +488,7 @@ void attachStack(enginePo P, stackPo top) {
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "attach stack %T to %T\n", top, stk);
+    outMsg(logFile, "attach stack %T to %T\n%_", top, stk);
 #endif
 
   assert(stackState(stk) == active && stackState(top) == suspended &&
@@ -538,6 +539,7 @@ void detachStack(enginePo P, stackPo top) {
     assert(hasIndex((termPo) parent, stackIndex));
   }
 #endif
+  top->attachment = Null;
   P->stk = parent;
   recordTermUpdate((termPo)parent); // We must mark resumed stacks
 }

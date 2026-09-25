@@ -1,4 +1,4 @@
-1star.compiler.dict{
+star.compiler.dict{
   import star.
 
   import star.compiler.canon.
