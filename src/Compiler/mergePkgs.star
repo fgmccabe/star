@@ -26,7 +26,6 @@ star.compiler.package.merge{
 	  valis mergePkgs(Pkgs++(Spec.imports//((.pkgImp(_,_,S))=>S)),
 	  Lc,Repo,Imported\+Pkg,Xs++Defs)
 	else{
-	  reportWarning("nothing to import from $(Pkg)",Lc);
 	  valis mergePkgs(Pkgs++(Spec.imports//((.pkgImp(_,_,S))=>S)),
 	    Lc,Repo,Imported\+Pkg,Defs)
 	}

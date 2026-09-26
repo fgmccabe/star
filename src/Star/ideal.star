@@ -16,7 +16,7 @@ star.ideal{
   public  all k,v ~~ map[k,v] ::=   -- Expose the type only
     .ihNil |			    -- Empty dictionary
     -- Leaf dictionary, all entries have the same hash
-    .ihLeaf(integer,cons[keyval[k,v]]) | 
+    .ihLeaf(integer,cons[keyval[k,v]]) |
     .ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
 
   findIdeal: all k,v ~~ equality[k],hashable[k] |= (map[k,v],k) => option[v].

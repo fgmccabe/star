@@ -106,8 +106,8 @@ star.compiler.ltipe{
     | `p` => (.ptr,Cs)
     | `(` => let{.
       decTps:(cons[char],cons[ltipe])=>(ltipe,cons[char]) throws exception.
-      decTps([`)`,..Cs],So) => (.tplTipe(reverse(So)),Cs).
-      decTps(C,So) where (E,C1).=decTp(Cs) => decTps(C1,[E,..So]).
+      decTps([`)`,..Chs],So) => (.tplTipe(reverse(So)),Chs).
+      decTps(Chs,So) where (E,C1).=decTp(Chs) => decTps(C1,[E,..So]).
     .} in decTps(Cs,[])
     | `F` where (.tplTipe(As),C0).=decTp(Cs) && (Rt,C1) .= decTp(C0) && (Et,Cx) .= decTp(C1)  =>
       (.fnTipe(As,Rt,Et),Cx)

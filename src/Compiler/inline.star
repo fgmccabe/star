@@ -184,9 +184,6 @@ star.compiler.inline{
       showMsg("inline var definition for #(VNm)\:$(VTp) = $(E)\:$(typeOf(E))");
     };
     EE = simplifyExp(E,Map,Depth);
-    if traceInline! then{
-      showMsg("inlined def #(VNm) = $(EE)\:$(typeOf(EE))");
-    };
 
     AA = simplifyAct(A2,Map[.varSp(VNm)->.glDef(VLc,VNm,typeOf(EE)/*VTp*/,EE)],Depth);
     if traceInline! then{
@@ -257,16 +254,12 @@ star.compiler.inline{
   inlineVar(Lc,.cV("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cV(Id,Tp),Map,Depth) where
       .glDef(_,_,GlTp,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
-    if Tp==GlTp then{
-      if traceInline! then{
-	showMsg("Inlining var #(Id)\:$(Tp) with $(Vl)\:$(GlTp) @ $(Lc)");
-      };
-      valis simplifyExp(Vl,Map[~.varSp(Id)],Depth-1)
-    } else{
-      valis .cVar(Lc,.cV(Id,Tp))
-    }
-      }
-  inlineVar(Lc,V,_,_) => .cVar(Lc,V).
+    if traceInline! then{
+      showMsg("Inlining var #(Id)\:$(Tp) with $(Vl)\:$(GlTp) @ $(Lc)");
+    };
+    valis simplifyExp(Vl,Map[~.varSp(Id)],Depth-1)
+      }.
+  inlineVar(Lc,V,Map,_) => .cVar(Lc,V).
 
   applyCnj(_,Tr where isTrue(Tr),R) => R.
   applyCnj(_,Fl where isFalse(Fl),R) => Fl.
@@ -385,14 +378,8 @@ star.compiler.inline{
       showMsg("inlining xcall #(Nm)$(Args) @ $(Lc), expecting $(CallTp)");
     }
 
-    if FTp==CallTp then {
-      RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-      valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
-    }
-    else{
-	reportError("cannot align types of xcall to #(Nm)\:$(Tp) with $(CallTp)",Lc);
-	valis .cXCall(Lc,Nm,Args,Tp,ErTp)
-    }
+    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+    valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
   inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) default => .cXCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).
 
