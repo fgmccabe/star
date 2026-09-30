@@ -41,11 +41,34 @@ star.compiler.normalize{
 
   all e ~~ crFlow[e] ~> (e,cons[cDefn]).
 
+  -- Eta-expand some constrained definitions to the declared arity: bus(D,X,Y) => (flip(sub(D)))(X,Y).
+
+  etaConstrained:(eqn,tipe,tipe) => option[(eqn,tipe)].
+  etaConstrained(.eqn(ELc,Cvrs,G,Val),LTp,DTp) where arity(DTp) > arity(LTp) => valof{
+    (Qx,LQt) = deQuant(LTp);
+    if .funType(.tupleType(CxTps),ITp,_) .= deRef(LQt) &&
+	.funType(.tupleType(ArgTps),ResTp,ErTp) .= deRef(ITp) then{
+      Xs = ArgTps//(T)=>.vr(ELc,genSym("η"),T);
+      Call = (isThrowingType(ITp) ??
+	  .tapply(ELc,Val,Xs,ResTp,ErTp) ||
+	  .apply(ELc,Val,Xs,ResTp));
+      XTp = reQuant(Qx,.funType(.tupleType(CxTps++ArgTps),ResTp,ErTp));
+      if traceNormalize! then
+	showMsg("eta-expand constrained definition to $(.eqn(ELc,Cvrs++Xs,G,Call))\:$(XTp)");
+      valis .some((.eqn(ELc,Cvrs++Xs,G,Call),XTp))
+    } else
+    valis .none
+  }
+  etaConstrained(_,_,_) default => .none.
+
   transformDef:(canonDef,nameMap,nameMap,set[canonVar],option[canonVar],cons[cDefn]) => cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.prcDef(Lc,FullNm,Rls,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformProcedure(Lc,FullNm,Rls,Tp,Map,Outer,Q,Extra,Ex).
+  transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,LTp),_,DTp),Map,Outer,Q,Extra,Ex)
+      where (XEqn,XTp) ?= etaConstrained(Eqn,LTp,DTp) =>
+    transformFunction(Lc,FullNm,[XEqn],XTp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
@@ -863,6 +886,11 @@ star.compiler.normalize{
   }
   transformLetDef(.prcDef(Lc,FullNm,Rls,_,Tp),Map,Outer,Q,Extra,Fx,Ex) => valof{
     Ex1 = transformProcedure(Lc,FullNm,Rls,Tp,Map,Outer,Q,Extra,Ex);
+    valis (Fx,Ex1)
+  }
+  transformLetDef(.varDef(Lc,_,FullNm,.lambda(_,_,Eqn,LTp),_,DTp),Map,Outer,Q,Extra,Fx,Ex)
+      where (XEqn,XTp) ?= etaConstrained(Eqn,LTp,DTp) => valof{
+    Ex1 = transformFunction(Lc,FullNm,[XEqn],XTp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
   transformLetDef(.varDef(Lc,_,FullNm,.lambda(_,_,Eqn,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{

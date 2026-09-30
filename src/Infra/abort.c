@@ -28,6 +28,6 @@ void star_exit(ExitCode code) {
   if (code != successCode)
     outMsg(logFile, "Terminating with code %d (%s)\n", code,
            (code <= abortCode ? exitCodes[code] : "unknown exit code"));
-
+  flushOut();
   exit(code);
 }

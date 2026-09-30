@@ -98,6 +98,7 @@
     "test.fma": "fma.star",
     "test.fmt": "fmt.star",
     "test.fn": "fn.star",
+    "test.lftap4": "lftap4.star",
     "test.func": "func.star",
     "test.g": "g.star",
     "test.gl1": "gl1.star",
