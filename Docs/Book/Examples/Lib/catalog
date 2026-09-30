@@ -1,0 +1,7 @@
+{
+  "content": {
+    "book.examples.lib.dijkstra" : "dijkstra.star"
+    },
+  "version" : "0.0.0",
+  "default" : "../../../../src/Star/catalog"
+}

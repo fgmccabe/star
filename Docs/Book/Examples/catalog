@@ -1,0 +1,11 @@
+{
+  "content": {
+    "book.examples.map" : "map.star",
+    "book.examples.map.bayarea" : "bayarea.star",
+    "book.examples.map.city" : "city.star",
+    "book.examples.taxi" : "taxi.star"
+    },
+  "version" : "0.0.0",
+  "default" : "../../../src/Star/catalog",
+  "subcatalogs" : [ "Lib/catalog" ]
+  }
