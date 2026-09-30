@@ -60,7 +60,7 @@ star.compiler.macro.rules{
     "collect" -> [(.expression,collectMacro)],
     "implementation" -> [(.statement,implementationMacro)],
     "assert" -> [(.actn,assertMacro)],
-    "show" -> [(.actn,showMacro)],
+    "show" -> [(.actn,showMacroRl)],
     "trace" -> [(.expression,traceMacro)],
     "generator\${}" -> [(.expression,generatorMacro)],
     "task\${}" -> [(.expression,taskMacro)],
@@ -82,11 +82,11 @@ star.compiler.macro.rules{
   assertMacro(_,_) default => .inactive.
 
   -- Convert show E to shwMsg(E,"E",Lc)
-  showMacro(A,.actn) where (Lc,E) ?= isShow(A) => valof{
+  showMacroRl(A,.actn) where (Lc,E) ?= isShow(A) => valof{
     Shw = ternary(Lc,"shwMsg",E,.str(Lc,E::string),.str(Lc,disp(Lc)));
     valis .active(Shw)
   }
-  showMacro(_,.actn) default => .inactive.
+  showMacroRl(_,.actn) default => .inactive.
 
   -- Convert trace E to traceCall("value of "E" is ",.true,E)
   traceMacro(T,.expression) where (Lc,Grd,Exp) ?= isTrace(T) => valof{

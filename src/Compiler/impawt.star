@@ -105,7 +105,7 @@ star.compiler.impawt{
     D ?= pickupDeclaration(T,Lc) ??
       [D,..pickupDeclarations(Ts,Lc)] ||
       pickupDeclarations(Ts,Lc)).
-	
+
   pickupDeclaration:(data,option[locn])=>option[decl].
   pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) =>
     .some(.implDec(Lc,Nm,FNm,decodeSig(Sig))).
@@ -140,7 +140,6 @@ star.compiler.impawt{
     reportError("invalid declaration",Lc);
     valis .none
   }
-
 
   decodeIndex(.symb(.tLbl("none",0))) => .none.
   decodeIndex(.term("some",[.intgr(Ix)])) => .some(Ix).

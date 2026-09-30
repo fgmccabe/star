@@ -1657,8 +1657,8 @@ star.compiler.term{
   thawDefn(D) => case D in {
     | .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
       .fnDef(thawLoc(Lc),Nm,thwTp(Sig),Vrs//thawVr,thwTrm(Vl))
-    | .term("prc",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
-      .prDef(thawLoc(Lc),Nm,thwTp(Sig),Vrs//thawVr,thawAct(Vl))
+    | .term("prc",[Lc,.strg(Nm),Sig,.term(_,Vrs),Act]) =>
+      .prDef(thawLoc(Lc),Nm,thwTp(Sig),(Vrs//thawVr),thawAct(Act))
     | .term("glb",[Lc,.strg(V),Sig,Vl]) =>
       .glDef(thawLoc(Lc),V,thwTp(Sig),thwTrm(Vl))
     | .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>

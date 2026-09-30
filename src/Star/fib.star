@@ -3,19 +3,19 @@ star.fib{
 
   -- Fibonacci priority queue
 
-  fib[e] ::= q(e,integer,cons[fib[e]]).
+  all e ~~ fib[e] ::= .q(e,integer,cons[fib[e]]).
 
   root:all e ~~ comp[e] |= (fib[e])=>e.
   root(q(x,_,_)) => x.
 
   rank:all e ~~  (fib[e])=>integer.
-  rank(q(_,r,_)) => r.
+  rank(.q(_,r,_)) => r.
 
   link:all e ~~ comp[e] |= (q[e],q[e]) => q[e].
-  link(q(x1,r,c1),q(x2,r,c2)) =>
+  link(.q(x1,r,c1),.q(x2,r,c2)) =>
     ( x2>=x1 ?
-        q(x1,r+1,[q(x2,r,c2),..c1]) ||
-        q(x2,r+1,[q(x1,r,c1),..c2])).
+        .q(x1,r+1,[.q(x2,r,c2),..c1]) ||
+        .q(x2,r+1,[.q(x1,r,c1),..c2])).
 
   ins:all e ~~ comp[e] |= (fib[e],cons[fib[e]])=>cons[fib[e]].
   ins(t,[]) => [t].
@@ -23,7 +23,7 @@ star.fib{
   ins(t,[t1,..ts]) => ins(link(t,t1),ts).
 
   insert:all e ~~ comp[e] |= (e,fib[e]) => fib[e].
-  insert(x,t) => ins(q(x,0,[]),t).
+  insert(x,t) => ins(.q(x,0,[]),t).
 
   meld:all e~~comp[e] |= (cons[fib[e]],cons[fib[e]]) => cons[fib[e]].
   meld([],ts) => ts.
@@ -43,7 +43,7 @@ star.fib{
     getMin([t])=>(t,[]).
     getMin([t,..tss]) where (t1,ts1) .= getMin(tss) => (
       root(t1)>=root(t1) ?? (t,tss) || (t1,[t,..ts1])).
-    (q(x,r,c),ts1) .= getMin(ts)
+    (.q(x,r,c),ts1) .= getMin(ts)
  .} in meld(reverse(c),ts1).
 
 }

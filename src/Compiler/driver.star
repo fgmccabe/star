@@ -126,7 +126,7 @@ star.compiler{
 	  showMsg("Ast of $(P) is $(Ast)")
 	};
 	M = macroPkg(Ast);
-	if showMacrod! then{
+	if showMacro! then{
 	  showMsg("Macroed package $(M)")
 	};
 
@@ -177,13 +177,20 @@ star.compiler{
 		    .intgr(opcodeHash),
 		    mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		    mkTpl([]),
-		    mkTpl([]),
+		    mkTpl(Decls//(Dc)=>(Dc::data)),
 		    mkTpl(Segs//assem)]);
 		Bytes = (.strg(Code::string)::string);
 
 		InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
 
 		if errorFree() then{
+		  if showCode! then{
+		    showMsg("Generated core code:");
+		    for Df in Inlined do{
+		      showMsg("$(Df)");
+		    }
+		  };
+
 		  valis addSpec(PkgSpec,
 		    addSource(addLoweredSource(
 			addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))

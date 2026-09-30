@@ -33,7 +33,7 @@ star.compiler.opts{
   public traceAst = ref .false.
   public traceDependencies = ref .false.
   public macroTracing = ref .false.
-  public showMacrod = ref .false.
+  public showMacro = ref .false.
   public macroOnly = ref .false.
   public showCanon = ref .false.
   public traceCanon = ref .false.
@@ -137,7 +137,7 @@ star.compiler.opts{
     usage = "-dm -- show macro".
     validator = .none.
     setOption(_,Opts) => valof{
-      showMacrod := .true;
+      showMacro := .true;
       valis Opts
     }
   }

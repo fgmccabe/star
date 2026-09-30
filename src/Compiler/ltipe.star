@@ -111,6 +111,8 @@ star.compiler.ltipe{
     .} in decTps(Cs,[])
     | `F` where (.tplTipe(As),C0).=decTp(Cs) && (Rt,C1) .= decTp(C0) && (Et,Cx) .= decTp(C1)  =>
       (.fnTipe(As,Rt,Et),Cx)
+    | `P` where (.tplTipe(As),C0).=decTp(Cs) && (Et,Cx) .= decTp(C0) =>
+      (.prTipe(As,Et),Cx)
     | `v` => (.vdTipe,Cs)
     | _ default => throw .exception("invalid ltipe encoding: $(Ch)")
   }
@@ -132,13 +134,21 @@ star.compiler.ltipe{
     | .voidType => .vdTipe
     | .allType(_,BTp) => redTp(deRef(BTp))
     | .existType(_,BTp) => redTp(deRef(BTp))
+    | .constrainedType(BTp,Co) => extendFunTipe(redTp(deRef(BTp)),conArg(Co))
     | .constrainedType(BTp,_) => redTp(deRef(BTp))
     | _ default => .ptr
   }
 
+  conArg(.conTract(_,_,_)) => .some(.ptr).
+  conArg(.hasField(_,_,_)) => .some(.ptr).
+  conArg(.implicit(_,_)) => .some(.ptr).
+  conArg(_) default => .none.
+
   public extendFunTipe:(ltipe,option[ltipe])=>ltipe.
   extendFunTipe(.fnTipe(As,Rs,Et),.some(T)) => .fnTipe([T,..As],Rs,Et).
   extendFunTipe(.prTipe(As,Et),.some(T)) => .prTipe([T,..As],Et).
+  extendFunTipe(.ptr,_) => .ptr.
+  extendFunTipe(Tp,.some(T)) => .fnTipe([T],Tp,.vdTipe).
   extendFunTipe(Tp,.none) => Tp.
 
   public isThrowingTipe:(ltipe) => boolean.

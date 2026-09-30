@@ -22,9 +22,10 @@ star.compiler.package.merge{
       valis mergePkgs(Pkgs,Lc,Repo,Imported,Defs)
     else {
       if Spec ?= importPkg(Pkg,Lc,Repo) then{
-	if Xs ?= importLowered(Pkg,Repo) then
+	if Xs ?= importLowered(Pkg,Repo) then{
 	  valis mergePkgs(Pkgs++(Spec.imports//((.pkgImp(_,_,S))=>S)),
-	  Lc,Repo,Imported\+Pkg,Xs++Defs)
+	    Lc,Repo,Imported\+Pkg,Xs++Defs)
+	}
 	else{
 	  valis mergePkgs(Pkgs++(Spec.imports//((.pkgImp(_,_,S))=>S)),
 	    Lc,Repo,Imported\+Pkg,Defs)

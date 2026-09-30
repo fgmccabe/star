@@ -1564,9 +1564,7 @@ armReg operandRegister(codeGenPo state, int32 pc, int32 nextPc, int32 varOx, Fle
   return fresh;
 }
 
-// Shared shape for sIMul/sBLsl/sBLsr/sBAsr: load both operands, untag, apply the ALU
-// op, retag, store. (sIAdd/sISub/sBAnd/sBOr/sBXor use binaryIntOpTagged instead, which
-// skips the untag/retag round-trip.)
+// Shared shape for sIMul/sBLsl/sBLsr/sBAsr
 void binaryIntOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx, aluBinOpFn op) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -1587,10 +1585,7 @@ void binaryIntOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 lef
   releaseReg(jit, a1);
 }
 
-// Shared shape for sIAdd/sISub/sBAnd/sBOr/sBXor: operate directly on the tagged bit
-// patterns instead of untag/op/retag, applying a small constant fixup (see the tagFixup
-// derivation above). Each fixup is exact 64-bit modular arithmetic, so this produces
-// bit-identical results to the untag/op/retag path in every case, including overflow.
+// Shared shape for sIAdd/sISub/sBAnd/sBOr/sBXor
 void binaryIntOpTagged(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
                        aluBinOpFn op, tagFixup fixup) {
   jitCompPo jit = state->jit;
@@ -1623,15 +1618,7 @@ void binaryIntOpTagged(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int
   releaseReg(jit, a1);
 }
 
-// Shared shape for sCEq/sIEq, sCLt/sILt, sCGe/sIGe: compare directly on the tagged
-// representations and select the true/false constant based on cond. A tagged integer is
-// 4v+1; since f(v)=4v+1 is strictly monotonic and injective (for any v that validly fits
-// the tagged representation), equality and signed ordering of tagged values exactly match
-// equality/ordering of the underlying integers -- no untagging needed at all, and no fixup
-// afterward either (unlike the arithmetic ops), since neither `cmp` nor the operand loads
-// write through a1/a2. The csel result goes into `tr` (already holding the true constant,
-// self-selecting when cond holds) rather than a1, so a1/a2 stay purely read-only and can
-// use readOperandRegister instead of the liveness-checked operandRegister.
+// Shared shape for sCEq/sIEq, sCLt/sILt, sCGe/sIGe
 void binaryIntCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, armCond cond) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -1643,25 +1630,25 @@ void binaryIntCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int3
   armReg a1 = readOperandRegister(state, pc, left, &a1Fresh);
   armReg a2 = readOperandRegister(state, pc, right, &a2Fresh);
 
+  cmp(a1, RG(a2));
+
+  if (a2Fresh) releaseReg(jit, a2);
+  if (a1Fresh) releaseReg(jit, a1);
+
   armReg fl = findARegister(state, pc);
   armReg tr = findARegister(state, pc);
   loadConstant(jit, trueIndex, tr);
   loadConstant(jit, falseIndex, fl);
 
-  cmp(a1, RG(a2));
   csel(tr, tr, fl, cond);
 
   storeVar(state, pc, RG(tr), dst);
-  if (a2Fresh) releaseReg(jit, a2);
-  if (a1Fresh) releaseReg(jit, a1);
   releaseReg(jit, tr);
   releaseReg(jit, fl);
 }
 
 // Shared shape for sFAdd/sFSub/sFMul: load both operands as floats, apply the FP op, box
-// result. getFltVal only reads through a1/a2 (never writes them), so when an operand is
-// already a register, use it directly instead of copying -- no liveness check needed,
-// since nothing here mutates the source register.
+// result.
 void binaryFloatOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 leftOx, int32 rightOx,
                    fpBinOpFn op) {
   jitCompPo jit = state->jit;
@@ -1682,10 +1669,7 @@ void binaryFloatOp(codeGenPo state, int32 pc, int32 nextPc, int32 dstOx, int32 l
   storeVar(state, pc, RG(RTV), dst);
 }
 
-// Shared shape for sFEq/sFLt/sFGe: load both operands as floats, compare, then select
-// the true/false constant based on cond. Same reasoning as binaryIntCompare for routing
-// the csel result through `tr` instead of a1: keeps a1/a2 purely read-only so they can
-// use readOperandRegister.
+// Shared shape for sFEq/sFLt/sFGe
 void binaryFloatCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int32 rightOx, armCond cond) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -1697,17 +1681,17 @@ void binaryFloatCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, in
   armReg a1 = readOperandRegister(state, pc, left, &a1Fresh);
   armReg a2 = readOperandRegister(state, pc, right, &a2Fresh);
 
+  getFltVal(jit, a1, F0);
+  getFltVal(jit, a2, F1);
+  fcmp(F0, F1);
+  if (a1Fresh) releaseReg(jit, a1);
+  if (a2Fresh) releaseReg(jit, a2);
+
   armReg fl = findARegister(state, pc);
   armReg tr = findARegister(state, pc);
   loadConstant(jit, trueIndex, tr);
   loadConstant(jit, falseIndex, fl);
 
-  getFltVal(jit, a1, F0);
-  getFltVal(jit, a2, F1);
-  if (a1Fresh) releaseReg(jit, a1);
-  if (a2Fresh) releaseReg(jit, a2);
-
-  fcmp(F0, F1);
   csel(tr, tr, fl, cond);
 
   storeVar(state, pc, RG(tr), dst);

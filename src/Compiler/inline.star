@@ -353,6 +353,9 @@ star.compiler.inline{
       Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) && ~ isThrowingTipe(FTp) => valof{
     CallTp = .fnTipe(Args//typeOf,Tp,.vdTipe);
 
+    if [|Args|] ~= [|Vrs|] then
+      reportError("inlining call to #(Nm) has mismatched arguments: $([|Args|]) vs $([|Vrs|])",Lc);
+
     if traceInline! then{
       showMsg("Inlining call #(Nm)$(Args) @ $(Lc), expecting $(CallTp)");
       showMsg("Function has type $(FTp)");

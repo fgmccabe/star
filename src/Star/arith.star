@@ -74,7 +74,7 @@ star.arith{
     one = 0b1.
     __minus(Ix) => _big_minus(0b0,Ix).
   }
-  
+
   public implementation equality[bigint] => {
     X == Y => _big_eq(X,Y).
   }

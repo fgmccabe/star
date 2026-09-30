@@ -16,7 +16,7 @@ star.compiler.catalog{
     subcats:cons[catalog].
   }
 
-  public parseCat:(json,uri) => option[catalog].
+  parseCat:(json,uri) => option[catalog].
   parseCat(.jColl(M),U) => .some(catalog{
       parent=M["default"]>>=(.jTxt(Ut))=>parseUri(Ut)>>=(PU)=>
 	(RU?=resolveUri(U,PU) ?? loadCatalog(RU) || .none).
