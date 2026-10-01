@@ -282,9 +282,7 @@ int32 flushArg(codeGenPo state, int32 pc, localVarPo var, void* cl) {
 }
 
 int32 flushArguments(codeGenPo state, int32 pc) {
-  int32 minOffset = processLocals(state, pc, flushArg, Null);
-  voidOutFrameLocals(state, pc, minOffset);
-  return minOffset;
+  return processLocals(state, pc, flushArg, Null);
 }
 
 int32 processLocals(codeGenPo state, int32 pc, localVarProc vProc, void* cl) {

@@ -312,6 +312,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       }
       flushArguments(state, nextPc);
       stackCheck(state, pc, opand(1), opand(2));
+      int32 arity = mtdArity(state->mtd);
+      int32 frameSize = state->numLocals - arity;
+      voidOutFrameLocals(state, nextPc, -frameSize);
       // if (mtdHasName(state->mtd, "star.core$equality(<star.arith@star.core$equality!integer@Γ%9@==")) {
       //   installBkPt(state, pc);
       // }

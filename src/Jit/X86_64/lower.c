@@ -79,6 +79,8 @@ static localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo);
 static void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var);
 static FlexOp varSrc(codeGenPo state, int32 pc, localVarPo var);
 
+static void srcHasIndex(codeGenPo state, int32 pc, FlexOp src, int32 index);
+
 static void retireExpiredVars(codeGenPo state, int32 pc);
 static logical registerInUse(codeGenPo state, FlexOp src);
 
@@ -297,18 +299,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       mcRegister lamReg = X16;
       loadRegister(state, lamReg, lam);
+
+      codeLblPo haveMtd = newLabel(ctx);
+      srcHasIndex(state, pc, RG(lamReg), closureIndex);
+      je(haveMtd);
+      bailOut(state, pc, undefinedCode);
+
+      bind(haveMtd);
       int32 argPnt = loadLambdaArguments(state, nextPc, pc + 3, numArgs) - 1;
+      pushFrme(state, pc, argPnt);
       ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
       ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
       // pick up the pointer to the method
       ldr(lamReg, OF(lamReg, OffsetOf(LblRecord, mtd)));
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(lamReg, haveMtd);
-
-      bailOut(state, pc, undefinedCode);
-
-      bind(haveMtd);
-      pushFrme(state, pc, argPnt);
 
       // Pick up the jit code itself
       ldr(X16, OF(lamReg, OffsetOf(MethodRec, jit.code)));
@@ -378,6 +381,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 argPc = pc + 3;
       int32 nextPc = pc + insSize;
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
+
+      codeLblPo haveMtd0 = newLabel(ctx);
+      srcHasIndex(state, pc, lam, closureIndex);
+      je(haveMtd0);
+      bailOut(state, pc, undefinedCode);
+
+      bind(haveMtd0);
       // The closure travels as part of the argument shuffle rather than being loaded
       // into X16 beforehand: X16 is precisely the register shuffleVars uses to break
       // cycles, so a cyclic argument permutation used to overwrite the closure and the
@@ -689,18 +699,14 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // T,Lbl --> test for a data term, break if not lbl
       int32 insSize = 4;
       int32 key = opand(1);
+      labelPo lbl = C_LBL(getConstant(key));
+      int32 index = indexOfLabel(lbl);
       blockPo tgt = targetBlock(block, pc + opand(2), sBlock);
-      mcRegister tmp = findMcRegister(state, pc);
       FlexOp vl = localFlex(state, pc, opand(3));
-      loadRegister(state, tmp, vl);
-      test(RG(tmp), IM(0b11));
+
+      srcHasIndex(state, pc, vl, index);
       jne(breakLabel(tgt));
 
-      ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
-      labelPo lit = C_LBL(getConstant(key));
-      cmp_w(tmp, IM(lit->labelIndex));
-      jne(breakLabel(tgt));
-      releaseReg(jit, tmp);
       pc += insSize;
       continue;
     }
@@ -1114,14 +1120,18 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       mcRegister a1 = findMcRegister(state, pc);
       loadRegister(state, a1, left);
-      getIntVal(jit, a1);
+
+      // Negating the tagged bits directly gives -(4v+1) = 4(-v)-1, which is off by 2
+      // from the correctly-tagged abs value 4(-v)+1. If negative, negate and add 2.
+      // GE on the tagged value matches GE on the untagged value exactly (tagged is
+      // never 0 and strictly monotonic in v), so no untag/retag is needed.
       cmp(RG(a1), IM(0));
       codeLblPo skip = newLabel(ctx);
       j_cc_(skip, GE_CC, ctx);
       neg(RG(a1));
+      add(RG(a1), IM(2));
       bind(skip);
 
-      mkIntVal(jit, a1);
       storeVar(state, pc, RG(a1), dst);
       releaseReg(jit, a1);
       pc += insSize;
@@ -1249,11 +1259,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       mcRegister a1 = findMcRegister(state, pc);
       loadRegister(state, a1, left);
-      getIntVal(jit, a1);
 
+      // NOT(x) = -x-1 for any two's complement x, so NOT(tagged(v)) = -(4v+1)-1 =
+      // -4v-2, one less than the correctly-tagged tagged(~v) = tagged(-v-1) = -4v-3.
+      // Subtract 1 afterward to correct; no untag/retag needed at all.
       not(RG(a1));
+      sub(RG(a1), IM(1));
 
-      mkIntVal(jit, a1);
       storeVar(state, pc, RG(a1), dst);
       releaseReg(jit, a1);
       pc += insSize;
@@ -1284,16 +1296,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp right = localFlex(state, pc, opand(4));
       localVarPo dst = localTarget(state, pc, opand(2));
 
-      mcRegister dividend = findMcRegister(state, pc);
-      mcRegister divisor = findMcRegister(state, pc);
-      loadRegister(state, dividend, left);
-      loadRegister(state, divisor, right);
+      logical dividendFresh, divisorFresh;
+      mcRegister dividend = readOperandRegister(state, pc, left, &dividendFresh);
+      mcRegister divisor = readOperandRegister(state, pc, right, &divisorFresh);
 
       getFltVal(jit, dividend, F0);
       getFltVal(jit, divisor, F1);
 
-      releaseReg(jit, dividend);
-      releaseReg(jit, divisor);
+      if (dividendFresh) releaseReg(jit, dividend);
+      if (divisorFresh) releaseReg(jit, divisor);
 
       xorpd(FLT(F2), FLT(F2));
       ucomisd(FLT(F1), FLT(F2));
@@ -1321,16 +1332,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp right = localFlex(state, pc, opand(4));
       localVarPo dst = localTarget(state, pc, opand(2));
 
-      mcRegister dividend = findMcRegister(state, pc);
-      mcRegister divisor = findMcRegister(state, pc);
-      loadRegister(state, dividend, left);
-      loadRegister(state, divisor, right);
+      logical a1Fresh, divisorFresh;
+      mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
+      mcRegister divisor = readOperandRegister(state, pc, right, &divisorFresh);
 
-      getFltVal(jit, dividend, F0);
+      getFltVal(jit, a1, F0);
       getFltVal(jit, divisor, F1);
 
-      releaseReg(jit, dividend);
-      releaseReg(jit, divisor);
+      if (a1Fresh) releaseReg(jit, a1);
+      if (divisorFresh) releaseReg(jit, divisor);
 
       xorpd(FLT(F2), FLT(F2));
       ucomisd(FLT(F1), FLT(F2));
@@ -1364,10 +1374,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp left = localFlex(state, pc, opand(2));
       localVarPo dst = localTarget(state, pc, opand(1));
 
-      mcRegister a1 = findMcRegister(state, pc);
-      loadRegister(state, a1, left);
+      logical a1Fresh;
+      mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
       getFltVal(jit, a1, F0);
-      releaseReg(jit, a1);
+      if (a1Fresh) releaseReg(jit, a1);
 
       mov(RG(RAX), IM(0x7fffffffffffffff));
       movq_g2x(FLT(F1), RG(RAX));
@@ -1461,44 +1471,37 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo rtn = newLabel(ctx);
       adr(tmp, rtn);
       str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
-      // Parallel move, for the same reason as sRetire/sResume: RTV and RTS are both
-      // allocatable, so the fiber local may live in one of them and a sequential load of
-      // the event/status would clobber it before it is read.
-      ArgSpec specs[3] = {
-        argSpec(localFlex(state, pc, opand(1)), RG(RSI)),
-        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
-        argSpec(IM(0), RG(RTS))
-      };
-      shuffleVars(jit, specs, 3, &jit->freeRegs);
-      push(RG(RTV));
-      push(RG(RTS));
+
+      loadRegister(state, tmp, localFlex(state, pc, opand(2)));
+      push(RG(tmp));
+      push(IM(0));
+      releaseReg(jit, tmp);
+
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)detachStack, 2, (FlexOp[]){
-                        RG(PR), RG(RSI)
+                        RG(PR), localFlex(state, pc, opand(1))
                       }, True, 0, Null);
       pop(RG(RTS));
       pop(RG(RTV));
       ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
       br(X16);
       bind(rtn);
-      releaseReg(jit, tmp);
       pc += insSize;
       continue;
     }
     case sResume: {
       int32 insSize = 3;
       codeLblPo rtn = newLabel(ctx);
-      adr(X16, rtn);
-      str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      ArgSpec specs[3] = {
-        argSpec(localFlex(state, pc, opand(1)), RG(RSI)),
-        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
-        argSpec(IM(0), RG(RTS))
-      };
-      shuffleVars(jit, specs, 3, &jit->freeRegs);
-      push(RG(RTV));
-      push(RG(RTS));
+      mcRegister tmp = findMcRegister(state, pc);
+      adr(tmp, rtn);
+      str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
+
+      loadRegister(state, tmp, localFlex(state, pc, opand(2)));
+      push(RG(tmp));
+      push(IM(0));
+      releaseReg(jit, tmp);
+
       invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)attachStack, 2, (FlexOp[]){
-                        RG(PR), RG(RSI)
+                        RG(PR), localFlex(state, pc, opand(1))
                       }, True, 0, Null);
       pop(RG(RTS));
       pop(RG(RTV));
@@ -2218,17 +2221,19 @@ void binaryIntCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, int3
   mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
   mcRegister a2 = readOperandRegister(state, pc, right, &a2Fresh);
 
+  cmp(RG(a1), RG(a2));
+
+  if (a2Fresh) releaseReg(jit, a2);
+  if (a1Fresh) releaseReg(jit, a1);
+
   mcRegister fl = findMcRegister(state, pc);
   mcRegister tr = findMcRegister(state, pc);
   loadConstant(jit, trueIndex, tr);
   loadConstant(jit, falseIndex, fl);
 
-  cmp(RG(a1), RG(a2));
   csel(tr, tr, fl, cond);
 
   storeVar(state, pc, RG(tr), dst);
-  if (a2Fresh) releaseReg(jit, a2);
-  if (a1Fresh) releaseReg(jit, a1);
   releaseReg(jit, tr);
   releaseReg(jit, fl);
 }
@@ -2273,17 +2278,18 @@ void binaryFloatCompare(codeGenPo state, int32 pc, int32 dstOx, int32 leftOx, in
   mcRegister a1 = readOperandRegister(state, pc, left, &a1Fresh);
   mcRegister a2 = readOperandRegister(state, pc, right, &a2Fresh);
 
-  mcRegister fl = findMcRegister(state, pc);
-  mcRegister tr = findMcRegister(state, pc);
-  loadConstant(jit, trueIndex, tr);
-  loadConstant(jit, falseIndex, fl);
-
   getFltVal(jit, a1, F0);
   getFltVal(jit, a2, F1);
   if (a1Fresh) releaseReg(jit, a1);
   if (a2Fresh) releaseReg(jit, a2);
 
   ucomisd(FLT(F0), FLT(F1));
+
+  mcRegister fl = findMcRegister(state, pc);
+  mcRegister tr = findMcRegister(state, pc);
+  loadConstant(jit, trueIndex, tr);
+  loadConstant(jit, falseIndex, fl);
+
   csel(tr, tr, fl, cond);
 
   storeVar(state, pc, RG(tr), dst);
@@ -2403,4 +2409,21 @@ void shiftRegister(codeGenPo state, int32 pc, ssaOp op, mcRegister dst, mcRegist
   if (swapped) {
     xchg(RG(RCX), RG(src2));
   }
+}
+
+void srcHasIndex(codeGenPo state, int32 pc, FlexOp src, int32 index) {
+  jitCompPo jit = state->jit;
+  assemCtxPo ctx = assemCtx(jit);
+  mcRegister tmp = findMcRegister(state, pc);
+  codeLblPo flLbl = newLabel(ctx);
+
+  loadRegister(state, tmp, src);
+  test(RG(tmp), IM(0b11));
+  jne(flLbl);
+
+  ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
+
+  cmp_w(tmp, IM(index));
+  bind(flLbl);
+  releaseReg(jit, tmp);
 }

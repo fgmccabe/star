@@ -154,8 +154,16 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
         case Based: {
           if (src.op.based.disp != dst.op.based.disp || src.op.based.base != dst.op.based.base) {
             mcRegister tmp = nxtAvailReg(freeRegs);
-            load(ctx, tmp, src.op.based.base, src.op.based.disp);
-            store(ctx, tmp, dst.op.based.base, dst.op.based.disp, dropReg(freeRegs, tmp));
+            if (tmp != XZR) {
+              load(ctx, tmp, src.op.based.base, src.op.based.disp);
+              store(ctx, tmp, dst.op.based.base, dst.op.based.disp, dropReg(freeRegs, tmp));
+            }
+            else {
+              push(RG(RAX));
+              load(ctx, RAX, src.op.based.base, src.op.based.disp);
+              store(ctx, RAX, dst.op.based.base, dst.op.based.disp, fixedRegSet(RAX));
+              pop(RG(RAX));
+            }
           }
           return;
         }
