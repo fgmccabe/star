@@ -95,4 +95,4 @@ star.log{
     isLogging(Lvl) => Lvl >= currentLogLevel().
   }
 }
-  
+

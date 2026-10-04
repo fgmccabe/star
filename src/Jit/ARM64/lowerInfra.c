@@ -403,6 +403,7 @@ void bailOut(codeGenPo state, int32 pc, ExitCode code) {
 }
 
 void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
+  assert(tgt!=base);
   assemCtxPo ctx = assemCtx(jit);
   int32 offset = ix * pointerSize;
   if (is9bit(offset))

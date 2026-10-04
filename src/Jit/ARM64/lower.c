@@ -310,14 +310,14 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       if (lineDebugging == noTracing) {
         str(LR, OF(FP, OffsetOf(StackFrame, link)));
       }
+      // if (mtdHasName(state->mtd, "test.bg@fact")) {
+      //   installBkPt(state, pc);
+      // }
       flushArguments(state, nextPc);
       stackCheck(state, pc, opand(1), opand(2));
       int32 arity = mtdArity(state->mtd);
       int32 frameSize = state->numLocals - arity;
       voidOutFrameLocals(state, nextPc, -frameSize);
-      // if (mtdHasName(state->mtd, "star.core$equality(<star.arith@star.core$equality!integer@Γ%9@==")) {
-      //   installBkPt(state, pc);
-      // }
       pc = nextPc;
       continue;
     }
@@ -540,6 +540,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       add(off, off, LS(ix, 2));
       br(off);
       releaseReg(jit, off);
+      releaseReg(jit,labels);
       releaseReg(jit, ix);
       bind(jmpTbl);
       return handleBreakTable(state, code, block, pc + 3, pc + skip);

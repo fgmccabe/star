@@ -284,7 +284,7 @@ star.compiler.ssa{
     valis ([.intgr(73),.intgr(L1)],Pc+2,Lt1);
   }
   mnem(.iBind(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
-    (Lt1, L1) = findLit(Lt0,V0); (Lt2, L2) = findLit(Lt1,V1);
+    (Lt1, L1) = findLit(Lt0,V0);(Lt2, L2) = findLit(Lt1,V1);
     valis ([.intgr(74),.intgr(L1),.intgr(L2),findLocal(V2,Lcs)],Pc+4,Lt2);
   }
   mnem(.iDBug(V0), Pc,Lbls,Lt0,Lcs) => valof {

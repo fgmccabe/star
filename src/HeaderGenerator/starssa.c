@@ -172,7 +172,7 @@ static void genOp(asmInfoPo info, char** fmt) {
     return;
   case Slit: {
     int32 lastLtno = info->ltNo++;
-    outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,V%d); ", info->ltNo, info->ltNo, lastLtno, (info->vNo)++);
+    outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,V%d);", info->ltNo, info->ltNo, lastLtno, (info->vNo)++);
     outMsg(O_IO(info->line), ".intgr(L%d)", info->ltNo);
     return;
   }
@@ -189,7 +189,7 @@ static void genOp(asmInfoPo info, char** fmt) {
   case SbLk: {
     int32 lastLtno = info->ltNo++;
     int32 NxtLt = info->ltNo;
-    outMsg(O_IO(info->aux), "(A%d, _, Lt%d) = assemBlock(V%d,[],Pc+1,[.none,..Lbls],Lt%d,Lcs); ", NxtLt, NxtLt,
+    outMsg(O_IO(info->aux), "(A%d, _, Lt%d) = assemBlock(V%d,[],Pc+1,[.none,..Lbls],Lt%d,Lcs);", NxtLt, NxtLt,
            (info->vNo)++, lastLtno);
     outMsg(O_IO(info->line), "mkTpl(A%d::cons[data])", NxtLt);
     return;
@@ -199,7 +199,7 @@ static void genOp(asmInfoPo info, char** fmt) {
     return;
   case Ssym: {
     int32 lastLtno = info->ltNo++;
-    outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,.symb(V%d)); ", info->ltNo, info->ltNo, lastLtno,
+    outMsg(O_IO(info->aux), "(Lt%d, L%d) = findLit(Lt%d,.symb(V%d));", info->ltNo, info->ltNo, lastLtno,
            (info->vNo)++);
     outMsg(O_IO(info->line), ".intgr(L%d)", info->ltNo);
     return;
