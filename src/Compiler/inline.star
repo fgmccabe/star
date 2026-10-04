@@ -133,9 +133,9 @@ star.compiler.inline{
 	freshenE(Inn,{lName(Vr)->.cVar(Lc,NE)}),Map,Depth)
     }
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
-      inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
+      inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplify(C,Map,Depth),simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
-      inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
+      inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplify(C,Map,Depth),simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cMatch(Lc,Ptn,Val) =>
       applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
     | .cAbort(Lc,Txt) => .cAbort(Lc,Txt)
@@ -220,9 +220,9 @@ star.compiler.inline{
   simAct(.aSetNth(Lc,T,Ix,E),Map,Depth) =>
     .aSetNth(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(E,Map,Depth)).
   simAct(.aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyAct(Deflt,Map,Depth),Map,Depth).
+    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplify(C,Map,Depth),simplifyAct(Deflt,Map,Depth),Map,Depth).
   simAct(.aIxCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
-    inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyAct(Deflt,Map,Depth),Map,Depth).
+    inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplify(C,Map,Depth),simplifyAct(Deflt,Map,Depth),Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1),Map,Depth).
@@ -263,10 +263,16 @@ star.compiler.inline{
 
   applyCnj(_,Tr where isTrue(Tr),R) => R.
   applyCnj(_,Fl where isFalse(Fl),R) => Fl.
+  applyCnj(_,L,Tr where isTrue(Tr)) => L.
+  applyCnj(_,_,Fl where isFalse(Fl)) => Fl.
+
   applyCnj(Lc,L,R) => .cCnj(Lc,L,R).
 
   applyDsj(_,Fl where isFalse(Fl),R) => R.
-  applyDsj(_,Tr where isTrue(Tr),R) => Tr.
+  applyDsj(_,Tr where isTrue(Tr),_) => Tr.
+  applyDsj(_,L,Fl where isFalse(Fl)) => L.
+  applyDsj(_,_,Tr where isTrue(Tr),R) => Tr.
+
   applyDsj(Lc,L,R) => .cDsj(Lc,L,R).
 
   applyNeg(Lc,Fl where isFalse(Fl)) => trueEn(Lc).
@@ -293,8 +299,10 @@ star.compiler.inline{
 
   applyMatch(Lc,Ptn,Exp,_,_) where isGround(Ptn) && isGround(Exp) =>
     (Ptn==Exp ?? trueEn(Lc) || falseEn(Lc)).
+  applyMatch(Lc,.cTerm(_,_Lb1,Ix1,A1),.cTerm(_,_Lb2,Ix2,A2),Map,Depth) where Ix1~=Ix2 =>
+    falseEn(Lc).
   applyMatch(Lc,.cTerm(_,Lb,Ix,A1),.cTerm(_,Lb,Ix,A2),Map,Depth) =>
-    makeSubMatches(Lc,A1,A2).
+    makeSubMatches(Lc, A1, A2).
   applyMatch(Lc,Ptn,Exp,_,_) => .cMatch(Lc,Ptn,Exp).
 
   makeSubMatches(Lc,[],[]) => trueEn(Lc).
@@ -308,6 +316,10 @@ star.compiler.inline{
   isSingletonType:(string,map[defnSp,cDefn])=>boolean.
   isSingletonType(Nm,Map) where .tpDef(_,_,_,CMp)?=Map[.tpSp(Nm)] => [|CMp|]==1.
   isSingletonType(_,_) default => .false.
+
+  implementation all e ~~ simplify[e],display[e] |= simplify[cCase[e]] => {
+    simplify((Lc,Ptn,E),Map,Dp) => (Lc, simplifyExp(Ptn,Map,Dp), simplify(E,Map,Dp))
+  }
 
   inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |=
     (option[locn],cExp,cons[cCase[e]],e,map[defnSp,cDefn],integer) => e.
