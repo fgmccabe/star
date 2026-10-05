@@ -271,7 +271,7 @@ star.compiler.inline{
   applyDsj(_,Fl where isFalse(Fl),R) => R.
   applyDsj(_,Tr where isTrue(Tr),_) => Tr.
   applyDsj(_,L,Fl where isFalse(Fl)) => L.
-  applyDsj(_,_,Tr where isTrue(Tr),R) => Tr.
+  applyDsj(_,_,Tr where isTrue(Tr)) => Tr.
 
   applyDsj(Lc,L,R) => .cDsj(Lc,L,R).
 

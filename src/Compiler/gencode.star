@@ -473,7 +473,17 @@ star.compiler.gencode{
 	    ++[.iBreak(Ok)]))]
     }
     | .cNeg(Lc,R) => compNegated(R,OLc,Fail,Brks,Ctx)
-    | .cCnd(Lc,T,L,R) => compCond(.cDsj(Lc,.cCnj(Lc,T,L),R),OLc,Fail,Brks,Ctx)
+    | .cCnd(Lc,T,L,R) => valof{
+      Fl = defineLbl(Ctx,"Fl");
+      Ok = defineLbl(Ctx,"DsjOk");
+      TC = compCond(T,Lc,Fl,Brks,Ctx);
+      LC = compCond(L,Lc,Fail,Brks,Ctx);
+      RC = compCond(R,Lc,Fail,Brks,Ctx);
+
+      valis chLine(OLc,Lc)++[.iLbl(Ok,.iBlock([],
+	    [.iLbl(Fl,.iBlock([],TC++LC++[.iBreak(Ok)]))]++RC
+	    ++[.iBreak(Ok)]))]
+    }
     | .cMatch(Lc,Ptn,Exp) => valof{
       (EC,EV) = bindExpToVar(Exp,Lc,Brks,.notLast,Ctx);
       PC = compPtn(Ptn,Lc,EV,Fail,Brks,Ctx);
@@ -492,7 +502,7 @@ star.compiler.gencode{
     | .cCnj(Lc,L,R) => compCond(.cDsj(Lc,.cNeg(Lc,L),.cNeg(Lc,R)),OLc,Fail,Brks,Ctx)
     | .cDsj(Lc,L,R) => compCond(.cCnj(Lc,.cNeg(Lc,L),.cNeg(Lc,R)),OLc,Fail,Brks,Ctx)
     | .cNeg(Lc,R) => compCond(R,OLc,Fail,Brks,Ctx)
-    | .cCnd(Lc,T,L,R) => compCond(.cCnd(Lc,T,R,L),OLc,Fail,Brks,Ctx)
+    | .cCnd(Lc,T,L,R) => compCond(.cCnd(Lc,T,.cNeg(Lc,L),.cNeg(Lc,R)),OLc,Fail,Brks,Ctx)
     | .cMatch(Lc,Ptn,Exp) => valof{
       NegOk = defineLbl(Ctx,"NegOk");
       (EC,EV) = bindExpToVar(Exp,Lc,Brks,.notLast,Ctx);

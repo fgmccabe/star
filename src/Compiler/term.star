@@ -198,7 +198,7 @@ star.compiler.term{
     | .aLbld(_,Lb,A) => "#(Lb) : #(dspAct(A,ShTp,Off))"
     | .aBreak(_,Lb) => "break #(Lb)"
     | .aValis(_,E) => "valis #(dspExp(E,ShTp,Off))"
-    | .aDo(_,E) => "call #(dspExp(E,ShTp,Off))"
+    | .aDo(_,E) => "do #(dspExp(E,ShTp,Off))"
     | .aSetNth(_,T,Ix,V) => "update #(dspExp(T,ShTp,Off))[$(Ix)] <- #(dspExp(V,ShTp,Off))"
     | .aDefn(_,P,E) => "#(dspExp(P,ShTp,Off)) = #(dspExp(E,ShTp,Off))"
     | .aMatch(_,P,E) => "#(dspExp(P,ShTp,Off)) = #(dspExp(E,ShTp,Off))"
