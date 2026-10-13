@@ -17,4 +17,12 @@ book.example.map.city{
     disp(.neighbor(F,T,D)) => "#(F) ~ #(T) = $(D)".
   }
 
+  public cityTask:(city) => (task[()]) => ().
+  cityTask(C) => (this) => valof{
+    Taxis := [];
+    Psgrs := [];
+
+    while .true do{
+      
+
 }

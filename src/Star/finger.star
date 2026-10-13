@@ -34,7 +34,7 @@ star.finger{
     reducer = reducerNode.
     reducel = reducelNode.
   }
-  
+
   reducerNode:all e,a ~~ ((e,a)=>a) => (node[e],a)=>a.
   reducerNode(F) => let{
     rdr(.node2(_,a,b),z) => F(a,F(b,z)).
@@ -79,7 +79,7 @@ star.finger{
     _coerce(.node2(_,l,r)) => [l,r].
     _coerce(.node3(_,l,m,r)) => [l,m,r].
   }
-  
+
   implementation all e ~~ reduction[fingerTree[e]->>e] => {
     reducer = reducerTree.
     reducel = reducelTree.
@@ -200,14 +200,14 @@ star.finger{
       [|.single(A)|] => [|A|].
       [|.deep(V,_,_,_)|] => V
     }.
-  
+
   -- Implement iter contract
 
   public implementation all t ~~ measured[t->>integer] |=
     iter[fingerTree[t]->>t] => {.
       _iter:all x ~~ (fingerTree[t],x,(t,x)=>x) => x.
       _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
-    
+
       private iterOverFinger:all x ~~ (fingerTree[t],x,(t,x)=>x) => x.
       iterOverFinger(.eTree,St,_) => St.
       iterOverFinger(Tr,St,Fn) where 
@@ -313,9 +313,9 @@ star.finger{
   dispDigits:all e ~~ (digit[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispDigits(.one(x),d,L) => d(x,L).
   dispDigits(.two(x,y),d,L) => d(x,d(y,L)).
-  dispDigits(.three(x,y,z),d,L) => 
+  dispDigits(.three(x,y,z),d,L) =>
     d(x,d(y,d(z,L))).
-  dispDigits(.four(x,y,z,u),d,L) => 
+  dispDigits(.four(x,y,z,u),d,L) =>
     d(x,
       d(y,
 	d(z,
@@ -323,7 +323,7 @@ star.finger{
 
   dispNode:all e ~~ (node[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispNode(.node2(_,x,y),d,L) => d(x,d(y,L)).
-  dispNode(.node3(_,x,y,z),d,L) => 
+  dispNode(.node3(_,x,y,z),d,L) =>
     d(x,d(y,d(z,L))).
-  
+
 }

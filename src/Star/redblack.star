@@ -71,7 +71,7 @@ star.redblack{
 
   delete:all k,v ~~ comp[k],equality[k] |= (rbtree[k,v],k)=>rbtree[k,v].
   delete(T,K) => del(redden(T),K).
-  
+
   del:all k,v ~~ comp[k],equality[k] |= (rbtree[k,v],k)=>rbtree[k,v].
   del(.lf,_) => .lf.
   del(.nd(.Red,.lf,ky,vy,.lf),k) => (ky==k ?? .lf || .nd(.Red,.lf,ky,vy,.lf)).
@@ -125,7 +125,7 @@ star.redblack{
     .nd(.Blk,A,kw,vw,balance(.Blk,B,kx,vx,.nd(.Red,C,ky,vy,.lf))).
   rotate(Cl,A,K,V,B) => .nd(Cl,A,K,V,B).
 
-    
+
   redden:all k,v ~~ (rbtree[k,v])=>rbtree[k,v].
   redden(.nd(.Blk,.nd(.Blk,A,kx,vx,B),ky,vy,.nd(.Blk,C,kz,vz,D))) =>
     .nd(.Red,.nd(.Blk,A,kx,vx,B),ky,vy,.nd(.Blk,C,kz,vz,D)).
@@ -161,7 +161,7 @@ star.redblack{
   isRedNode:all k,v ~~ (rbtree[k,v])=>boolean.
   isRedNode(.nd(.Red,_,_,_,_)) => .true.
   isRedNode(_) default => .false.
-	
+
   blackHeights:all k,v ~~ (rbtree[k,v],integer,cons[integer])=>cons[integer].
   blackHeights(.lf,H,Hs) => [H,..Hs].
   blackHeights(.blf,H,Hs) => [H+1,..Hs].
@@ -179,7 +179,7 @@ star.redblack{
     sme([Ix,..II])=>sme(II).
     sme(_) default => .false
  .} in sme(Is).
-  
+
   public implementation all k,v ~~ display[k],display[v] |=
     display[rbtree[k,v]] => {
       disp(T) => disp(pairs(T,[]))
@@ -224,7 +224,7 @@ star.redblack{
     .} in {
     _eof(.lf) => .true.
     _eof(_) default => .false.
-    
+
     _hdtl(T) => hdtl(T)
     }.
 
@@ -266,7 +266,7 @@ star.redblack{
       in loop(T);
     }
   }
-      
+
   public implementation all k,v ~~ sizeable[rbtree[k,v]] => let{.
     count(.lf,Cx)=>Cx.
     count(.nd(_,L,_,_,R),Cx)=>count(R,count(L,Cx+1)).

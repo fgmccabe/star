@@ -20,12 +20,10 @@ test.dy2{
     } in {
       show undyn(.dyn((_)=>foo),"test");
       show EE;
-      
+
       assert undyn(.dyn((_)=>foo),"test")==3;
       assert EE == 10;
     }
   }
 }
-    
 
-    

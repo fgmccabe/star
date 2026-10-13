@@ -28,7 +28,7 @@ test.io1{
 
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
-	  
+
 	taskManager([Rd]);
 	showMsg("reader done");
       } catch {

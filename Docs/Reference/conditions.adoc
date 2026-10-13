@@ -226,27 +226,56 @@ not, the salary may be retrieved using a query:
 ----
 
 As with <<conditionalExpression>>s, the _test_ part of the
-<<conditionalCondition>> is evaluated and, depending on whether
-the test is _satisfiable_ or not, the _then_ branch or the
-_else_ branch is used in the query constraint.
+<<conditionalCondition>> is evaluated and, depending on whether the test is
+_satisfiable_ or not, the _then_ branch or the _else_ branch is used in the
+query constraint.
 
-NOTE Only variables that are present in all three of _test_,
-_then_ and _else_ parts of the conditional condition
-form part of its scope extension.
+NOTE: Only variables that are present in all three of _test_, _then_ and _else_
+parts of the conditional condition form part of its scope extension.
 
-However, the scope extension of the _if_ part of the
-conditional Condition does extend to the _then_ part of the
-condition.
+However, the scope extension of the _if_ part of the conditional Condition does
+extend to the _then_ part of the condition.
 
-In the case that the _test_ is satisfiable; then only solutions
-from the _then_ branch will be considered for the overall
-query. Conversely, if the _test_ is not satisfiable,footnote:[A normal
-`boolean`-valued expression is considered to be satisfiable iff
-it evaluates to `true`.] then only solutions from the _else_
+In the case that the _test_ is satisfiable; then only solutions from the _then_
+branch will be considered for the overall query. Conversely, if the _test_ is
+not satisfiable,footnote:[A normal `boolean`-valued expression is considered to
+be satisfiable iff it evaluates to `true`.] then only solutions from the _else_
 branch will be used for the overall query.
 
-For example, the conditional condition above defines the
-variable `S` in both the `then` and `else` branch. Depending on
-the `isManager` test, the result of the query will either contain
-the value of a `manager_salary` or an `employee_salary`.
+For example, the conditional condition above defines the variable `S` in both
+the `then` and `else` branch. Depending on the `isManager` test, the result of
+the query will either contain the value of a `manager_salary` or an
+`employee_salary`.
+
+NOTE: conditional conditions are _not_ equivalent to the classical reading of
+implications:
+
+[source,star,subs="quotes"]
+----
+(_A_ ?? _B_ || _C_)
+----
+
+is not equivalent to
+
+[source,star,subs="quotes"]
+----
+_A_ &amp;&amp; _B_ || _C_
+----
+
+because of this _default reasoning_ aspect. This can be seen a little more
+clearly when we negate a <<conditionalCondition>>:
+
+[source,star,subs="quotes"]
+----
+~ (_A_ ?? _B_ || _C_)
+----
+
+is actually equivalent to:
+
+[source,star,subs="quotes"]
+----
+(_A_ ?? ~ _B_ || ~ _C_)
+----
+
+
 

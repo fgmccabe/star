@@ -6,7 +6,7 @@ test.bench{
   import star.vector.
   import star.assert.
   import test.lib.timer.
-  
+
   fingeriota:(integer,integer)=>fingerTree[integer].
   fingeriota(Mx,Mx) => [].
   fingeriota(Ix,Mx) where Ix<Mx => [Ix,..fingeriota(Ix+1,Mx)].
@@ -23,7 +23,7 @@ test.bench{
   empty(_) => ().
 
   benchNativeList(Count) => valof {
-    timer = ref timer_start(Count, "");
+--    timer = ref timer_start(Count, "");
     idxes : cons[integer];
     idxes = iota(0, Count);
 
@@ -86,36 +86,33 @@ test.bench{
       timer_finish(timer!)
     };
 
-    showMsg("******* finger trees ******");
-    timer := timer_start(Count, "Creating finger tree");
-    fn_list = ref fingeriota(0,Count);
-    timer_finish(timer!);
---    showMsg("finger tree: $(fn_list!)");
+--     showMsg("******* finger trees ******");
+--     timer := timer_start(Count, "Creating finger tree");
+--     fn_list = ref fingeriota(0,Count);
+--     timer_finish(timer!);
+-- --    showMsg("finger tree: $(fn_list!)");
 
-    timer := timer_start(Count, "Iterating over all elements in finger list");
-    for i in (fn_list!) do {
---      showMsg(" element: $(i) = $(El)")
-      empty(.some(i))
-    };
-    timer_finish(timer!);
-
---     timer := timer_start(Count, "Accessing all elements in finger list");
---     for i in idxes do {
---       El = fn_list![i]
+--     timer := timer_start(Count, "Iterating over all elements in finger list");
+--     for i in (fn_list!) do {
+-- --      showMsg(" element: $(i) = $(El)")
+--       empty(.some(i))
 --     };
 --     timer_finish(timer!);
 
-/*
-    if Count =< 100000 then {
-      timer := timer_start(Count, "Changing elements in finger list");
-      for ix in idxes do {
-        fn_list[ix] := ix + 4
-      };
-      timer_finish(timer!)
-    };
-    */
+    -- timer := timer_start(Count, "Accessing all elements in finger list");
+    -- for i in idxes do {
+    --   El = fn_list![i]
+    -- };
+    -- timer_finish(timer!);
 
-  
+    -- if Count =< 100000 then {
+    --   timer := timer_start(Count, "Changing elements in finger list");
+    --   for ix in idxes do {
+    --     fn_list[ix] := ix + 4
+    --   };
+    --   timer_finish(timer!)
+    -- };
+
     showMsg("******* skew trees ******");
     timer := timer_start(Count, "Creating skew tree");
     sk_list : ref sk[integer];
@@ -157,7 +154,7 @@ test.bench{
 --      showMsg("rb element: $(i)")
     };
     timer_finish(timer!);
-    
+
     timer := timer_start(Count, "Accessing all elements in red/black list");
     for i in idxes do {
       El = (rb_list!)[i]
@@ -200,7 +197,7 @@ test.bench{
 --      v := vupdate(v!,ix,ix+4);
     };
     timer_finish(timer!);
-    
+
     valis 0
   }
 

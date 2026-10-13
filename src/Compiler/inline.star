@@ -13,6 +13,7 @@ star.compiler.inline{
   import star.compiler.misc.
   import star.compiler.opts.
   import star.compiler.ltipe.
+  import star.compiler.rewrite.
   import star.compiler.types.
   import star.compiler.unify.
 
@@ -47,11 +48,11 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[defnSp,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
-    .fnDef(Lc,Nm,Tp,Args,simplifyExp(FnBody,Map[~.varSp(Nm)],10)).
+    uniqify(.fnDef(Lc,Nm,Tp,Args,simplifyExp(FnBody,Map[~.varSp(Nm)],10))).
   simplifyDefn(.prDef(Lc,Nm,Tp,Args,Act),Map) =>
-    .prDef(Lc,Nm,Tp,Args,simplifyAct(Act,Map[~.varSp(Nm)],10)).
+    uniqify(.prDef(Lc,Nm,Tp,Args,simplifyAct(Act,Map[~.varSp(Nm)],10))).
   simplifyDefn(.glDef(Lc,Nm,Tp,GVal),Map) =>
-    .glDef(Lc,Nm,Tp,simplifyExp(GVal,Map,4)).
+    uniqify(.glDef(Lc,Nm,Tp,simplifyExp(GVal,Map,4))).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -194,6 +195,13 @@ star.compiler.inline{
       if traceInline! then{
 	showMsg("drop var #(VNm) = $(EE)");
       };
+      if ~ isGround(EE) then{
+	if traceInline! then{
+	  showMsg("leave eval of $(EE)");
+	};
+	valis .aSeq(Lc,.aDo(DLc,EE),AA)
+      }
+      else
       valis AA
     }
     else
@@ -211,8 +219,8 @@ star.compiler.inline{
   simAct(.aBreak(Lc,Lb),_,_) => .aBreak(Lc,Lb).
   simAct(.aValis(Lc,E),Map,Depth) => getValis(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aDo(Lc,E),Map,Depth) => .aDo(Lc,simplifyExp(E,Map,Depth)).
-  simAct(.aDefn(Lc,V,E),Map,Depth) =>
-    .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
+  simAct(.aDefn(Lc,V,E),Map,Depth) => .aDo(Lc,simplifyExp(E,Map,Depth)).
+--    .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aMatch(Lc,V,E),Map,Depth) =>
     .aMatch(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aAsgn(Lc,V,E),Map,Depth) =>
