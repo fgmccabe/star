@@ -101,7 +101,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "new stack %d of %d words\n%_",stk->hash, sze);
+    outMsg(logFile, "new stack %d of %d words\n%_", stk->hash, sze);
 #endif
 
   stk->prog = labelMtd(underFlow);
@@ -422,8 +422,20 @@ void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth,
   }
   while (stk != Null && maxDepth > 0);
 
-  if (maxDepth <= 0)
+  if (maxDepth <= 0 && stk != Null) {
+    do {
+      while (fp > stackFrameBase(stk)) {
+        frameNo++;
+        fp--;
+      }
+
+      stk = stk->attachment;
+    }
+    while (stk != Null);
+
     outMsg(out, "...\n");
+    outMsg(out, "%ld frames\n", frameNo);
+  }
 }
 
 stackPo glueOnStack(enginePo P, logical execJit, integer size, integer arity) {

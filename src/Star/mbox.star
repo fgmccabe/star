@@ -108,7 +108,7 @@ star.mbox{
 		Q := Cs;
 		C resume .shut_down_;
 	      };
-		
+
 	      valis Rslt
 	    }
 	    | .retired_ do { }
@@ -155,7 +155,7 @@ star.mbox{
     testIoQ(Q,BQ,[T,..Ws]).
   testIoQ([(Io,P,T),..Q],BQ,Ws) =>
     testIoQ(Q,[(Io,P,T),..BQ],Ws).
-  
+
   public pause:all e ~~ (this:task[e]) |= () => () throws mboxException.
   pause() => valof{
     case this suspend .yield_ in {
@@ -212,7 +212,7 @@ star.mbox{
 	    }
 	  }
 	}));
-    
+
     sched suspend .schedule(Fb);
 
     valis _cell_future(C)

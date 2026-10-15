@@ -4,12 +4,12 @@ star.actor{
 
   public contract all a,i ~~ sa[a->>i] ::= {
     _query:all x ~~ (a,(i)=>x) => x throws mboxException.
-    _tell:(a,(i)=>()) => () throws mboxException.
+    _tell:(a,(i){}){} throws mboxException.
   }
 
   public actorProtocol[i] ::=
     exists r ~~ .query((i)=>r, receiver[r])
-    | .tell((i)=>()).
+  | .tell((i){}).
 
   public actorHead:all i ~~ (emitter[actorProtocol[i]],i) => taskFun[()].
   actorHead(mBox,body) => (this) => valof{
@@ -34,11 +34,8 @@ star.actor{
       postMsg(.query(Q,R),Ch);
       valis collectMsg(P)
     }
-    _tell(.actor(this,Ch),A) => valof{
+    _tell(.actor(this,Ch),A){
       postMsg(.tell(A),Ch);
-      valis ()
     }
   }
 }
-	
-	

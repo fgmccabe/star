@@ -52,7 +52,7 @@ test.ct0{
   }.
 
   dividesBy(X,Y) => (try X%Y==0 catch { _ => .false}).
-  
+
   main:(){}.
   main(){
     try{

@@ -19,7 +19,6 @@ test.act0{
     _ == _ default => .false.
   }
 
-
   -- ping actor, replies with a pong for every ping, and vice versa
 
   pingBody::=pingBody{
@@ -27,46 +26,49 @@ test.act0{
     pong:()=>pingPong
   }
 
-  implementation sa[pingBody->>pingBody] => {
-    _query(B,Q) => Q(B).
-    _tell(B,Q) => Q(B)
-  }
-
   main:(){}.
   main(){
-    png = pingBody{
-      ping() => .pong.
-      pong() => .ping.
-    };
-
     try{
-      Rs = _query(png,(P:pingBody)=>P.ping());
-    
-      showMsg("$(Rs)");
-
-      assert Rs==.pong;
+      As = taskManager([pinger(10)])
     } catch { _ do showMsg("huh?")
     }
   }
 
-  -- pingA:(task[()])=>actor[pingBody].
-  -- pingA(this) => valof{
-  --   Chnnl = newChannel();
-  --   valis .actor(spawn(actorHead(Chnnl,pingBody{
-  -- 	ping() => .pong
-  -- 	  })),Chnnl)
-  -- }
+  pingA:(task[()])=>actor[pingBody].
+  pingA(this) => valof{
+    (Chnnl,Recv) = newSlot();
+    png = pingBody{ ping() => valof{
+	showMsg("We were pinged");
+	valis .pong
+      }. pomg() => unreachable };
+    try{
+      subTask(this,actorHead(Chnnl,png));
+    } catch { _ do { showMsg("Ping was canceled") } };
 
-  -- pongBody::=pongBody{
-  --   pong:()=>pingPong
-  -- }
+    valis .actor(this,Recv)
+  }
 
-  -- pongA:(task[()])=>actor[pongBody].
-  -- pongA(this) => valof{
-  --   Chnnl = newChannel();
-  --   valis .actor(spawn(actorHead(Chnnl,pongBody{
-  -- 	pong() => .ping
-  -- 	  })),Chnnl)
-  -- }
+  pinger:(integer)=>(task[()])=>().
+  pinger(K) => (this) => valof{
+    showMsg("starting pinger $(K)");
+    Count := K;
+
+    showMsg("spawning ping agent");
+    pingee = pingA(this);
+
+    try{
+      while Count!>0 do{
+	pause();
+	Count := Count! -1;
+
+	_tell(pingee,(B:pingBody){B.ping()});
+      };
+    } catch {
+      | .canceled do {
+	showMsg("$(K) shutting down");
+      }
+    };
+    showMsg("terminating");
+    valis ()
+  }
 }
-
