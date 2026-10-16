@@ -90,8 +90,22 @@ star.mbox{
   }
 
   public taskManager:all e ~~ (cons[taskFun[e]]) => e throws mboxException.
-  taskManager(Ts) => valof{
-    Q := (Ts//spawnTask):?qc[task[e]];
+  taskManager(Ts) => runTaskQueue(taskQueue(Ts)).
+
+  public all e ~~ tQ[e] ::= .tQ(qc[task[e]]).
+
+  public taskQueue:all e ~~ (cons[taskFun[e]]) => tQ[e].
+  taskQueue(Ts) => .tQ((Ts//spawnTask):?qc[task[e]]).
+
+  public newTask:all e ~~ (tQ[e],taskFun[e])=>tQ[e].
+  newTask(.tQ(Q),F) => valof{
+    T = _fiber((Tsk,_)=>.result_(F(Tsk)));
+    valis .tQ([T,..Q])
+  }
+
+  public runTaskQueue:all e ~~ (tQ[e]) => e throws mboxException.
+  runTaskQueue(.tQ(QQ)) => valof{
+    Q := QQ;
     BlockQ := ([]:cons[(()=>boolean,task[e])]);
     IoQ := ([]:cons[(ioHandle,()=>boolean,task[e])]);
 
