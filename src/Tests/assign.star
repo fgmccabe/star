@@ -20,7 +20,7 @@ test.assign{
   main:(){}.
   main(){
     show fred.name!;
-    
+
     show peter.name!;
 
     assert valof {
@@ -29,7 +29,7 @@ test.assign{
     } == "fred";
 
     show fred.name!;
-    
+
     show peter.name!;
 
     alpha = ref 23;
