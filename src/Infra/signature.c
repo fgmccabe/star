@@ -102,6 +102,7 @@ logical validSig(char *sig, integer *start, integer end) {
     }
     case funSig:        /* Function signature */
     case conSig:        /* Constructor function */
+    case structSig:     /* struct/brace-style constructor */
     case xstSig:        /* Existential quantifier */
     case allSig:        /* Universal quantifier */
     case tpruleSig:
@@ -291,6 +292,7 @@ retCode skipSig(const char *sig, integer *start, integer end) {
       }
       case funSig:        /* Function signature */
       case conSig:        /* Constructor function */
+      case structSig:     /* struct/brace-style constructor */
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
       case tpruleSig:
@@ -452,6 +454,7 @@ retCode skipSignature(ioPo in) {
       case funSig:        /* Function signature */
       case prcSig:
       case conSig:        /* Constructor function */
+      case structSig:     /* struct/brace-style constructor */
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
       case tpruleSig:
@@ -590,6 +593,7 @@ retCode showSignature(ioPo out, const char *sig, integer *start, integer end) {
       tryRet(outStr(out, "=>"));
       return showSignature(out, sig, start, end);
     case conSig:        /* Constructor function */
+    case structSig:     /* struct/brace-style constructor */
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, " <=> "));
       return showSignature(out, sig, start, end);

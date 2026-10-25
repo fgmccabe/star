@@ -143,7 +143,7 @@ genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
   assemSSA(PFunc,CdTrm).
 
 genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
-  toLtipe(funType(tplType([]),Tp,voidType),LTp),
+  toLtipe(funType([],Tp,voidType),LTp),
   encLtp(LTp,Sig),
   genLbl([],Abrt,L0),
   genLbl(L0,_Lx,L1),

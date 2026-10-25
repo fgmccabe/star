@@ -102,14 +102,16 @@ char *dumpPrologSig(char *sig, ioPo out) {
     }
     case funSig:
       outStr(O_IO(out), "funType(");
-      sig = dumpPrologSig(sig, out);
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",voidType)");
       return sig;
     case throwSig:
       outStr(O_IO(out), "funType(");
-      sig = dumpPrologSig(sig, out);
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
@@ -118,7 +120,8 @@ char *dumpPrologSig(char *sig, ioPo out) {
       return sig;
     case prcSig:
       outStr(O_IO(out), "prcType(");
-      sig = dumpPrologSig(sig, out);
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
@@ -127,6 +130,13 @@ char *dumpPrologSig(char *sig, ioPo out) {
       outStr(O_IO(out), "consType(");
       assert(*sig == tplSig);
       sig = dSequence(++sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    case structSig:
+      outStr(O_IO(out), "structType(");
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");

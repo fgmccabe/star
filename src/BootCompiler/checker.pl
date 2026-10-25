@@ -238,7 +238,7 @@ parseConstructor(Nm,Lc,T,Opts,Env,Ev,[Defn|Defs],Defs,Publish,Viz,Dc,Dcx,Opts,Pa
   unwrapType(Tp,_Q,_Cx,ITp),
   Defn = cnsDef(Lc,Nm,enm(Lc,FullNm,Tp)),
   Decl = cnsDec(Nm,FullNm,Tp),
-  (deRef(ITp,consType(tplType([]),_)) ->
+  (deRef(ITp,consType([],_)) ->
    declareEnum(Lc,Nm,FullNm,Tp,Env,Ev);
    declareCns(Lc,Nm,FullNm,Tp,Env,Ev)),
   call(Publish,Viz,cns(Nm),Decl,Dc,Dcx).
@@ -359,7 +359,7 @@ guessStmtType([],N,Lc,VTp) :- !,
 guessStmtType([St|_],N,Lc,Guess) :-
   guessType(St,N,Lc,Guess).
 
-guessType(St,_,_,funType(tplType(AT),RTp,voidType)) :-
+guessType(St,_,_,funType(AT,RTp,voidType)) :-
   isEquation(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT),
@@ -367,7 +367,7 @@ guessType(St,_,_,funType(tplType(AT),RTp,voidType)) :-
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
-guessType(St,_,_,prcType(tplType(AT),voidType)) :-
+guessType(St,_,_,prcType(AT,voidType)) :-
   isProcedure(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT).
@@ -375,14 +375,21 @@ guessType(_,N,Lc,GTp) :- !,
   reportError("%s not declared",[N],Lc),
   newTypeVar("_",GTp).
 
+guessType(St,funType(AT,RTp,voidType)) :-
+  isEquation(St,_,H,_,_),!,
+  splitHead(H,_,tuple(_,_,Args),_),
+  genTpVars(Args,AT),
+  newTypeVar("_",RTp).
+
 findType(Nm,_,Env,Tp) :-
   isType(Nm,Env,tpDef(_,Tp,_,_)),!.
 findType(Nm,Lc,_,anonType) :-
   reportError("type %s not known",[Nm],Lc).
 
 checkEquation(Lc,H,C,R,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
-  splitUpProgramType(Lc,E,ProgramType,AT,RT,ErTp),
   splitHead(H,_,A,IsDeflt),
+  headArgList(A,HeadArgs),
+  splitUpProgramType(Lc,E,ProgramType,HeadArgs,AT,RT,ErTp),
   pushScope(E,Env),
   typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Opts,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
@@ -394,10 +401,11 @@ checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
 checkRule(Lc,H,G,A,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
-  splitUpProgramType(Lc,E,ProgramType,AT,RT,ErTp),
+  splitHead(H,Nm,Ags,IsDeflt),
+  headArgList(Ags,HeadArgs),
+  splitUpProgramType(Lc,E,ProgramType,HeadArgs,AT,RT,ErTp),
   (deRef(RT,voidType);
    reportError("rule should have a procedure type, not %s",[tpe(ProgramType)],Lc)),
-  splitHead(H,Nm,Ags,IsDeflt),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"head nm: %s, Args: %s",[Nm,ast(Ags)])),
   pushScope(E,Env),
   typeOfArgPtn(Ags,AT,ErTp,Env,E0,Args,Opts,Path),
@@ -420,13 +428,16 @@ isVr(C) :-
   locOfCanon(C,Lc),
   reportError("procedure arguments must be identifier, not %s",[can(C)],Lc).
 
-splitUpProgramType(Lc,Env,FTp,AT,RT,ET) :-
-  newTypeVar("A",AT),
+splitUpProgramType(Lc,Env,FTp,HeadArgs,AT,RT,ET) :-
+  genTpVars(HeadArgs,AT),
   newTypeVar("R",RT),
   newTypeVar("E",ET),
   (sameType(FTp,funType(AT,RT,ET),Lc,Env);
    sameType(FTp,prcType(AT,ET),Lc,Env), sameType(RT,voidType,Lc,Env);
    reportError("Expecting a function type, not %s",[tpe(FTp)],Lc)),!.
+
+headArgList(A,Args) :- isTuple(A,Args),!.
+headArgList(_,[]).
 
 checkDefn(Lc,L,R,VlTp,varDef(Lc,Nm,ExtNm,[],VlTp,Value),Env,Opts,Path) :-
   isIden(L,_,Nm),
@@ -465,7 +476,7 @@ formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
   sort(Flds,checker:cmpPair,SortedFlds),
   findExportedDefs(Lc,SortedFlds,Args),
   project1(SortedFlds,ElTps),
-  Exp = capply(Lc,enm(Lc,Lbl,consType(tplType(ElTps),Tp)),tple(Lc,Args),Tp).
+  Exp = capply(Lc,enm(Lc,Lbl,consType(ElTps,Tp)),tple(Lc,Args),Tp).
 
 findExportedDefs(Lc,Flds,Els) :-
   map(Flds,checker:mkFieldArg(Lc),Els).
@@ -575,7 +586,7 @@ pickBoundType((_,Tv),Tp,allType(Tv,Tp)).
 typeOfArgPtn(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Opts,Path) :-
   isTuple(T,Lc,A),!,
   genTpVars(A,ArgTps),
-  verifyType(Lc,ast(T),tplType(ArgTps),Tp,Env),
+  verifyArgTypes(Lc,ast(T),ArgTps,Tp,Env),
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Opts,Path).
 typeOfArgPtn(T,Tp,ErTp,Env,Ev,Exp,Opts,Path) :-
   typeOfPtn(T,Tp,ErTp,Env,Ev,Exp,Opts,Path).
@@ -631,7 +642,7 @@ typeOfPtn(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Opts,Path) :-
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Opts,Path).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Opts,Path) :-
   isConApply(Term,Lc,F,A),!,
-  newTypeVar("A",At),
+  genTpVars(A,At),
   typeOfExp(F,consType(At,Tp),ErTp,Env,E0,Fun,Opts,Path),
   typeOfArgPtn(tuple(Lc,"()",A),At,ErTp,E0,Ev,Args,Opts,Path),
   Exp = capply(Lc,Fun,Args,Tp).
@@ -640,7 +651,7 @@ typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Opts,Path) :-
   mkConApply(Lc,F,A,TT),
   reportWarning("this form of pattern: %s is deprecated, use %s",
 		[ast(Term),ast(TT)],Lc),
-  newTypeVar("A",At),
+  genTpVars(A,At),
   typeOfExp(F,consType(At,Tp),ErTp,Env,E0,Fun,Opts,Path),
 %  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),
   typeOfArgPtn(tuple(Lc,"()",A),At,ErTp,E0,Ev,Args,Opts,Path),
@@ -654,7 +665,7 @@ typeOfPtn(Term,Tp,_ErTp,Env,Env,void,_,_) :-
 
 typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Opts,Path) :-
   newTypeVar("F",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Opts,Path),
+  typeOfExp(F,structType(FnTp,Tp),ErTp,Env,E0,Fun,Opts,Path),
   faceOfType(FnTp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,Face),
   pushScope(E0,E1),
@@ -692,7 +703,7 @@ fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,anon(Lc,Tp))|Els]).
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Opts,Path) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
-  verifyType(Lc,ast(T),tplType(ArgTps),Tp,Env),
+  verifyArgTypes(Lc,ast(T),ArgTps,Tp,Env),
   typeOfExps(A,ArgTps,ErTp,Env,Ev,Lc,Els,Opts,Path).
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Opts,Path) :-
   typeOfExp(T,Tp,ErTp,Env,Ev,Exp,Opts,Path).
@@ -710,7 +721,7 @@ typeOfExp(V,Tp,_ErTp,Env,Env,Term,_Opts,_Path) :-
    Term=void).
 typeOfExp(T,Tp,ErTp,Env,Ev,Term,Opts,Path) :-
   isEnum(T,_,N),isIden(N,_,_),!,
-  typeOfExp(N,consType(tplType([]),Tp),ErTp,Env,Ev,Term,Opts,Path),!.
+  typeOfExp(N,consType([],Tp),ErTp,Env,Ev,Term,Opts,Path),!.
 typeOfExp(T,Tp,_ErTp,Env,Env,intLit(Lc,Ix),_Opts,_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
@@ -830,13 +841,13 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Opts,Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Opts,Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Opts,Path),
+  typeOfExp(F,structType(FnTp,Tp),ErTp,Env,E0,Fun,Opts,Path),
   checkRecordBody(FnTp,Fun,Lc,Els,E0,Val,Opts,Path).
 %  reportMsg("labeled record %s:%s",[can(Val),tpe(Tp)],Lc).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Opts,Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Opts,Path),
+  typeOfExp(F,structType(FnTp,Tp),ErTp,Env,E0,Fun,Opts,Path),
   brceConLbl(Fun,Lbl),
   checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Opts,Path).
 typeOfExp(Term,Tp,ErTp,Ev,Ev,LetExp,Opts,Path) :-
@@ -858,7 +869,7 @@ typeOfExp(Term,Tp,ErTp,Env,Env,capply(Lc,Fun,Args,Tp),Opts,Path) :-
   isEnum(Term,Lc,I),
   isRoundTerm(I,_,F,A),!,
   genTpVars(A,Vrs),
-  At = tplType(Vrs),
+  At = Vrs,
   typeOfExp(F,consType(At,Tp),ErTp,Env,E0,Fun,Opts,Path),
   typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
@@ -911,6 +922,11 @@ verifyType(Lc,_,Actual,Expected,Env) :-
 verifyType(Lc,M,S,T,_) :-
   reportError("%s:%s not consistent with expected type\n%s",[M,tpe(S),tpe(T)],Lc).
 
+verifyArgTypes(Lc,_,Actual,Expected,Env) :-
+  smList(Actual,Expected,Lc,Env),!.
+verifyArgTypes(Lc,M,S,T,_) :-
+  reportError("%s:%s not consistent with expected type\n%s",[M,tpe(S),tpe(T)],Lc).
+
 brceConLbl(over(_,T,_),L) :- brceConLbl(T,L).
 brceConLbl(v(_,L,_),L).
 brceConLbl(enm(_,Nm,_),Nm).
@@ -936,7 +952,7 @@ checkFunCall(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
   newTypeVar("F",FnTp),
   newTypeVar("E",ETp),
   genTpVars(A,Vrs),
-  At = tplType(Vrs),
+  At = Vrs,
   typeOfExp(F,FnTp,ErTp,Env,E0,Fun,Opts,Path),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of function %s:%s",[can(Fun),tpe(FnTp)])),
 
@@ -956,8 +972,9 @@ typeOfLambda(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Pa
   pushScope(Env,LEnv),
   getConstraints(Tp,Cx,LambdaTp),
   declareConstraints(Lc,Cx,LEnv,EvL),
-  splitUpProgramType(Lc,Env,LambdaTp,AT,RT,ErTp),
   isEquation(Term,Lc,H,C,R),
+  headArgList(H,HeadArgs),
+  splitUpProgramType(Lc,Env,LambdaTp,HeadArgs,AT,RT,ErTp),
   typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
   lambdaLbl(Path,"λ",Lbl),
@@ -968,8 +985,9 @@ typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,prle(Lc,Args,Guard,Act),Tp),Opts,Path
   pushScope(Env,LEnv),
   getConstraints(Tp,Cx,LambdaTp),
   declareConstraints(Lc,Cx,LEnv,EvL),
-  splitUpProgramType(Lc,Env,LambdaTp,AT,RT,ErTp),
   isProcedure(Term,Lc,H,C,R),
+  headArgList(H,HeadArgs),
+  splitUpProgramType(Lc,Env,LambdaTp,HeadArgs,AT,RT,ErTp),
   (deRef(RT,voidType) ;
    reportError("procedure rule should have a procedure type, not %s",[tpe(Tp)],Lc)),
   typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
@@ -998,7 +1016,7 @@ typeOfThunk(Lc,Term,Tp,Env,
 					       cond(Lc, match(Lc,svGet(Lc,XVar,SvTp),SavVar),
 						    XVar,
 						    svSet(Lc,SavVar,Exp),VlTp)),
-					  funType(tplType([]),VlTp,voidType)))),Tp),Opts,Path) :-
+					  funType([],VlTp,voidType)))),Tp),Opts,Path) :-
   newTypeVar("υ",VlTp),
   savType(VlTp,SvTp),
   genNewName(Path,"Σ",SavNm),
@@ -1145,7 +1163,7 @@ checkProcCall(Lc,F,A,ErTp,Env,Call,Opts,Path) :-
   newTypeVar("E",ETp),
   newTypeVar("R",Tp),
   genTpVars(A,Vrs),
-  At = tplType(Vrs),
+  At = Vrs,
   typeOfExp(F,FnTp,ErTp,Env,E0,Fun,Opts,Path),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of procedure %s:%s",[can(Fun),tpe(FnTp)])),
 
@@ -1385,7 +1403,7 @@ exportAcc(Tp,Export) :-
 
 checkMainDefn(Env) :-
   varLoc("_main",Env,MnTp,Lc),!,
-  MainType = funType(tplType([tpExp(tpFun("cons",1),type("string"))]),
+  MainType = funType([tpExp(tpFun("cons",1),type("string"))],
 		      type("integer"),voidType),
   (sameType(MnTp,MainType,Lc,Env) -> true;
    reportError("main_ should have type %s, not %s",[tpe(MainType),tpe(MnTp)],Lc)).

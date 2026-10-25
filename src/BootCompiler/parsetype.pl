@@ -56,6 +56,11 @@ parseType(F,Env,Q,prcType(AT,ET)) :-
   isProcType(F,_,L,some(E)),
   parseArgType(L,Env,Q,AT),
   parseType(E,Env,Q,ET).
+parseType(F,Env,Q,structType(FaceTp,RT)) :-
+  isConstructorType(F,_,_,_,L,R),
+  isBraceTuple(L,_,_),!, % should be no quantifiers
+  parseType(L,Env,Q,FaceTp),
+  parseType(R,Env,Q,RT).
 parseType(F,Env,Q,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % should be no quantifiers
   parseArgType(L,Env,Q,AT),!,
@@ -83,7 +88,7 @@ parseType(T,Env,Q,faceType(AT,FT)) :-
   parseTypeFields(L,Env,Q,[],AT,[],FT).
 parseType(T,Env,Q,typeLambda(AT,RT)) :-
   isTypeLambda(T,_,L,R),
-  parseArgType(L,Env,Q,AT),
+  parseLambdaArgType(L,Env,Q,AT),
   parseType(R,Env,Q,RT).
 parseType(Term,Env,_,Tp) :-
   isFieldAcc(Term,Lc,L,Fld),
@@ -106,10 +111,16 @@ parseFieldAccType(Lc,L,Fld,Env,Tp) :-
    reportError("%s not a known variable",[ast(L)],Lc),
    newTypeVar("_",Tp)).
 
-parseArgType(T,Env,Q,tplType(AT)) :-
+parseLambdaArgType(T,Env,Q,tplType(AT)) :-
   isTuple(T,A),!,
   parseTypes(A,Env,Q,AT).
-parseArgType(T,Env,Q,Tp) :-
+parseLambdaArgType(T,Env,Q,Tp) :-
+  parseType(T,Env,Q,Tp).
+
+parseArgType(T,Env,Q,AT) :-
+  isTuple(T,A),!,
+  parseTypes(A,Env,Q,AT).
+parseArgType(T,Env,Q,[Tp]) :-
   parseType(T,Env,Q,Tp).
 
 parseResultType(A,Env,Q,AT,funType(AT,RT,ET)) :-
@@ -378,7 +389,7 @@ parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Fields,[TpDefn,CnDefn|Df],Dfx,Env,Envx,
   parseTypeHead(Hd,Q,Tp,Nm,_Args,Path),
   pickTypeTemplate(Tp,Type),
   wrapType(Q,Cx,X,[],typeExists(Tp,Face),FaceRule),
-  wrapType(Q,Cx,[],[],consType(faceType(SortedFlds,SortedTps),Tp),ConTp),
+  wrapType(Q,Cx,[],[],structType(faceType(SortedFlds,SortedTps),Tp),ConTp),
 %  reportMsg("constructor type %s",[tpe(ConTp)],Lc),
 
   mangleName(Path,class,BrNm,ConNm),
@@ -438,7 +449,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 Publish,Viz,ExNm,Dc,Dcx) :-
   tpName(Tp,TpNm),
   mangleName(TpNm,field,Fld,AccName),
-  putConstraints(Cx,funType(tplType([Tp]),FldTp,voidType),CxFunTp),
+  putConstraints(Cx,funType([Tp],FldTp,voidType),CxFunTp),
   reUQnt(Q,CxFunTp,AccFunTp),
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
@@ -463,7 +474,7 @@ genBraceUpdater(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 Publish,Viz,ExNm,Dc,Dcx) :-
   tpName(Tp,TpNm),
   mangleName(TpNm,over,Fld,AccName),
-  putConstraints(Cx,funType(tplType([Tp,FldTp]),Tp,voidType),CxFunTp),
+  putConstraints(Cx,funType([Tp,FldTp],Tp,voidType),CxFunTp),
   reUQnt(Q,CxFunTp,AccFunTp),
 
   XX = v(Lc,"XX",FldTp),
@@ -495,11 +506,11 @@ allArgs([(Fn,T)|As],F,V,Lc,[T|Ts],[v(Lc,Fn,T)|Ps],[v(Lc,Fn,T)|AAs]) :-
 
 genBraceConstructor(Lc,[],Nm,ConNm,Q,Cx,Tp,
 		    [cnsDef(Lc,Nm,enm(Lc,Nm,ConTp))|Df],Df,Env,Ev,cnsDec(Nm,ConNm,ConTp)) :-
-  wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
+  wrapType(Q,Cx,[],[],structType(faceType([],[]),Tp),ConTp),
   declareEnum(Lc,Nm,ConNm,ConTp,Env,Ev).
 genBraceConstructor(Lc,Fields,Nm,ConNm,Q,Cx,Tp,
 		    [cnsDef(Lc,Nm,enm(Lc,ConNm,ConTp))|Df],Df,Env,Ev,cnsDec(Nm,ConNm,ConTp)) :-
-  wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
+  wrapType(Q,Cx,[],[],structType(faceType(Fields,[]),Tp),ConTp),
   declareCns(Lc,Nm,ConNm,ConTp,Env,Ev).
 
 cmpVarDef((N1,_),(N2,_)) :-

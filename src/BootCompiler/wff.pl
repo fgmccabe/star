@@ -612,7 +612,7 @@ buildEquation(Lc,Nm,Args,Cond,true,Exp,Eqn) :-
 isProcedure(Trm,Lc,Hd,none,A) :-
   isBraceTerm(Trm,Lc,Hd,Bd), (isRoundTerm(Hd,_,_,_);isTuple(Hd,_,_)),!,
   deSequence(Bd,As),
-  reSequence(As,A).
+  (reSequence(As,A) ; As=[], braceTuple(Lc,[],A)).
 isProcedure(Trm,Lc,Hd,Cond,A) :-
   isBinary(Trm,Lc,"do",Lhs,A),
   (isWhere(Lhs,_,Hd,G), Cond=some(G) ; Hd=Lhs, Cond=none).

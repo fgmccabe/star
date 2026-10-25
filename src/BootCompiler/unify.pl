@@ -1,5 +1,5 @@
 :- module(unify,[sameType/4,faceOfType/4,
-		 simplifyType/6,applyTypeFun/5]).
+		 simplifyType/6,applyTypeFun/5,smList/4]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -24,13 +24,16 @@ sm(valType(A1),valType(A2),Lc,Env) :- sameType(A1,A2,Lc,Env).
 sm(tplType(A1),tplType(A2),Lc,Env) :- smList(A1,A2,Lc,Env).
 sm(funType(A1,R1,E1),funType(A2,R2,E2),Lc,Env) :-
   sameType(R1,R2,Lc,Env),
-  sameType(A2,A1,Lc,Env),
+  smList(A2,A1,Lc,Env),
   sameType(E1,E2,Lc,Env).
 sm(prcType(A1,E1),prcType(A2,E2),Lc,Env) :-
-  sameType(A2,A1,Lc,Env),
+  smList(A2,A1,Lc,Env),
   sameType(E1,E2,Lc,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
-sm(consType(A1,R1),consType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A1,A2,Lc,Env).
+sm(consType(A1,R1),consType(A2,R2),Lc,Env) :-
+  sameType(R1,R2,Lc,Env), smList(A1,A2,Lc,Env).
+sm(structType(F1,R1),structType(F2,R2),Lc,Env) :-
+  sameType(R1,R2,Lc,Env), sameType(F1,F2,Lc,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
     sameLength(T1,T2),
     smFields(E1,E2,Lc,Env),
@@ -179,14 +182,17 @@ smpTp(valType(T),Lc,Env,C,Cx,valType(Tp)) :-
 smpTp(tplType(A),Lc,Env,C,Cx,tplType(As)) :-
   smpTps(A,Lc,Env,C,Cx,As).
 smpTp(funType(L,R,E),Lc,Env,C,Cx,funType(Ls,Rs,Es)) :-
-  simplifyType(L,Lc,Env,C,C0,Ls),
+  smpTps(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,C1,Rs),
   simplifyType(E,Lc,Env,C1,Cx,Es).
 smpTp(prcType(L,E),Lc,Env,C,Cx,prcType(Ls,Es)) :-
-  simplifyType(L,Lc,Env,C,C0,Ls),
+  smpTps(L,Lc,Env,C,C0,Ls),
   simplifyType(E,Lc,Env,C0,Cx,Es).
 smpTp(consType(L,R),Lc,Env,C,Cx,consType(Ls,Rs)) :-
-  simplifyType(L,Lc,Env,C,C0,Ls),
+  smpTps(L,Lc,Env,C,C0,Ls),
+  simplifyType(R,Lc,Env,C0,Cx,Rs).
+smpTp(structType(F,R),Lc,Env,C,Cx,structType(Fs,Rs)) :-
+  simplifyType(F,Lc,Env,C,C0,Fs),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
 smpTp(allType(V,typeLambda(V,tpExp(Op,V))),_,_,C,C,Op).
 smpTp(typeLambda(V,tpExp(Op,V)),_,_,C,C,Op).
@@ -258,11 +264,12 @@ occIn(Id,tFun(Curr,_,_,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
 occIn(Id,tpExp(O,_)) :- occIn(Id,O),!.
 occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
 occIn(Id,valType(I)) :- occIn(Id,I).
-occIn(Id,tplType(L)) :- is_member(A,L), occIn(Id,A).
-occIn(Id,funType(A,R,E)) :- occIn(Id,A);occIn(Id,R);occIn(Id,E).
-occIn(Id,prcType(A,E)) :- occIn(Id,A);occIn(Id,E).
-occIn(Id,consType(L,_)) :- occIn(Id,L).
-occIn(Id,consType(_,R)) :- occIn(Id,R).
+occIn(Id,tplType(L)) :- occInList(Id,L).
+occIn(Id,funType(A,R,E)) :- occInList(Id,A) ; occIn(Id,R); occIn(Id,E).
+occIn(Id,prcType(A,E)) :- occInList(Id,A) ; occIn(Id,E).
+occIn(Id,consType(A,R)) :- occInList(Id,A) ; occIn(Id,R).
+occIn(Id,structType(Face,_)) :- occIn(Id,Face).
+occIn(Id,structType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
 occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
 occIn(Id,typeLambda(_,R)) :- occIn(Id,R).
@@ -270,6 +277,8 @@ occIn(Id,existType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,allType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,faceType(L,_)) :- is_member((_,A),L), occIn(Id,A),!.
 occIn(Id,faceType(_,T)) :- is_member((_,A),T), occIn(Id,A),!.
+
+occInList(Id,L) :- is_member(A,L), occIn(Id,A).
 
 applyTypeFun(Fn,Args,Lc,Env,Tp) :-
   applyTypeFun(Fn,Args,Lc,Env,[],[],Tp).

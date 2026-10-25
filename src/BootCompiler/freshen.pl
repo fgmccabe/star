@@ -79,14 +79,17 @@ frshn(V,_,_,_,V) :- isUnbound(V),!.
 frshn(type(Nm),_,_,_,type(Nm)).
 frshn(tpFun(Nm,Ar),_,_,_,tpFun(Nm,Ar)).
 frshn(funType(A,R,Er),E,B,Ex,funType(FA,FR,FEr)) :-
-  rewriteType(A,E,B,Ex,FA),
+  rewriteTypes(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR),
   rewriteType(Er,E,B,Ex,FEr).
 frshn(prcType(A,Er),E,B,Ex,prcType(FA,FEr)) :-
-  rewriteType(A,E,B,Ex,FA),
+  rewriteTypes(A,E,B,Ex,FA),
   rewriteType(Er,E,B,Ex,FEr).
 frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
-  rewriteType(A,E,B,Ex,FA),
+  rewriteTypes(A,E,B,Ex,FA),
+  rewriteType(R,E,B,Ex,FR).
+frshn(structType(Face,R),E,B,Ex,structType(FFace,FR)) :-
+  rewriteType(Face,E,B,Ex,FFace),
   rewriteType(R,E,B,Ex,FR).
 frshn(tplType(L),E,B,Ex,tplType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
 frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :-

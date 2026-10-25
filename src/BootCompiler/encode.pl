@@ -104,12 +104,13 @@ encodeT(tpExp(tpFun("ref",1),Arg),['r'|O],Ox) :- !, encodeType(Arg,O,Ox).
 encodeT(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeType(Arg,O1,Ox).
 encodeT(funType(AT,Tp,ETp),['F'|O],Ox) :-
   deRef(ETp,voidType),!,
-  encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
+  encodeTypeList(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeT(funType(AT,Tp,ErTp),['T'|O],Ox) :-
-  encodeType(AT,O,O1), encodeType(Tp,O1,O2), encodeType(ErTp,O2,Ox).
+  encodeTypeList(AT,O,O1), encodeType(Tp,O1,O2), encodeType(ErTp,O2,Ox).
 encodeT(prcType(AT,ETp),['P'|O],Ox) :-
-  encodeType(AT,O,O1), encodeType(ETp,O1,Ox).
-encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
+  encodeTypeList(AT,O,O1), encodeType(ETp,O1,Ox).
+encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeTypeList(Args,O,O1), encodeType(Tp,O1,Ox).
+encodeT(structType(Face,Tp),['S'|O],Ox) :- encodeType(Face,O,O1), encodeType(Tp,O1,Ox).
 encodeT(tplType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
 encodeT(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
 encodeT(allType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
@@ -121,6 +122,8 @@ encodeT(contractExists(L,R),['Z'|O],Ox) :- encodeConstraint(L,O,O1), encodeType(
 
 encodeTypes([],O,O).
 encodeTypes([Tp|More],O,Ox) :- encodeType(Tp,O,O1), encodeTypes(More,O1,Ox).
+
+encodeTypeList(Args,['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
 
 encodeFieldTypes(Fields,['{'|O],Ox) :- encodeFieldTps(Fields,O,['}'|Ox]).
 

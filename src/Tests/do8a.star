@@ -7,7 +7,7 @@ test.do8a{
     ((A) => ((B) => switch ?? showMsg("A wins") || showMsg("B wins"))("beta"))("alpha").
 
   showMsg:(string)=>().
-  showMsg(_)=>().
+  showMsg(M) => _show(M).
 
   public _main(_) => valof{
     foo();

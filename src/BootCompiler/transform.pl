@@ -252,14 +252,12 @@ extendFunType(Tp,Extra,ETp) :-
   extendFunTp(DTp,Extra,ETp).
 
 extendFunTp(Tp,[],Tp):-!.
-extendFunTp(funType(AT,Rt,ErTp),Extra,funType(tplType(NEls),Rt,ErTp)) :-!,
-  deRef(AT,tplType(Els)),
+extendFunTp(funType(AT,Rt,ErTp),Extra,funType(NEls,Rt,ErTp)) :-!,
   extendTplTp(Extra,Anons),!,
-  concat(Anons,Els,NEls).
-extendFunTp(prcType(AT,ErTp),Extra,prcType(tplType(NEls),ErTp)) :-!,
-  deRef(AT,tplType(Els)),
+  concat(Anons,AT,NEls).
+extendFunTp(prcType(AT,ErTp),Extra,prcType(NEls,ErTp)) :-!,
   extendTplTp(Extra,Anons),!,
-  concat(Anons,Els,NEls).
+  concat(Anons,AT,NEls).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-!,
   extendFunType(T,Extra,NT).
 extendFunTp(existType(V,T),Extra,existType(V,NT)) :-
@@ -702,12 +700,12 @@ implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,RTp,throw(ErTp),
 implementFunCall(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,nothrow,
 		 ocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   tipeOf(ThVr,ATp),
-  OTp = funType(tplType([ATp]),Tp,voidType),
+  OTp = funType([ATp],Tp,voidType),
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementFunCall(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,throw(ErTp),
 		 xocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex):-
   tipeOf(ThVr,ATp),
-  OTp = funType(tplType([ATp]),Tp,voidType),
+  OTp = funType([ATp],Tp,voidType),
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,nothrow,
 		 ocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
@@ -953,7 +951,7 @@ liftFreeThunk(Lc,Nm,LclNm,Tp,ThVr,Exp,Fx,Q,Map,Opts,[ThDf|Ex],Exx) :-
   savType(Tp,STp),
   Vr = idnt(Nm,STp),
   genVar("ϕ",Tp,SvVl),
-  ThDf = fnDef(Lc,LclNm,hard,funType(tplType([FrTp]),Tp,voidType),
+  ThDf = fnDef(Lc,LclNm,hard,funType([FrTp],Tp,voidType),
 	       [ThVr],
 	       vlof(Lc,seq(Lc,
 			   defn(Lc,Vr,nth(Lc,ThVr,Fx,Tp)),

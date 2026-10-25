@@ -87,7 +87,7 @@ makeContractFunType(allType(V,T),Cx,allType(V,CT)) :-
   makeContractFunType(T,Cx,CT).
 makeContractFunType(constrained(T,_C),Cx,CT) :-
   makeContractFunType(T,Cx,CT).
-makeContractFunType(T,Cx,funType(tplType(Cx),T,voidType)).
+makeContractFunType(T,Cx,funType(Cx,T,voidType)).
 
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
@@ -106,7 +106,7 @@ defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
 
 fieldVars(_,_,[],CVars,CVars,Dict,Dict).
 fieldVars(Lc,Tp,[(FldNm,FldTp)|Flds],[NV|CVrs],XVrs,Dict,CDict) :-
-    genVar(FldNm,Lc,funType(tplType([Tp]),FldTp,voidType),NV),
+    genVar(FldNm,Lc,funType([Tp],FldTp,voidType),NV),
     tpName(Tp,TpNm),
     makeKey(TpNm,Key),
     fieldVars(Lc,Tp,Flds,CVrs,XVrs,[access(Key,FldNm,NV)|Dict],CDict).
@@ -254,7 +254,7 @@ overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   resolveAccess(Lc,RcTp,Fld,FTp,Dict,Opts,St,St1,AccessOp),
   resolveRef(T,[AccessOp],[],Dict,Opts,St1,St2,OverOp,NArgs),
-  curryOver(Lc,OverOp,NArgs,funType(tplType([RcTp]),FTp,voidType),makeApply,Over),
+  curryOver(Lc,OverOp,NArgs,funType([RcTp],FTp,voidType),makeApply,Over),
   markResolved(St2,Stx);
   genMsg("cannot find accessor for %s of type %s",[ss(Fld),tpe(RcTp)],Msg),
   markFatal(St,Lc,Msg,Stx),
@@ -418,7 +418,7 @@ makeTApply(ErTp,Lc,Op,Args,Tp,tapply(Lc,Op,tple(Lc,Args),Tp,ErTp)).
 
 curryOver(Lc,OverOp,Cx,Tp,Make,
     lambda(Lc,Lbl,[],rule(Lc,tple(Lc,Args),none,
-			  Call),funType(tplType(ArTps),Tp,voidType))) :-
+			  Call),funType(ArTps,Tp,voidType))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs),
@@ -453,11 +453,11 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,Opts,St,Stx,Reslvd) :-
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",RTp),
   newTypeVar("E",ErTp),
-  (sameType(funType(tplType([RcTp]),RTp,ErTp),FAccTp,Lc,Dict),
+  (sameType(funType([RcTp],RTp,ErTp),FAccTp,Lc,Dict),
    freshen(RTp,Dict,_,CFTp),
    getConstraints(CFTp,Cx,FTp),
    sameType(FTp,Tp,Lc,Dict),
-   V = v(Lc,FunNm,funType(tplType([RcTp]),Tp,ErTp)),
+   V = v(Lc,FunNm,funType([RcTp],Tp,ErTp)),
    manageConstraints(Cx,Lc,apply(Lc,V,tple(Lc,[Rc]),Tp),Reslvd),
    traceCheck(Opts,Lc,"dot resolved term %s",[can(Reslvd)]),
    markResolved(St,Stx);
@@ -494,11 +494,11 @@ resolveAccess(Lc,RcTp,Fld,Tp,Dict,_Opts,St,Stx,Reslvd) :-
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",RTp),
   newTypeVar("E",ETp),
-  (sameType(funType(tplType([RcTp]),RTp,ETp),FAccTp,Lc,Dict),
+  (sameType(funType([RcTp],RTp,ETp),FAccTp,Lc,Dict),
    freshen(RTp,Dict,_,CFTp),
    getConstraints(CFTp,Cx,FTp),
    sameType(FTp,Tp,Lc,Dict),
-   V = v(Lc,FunNm,funType(tplType([RcTp]),FTp,ETp)),
+   V = v(Lc,FunNm,funType([RcTp],FTp,ETp)),
    manageConstraints(Cx,Lc,V,Reslvd),
    markResolved(St,Stx);
    genMsg("no accessor for %s defined for type %s",[ss(Fld),tpe(RcTp)],Msg),
@@ -512,11 +512,11 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,Opts,St,Stx,Reslvd) :-
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",VTp),
   newTypeVar("E",ETp),
-  (sameType(funType(tplType([RcTp,VTp]),RcTp,ETp),FAccTp,Lc,Dict),
+  (sameType(funType([RcTp,VTp],RcTp,ETp),FAccTp,Lc,Dict),
    freshen(VTp,Dict,_,CVTp),
    getConstraints(CVTp,Cx,FTp),
    sameType(FTp,VlTp,Lc,Dict),
-   V = v(Lc,FunNm,funType(tplType([RcTp,VlTp]),RcTp,ETp)),
+   V = v(Lc,FunNm,funType([RcTp,VlTp],RcTp,ETp)),
    Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp),
    resolveConstraints(Lc,Cx,Dict,Opts,St,St0,DTerms),
    resolveRef(Acc,DTerms,[],Dict,Opts,St0,St1,OverOp,NArgs),

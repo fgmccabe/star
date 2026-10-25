@@ -37,6 +37,7 @@ isType(tplType(_)).
 isType(funType(_,_,_)).
 isType(prcType(_,_)).
 isType(consType(_,_)).
+isType(structType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
 isType(faceType(_,_)).
@@ -50,7 +51,8 @@ isConstraint(implementsFace(_,_)).
 isConType(Tp,A) :-
   deRef(Tp,T),!,isCnType(T,A).
 
-isCnType(consType(H,_),A) :- tpArity(H,A).
+isCnType(consType(H,_),A) :- is_list(H), length(H,A).
+isCnType(structType(Face,_),A) :- progTypeArity(Face,A).
 isCnType(allType(_,T),A) :- isConType(T,A).
 isCnType(existType(_,T),A) :- isConType(T,A).
 isCnType(constrained(T,_),A) :- isConType(T,A).
@@ -65,6 +67,7 @@ ntEnumType(existType(V,T),existType(V,T1)):-
 ntEnumType(constrained(T,C),constrained(T1,C)) :-
   netEnumType(T,T1).
 ntEnumType(consType(_,T),T).
+ntEnumType(structType(_,T),T).
 
 isFaceType(Tp) :- deRef(Tp,T),!,isFcType(T).
 
@@ -176,10 +179,16 @@ ssType(tpFun(Nm,Ar),_,_,sq([id(Id),ss("/"),ix(Ar)])) :- typeName(Nm,Id).
 ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
 ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
   ssTypeEls(A,ShCon,Dp,AA).
+ssType(A,ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
+  is_list(A),!,
+  ssTypeEls(A,ShCon,Dp,AA).
 ssType(funType(A,R,E),ShCon,Dp,SS) :- !, ssFunType(A,R,E,ShCon,Dp,SS).
 ssType(prcType(A,E),ShCon,Dp,SS) :- !, ssPrcType(A,E,ShCon,Dp,SS).
-ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
-  ssType(A,ShCon,Dp,AA),
+ssType(consType(A,R),ShCon,Dp,sq([lp,iv(ss(","),AA),rp,ss("<=>"),RR])) :-
+  ssTypeEls(A,ShCon,Dp,AA),
+  ssType(R,ShCon,Dp,RR).
+ssType(structType(Face,R),ShCon,Dp,sq([FF,ss("<=>"),RR])) :-
+  ssType(Face,ShCon,Dp,FF),
   ssType(R,ShCon,Dp,RR).
 ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
@@ -206,16 +215,16 @@ ssType(constrained(Tp,Con),_ShCon,Dp,sq([CC,ss("|="),TT])) :-
   ssConstraint(false,Dp,Con,CC),
   ssType(Tp,false,Dp,TT).
 
-ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("=>"),RR,TE])) :-
-  ssType(A,ShCon,Dp,AA),
+ssFunType(A,R,E,ShCon,Dp,sq([lp,iv(ss(","),AA),rp,ss("=>"),RR,TE])) :-
+  ssTypeEls(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR),
   (deRef(E,voidType) ->
    TE = ss("");
    ssType(E,ShCon,Dp,EE),
    TE = sq([ss(" throws "),EE])).
 
-ssPrcType(A,E,ShCon,Dp,sq([AA,ss("{}"),TE])) :-
-  ssType(A,ShCon,Dp,AA),
+ssPrcType(A,E,ShCon,Dp,sq([lp,iv(ss(","),AA),rp,ss("{}"),TE])) :-
+  ssTypeEls(A,ShCon,Dp,AA),
   (deRef(E,voidType) ->
    TE = ss("");
    ssType(E,ShCon,Dp,EE),
@@ -304,11 +313,13 @@ tpArity(constrained(Tp,Constraint),Ar) :- !,
   extraArity(Constraint,Extra),
   progTypeArity(Tp,A), Ar is A+Extra.
 tpArity(funType(A,_,_),Ar) :- !,
-  progTypeArity(A,Ar).
+  is_list(A), length(A,Ar).
 tpArity(prcType(A,_),Ar) :- !,
-  progTypeArity(A,Ar).
+  is_list(A), length(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
-  tpArity(A,Ar).
+  is_list(A), length(A,Ar).
+tpArity(structType(Face,_),Ar) :- !,
+  progTypeArity(Face,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
@@ -324,12 +335,11 @@ rlArgTypes(existType(_,Tp),As) :- !, realArgTypes(Tp,As).
 rlArgTypes(constrained(Tp,C),As) :- !,
   constraintArgType(C,As,Ax),
   realArgTypes(Tp,Ax).
-rlArgTypes(funType(A,_,_),As) :- !,
-  realArgTypes(A,As).
-rlArgTypes(prcType(A,_),As) :- !,
-  realArgTypes(A,As).
-rlArgTypes(consType(A,_),As) :- !,
-  realArgTypes(A,As).
+rlArgTypes(funType(A,_,_),A) :- !.
+rlArgTypes(prcType(A,_),A) :- !.
+rlArgTypes(consType(A,_),A) :- !.
+rlArgTypes(structType(Face,_),As) :- !,
+  realArgTypes(Face,As).
 rlArgTypes(tplType(A),A) :- !.
 rlArgTypes(faceType(Flds,_),As) :- !,
   sort(Flds,types:cmpFld,SFlds),
@@ -346,8 +356,10 @@ progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
 tpArgTypes(allType(_,Tp),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(Tp,_),ArTps) :- progArgTypes(Tp,ArTps).
-tpArgTypes(funType(A,_,_),ArTps) :- progArgTypes(A,ArTps).
-tpArgTypes(prcType(A,_),ArTps) :- progArgTypes(A,ArTps).
+tpArgTypes(funType(A,_,_),A).
+tpArgTypes(prcType(A,_),A).
+tpArgTypes(consType(A,_),A).
+tpArgTypes(structType(Face,_),As) :- realArgTypes(Face,As).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -368,18 +380,19 @@ exType(funType(_,_,ErTp),ErTp) :- !.
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 
 isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
-isFunctionType(funType(A,_,_),Ar) :- progTypeArity(A,Ar).
+isFunctionType(funType(A,_,_),Ar) :- is_list(A), length(A,Ar).
 
 isProcedureType(T) :- deRef(T,Tp), isProcedureType(Tp,_).
 
 isProcedureType(allType(_,T),Ar) :- deRef(T,Tp),isProcedureType(Tp,Ar).
-isProcedureType(prcType(A,_),Ar) :- progTypeArity(A,Ar).
+isProcedureType(prcType(A,_),Ar) :- is_list(A), length(A,Ar).
 
 isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg,Rep).
 
 isCnsTp(allType(_,Tp),Arg,Rep) :- isCnsTp(Tp,Arg,Rep).
 isCnsTp(constrained(Tp,_),Arg,Rep) :- isCnsTp(Tp,Arg,Rep).
 isCnsTp(consType(A,R),A,R).
+isCnsTp(structType(Face,R),Face,R).
 
 isProgramType(Tp) :- deRef(Tp,TT), isProgType(TT).
 
@@ -471,6 +484,7 @@ consTpName(allType(_,T),Nm) :- consTpName(T,Nm).
 consTpName(existType(_,T),Nm) :- consTpName(T,Nm).
 consTpName(constrained(T,_),Nm) :- consTpName(T,Nm).
 consTpName(consType(_,Tp),Nm) :- tpName(Tp,Nm).
+consTpName(structType(_,Tp),Nm) :- tpName(Tp,Nm).
 
 implementationName(conTract(Nm,Args,_),INm) :-!,
   appStr(Nm,S0,S1),
@@ -553,8 +567,8 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 	 typeDec("bigint",type("bigint"),typeExists(type("bigint"),faceType([],[])),[]),
 	 typeDec("float",type("float"),typeExists(type("float"),faceType([],[])),[]),
 	 typeDec("boolean",type("boolean"),typeExists(type("boolean"),faceType([],[])),[(lbl("false",0),0),(lbl("true",0),1)]),
-	 cnsDec("true","true",consType(tplType([]),type("boolean"))),
-	 cnsDec("false","false",consType(tplType([]),type("boolean"))),
+	 cnsDec("true","true",consType([],type("boolean"))),
+	 cnsDec("false","false",consType([],type("boolean"))),
 	 typeDec("char",type("char"),typeExists(type("char"),faceType([],[])),[]),
 	 typeDec("string",type("string"),typeExists(type("string"),faceType([],[])),[]),
 	 typeDec("cons",
@@ -563,18 +577,18 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 			 typeExists(tpExp(tpFun("cons",2),kVar("a")),
 				    faceType([],[]))),[(lbl("cons",2),0),(lbl("nil",0),1)]),
 	 cnsDec("nil","nil",
-		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("cons",1),kVar("e"))))),		
+		allType(kVar("e"),consType([],tpExp(tpFun("cons",1),kVar("e"))))),		
 	 cnsDec("cons","cons",
-		allType(kVar("e"),consType(tplType([kVar("e"),tpExp(tpFun("cons",1),kVar("e"))]),tpExp(tpFun("cons",1),kVar("e"))))),		
+		allType(kVar("e"),consType([kVar("e"),tpExp(tpFun("cons",1),kVar("e"))],tpExp(tpFun("cons",1),kVar("e"))))),		
 	 typeDec("option",
 		 tpFun("option",1),
 		 allType(kVar("a"),
 			 typeExists(tpExp(tpFun("option",1),kVar("a")),
 				    faceType([],[]))),[(lbl("none",0),0),(lbl("some",1),1)]),
 	 cnsDec("none","none",
-		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("option",1),kVar("e"))))),
+		allType(kVar("e"),consType([],tpExp(tpFun("option",1),kVar("e"))))),
 	 cnsDec("some","some",
-		allType(kVar("e"),consType(tplType([kVar("e")]),tpExp(tpFun("option",1),kVar("e"))))),
+		allType(kVar("e"),consType([kVar("e")],tpExp(tpFun("option",1),kVar("e"))))),
 	 typeDec("ioHandle",type("ioHandle"),typeExists(type("ioHandle"),faceType([],[])),[]),
 	 typeDec("fiber",
 		 tpFun("fiber",2),
@@ -613,21 +627,21 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		  (lbl("eEOF",0),12),
 		  (lbl("hasValue",0),13),
 		  (lbl("noValue",0),14)]),
-	 cnsDec("eINTRUPT","eINTRUPT",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eNOTDIR","eNOTDIR",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eNOFILE","eNOFILE",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eNOTFND","eNOTFND",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eINVAL","eINVAL",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eRANGE","eRANGE",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eNOPERM","eNOPERM",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eFAIL","eFAIL",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eIOERROR","eIOERROR",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eCONNECT","eCONNECT",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eDEAD","eDEAD",consType(tplType([]),type("errorCode"))),
-	 cnsDec("divZero","divZero",consType(tplType([]),type("errorCode"))),
-	 cnsDec("noValue","noValue",consType(tplType([]),type("errorCode"))),
-	 cnsDec("hasValue","hasValue",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eEOF","eEOF",consType(tplType([]),type("errorCode")))
+	 cnsDec("eINTRUPT","eINTRUPT",consType([],type("errorCode"))),
+	 cnsDec("eNOTDIR","eNOTDIR",consType([],type("errorCode"))),
+	 cnsDec("eNOFILE","eNOFILE",consType([],type("errorCode"))),
+	 cnsDec("eNOTFND","eNOTFND",consType([],type("errorCode"))),
+	 cnsDec("eINVAL","eINVAL",consType([],type("errorCode"))),
+	 cnsDec("eRANGE","eRANGE",consType([],type("errorCode"))),
+	 cnsDec("eNOPERM","eNOPERM",consType([],type("errorCode"))),
+	 cnsDec("eFAIL","eFAIL",consType([],type("errorCode"))),
+	 cnsDec("eIOERROR","eIOERROR",consType([],type("errorCode"))),
+	 cnsDec("eCONNECT","eCONNECT",consType([],type("errorCode"))),
+	 cnsDec("eDEAD","eDEAD",consType([],type("errorCode"))),
+	 cnsDec("divZero","divZero",consType([],type("errorCode"))),
+	 cnsDec("noValue","noValue",consType([],type("errorCode"))),
+	 cnsDec("hasValue","hasValue",consType([],type("errorCode"))),
+	 cnsDec("eEOF","eEOF",consType([],type("errorCode")))
 	]).
 
 toLtipe(Tp,LTp) :-
@@ -637,14 +651,14 @@ toLtipe(Tp,LTp) :-
 toLtp(type("integer"),i64Tipe) :- !.
 toLtp(type("float"),f64Tipe) :- !.
 toLtp(type("boolean"),blTipe) :- !.
-toLtp(funType(Args,Res,_),fnTipe(As,R)) :-!,
-  toLtipe(Args,As),
+toLtp(funType(Args,Res,_),fnTipe(tplTipe(As),R)) :-!,
+  map(Args,types:toLtipe,As),
   toLtipe(Res,R).
 toLtp(conType(Args,Res),cnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
-toLtp(prcType(Args,E),prTipe(As,EE)) :-!,
-  toLtipe(Args,As),
+toLtp(prcType(Args,E),prTipe(tplTipe(As),EE)) :-!,
+  map(Args,types:toLtipe,As),
   toLtipe(E,EE).
 toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
@@ -699,13 +713,15 @@ occursIn(V,Tp) :-
 occIn(V,VV) :- isIdenticalVar(V,VV),!.
 occIn(V,tpExp(O,_)) :- deRef(O,OO),occIn(V,OO),!.
 occIn(V,tpExp(_,A)) :- deRef(A,AA),occIn(V,AA),!.
-occIn(V,tplType(L)) :- is_member(A,L), deRef(A,AA),occIn(V,AA).
-occIn(V,funType(A,_,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,tplType(L)) :- occInList(V,L).
+occIn(V,funType(A,_,_)) :- occInList(V,A).
 occIn(V,funType(_,R,_)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,funType(_,_,E)) :- deRef(E,EE),occIn(V,EE).
-occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
+occIn(V,consType(A,_)) :- occInList(V,A).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
-occIn(V,prcType(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,structType(Face,_)) :- deRef(Face,FF),occIn(V,FF).
+occIn(V,structType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,prcType(A,_)) :- occInList(V,A).
 occIn(V,prcType(_,E)) :- deRef(E,EE),occIn(V,EE).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
@@ -725,4 +741,6 @@ occIn(V,implementsFace(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,implementsFace(_,F)) :- deRef(F,FF),occIn(V,FF),!.
 occIn(V,implicit(_,T)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,throws(T)) :- deRef(T,TT),occIn(V,TT),!.
+
+occInList(V,L) :- is_member(A,L), deRef(A,AA),occIn(V,AA).
 

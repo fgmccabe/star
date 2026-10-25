@@ -44,6 +44,7 @@ typedef enum {
   funSig = 'F', /* Function signature */
   prcSig = 'P', /* Procedure signature */
   conSig = 'C', /* constructor */
+  structSig = 'S', /* struct/brace-style constructor */
   throwSig = 'T', /* A throwing function signature */
 
   tpruleSig = 'Y',  /* Type rule -- aka type alias or existential type assignment */
