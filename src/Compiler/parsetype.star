@@ -153,12 +153,8 @@ star.compiler.typeparse{
     valis .voidType
   }
 
-  parseArgType(A,Env) where (_,As) ?= isTuple(A) => valof{
-    Args = parseTypes(As,Env);
-    valis .tupleType(Args)
-  }
-  parseArgType(A,Env) =>
-    parseType(A,Env).
+  parseArgType(A,Env) where (_,As) ?= isTuple(A) => parseTypes(As,Env).
+  parseArgType(A,Env) => [parseType(A,Env)].
 
   parseTypeArgs:(option[locn],cons[ast],dict) => (cons[tipe],cons[tipe]).
   parseTypeArgs(_,[XX],Env) where (_,As,Ds)?=isDepends(XX) => valof{
@@ -467,7 +463,7 @@ star.compiler.typeparse{
     TypeRl = foldLeft(((_,QV),Rl) => .allRule(QV,Rl),.typeExists(DlTp,Face),Qv);
     Tmplte = .tpFun(FullNm,[|ArgTps|]+[|DepTps|]);
 
-    ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
+    ConConTp = reQ(Qv,wrapConstraints(Cx,.structType(.faceType(Flds,Tps),DlTp)));
 
     if traceCanon! then
       showMsg("contract constructor type $(ConConTp)");
@@ -677,7 +673,7 @@ star.compiler.typeparse{
     (Flds,Tps) = parseTypeFields(Els,[],[],Env);
     ConNm = qualifiedName(Path,.conMark,Nm);
 
-    ConTp = wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp));
+    ConTp = wrapConstraints(Cx,.structType(.faceType(Flds,Tps),Tp));
     if Ix?=Mp[Nm] then
       valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,Ix,ConTp)],Idx[.tLbl(ConNm,[|Flds|])->Ix])
     else{
@@ -689,7 +685,7 @@ star.compiler.typeparse{
       where (Lc,O,Args) ?= isEnumCon(A) && (_,Nm) ?= isName(O) && Ix?=Mp[Nm] => valof{
     ConNm = qualifiedName(Path,.conMark,Nm);
 
-    ConTp = wrapConstraints(Cx,consType(.tupleType(parseTypes(Args,Env)),Tp));
+    ConTp = wrapConstraints(Cx,consType(parseTypes(Args,Env),Tp));
 
     if Ix?=Mp[Nm] then
       valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,Ix,ConTp)],Idx[.tLbl(ConNm,arity(ConTp))->Ix])
@@ -782,7 +778,7 @@ star.compiler.typeparse{
 	  XX = .vr(Lc,"X",FldTp);
 	  ConArgs = projectArgTypes(Sorted,0,(FLc,_,ATp) => .anon(FLc,ATp),XX,Fld,Fields);
 	  valis .eqn(Lc,[
-	      .apply(Lc,.enm(Lc,CnNm,consType(.tupleType(ConArgs//typeOf),RcTp)),ConArgs,RcTp)],
+	      .apply(Lc,.enm(Lc,CnNm,consType(ConArgs//typeOf,RcTp)),ConArgs,RcTp)],
 	    .none,XX);
 	  }
       };
@@ -825,7 +821,7 @@ star.compiler.typeparse{
       XX = .vr(Lc,"X",FldTp);
       ConArgs = projectArgTypes(Sorted,0,(FLc,Ix,FTp)=>.vr(FLc,"X$(Ix)",FTp),.anon(Lc,FldTp),Fld,Fields);
       RepArgs = projectArgTypes(Sorted,0,(FLc,Ix,FTp)=>.vr(FLc,"X$(Ix)",FTp),XX,Fld,Fields);
-      ConsTp = consType(.tupleType(ConArgs//typeOf),RcTp);
+      ConsTp = consType(ConArgs//typeOf,RcTp);
 
       Eqn = .eqn(Lc,[.apply(Lc,.enm(Lc,CnNm,ConsTp),ConArgs,RcTp),XX],
 	.none,.apply(Lc,.enm(Lc,CnNm,ConsTp),RepArgs,RcTp));

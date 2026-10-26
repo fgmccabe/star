@@ -53,10 +53,12 @@ star.compiler.unify{
     smT(.tpExp(O1,A1),.tpExp(O2,A2),Env) =>
       same(O1,O2,Env) && same(A1,A2,Env).
     smT(.funType(O1,A1,E1),.funType(O2,A2,E2),Env) =>
-      same(O1,O2,Env) && same(A1,A2,Env) && same(E1,E2,Env).
-    smT(.prcType(O1,E1),.prcType(O2,E2),Env) => same(O1,O2,Env) && same(E1,E2,Env).
+      smTypes(O1,O2,Env) && same(A1,A2,Env) && same(E1,E2,Env).
+    smT(.prcType(O1,E1),.prcType(O2,E2),Env) => smTypes(O1,O2,Env) && same(E1,E2,Env).
     smT(.cnsType(O1,A1),.cnsType(O2,A2),Env) =>
-      same(O1,O2,Env) && same(A1,A2,Env).
+      smTypes(O1,O2,Env) && same(A1,A2,Env).
+    smT(.structType(F1,R1),.structType(F2,R2),Env) =>
+      same(F1,F2,Env) && same(R1,R2,Env).
     smT(.tupleType(A1),.tupleType(A2),Env) =>
       size(A1)==size(A2) && smTypes(A1,A2,Env).
     smT(.faceType(E1,T1),.faceType(E2,T2),Env)
@@ -176,9 +178,10 @@ star.compiler.unify{
   rewr(.tpFun(Nm,Ar),_) => .tpFun(Nm,Ar).
   rewr(.tpExp(Op,A),Env) => .tpExp(rewriteType(Op,Env),rewriteType(A,Env)).
   rewr(.tupleType(Els),Env) => .tupleType(rewriteTps(Els,Env)).
-  rewr(.funType(A,R,E),Env) => .funType(rewriteType(A,Env),rewriteType(R,Env),rewriteType(E,Env)).
-  rewr(.prcType(A,E),Env) => .prcType(rewriteType(A,Env),rewriteType(E,Env)).
-  rewr(.cnsType(A,R),Env) => .cnsType(rewriteType(A,Env),rewriteType(R,Env)).
+  rewr(.funType(A,R,E),Env) => .funType(rewriteTps(A,Env),rewriteType(R,Env),rewriteType(E,Env)).
+  rewr(.prcType(A,E),Env) => .prcType(rewriteTps(A,Env),rewriteType(E,Env)).
+  rewr(.cnsType(A,R),Env) => .cnsType(rewriteTps(A,Env),rewriteType(R,Env)).
+  rewr(.structType(F,R),Env) => .structType(rewriteType(F,Env),rewriteType(R,Env)).
   rewr(.allType(V,B),Env) => _ ?= Env[V] ?? .allType(V,B) || .allType(V,rewriteType(B,Env)).
   rewr(.existType(V,B),Env) => _ ?= Env[V] ?? .existType(V,B) || .existType(V,rewriteType(B,Env)).
   rewr(.faceType(Flds,Rls),Env) =>

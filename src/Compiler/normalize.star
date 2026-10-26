@@ -46,13 +46,13 @@ star.compiler.normalize{
   etaConstrained:(eqn,tipe,tipe) => option[(eqn,tipe)].
   etaConstrained(.eqn(ELc,Cvrs,G,Val),LTp,DTp) where arity(DTp) > arity(LTp) => valof{
     (Qx,LQt) = deQuant(LTp);
-    if .funType(.tupleType(CxTps),ITp,_) .= deRef(LQt) &&
-	.funType(.tupleType(ArgTps),ResTp,ErTp) .= deRef(ITp) then{
+    if .funType(CxTps,ITp,_) .= deRef(LQt) &&
+	.funType(ArgTps,ResTp,ErTp) .= deRef(ITp) then{
       Xs = ArgTps//(T)=>.vr(ELc,genSym("η"),T);
       Call = (isThrowingType(ITp) ??
 	  .tapply(ELc,Val,Xs,ResTp,ErTp) ||
 	  .apply(ELc,Val,Xs,ResTp));
-      XTp = reQuant(Qx,.funType(.tupleType(CxTps++ArgTps),ResTp,ErTp));
+      XTp = reQuant(Qx,.funType(CxTps++ArgTps,ResTp,ErTp));
       if traceNormalize! then
 	showMsg("eta-expand constrained definition to $(.eqn(ELc,Cvrs++Xs,G,Call))\:$(XTp)");
       valis .some((.eqn(ELc,Cvrs++Xs,G,Call),XTp))

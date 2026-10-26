@@ -162,25 +162,30 @@ star.compiler.decode{
       valis (.faceType(F1,F2),T1)
     }
     | `F` => valof{
-      (A,T0) = decodeType(Ts);
+      (A,T0) = decodeTypeList(Ts);
       (R,T1) = decodeType(T0);
       valis (.funType(A,R,.voidType),T1)
     }
     | `P` => valof{
-      (A,T0) = decodeType(Ts);
+      (A,T0) = decodeTypeList(Ts);
       (R,T1) = decodeType(T0);
       valis (.prcType(A,R),T1)
     }
     | `T` => valof{
-      (A,T0) = decodeType(Ts);
+      (A,T0) = decodeTypeList(Ts);
       (R,T1) = decodeType(T0);
       (E,T2) = decodeType(T1);
       valis (.funType(A,R,E),T2)
     }
     | `C` => valof{
-      (A,T0) = decodeType(Ts);
+      (A,T0) = decodeTypeList(Ts);
       (R,T1) = decodeType(T0);
       valis (.cnsType(A,R),T1)
+    }
+    | `S` => valof{
+      (F,T0) = decodeType(Ts);
+      (R,T1) = decodeType(T0);
+      valis (.structType(F,R),T1)
     }
   }
 
@@ -191,6 +196,9 @@ star.compiler.decode{
     (Tps,T1) = decodeTypes(T0);
     valis ([ElTp,..Tps],T1)
   }
+
+  decodeTypeList:(cons[char])=>(cons[tipe],cons[char]).
+  decodeTypeList([`(`,..Ts]) => decodeTypes(Ts).
 
   public decodeTypeRuleSignature:(string) => typeRule.
   decodeTypeRuleSignature(St) => valof{

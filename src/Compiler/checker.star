@@ -326,9 +326,18 @@ star.compiler.checker{
     }
   }
 
+  headArgList(A) where (_,Args) ?= isTuple(A) => Args.
+  headArgList(A) default => [A].
+
+  -- Guess a structure that matches the arcgument types of a rule.
+  guessArgTypes(PTp,Arg) => case deRef(PTp) in {
+    | .funType(A,_,_) => genTpVars(A)
+    | _ default => genTpVars(headArgList(Arg))
+  }
+
   processEqn:(ast,argTyper,tipe,dict,dict,string) => (eqn,boolean).
   processEqn(St,Typer,ProgramType,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
-    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType);
+    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType,guessArgTypes(ProgramType,Arg));
     (Args,ACnd,E0) = Typer(Arg,ATp,ErTp,Outer,Path);
 
     if Wh?=Cnd then{
@@ -338,6 +347,39 @@ star.compiler.checker{
       valis (.eqn(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
     } else{
       valis (.eqn(Lc,Args,ACnd,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
+    }
+  }
+
+  processCaseEqns:(cons[ast],tipe,tipe,tipe,cons[eqn],option[eqn],dict,dict,string) => cons[eqn].
+  processCaseEqns([],_,_,_,Rls,.none,_,_,_) => reverse(Rls).
+  processCaseEqns([],_,_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
+  processCaseEqns([St,..Ss],GTp,RTp,ErTp,Rls,Deflt,Env,Outer,Path) => valof{
+    (Rl,IsDeflt) = processCaseEqn(St,GTp,RTp,ErTp,Outer,Path);
+    if IsDeflt then{
+      if DRl ?= Deflt then{
+	reportError("cannot have more than one default, other one at $(locOf(DRl))",
+	  locOf(St));
+	valis []
+      } else{
+	valis processCaseEqns(Ss,GTp,RTp,ErTp,Rls,.some(Rl),Env,Outer,Path)
+      }
+    }
+    else{
+      valis processCaseEqns(Ss,GTp,RTp,ErTp,[Rl,..Rls],Deflt,Env,Outer,Path)
+    }
+  }
+
+  processCaseEqn:(ast,tipe,tipe,tipe,dict,string) => (eqn,boolean).
+  processCaseEqn(St,GTp,RTp,ErTp,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
+    (Ptn,ACnd,E0) = typeOfPtn(Arg,GTp,ErTp,Outer,Path);
+
+    if Wh?=Cnd then{
+      (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
+      Rep = typeOfExp(R,RTp,ErTp,E1,Path);
+
+      valis (.eqn(Lc,[Ptn],mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
+    } else{
+      valis (.eqn(Lc,[Ptn],ACnd,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
     }
   }
 
@@ -370,9 +412,9 @@ star.compiler.checker{
     }
   }
 
-  argTyper ~> (ast,tipe,tipe,dict,string) => (cons[canon],option[canon],dict).
+  argTyper ~> (ast,cons[tipe],tipe,dict,string) => (cons[canon],option[canon],dict).
 
-  processRules:(cons[ast],argTyper,tipe,tipe,tipe,cons[prle],option[prle],dict,dict,string) =>
+  processRules:(cons[ast],argTyper,cons[tipe],tipe,tipe,cons[prle],option[prle],dict,dict,string) =>
     cons[prle].
   processRules([],_,_,_,_,Rls,.none,_,_,_) => reverse(Rls).
   processRules([],_,_,_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
@@ -395,7 +437,7 @@ star.compiler.checker{
     }
   }
 
-  processRule:(option[locn],ast,option[ast],ast,argTyper,tipe,tipe,tipe,dict,dict,string) => prle.
+  processRule:(option[locn],ast,option[ast],ast,argTyper,cons[tipe],tipe,tipe,dict,dict,string) => prle.
   processRule(Lc,As,Cnd,B,Typer,ArgType,ResltTp,ErTp,Env,Outer,Path) => valof{
     (Args,ACnd,E0) = Typer(As,ArgType,ErTp,Outer,Path);
 
@@ -407,6 +449,44 @@ star.compiler.checker{
     } else{
       (Body,_,_) = checkAction(B,ResltTp,ErTp,.noVal,E0,[],Path);
       valis .prle(Lc,Args,ACnd,Body)
+    }
+  }
+
+  -- the action-case counterpart of processCaseEqns/processCaseEqn.
+  processCaseRules:(cons[ast],tipe,tipe,tipe,cons[prle],option[prle],dict,dict,string) => cons[prle].
+  processCaseRules([],_,_,_,Rls,.none,_,_,_) => reverse(Rls).
+  processCaseRules([],_,_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
+  processCaseRules([St,..Ss],GTp,ResltTp,ErTp,Rls,Deflt,Env,Outer,Path) => valof{
+    if (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(St) then{
+      Rl = processCaseRule(Lc,Arg,Cnd,R,GTp,ResltTp,ErTp,Outer,Path);
+      if IsDeflt then{
+	if DRl ?= Deflt then{
+	  reportError("cannot have more than one default, other one at $(locOf(DRl))",
+	    locOf(St));
+	  valis []
+	} else{
+	  valis processCaseRules(Ss,GTp,ResltTp,ErTp,Rls,.some(Rl),Env,Outer,Path)
+	}
+      } else
+      valis processCaseRules(Ss,GTp,ResltTp,ErTp,[Rl,..Rls],Deflt,Env,Outer,Path)
+    } else{
+      reportError("$(St) not a valid case rule",locOf(St));
+      valis []
+    }
+  }
+
+  processCaseRule:(option[locn],ast,option[ast],ast,tipe,tipe,tipe,dict,string) => prle.
+  processCaseRule(Lc,As,Cnd,B,GTp,ResltTp,ErTp,Outer,Path) => valof{
+    (Ptn,ACnd,E0) = typeOfPtn(As,GTp,ErTp,Outer,Path);
+
+    if Wh?=Cnd then{
+      (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
+      (Body,_,_) = checkAction(B,ResltTp,ErTp,.noVal,E1,[],Path);
+
+      valis .prle(Lc,[Ptn],mergeGoal(Lc,ACnd,.some(Cond)),Body)
+    } else{
+      (Body,_,_) = checkAction(B,ResltTp,ErTp,.noVal,E0,[],Path);
+      valis .prle(Lc,[Ptn],ACnd,Body)
     }
   }
 
@@ -573,27 +653,21 @@ star.compiler.checker{
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
-    At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+    Ats = genTpVars(Els);
+    Fun = typeOfExp(Op,consType(Ats,Tp),ErTp,Env,Path);
 
-    (Q,ETp) = evidence(deRef(At),Env);
-    (Cx,ArgTp) = deConstrain(ETp);
+    (Q,Cx,Tps) = evidenceList(Ats,Env);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
 
-    if .tupleType(Tps) .= deRef(ArgTp) then{
-      (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Lc,Base,Path);
+    (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Lc,Base,Path);
 
-      valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
-    } else{
-      reportError("expecting argument type $(At) to be a tuple type",Lc);
-      valis (.anon(Lc,Tp),.none,Env)
-    }
+    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ?= isBrTerm(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
       showMsg("labeled record ptn: $(A)");
     At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+    Fun = typeOfExp(Op,.structType(At,Tp),ErTp,Env,Path);
 
     (Q,ETp) = evidence(deRef(At),Env);
     try{
@@ -619,22 +693,20 @@ star.compiler.checker{
 
   typeOfArgPtn:argTyper.
 
-  typeOfArgPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfArgPtn(A,Tps,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
-    checkType(A,.tupleType(Tvs),Tp,Env);
+    checkArgTypes(A,Tvs,Tps,Env);
     (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,Lc,.none,[],Env,Path);
 
     valis (Ptns,Cond,Ev)
   }
-  typeOfArgPtn(A,Tp,ErTp,Env,Path) => valof{
-    (Pt, Cond, Ev) = typeOfPtn(A,Tp,ErTp,Env,Path);
+  typeOfArgPtn(A,[T],ErTp,Env,Path) => valof{
+    (Pt, Cond, Ev) = typeOfPtn(A,T,ErTp,Env,Path);
     valis ([Pt], Cond, Ev)
   }
-
-  caseArgType:argTyper.
-  caseArgType(A,Tp,ErTp,Env,Path) => valof{
-    (Ptn,Cond,Ev) = typeOfPtn(A,Tp,ErTp,Env,Path);
-    valis ([Ptn],Cond,Ev)
+  typeOfArgPtn(A,Tps,_,Env,_) => valof{
+    reportError("expecting $([|Tps|]) arguments, not $(A)",locOf(A));
+    valis ([],.none,Env)
   }
 
   typeOfArgsPtn:(cons[ast],cons[tipe],tipe,option[locn],dict,string) =>
@@ -695,7 +767,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) =>
     typeOfVar(Lc,Id,Tp,.true,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) => valof{
-    Fun = typeOfExp(.nme(Lc,Nm),consType(.tupleType([]),Tp),ErTp,Env,Path);
+    Fun = typeOfExp(.nme(Lc,Nm),consType([],Tp),ErTp,Env,Path);
     valis .apply(Lc,Fun,[],Tp)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Ix) ?= isInt(A)  => valof{
@@ -781,7 +853,7 @@ star.compiler.checker{
     GTp = newTypeVar("_e");
     Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
-    Rules = processEqns(Cases,caseArgType,.funType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
+    Rules = processCaseEqns(Cases,GTp,Tp,ErTp,[],.none,Env,Env,Path);
 
 --    checkPtnCoverage(Rules//((.eqn(_,Ptn,_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
@@ -808,7 +880,7 @@ star.compiler.checker{
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
 
-    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgTp);
+    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgTp,guessArgTypes(ProgTp,Ar));
 
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
 
@@ -881,7 +953,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
-    ConTp = consType(FceTp,Tp);
+    ConTp = .structType(FceTp,Tp);
     Fun = typeOfExp(Op,ConTp,ErTp,Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
     try{
@@ -905,7 +977,7 @@ star.compiler.checker{
     };
 
     FceTp = newTypeVar("_");
-    ConTp = consType(FceTp,Tp);
+    ConTp = .structType(FceTp,Tp);
 
     Fun = typeOfExp(Op,ConTp,ErTp,Env,Pth);
 
@@ -958,7 +1030,7 @@ star.compiler.checker{
       if traceCanon! then
 	showMsg("generated rule $(AnRl)");
 
-      CnsTp = reQ(Tps,consType(ArTp,AnTp));
+      CnsTp = reQ(Tps,.structType(ArTp,AnTp));
       CnsDf = .cnsDef(Lc,brTplNm,0,CnsTp);
       CnsDc = .cnsDec(Lc,brTplNm,brTplNm,0,CnsTp);
 
@@ -992,7 +1064,7 @@ star.compiler.checker{
       BrArgs = (sortedFlds//((_,(FNm,FTp))) =>.vr(.none,FNm,FTp));
       BrArgTps = (sortedFlds//((_,(FNm,FTp))) =>FTp);
       valis .letExp(Lc,Defs,Decls,
-	.apply(Lc,.enm(Lc,brTplNm,consType(.tupleType(BrArgTps),Tp)),BrArgs,Tp))
+	.apply(Lc,.enm(Lc,brTplNm,consType(BrArgTps,Tp)),BrArgs,Tp))
     } else{
       reportError("expecting $(Tp), not record type $(face)",Lc);
       valis .anon(locOf(A),Tp)
@@ -1025,19 +1097,13 @@ star.compiler.checker{
     valis foldRight((Gp,I)=>.letExp(Lc,Gp,XDecls++Decls,I),El,sortDefs(Defs))
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isEnumCon(A) => valof{
-    At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+    Ats = genTpVars(Args);
+    Fun = typeOfExp(Op,consType(Ats,Tp),ErTp,Env,Path);
 
-    (Q,ETp) = evidence(deRef(At),Env);
-    (Cx,ArgTp) = deConstrain(ETp);
+    (Q,Cx,Tps) = evidenceList(Ats,Env);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
 
-    if .tupleType(Tps) .= deRef(ArgTp) then{
-      valis .apply(Lc,Fun,typeOfExps(Args,Tps,ErTp,Lc,[],Base,Path),Tp)
-    } else{
-      reportError("expecting argument type $(At) to be a tuple type",Lc);
-      valis .anon(Lc,Tp)
-    }
+    valis .apply(Lc,Fun,typeOfExps(Args,Tps,ErTp,Lc,[],Base,Path),Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,ErTp,Env,Path).
@@ -1119,12 +1185,11 @@ star.compiler.checker{
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,tipe,dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,ErTp,Env,Path) => valof{
     Vrs = genTpVars(As);
-    AtTp = .tupleType(Vrs);
     FnTp = newTypeVar("F");
     FETp = newTypeVar("E");
     Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
 
-    if sameType(FnTp,.funType(AtTp,Tp,FETp),Env) then{
+    if sameType(FnTp,.funType(Vrs,Tp,FETp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
 
       if ErTp==.voidType then{
@@ -1143,7 +1208,7 @@ star.compiler.checker{
 	valis .vr(Lc,"_",Tp)
       }
     } else{
-      reportError("type of $(Op)\:$(FnTp) not consistent with $(.funType(AtTp,Tp,ErTp))",Lc);
+      reportError("type of $(Op)\:$(FnTp) not consistent with $(.funType(Vrs,Tp,ErTp))",Lc);
       valis .vr(Lc,"_",Tp)
     }
   }
@@ -1312,7 +1377,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("handle action case $(A)\:$(Tp)");
 
-    Rules = processRules(Cases,caseArgType,ETp,Tp,ErTp,[],.none,Env,Env,Path);
+    Rules = processCaseRules(Cases,ETp,Tp,ErTp,[],.none,Env,Env,Path);
 
     valis (.doCase(Lc,Gv,Rules),Env,Dcls)
   }
@@ -1363,7 +1428,6 @@ star.compiler.checker{
   checkProcCall:(option[locn],ast,cons[ast],tipe,dict,string) => canon.
   checkProcCall(Lc,Op,As,ErTp,Env,Path) => valof{
     Vrs = genTpVars(As);
-    AtTp = .tupleType(Vrs);
     FnTp = newTypeVar("F");
     FETp = newTypeVar("E");
     RTp = newTypeVar("_");
@@ -1372,7 +1436,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("Check call: $(Op)($(As)) Op:$(FnTp)");
 
-    if sameType(FnTp,.funType(AtTp,RTp,FETp),Env) then{
+    if sameType(FnTp,.funType(Vrs,RTp,FETp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
 
       if traceCanon! then
@@ -1394,7 +1458,7 @@ star.compiler.checker{
 	valis .vr(Lc,"_",.voidType)
       }
     }
-    else if sameType(FnTp,.prcType(AtTp,FETp),Env) then{
+    else if sameType(FnTp,.prcType(Vrs,FETp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
 
       if traceCanon! then
@@ -1416,7 +1480,7 @@ star.compiler.checker{
 	valis .vr(Lc,"_",.voidType)
       }
     } else{
-      reportError("type of $(Op)\:$(FnTp) not consistent with $(.prcType(AtTp,ErTp))",Lc);
+      reportError("type of $(Op)\:$(FnTp) not consistent with $(.prcType(Vrs,ErTp))",Lc);
       valis .vr(Lc,"_",.voidType)
     }
   }
@@ -1486,14 +1550,33 @@ star.compiler.checker{
     valis (Exp,Env)
   }
 
-  checkType:(ast,tipe,tipe,dict) => ().
-  checkType(_,Actual,Expected,Env) where sameType(Actual,Expected,Env) => ().
-  checkType(A,ATp,ETp,_) => valof{
+  checkType:(ast,tipe,tipe,dict){}.
+  checkType(_,Actual,Expected,Env) where sameType(Actual,Expected,Env) do {}.
+  checkType(A,ATp,ETp,_) do {
     reportError("$(A)\:$(ATp) not consistent with expected type $(ETp)",locOf(A));
-    valis ()
   }.
 
-  genTpVars:(cons[ast]) => cons[tipe].
+  checkArgTypes:(ast,cons[tipe],cons[tipe],dict){}.
+  checkArgTypes(A,ATps,ETps,Env){
+    checkType(A,.tupleType(ATps),.tupleType(ETps),Env)
+  }
+
+  evidenceList:(cons[tipe],dict) => (cons[(string,tipe)],cons[constraint],cons[tipe]).
+  evidenceList(Tps,Env) => valof{
+    Qs := ([]:cons[(string,tipe)]);
+    Cxs := ([]:cons[constraint]);
+    ETps := ([]:cons[tipe]);
+    for Tp in Tps do{
+      (Q,ETp) = evidence(deRef(Tp),Env);
+      (Cx,ArgTp) = deConstrain(ETp);
+      Qs := Q++Qs!;
+      Cxs := Cx++Cxs!;
+      ETps := [ArgTp,..ETps!]
+    };
+    valis (Qs!,Cxs!,reverse(ETps!))
+  }
+
+  genTpVars:all e ~~ (cons[e]) => cons[tipe].
   genTpVars(Els) => (Els//(_)=>newTypeVar("_v")).
 
   genArgTps:(ast) => cons[tipe].

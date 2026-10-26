@@ -16,9 +16,10 @@ star.compiler.types{
   | .tpFun(string,integer)
   | .tpExp(tipe,tipe)
   | .tupleType(cons[tipe])
-  | .funType(tipe,tipe,tipe)
-  | .prcType(tipe,tipe)
-  | .cnsType(tipe,tipe)
+  | .funType(cons[tipe],tipe,tipe)
+  | .prcType(cons[tipe],tipe)
+  | .cnsType(cons[tipe],tipe)
+  | .structType(tipe,tipe)
   | .allType(tipe,tipe)
   | .existType(tipe,tipe)
   | .faceType(cons[(string,tipe)],cons[(string,typeRule)])
@@ -53,6 +54,7 @@ star.compiler.types{
     | .funType(_,_,_) => 0
     | .prcType(_,_) => 0
     | .cnsType(_,_) => 0
+    | .structType(_,_) => 0
     | .allType(_,T) => hasKind(T)
     | .existType(_,T) => hasKind(T)
     | .faceType(_,_) => 0
@@ -160,11 +162,13 @@ star.compiler.types{
   identType(.tpExp(O1,A1),.tpExp(O2,A2),Q) =>
     eqType(O1,O2,Q) && eqType(A1,A2,Q).
   identType(.tupleType(E1),.tupleType(E2),Q) where size(E1)==size(E2) => identTypes(E1,E2,Q).
-  identType(.funType(A1,R1,E1),.funType(A2,R2,E2),Q) =>
-    identType(A1,A2,Q) && identType(R1,R2,Q) && identType(E1,E2,Q).
-  identType(.prcType(A1,E1),.prcType(A2,E2),Q) =>
-    identType(A1,A2,Q) && identType(E1,E2,Q).
-  identType(.cnsType(A1,R1),.cnsType(A2,R2),Q) => identType(A1,A2,Q) && identType(R1,R2,Q).
+  identType(.funType(A1,R1,E1),.funType(A2,R2,E2),Q) where size(A1)==size(A2) =>
+    identTypes(A1,A2,Q) && identType(R1,R2,Q) && identType(E1,E2,Q).
+  identType(.prcType(A1,E1),.prcType(A2,E2),Q) where size(A1)==size(A2) =>
+    identTypes(A1,A2,Q) && identType(E1,E2,Q).
+  identType(.cnsType(A1,R1),.cnsType(A2,R2),Q) where size(A1)==size(A2) =>
+    identTypes(A1,A2,Q) && identType(R1,R2,Q).
+  identType(.structType(F1,R1),.structType(F2,R2),Q) => identType(F1,F2,Q) && identType(R1,R2,Q).
   identType(.allType(V1,T1),.allType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(.existType(V1,T1),.existType(V2,T2),Q) =>
@@ -244,9 +248,10 @@ star.compiler.types{
     | .tpFun(Nm,Ar) => "#(Nm)/$(Ar)"
     | .tpExp(O,A) => showTpExp(deRef(O),[A],Dp)
     | .tupleType(A) => "(#(showTypes(A,Dp)*))"
-    | .funType(A,R,E) => "#(showType(A,Dp))=>#(showType(R,Dp))#(showEType(E,Dp))"
-    | .prcType(A,E) => "#(showType(A,Dp)){}#(showEType(E,Dp))"
-    | .cnsType(A,R) => "#(showType(A,Dp)) <=> #(showType(R,Dp))"
+    | .funType(A,R,E) => "(#(showTypes(A,Dp)*))=>#(showType(R,Dp))#(showEType(E,Dp))"
+    | .prcType(A,E) => "(#(showTypes(A,Dp)*)){}#(showEType(E,Dp))"
+    | .cnsType(A,R) => "(#(showTypes(A,Dp)*)) <=> #(showType(R,Dp))"
+    | .structType(F,R) => "#(showType(F,Dp)) <=> #(showType(R,Dp))"
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
     | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreXQuantified(T,Dp))"
     | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
@@ -337,12 +342,14 @@ star.compiler.types{
     | .tpFun(Nm,Ar) => .none
     | .tpExp(O,A) => (Msg ?= validTp(deRef(O),Q,Allow) ?? .some(Msg) || validTp(deRef(A),Q,Allow))
     | .tupleType(A) => validTps(A,Q,Allow)
-    | .funType(A,R,E) => (Msg ?= validTp(deRef(A),Q,Allow) ?? .some(Msg) ||
+    | .funType(A,R,E) => (Msg ?= validTps(A,Q,Allow) ?? .some(Msg) ||
       Msg ?= validTp(deRef(R),Q,Allow) ?? .some(Msg) ||
       validTp(deRef(E),Q,Allow))
-    | .prcType(A,E) => (Msg ?= validTp(deRef(A),Q,Allow) ?? .some(Msg) ||
+    | .prcType(A,E) => (Msg ?= validTps(A,Q,Allow) ?? .some(Msg) ||
       validTp(deRef(E),Q,Allow))
-    | .cnsType(A,R) =>(Msg ?= validTp(deRef(A),Q,Allow) ?? .some(Msg) ||
+    | .cnsType(A,R) =>(Msg ?= validTps(A,Q,Allow) ?? .some(Msg) ||
+      validTp(deRef(R),Q,Allow))
+    | .structType(F,R) => (Msg ?= validTp(deRef(F),Q,Allow) ?? .some(Msg) ||
       validTp(deRef(R),Q,Allow))
     | .allType(A,T) => validTp(deRef(T),[A,..Q],Allow)
     | .existType(A,T) => validTp(deRef(T),[A,..Q],Allow)
@@ -377,9 +384,10 @@ star.compiler.types{
       | .tpFun(Nm,Ar) => Ar*37+hash(Nm)
       | .tpExp(O,A) => hsh(deRef(O))*37+hsh(deRef(A))
       | .tupleType(Els) => hshEls((hash("()")*37+size(Els))*37,Els)
-      | .funType(A,R,E) => (((hsh(A)*37)+hsh(R))*37+hsh(E))*37+hash("=>")
-      | .prcType(A,E) => ((hsh(A)*37)+hsh(E))*37+hash("{}")
-      | .cnsType(A,R) => ((hsh(A)*37)+hsh(R))*37+hash("<=>")
+      | .funType(A,R,E) => (((hshEls(size(A),A)*37)+hsh(R))*37+hsh(E))*37+hash("=>")
+      | .prcType(A,E) => ((hshEls(size(A),A)*37)+hsh(E))*37+hash("{}")
+      | .cnsType(A,R) => ((hshEls(size(A),A)*37)+hsh(R))*37+hash("<=>")
+      | .structType(F,R) => ((hsh(F)*37)+hsh(R))*37+hash("<=>")
       | .faceType(Els,Tps) =>
 	hshRules(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps)
       | .allType(V,T) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T))
@@ -437,6 +445,7 @@ star.compiler.types{
     tName(.funType(_,_,_)) => "=>".
     tName(.prcType(_,_)) => "{}".
     tName(.cnsType(_,_)) => "<=>".
+    tName(.structType(_,_)) => "<=>".
     tName(.faceType(Flds,_)) => "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
   .} in tName(deRef(Tp)).
 
@@ -462,9 +471,10 @@ star.compiler.types{
     tpSfNm(.existType(_,T)) => tpSfNm(deRef(T)).
     tpSfNm(.constrainedType(T,_)) => tpSfNm(deRef(T)).
     tpSfNm(.tupleType(A)) => "()$(size(A))".
-    tpSfNm(.prcType(A,E)) => "#(tpSfNm(A)){}#(tpErNm(E))".
-    tpSfNm(.funType(A,R,E)) => "#(tpSfNm(A))=>#(tpSfNm(R))#(tpErNm(E))".
-    tpSfNm(.cnsType(A,R)) => "#(tpSfNm(A))<=>#(tpSfNm(R))".
+    tpSfNm(.prcType(A,E)) => "()$(size(A)){}#(tpErNm(E))".
+    tpSfNm(.funType(A,R,E)) => "()$(size(A))=>#(tpSfNm(R))#(tpErNm(E))".
+    tpSfNm(.cnsType(A,R)) => "()$(size(A))<=>#(tpSfNm(R))".
+    tpSfNm(.structType(F,R)) => "#(tpSfNm(F))<=>#(tpSfNm(R))".
     tpSfNm(.faceType(Flds,_)) =>
       "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
 
@@ -487,7 +497,7 @@ star.compiler.types{
 
   public implementation hasType[constraint->>tipe] => {
     typeOf(.conTract(Nm,T,D)) => mkConType(Nm,T,D).
-    typeOf(.hasField(Tp,_,FTp)) => .funType(.tupleType([Tp]),FTp,.voidType).
+    typeOf(.hasField(Tp,_,FTp)) => .funType([Tp],FTp,.voidType).
     typeOf(.implicit(_,Tp)) => Tp.
   }
 
@@ -508,20 +518,22 @@ star.compiler.types{
   public arity:(tipe)=>integer.
   arity(Tp) => ar(deRef(Tp)).
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
-  ar(Tp) where .funType(A,_,_).=Tp => arity(A).
-  ar(Tp) where .prcType(A,_).=Tp => arity(A).
-  ar(Tp) where .cnsType(A,_).=Tp => arity(A).
+  ar(Tp) where .funType(A,_,_).=Tp => size(A).
+  ar(Tp) where .prcType(A,_).=Tp => size(A).
+  ar(Tp) where .cnsType(A,_).=Tp => size(A).
+  ar(Tp) where .structType(Face,_).=Tp => arity(Face).
   ar(Tp) where .tupleType(A).=Tp => size(A).
+  ar(Tp) where .faceType(A,_).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
   ar(Tp) where .existType(_,I) .= Tp => arity(I).
   ar(_) default => 0.
 
   public emptyFace = .faceType([],[]).
 
-  public funcType(A,B) => .funType(.tupleType(A),B,.voidType).
-  public procType(A,E) => .prcType(.tupleType(A),E).
+  public funcType(A,B) => .funType(A,B,.voidType).
+  public procType(A,E) => .prcType(A,E).
   public consType(A,B) => .cnsType(A,B).
-  public enumType(A) => .cnsType(.tupleType([]),A).
+  public enumType(A) => .cnsType([],A).
   public lstType(Tp) => .tpExp(.tpFun("cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public tagType(Tp) => .tpExp(.tpFun("tag",1),Tp).
@@ -530,38 +542,38 @@ star.compiler.types{
   public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
   public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
 
-  public funTypeArg:(tipe) => option[tipe].
+  public funTypeArg:(tipe) => option[cons[tipe]].
   funTypeArg(.allType(_,T)) => funTypeArg(deRef(T)).
   funTypeArg(.constrainedType(T,C)) where FTp ?= funTypeArg(deRef(T)) =>
     .some(extendArgType(FTp,.some(C))).
-  funTypeArg(Tp) where .funType(A,_,_) .= deRef(Tp) => .some(deRef(A)).
-  funTypeArg(Tp) where .prcType(A,_) .= deRef(Tp) => .some(deRef(A)).
-  funTypeArg(Tp) where .cnsType(A,_) .= deRef(Tp) => .some(deRef(A)).
+  funTypeArg(Tp) where .funType(A,_,_) .= deRef(Tp) => .some(A).
+  funTypeArg(Tp) where .prcType(A,_) .= deRef(Tp) => .some(A).
+  funTypeArg(Tp) where .cnsType(A,_) .= deRef(Tp) => .some(A).
   funTypeArg(_) default => .none.
 
   public funTypeRes(Tp) => funRes(deRef(Tp)).
 
   funRes(.funType(_,R,_)) => R.
   funRes(.cnsType(O,R)) => R.
+  funRes(.structType(_,R)) => R.
   funRes(.allType(_,Tp)) => funTypeRes(Tp).
   funRes(.existType(_,Tp)) => funTypeRes(Tp).
   funRes(.constrainedType(T,_))=>funTypeRes(T).
 
-  extendArgType:all x ~~ hasType[x->>tipe] |= (tipe,option[x])=>tipe.
-  extendArgType(Tp,.none) => Tp.
-  extendArgType(Tp,.some(C))
-      where .tupleType(Els).=deRef(Tp) => .tupleType([typeOf(C),..Els]).
+  extendArgType:all x ~~ hasType[x->>tipe] |= (cons[tipe],option[x])=>cons[tipe].
+  extendArgType(Args,.none) => Args.
+  extendArgType(Args,.some(C)) => [typeOf(C),..Args].
 
   public isThrowingType:(tipe) => boolean.
   isThrowingType(Tp) => _ ?= isThrowingFunType(Tp).
 
-  public isThrowingFunType:(tipe) => option[(tipe,tipe,tipe)].
+  public isThrowingFunType:(tipe) => option[(cons[tipe],tipe,tipe)].
   isThrowingFunType(Tp) => let{.
     thrFnTp(.allType(_,T)) => thrFnTp(deRef(T)).
     thrFnTp(.existType(_,T)) => thrFnTp(deRef(T)).
     thrFnTp(.constrainedType(T,E)) => thrFnTp(deRef(T)).
-    thrFnTp(.funType(A,R,E)) where ~ .voidType==E => .some((deRef(A),deRef(R),deRef(E))).
-    thrFnTp(.prcType(A,E)) where ~ .voidType==E => .some((deRef(A),.voidType,deRef(E))).
+    thrFnTp(.funType(A,R,E)) where ~ .voidType==E => .some((A,deRef(R),deRef(E))).
+    thrFnTp(.prcType(A,E)) where ~ .voidType==E => .some((A,.voidType,deRef(E))).
     thrFnTp(_) default => .none.
   .} in thrFnTp(deRef(Tp)).
 
@@ -571,23 +583,24 @@ star.compiler.types{
     | .allType(V,B) => .allType(V,extendFunTp(B,Vs))
     | .existType(V,B) => .existType(V,extendFunTp(B,Vs))
     | .constrainedType(T,C) => .constrainedType(extendFunTp(T,Vs),C)
-    | .funType(A,R,E) => .funType(extendTplType(deRef(A),Vs),R,E)
-    | .prcType(A,E) => .prcType(extendTplType(deRef(A),Vs),E)
-    | .cnsType(A,R) => .cnsType(extendTplType(deRef(A),Vs),R)
+    | .funType(A,R,E) => .funType(extendTplType(A,Vs),R,E)
+    | .prcType(A,E) => .prcType(extendTplType(A,Vs),E)
+    | .cnsType(A,R) => .cnsType(extendTplType(A,Vs),R)
+    | .structType(_,_) => Tp
   }
 
-  extendTplType:(tipe,option[tipe])=>tipe.
+  extendTplType:(cons[tipe],option[tipe])=>cons[tipe].
   extendTplType(Es,.none) => Es.
-  extendTplType(.tupleType(Es),.some(T)) => .tupleType([T,..Es]).
+  extendTplType(Es,.some(T)) => [T,..Es].
 
-  public isFunType:(tipe) => option[(tipe,tipe,tipe)].
+  public isFunType:(tipe) => option[(cons[tipe],tipe,tipe)].
   isFunType(.allType(_,Tp)) => isFunType(deRef(Tp)).
   isFunType(.existType(_,Tp)) => isFunType(deRef(Tp)).
   isFunType(.constrainedType(T,_))=>isFunType(T).
   isFunType(.funType(A,R,E)) => .some((A,R,E)).
   isFunType(_) default => .none.
 
-  public isPrType:(tipe) => option[(tipe,tipe)].
+  public isPrType:(tipe) => option[(cons[tipe],tipe)].
   isPrType(Tp) where .prcType(A,E) .= deRef(Tp) => .some((A,E)).
   isPrType(_) default => .none.
 
@@ -596,12 +609,19 @@ star.compiler.types{
   typeThrows(Tp) where (_,Th) ?= isPrType(Tp) => Th.
   typeThrows(_) default => .voidType.
 
-  public isConsType:(tipe) => option[(tipe,tipe)].
+  public isConsType:(tipe) => option[(cons[tipe],tipe)].
   isConsType(Tp) => isCnType(deRef(Tp)).
 
-  isCnType:(tipe) => option[(tipe,tipe)].
+  isCnType:(tipe) => option[(cons[tipe],tipe)].
   isCnType(.cnsType(A,R)) => .some((A,R)).
   isCnType(_) default => .none.
+
+  public isStructType:(tipe) => option[(tipe,tipe)].
+  isStructType(Tp) => isStrType(deRef(Tp)).
+
+  isStrType:(tipe) => option[(tipe,tipe)].
+  isStrType(.structType(F,R)) => .some((F,R)).
+  isStrType(_) default => .none.
 
   public isConstrainedType:(tipe) => boolean.
   isConstrainedType(Tp) => isConstrained(deRef(Tp)).
@@ -616,7 +636,7 @@ star.compiler.types{
     (.tupleType(A) .= deRef(Tp) ?? .some((size(A),A)) || .none).
 
   public isEnumType:(tipe)=>option[tipe].
-  isEnumType(Tp) where (A,T)?=isConsType(Tp) && .tupleType([]).=deRef(A) => .some(T).
+  isEnumType(Tp) where (A,T)?=isConsType(Tp) && [] .= A => .some(T).
   isEnumType(_) default => .none.
 
   public netEnumType:(tipe)=>tipe.
@@ -676,7 +696,10 @@ star.compiler.types{
     reX([Q,..Qs],Tp) => reX(Qs,Tp).
   .} in {
     reQuant = reQ.
-    reQuantX(Qs,X) => ((L,R)?=isConsType(X) ?? consType(reX(Qs,L),R) || reX(Qs,X)).
+
+    reQuantX(Qs,X) where (L,R) ?= isConsType(X) => consType(L//(T)=>reX(Qs,T),R).
+    reQuantX(Qs,X) where (F,R) ?= isStructType(X) => .structType(reX(Qs,F),R).
+    reQuantX(Qs,X) default => reX(Qs,X).
   }
 
   public implementation reQuant[typeRule] => let {.
@@ -743,9 +766,10 @@ star.compiler.types{
   occIn(Id,.kVar(Nm)) => Id==Nm.
   occIn(Id,.kFun(Nm,_)) => Id==Nm.
   occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
-  occIn(Id,.funType(A,R,E)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)) || occIn(Id,deRef(E)).
-  occIn(Id,.prcType(A,E)) => occIn(Id,deRef(A)) || occIn(Id,deRef(E)).
-  occIn(Id,.cnsType(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
+  occIn(Id,.funType(A,R,E)) => occInTps(Id,A) || occIn(Id,deRef(R)) || occIn(Id,deRef(E)).
+  occIn(Id,.prcType(A,E)) => occInTps(Id,A) || occIn(Id,deRef(E)).
+  occIn(Id,.cnsType(A,R)) => occInTps(Id,A) || occIn(Id,deRef(R)).
+  occIn(Id,.structType(F,R)) => occIn(Id,deRef(F)) || occIn(Id,deRef(R)).
   occIn(Id,.tupleType(Els)) => occInTps(Id,Els).
   occIn(Id,.allType(.nomnal(Id),_)) => .false.
   occIn(Id,.allType(_,B)) => occIn(Id,deRef(B)).
@@ -786,9 +810,10 @@ star.compiler.types{
     Vrs\+V.
   unbVrs(.tpExp(O,A),Vrs) => unbVrs(deRef(O),unbVrs(deRef(A),Vrs)).
   unbVrs(.funType(A,R,E),Vrs) =>
-    unbVrs(deRef(A),unbVrs(deRef(R),unbVrs(deRef(E),Vrs))).
-  unbVrs(.prcType(A,E),Vrs) => unbVrs(deRef(A),unbVrs(deRef(E),Vrs)).
-  unbVrs(.cnsType(A,R),Vrs) => unbVrs(deRef(A),unbVrs(deRef(R),Vrs)).
+    unbVrsTps(A,unbVrs(deRef(R),unbVrs(deRef(E),Vrs))).
+  unbVrs(.prcType(A,E),Vrs) => unbVrsTps(A,unbVrs(deRef(E),Vrs)).
+  unbVrs(.cnsType(A,R),Vrs) => unbVrsTps(A,unbVrs(deRef(R),Vrs)).
+  unbVrs(.structType(F,R),Vrs) => unbVrs(deRef(F),unbVrs(deRef(R),Vrs)).
   unbVrs(.tupleType(Els),Vrs) => unbVrsTps(Els,Vrs).
   unbVrs(.allType(_,B),Vrs) => unbVrs(deRef(B),Vrs).
   unbVrs(.existType(_,B),Vrs) => unbVrs(deRef(B),Vrs).
@@ -830,9 +855,10 @@ star.compiler.types{
     ({? Nm in Ign ?} ?? Vrs || Vrs\+.kFun(Nm,Ar)).
   catv(.tpExp(O,A),Ign,Vrs) => catv(deRef(O),Ign,catv(deRef(A),Ign,Vrs)).
   catv(.funType(A,R,E),Ign,Vrs) =>
-    catv(deRef(A),Ign,catv(deRef(R),Ign,catv(deRef(E),Ign,Vrs))).
-  catv(.prcType(A,E),Ign,Vrs) => catv(deRef(A),Ign,catv(deRef(E),Ign,Vrs)).
-  catv(.cnsType(A,R),Ign,Vrs) => catv(deRef(A),Ign,catv(deRef(R),Ign,Vrs)).
+    catvTps(A,Ign,catv(deRef(R),Ign,catv(deRef(E),Ign,Vrs))).
+  catv(.prcType(A,E),Ign,Vrs) => catvTps(A,Ign,catv(deRef(E),Ign,Vrs)).
+  catv(.cnsType(A,R),Ign,Vrs) => catvTps(A,Ign,catv(deRef(R),Ign,Vrs)).
+  catv(.structType(F,R),Ign,Vrs) => catv(deRef(F),Ign,catv(deRef(R),Ign,Vrs)).
   catv(.tupleType(Els),Ign,Vrs) => catvTps(Els,Ign,Vrs).
   catv(.allType(V,B),Ign,Vrs) => catv(deRef(B),Ign\+catvNm(V),Vrs).
   catv(.existType(V,B),Ign,Vrs) => catv(deRef(B),Ign\+catvNm(V),Vrs).
@@ -888,9 +914,10 @@ star.compiler.types{
   sst(.kFun(Nm,Ar),Subst) => (New?=lookupSubst(Nm,Subst) ?? New || .kFun(Nm,Ar)).
   sst(.tpExp(O,A),Subst) => .tpExp(skolSubstTp(O,Subst),skolSubstTp(A,Subst)).
   sst(.tupleType(Es),Subst) => .tupleType(skolSubstTs(Es,Subst)).
-  sst(.funType(A,R,E),Subst) => .funType(skolSubstTp(A,Subst),skolSubstTp(R,Subst),skolSubstTp(E,Subst)).
-  sst(.prcType(A,E),Subst) => .prcType(skolSubstTp(A,Subst),skolSubstTp(E,Subst)).
-  sst(.cnsType(A,R),Subst) => .cnsType(skolSubstTp(A,Subst),skolSubstTp(R,Subst)).
+  sst(.funType(A,R,E),Subst) => .funType(skolSubstTs(A,Subst),skolSubstTp(R,Subst),skolSubstTp(E,Subst)).
+  sst(.prcType(A,E),Subst) => .prcType(skolSubstTs(A,Subst),skolSubstTp(E,Subst)).
+  sst(.cnsType(A,R),Subst) => .cnsType(skolSubstTs(A,Subst),skolSubstTp(R,Subst)).
+  sst(.structType(F,R),Subst) => .structType(skolSubstTp(F,Subst),skolSubstTp(R,Subst)).
   sst(.faceType(Es,Rls),Subst) => .faceType(skolTpEls(Es,Subst),skolTpRls(Rls,Subst)).
   sst(.allType(V,T),Subst) => .allType(V,skolSubstTp(T,Subst)).
   sst(.existType(V,T),Subst) => .existType(V,skolSubstTp(T,Subst)).

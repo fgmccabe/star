@@ -73,9 +73,8 @@ star.compiler.resolve{
 
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (_,ITp) = deConstrain(Qt);
-    (Atp,Rtp,Etp) = splitupProgramType(Lc,CDict,ITp);
-    if .tupleType(AITp).=deRef(Atp) && RITp .= deRef(Rtp) then {
-      CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,Etp));
+    if (AITp,RITp,Etp) ?= isFunType(deRef(ITp)) then {
+      CTp = reQuant(Qx,.funType((Cx//typeOf)++AITp,RITp,Etp));
       if traceResolve! then
 	showMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
       valis .funDef(Lc,Nm,REqns,[],CTp)
@@ -101,18 +100,11 @@ star.compiler.resolve{
     RRls = Rls//(Eq)=>resolveRule(Eq,Extra,CDict);
 
     (_,ITp) = deConstrain(Qt);
-    if (ATp,ETp) ?= isPrType(ITp) then{
-      if .tupleType(AITp).=deRef(ATp) then {
-	CTp = reQuant(Qx,procType((Cx//typeOf)++AITp,ETp));
-	if traceResolve! then
-	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
-	valis .prcDef(Lc,Nm,RRls,[],CTp)
-      } else{
-	CTp = reQuant(Qx,procType((Cx//typeOf)++[ATp],ETp));
-	if traceResolve! then
-	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
-	valis .prcDef(Lc,Nm,RRls,[],CTp)
-      }
+    if (AITp,ETp) ?= isPrType(deRef(ITp)) then{
+      CTp = reQuant(Qx,procType((Cx//typeOf)++AITp,ETp));
+      if traceResolve! then
+	showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
+      valis .prcDef(Lc,Nm,RRls,[],CTp)
     } else{
       reportError("type of $(Nm) not a procedure type",Lc);
       valis .prcDef(Lc,Nm,RRls,[],Tp)
@@ -376,8 +368,8 @@ star.compiler.resolve{
       Eqn = resolveEqn(Rl,Extra,CDict);
       (Qx,Qt) = deQuant(Tp);
       (_,ITp) = deConstrain(Qt);
-      if .funType(.tupleType(AITp),RITp,EITp).=deRef(ITp) then {
-	CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,EITp));
+      if .funType(AITp,RITp,EITp).=deRef(ITp) then {
+	CTp = reQuant(Qx,.funType((Cx//typeOf)++AITp,RITp,EITp));
 	if traceResolve! then
 	  showMsg("overloaded constrained lambda $(.lambda(Lc,Nm,Eqn,CTp))");
 	valis (.lambda(Lc,Nm,Eqn,CTp),St)
@@ -408,8 +400,8 @@ star.compiler.resolve{
       RRle = resolveRule(Rl,Extra,CDict);
       (Qx,Qt) = deQuant(Tp);
       (_,ITp) = deConstrain(Qt);
-      if .funType(.tupleType(AITp),RITp,EITp).=deRef(ITp) then {
-	CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,EITp));
+      if .funType(AITp,RITp,EITp).=deRef(ITp) then {
+	CTp = reQuant(Qx,.funType((Cx//typeOf)++AITp,RITp,EITp));
 	if traceResolve! then
 	  showMsg("overloaded constrained rule $(.prc(Lc,Nm,RRle,CTp))");
 	valis (.prc(Lc,Nm,RRle,CTp),St)
@@ -495,7 +487,7 @@ star.compiler.resolve{
   overApply(Lc,OverOp,Args,Tp) =>
     curryOver(Lc,OverOp,Args,Tp).
 
-  curryOver(Lc,OverOp,Args,Tp) where .tupleType(ArgTps) ?= funTypeArg(Tp) => valof{
+  curryOver(Lc,OverOp,Args,Tp) where ArgTps ?= funTypeArg(Tp) => valof{
     Vrs = { .vr(Lc,genSym("A"),ArgTp) | ArgTp in ArgTps};
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
@@ -817,8 +809,7 @@ star.compiler.resolve{
     disp(.fatal(Lc,Msg)) => "error $(Lc)\:#(Msg)".
   }
 
-  public splitupProgramType(Lc,Env,PTp) => valof{
-    ATp = newTypeVar("_A");
+  public splitupProgramType(Lc,Env,PTp,ATp) => valof{
     RTp = newTypeVar("_R");
     ETp = newTypeVar("_E");
 

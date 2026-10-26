@@ -121,9 +121,10 @@ star.compiler.freshen{
   frshn(.tpFun(N,A),_) => .tpFun(N,A).
   frshn(.tpExp(O,A),Env) => .tpExp(frshnD(O,Env),frshnD(A,Env)).
   frshn(.tupleType(Els),Env) => .tupleType(frshnList(Els,Env)).
-  frshn(.funType(A,R,E),Env) => .funType(frshnD(A,Env),frshnD(R,Env),frshnD(E,Env)).
-  frshn(.prcType(A,E),Env) => .prcType(frshnD(A,Env),frshnD(E,Env)).
-  frshn(.cnsType(A,R),Env) => .cnsType(frshnD(A,Env),frshnD(R,Env)).
+  frshn(.funType(A,R,E),Env) => .funType(frshnList(A,Env),frshnD(R,Env),frshnD(E,Env)).
+  frshn(.prcType(A,E),Env) => .prcType(frshnList(A,Env),frshnD(E,Env)).
+  frshn(.cnsType(A,R),Env) => .cnsType(frshnList(A,Env),frshnD(R,Env)).
+  frshn(.structType(F,R),Env) => .structType(frshnD(F,Env),frshnD(R,Env)).
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
       Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
@@ -158,9 +159,10 @@ star.compiler.freshen{
   skol(.tpFun(N,A),_) => .tpFun(N,A).
   skol(.tpExp(O,A),Env) => .tpExp(skolD(O,Env),skolD(A,Env)).
   skol(.tupleType(Els),Env) => .tupleType(skolList(Els,Env)).
-  skol(.funType(A,R,E),Env) => .funType(skolD(A,Env),skolD(R,Env),skolD(E,Env)).
-  skol(.prcType(A,E),Env) => .prcType(skolD(A,Env),skolD(E,Env)).
-  skol(.cnsType(A,R),Env) => .cnsType(skolD(A,Env),skolD(R,Env)).
+  skol(.funType(A,R,E),Env) => .funType(skolList(A,Env),skolD(R,Env),skolD(E,Env)).
+  skol(.prcType(A,E),Env) => .prcType(skolList(A,Env),skolD(E,Env)).
+  skol(.cnsType(A,R),Env) => .cnsType(skolList(A,Env),skolD(R,Env)).
+  skol(.structType(F,R),Env) => .structType(skolD(F,Env),skolD(R,Env)).
   skol(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,skolD(E,Env))),
     Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).

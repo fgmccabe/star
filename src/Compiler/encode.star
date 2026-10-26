@@ -56,10 +56,11 @@ star.compiler.encode{
     | .tpFun(Nm,Ar) => [`z`]++encodeNat(Ar)++encodeText(Nm)
     | .tpExp(.tpFun("cons",1),El) => [`L`]++encodeType(El)
     | .tpExp(.tpFun("ref",1),El) => [`r`]++encodeType(El)
-    | .funType(A,R,E) where .voidType.=deRef(E) => [`F`]++encodeType(A)++encodeType(R)
-    | .funType(A,R,E) => [`T`]++encodeType(A)++encodeType(R)++encodeType(E)
-    | .prcType(A,E) => [`P`]++encodeType(A)++encodeType(E)
-    | .cnsType(A,R) => [`C`]++encodeType(A)++encodeType(R)
+    | .funType(A,R,E) where .voidType.=deRef(E) => [`F`]++encodeTypeList(A)++encodeType(R)
+    | .funType(A,R,E) => [`T`]++encodeTypeList(A)++encodeType(R)++encodeType(E)
+    | .prcType(A,E) => [`P`]++encodeTypeList(A)++encodeType(E)
+    | .cnsType(A,R) => [`C`]++encodeTypeList(A)++encodeType(R)
+    | .structType(F,R) => [`S`]++encodeType(F)++encodeType(R)
     | .tpExp(Op,A) => [`U`]++encodeType(Op)++encodeType(A)
     | .tupleType(Els) => [`(`]++encodeTypes(Els)++[`)`]
     | .allType(V,T) => [`:`]++encodeType(V)++encodeType(T)
@@ -72,6 +73,9 @@ star.compiler.encode{
   encodeTypes([]) => [].
   encodeTypes([T,..Tps]) =>
     encodeType(T)++encodeTypes(Tps).
+
+  encodeTypeList:(cons[tipe])=>multi[char].
+  encodeTypeList(Args) => [`(`]++encodeTypes(Args)++[`)`].
 
   encodeFldTypes:(cons[(string,tipe)])=>multi[char].
   encodeFldTypes(Flds) =>

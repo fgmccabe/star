@@ -102,7 +102,8 @@ char *dumpStarSig(char *sig, ioPo out) {
     }
     case funSig: {
       outStr(out, ".funType(");
-      sig = dumpStarSig(sig, out);
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ",.voidType)");
@@ -110,7 +111,8 @@ char *dumpStarSig(char *sig, ioPo out) {
     }
     case prcSig: {
       outStr(out, ".prcType(");
-      sig = dumpStarSig(sig, out);
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
@@ -118,6 +120,15 @@ char *dumpStarSig(char *sig, ioPo out) {
     }
     case conSig: {
       outStr(out, ".cnsType(");
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
+      outStr(out, ",");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    case structSig: {
+      outStr(out, ".structType(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
@@ -126,7 +137,8 @@ char *dumpStarSig(char *sig, ioPo out) {
     }
     case throwSig: {
       outStr(out, ".funType(");
-      sig = dumpStarSig(sig, out);
+      assert(*sig == tplSig);
+      sig = dSequence(++sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");

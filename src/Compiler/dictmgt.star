@@ -220,7 +220,7 @@ star.compiler.dict.mgt{
 
   public pushFace:(tipe,option[locn],dict,string) => dict.
   pushFace(Tp,Lc,Env,Path) =>
-    pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ??
+    pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => ((_ ?= isConsType(DQ) || _ ?= isStructType(DQ)) ??
 	declareConstructor(Id,qualifiedName(Path,.valMark,Id),Lc,T,E) ||
 	declareVar(Id,qualifiedName(Path,.valMark,Id),Lc,T,.none,E)),
       Env).
