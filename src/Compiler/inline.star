@@ -370,7 +370,7 @@ star.compiler.inline{
 
   inlineCall:(option[locn],string,cons[cExp],ltipe,map[defnSp,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) where Depth>0 &&
-      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) && ~ isThrowingTipe(FTp) => valof{
+      Def ?= Map[.varSp(Nm)] && .fnDef(_,_,FTp,Vrs,Rep).=Def && isSmall(Def) && ~ isThrowingTipe(FTp) && haveContent(Args) => valof{
     CallTp = .fnTipe(Args//typeOf,Tp,.vdTipe);
 
     if [|Args|] ~= [|Vrs|] then
@@ -459,4 +459,7 @@ star.compiler.inline{
 
   isSmall:(cDefn) => boolean.
   isSmall(Df) => isLeafDef(Df) || [|Df|] < 32.
+
+  haveContent:(cons[cExp])=>boolean.
+  haveContent(Vrs) => {? V in Vrs *> (isGround(V) || .cTerm(_,_,_,_) .= V) ?}
 }

@@ -711,10 +711,6 @@ star.compiler.term{
   foldCasesA:all env,r,ra ~~ (cons[cCase[aAction]],env,treeAlgebra[env,r,ra]) => cons[cCase[ra]].
   foldCasesA(Cs,Nv,Alg) => (Cs//((Lc,Ptn,Rep))=>(Lc,Ptn,foldAct(Rep,Nv,Alg))).
 
-  /* Rebuild-only baseline: foldExp(E,Nv,identityAlgebra) == E for any Nv, same as rwTerm
-     with an always-.none test. Every other walker is either this with a handful of fields
-     overridden, or a genuinely different result type (r=integer for a counter, r=boolean
-     for a search, r=cExp with substitution for a rewriter). */
   public identityAlgebra:all env ~~ treeAlgebra[env,cExp,aAction].
   identityAlgebra = treeAlgebra{
     onVoid(_,Lc)=>.cVoid(Lc).
