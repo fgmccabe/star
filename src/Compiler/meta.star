@@ -75,7 +75,7 @@ star.compiler.meta{
 
   public implementation display[decl] => {
     disp(Dc) => case Dc in {
-      | .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)"
+      | .conDec(_,Nm,_,RlTp) => "Strct #(Nm)\:$(RlTp)"
       | .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)[#(ImplNm)]\:$(ImplTp)"
       | .accDec(_,Tp,Fld,Fun,Ix,FunTp) => "Acc $(Tp).#(Fld) ($(Ix)) using #(Fun)\:$(FunTp)"
       | .updDec(_,Tp,Fld,Fun,Ix,FunTp) => "Upd $(Tp).#(Fld) ($(Ix)) using #(Fun)\:$(FunTp)"

@@ -457,6 +457,9 @@ star.compiler.typeparse{
     ConRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.contractExists(FullNm,ArgTps,DepTps,Face),Qv);
     ConDec = .conDec(Lc,Id,FullNm,ConRl);
 
+    if traceCanon! then
+      showMsg("contract constructor $(ConDec)");
+
     DlId = dlrName(Id);
     DlTp = makeTpExp(FullNm,ArgTps++DepTps);
 
@@ -465,11 +468,11 @@ star.compiler.typeparse{
 
     ConConTp = reQ(Qv,wrapConstraints(Cx,.structType(.faceType(Flds,Tps),DlTp)));
 
-    if traceCanon! then
-      showMsg("contract constructor type $(ConConTp)");
-
     ConFullNm = qualifiedName(Path,.typeMark,DlId);
     ConCns = .cnsDec(Lc,DlId,ConFullNm,0,ConConTp);
+
+    if traceCanon! then
+      showMsg("contract $constructor $(ConCns)");
 
     (ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Path);
 

@@ -693,9 +693,9 @@ star.compiler.gencode{
 
     Caser = ((Bks)=>(.int64==typeOf(Gv) ?? [.iICase(GV,Bks)] || [.iCase(GV,Bks)]));
 
-    CC = compCases(Table,0,Max,GV,Df,Hndlr,Brks,Last,GC,Caser,Ctx);
+    CC = compCases(Table,0,Max,GV,Df,Hndlr,Brks,Last,[],Caser,Ctx);
 
-    valis [.iLbl(Df,.iBlock([],CC))]++DC
+    valis GC++[.iLbl(Df,.iBlock([],CC))]++DC
   }
 
   compIndexCase:all e ~~ display[e] |=
