@@ -693,6 +693,8 @@ star.compiler.types{
 
     reX(Q,Tp) where (L,R) ?= isStructType(Tp) && ~occursIn(Q,R) =>
       .structType(reX(Q,L),R).
+    reX(Q,Tp) where (L,R) ?= isConsType(Tp) && ~occursIn(Q,R) =>
+      .cnsType(L//(T)=>reX(Q,T),R).
     reX(Q,Tp) where occursIn(Q,Tp) => .existType(Q,Tp).
     reX(_,Tp) default => Tp.
 

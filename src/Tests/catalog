@@ -77,6 +77,8 @@
     "test.dyn2": "dyn2.star",
     "test.dy2": "dy2.star",
     "test.e": "e.star",
+    "test.e1": "e1.star",
+    "test.e2": "e2.star",
     "test.either": "either.star",
     "test.eras": "eras.star",
     "test.ex0": "ex0.star",
