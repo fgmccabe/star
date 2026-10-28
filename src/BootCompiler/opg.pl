@@ -83,34 +83,24 @@ term0([lftTok("{..}",Lcx)|Tks],tuple(Lc,"{..}",Seq),Toks,rbrce) :-!,
   mergeLoc(Lcx,Lcy,Lc).
 term0(Tks,T,Toks,Lst) :- term00(Tks,Op,RTks,LLst), termArgs(RTks,Op,T,Toks,LLst,Lst).
 
-emptyBkt(Lc,"[]",tuple(Lc,"[]",[])).
-emptyBkt(Lc,"()",tuple(Lc,"()",[])).
-
 term00([idTok(I,Lc)|Toks],name(Lc,I),Toks,id) :-
       (isOperator(I), \+lookAhead(rgtTok("()",_),Toks), !, reportError("unexpected operator: '%s'",[I],Lc);
       true).
 term00([idQTok(I,Lc)|Toks],qnme(Lc,I),Toks,id).
-term00([lftTok("()",Lc0),rgtTok("()",Lc2)|Toks],tuple(Lc,"()",[]),Toks,rpar) :-
-  mergeLoc(Lc0,Lc2,Lc).
-term00([lftTok("()",Lcx)|Tks],T,Toks,rpar) :-
-  term(Tks,2000,Seq,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok("()",Lcy),Lcy,"missing close parenthesis, got %s, left paren at %s",[Lcx]),
+term00([lftTok(Bkt,Lc0),rgtTok(Bkt,Lc1)|Toks],tuple(Lc,Bkt,[]),Toks,rpar) :-
+  bracket(Bkt,_,_,_,_),!,
+  mergeLoc(Lc0,Lc1,Lc).
+term00([lftTok(Bkt,Lcx)|Tks],T,Toks,rpar) :-
+  bracket(Bkt,_,_,_,Inner),!,
+  term(Tks,Inner,Seq,Tks2,_),
+  checkToken(Tks2,Toks,rgtTok(Bkt,Lcy),Lcy,"missing close parenthesis, got %s, left paren at %s",[Lcx]),
   mergeLoc(Lcx,Lcy,Lc),
-  tupleize(Seq,Lc,"()",T).
-term00([lftTok("[]",Lc0),rgtTok("[]",Lc2)|Toks],tuple(Lc,"[]",[]),Toks,rbra) :-
-  mergeLoc(Lc0,Lc2,Lc).
-term00([lftTok("[]",Lcx)|Tks],T,Toks,rbra) :-
-  term(Tks,2000,Seq,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok("[]",Lcy),Lcy,"missing close bracket, got %s, left bracket at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc),
-  tupleize(Seq,Lc,"[]",T).
-term00([lftTok(Bkt,Lc0),rgtTok(Bkt,Lc2)|Toks],name(Lc,Bkt),Toks,rbra) :-
-  mergeLoc(Lc0,Lc2,Lc).
-term00([lftTok(Bkt,Lcx)|Tks],T,Toks,rbra) :- % all other brackets go here
-  term(Tks,2000,Cont,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok(Bkt,Lcy),Lcy,"missing close bracket, got %s, left bracket at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc),
-  unary(Lc,Bkt,Cont,T).
+  genBkt(Lc,Bkt,Seq,T).
+
+genBkt(Lc,"[]",Arg,Trm) :- !, tupleize(Arg,Lc,"[]",Trm).
+genBkt(Lc,"()",Arg,Trm) :- !, tupleize(Arg,Lc,"()",Trm).
+genBkt(Lc,"⟨⟩",Arg,Trm) :- !, tupleize(Arg,Lc,"⟨⟩",Trm).
+genBkt(Lc,Bkt,Arg,Trm) :- unary(Lc,Bkt,Arg,Trm).
 
 termArgs([],T,T,[],Lst,Lst).
 termArgs([lftTok("()",_),rgtTok("()",Lcy)|Tks],Op,T,Toks,_,Lst) :-
