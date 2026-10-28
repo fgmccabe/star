@@ -43,7 +43,7 @@
 ;;; Initialise the key map
 (defvar star-mode-map
   (let ((map (make-sparse-keymap))
-        (electric-keys '("{" "}" ";" "|" "," "(" ")")))
+        (electric-keys '("{" "}" ";" "|" ",")))
     (define-key map "\t" 'indent-for-tab-command)
     (define-key map "\C-\M-q" 'star-indent)
     (define-key map "\C-c\C-c" 'comment-region)
@@ -52,11 +52,44 @@
     (define-key map "\C-cr" 'star-run)
     (define-key map "\C-co" 'star-remote)
     (dolist (key electric-keys)
-      (define-key map 
-	key 
+      (define-key map
+	key
 	'star-self-insert-and-indent-command))
+    (define-key map "(" 'star-open-paren-command)
+    (define-key map ")" 'star-close-paren-command)
     map)
   "Keymap for Star major mode.")
+
+;;; `(' and `)' are overloaded to also give convenient entry of the
+;;; `<' `>' angle brackets.  Typing `.(' converts the preceding `.'
+;;; into `<', and the matching `)' is then entered as `>'.  A
+;;; per-buffer stack remembers, for each open bracket typed through
+;;; these commands, whether it is a plain paren or one of these
+;;; converted angle brackets, so that the corresponding close key
+;;; produces the right character even when brackets are nested.
+
+(defvar-local star-paren-stack nil
+  "Stack of `paren' or `angle' markers for `(' typed via `star-open-paren-command'.")
+
+(defun star-open-paren-command (n)
+  "Insert `(', or `<' when it immediately follows a `.'."
+  (interactive "*P")
+  (if (eq (char-before) ?.)
+      (progn
+	(delete-char -1)
+	(insert "<")
+	(push 'angle star-paren-stack))
+    (self-insert-command (prefix-numeric-value n))
+    (push 'paren star-paren-stack))
+  (indent-for-tab-command))
+
+(defun star-close-paren-command (n)
+  "Insert `)', or `>' when it matches a `.(' that was converted to `<'."
+  (interactive "*P")
+  (if (eq (pop star-paren-stack) 'angle)
+      (insert ">")
+    (self-insert-command (prefix-numeric-value n)))
+  (indent-for-tab-command))
 
 ;;; Font-lock support
 
