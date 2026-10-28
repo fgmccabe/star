@@ -145,6 +145,7 @@
   bracket("/../", "/.", "./", "", 2000).
   bracket("{..}", "{.", ".}", ".\n", 2000).
   bracket("[]", "[", "]", ",", 2000).
+  bracket("⟨⟩", "⟨", "⟩", ",", 2000).
   bracket("()", "(", ")", ",", 2000).
   bracket("{}", "{", "}", ".\n", 2000).
   bracket("{??}", "{?", "?}", "", 2000).
@@ -152,6 +153,8 @@
 
   follows('','⊕','⊕').
   follows('','ζ','ζ').
+  follows('','⟨','⟨').
+  follows('','⟩','⟩').
   follows('','!','!').
   follows('','•','•').
   follows('','#','#').
@@ -271,6 +274,8 @@
 
   final('⊕',"⊕").	 /* addition */
   final('ζ',"ζ").	 /* interpret a symbol without dereferencing constraints */
+  final('⟨',"⟨").	 /* tuple brackets */
+  final('⟩',"⟩").	 /* tuple brackets */
   final('!',"!").	 /* pick up value from a ref cell */
   final('!!',"!!").	 /* pick up value from a thunk */
   final('!}',"!}").	 /* iota comprehension */
@@ -461,6 +466,8 @@
   keyword("~>").
   keyword("~~").
   keyword("ζ").
+  keyword("⟨").
+  keyword("⟩").
 
   isKeyword(X):- keyword(X), !.
 

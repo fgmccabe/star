@@ -176,6 +176,9 @@ star.compiler.operators{
     | "[" => .some(.bkt("[","[]","]",",",2000))
     | "]" => .some(.bkt("[","[]","]",",",2000))
     | "[]" => .some(.bkt("[","[]","]",",",2000))
+    | "⟨" => .some(.bkt("⟨","⟨⟩","⟩",",",2000))
+    | "⟩" => .some(.bkt("⟨","⟨⟩","⟩",",",2000))
+    | "⟨⟩" => .some(.bkt("⟨","⟨⟩","⟩",",",2000))
     | "(" => .some(.bkt("(","()",")",",",2000))
     | ")" => .some(.bkt("(","()",")",",",2000))
     | "()" => .some(.bkt("(","()",")",",",2000))
@@ -201,6 +204,8 @@ star.compiler.operators{
   first(Op) => case Op in {
     | `⊕` => .some("⊕")
     | `ζ` => .some("ζ")
+    | `⟨` => .some("⟨")
+    | `⟩` => .some("⟩")
     | `!` => .some("!")
     | `•` => .some("•")
     | `#` => .some("#")
@@ -327,6 +332,8 @@ star.compiler.operators{
   final(Op) => case Op in {
     | "⊕" => .true  /* addition */
     | "ζ" => .true  /* interpret a symbol without dereferencing constraints */
+    | "⟨" => .true  /* tuple brackets */
+    | "⟩" => .true  /* tuple brackets */
     | "!" => .true  /* pick up value from a ref cell */
     | "!!" => .true  /* pick up value from a thunk */
     | "!}" => .true  /* iota comprehension */
@@ -521,6 +528,8 @@ star.compiler.operators{
     | "~>" => .true
     | "~~" => .true
     | "ζ" => .true
+    | "⟨" => .true
+    | "⟩" => .true
     | _ default => .false
   }
 }

@@ -121,6 +121,7 @@ star.compiler.opg{
   genBkt(Lc,"()",Arg)=>.tpl(Lc,"()",deComma(Arg)).
   genBkt(Lc,"{}",Arg)=>.tpl(Lc,"{}",deComma(Arg)).
   genBkt(Lc,"{..}",Arg)=>.tpl(Lc,"{..}",deComma(Arg)).
+  genBkt(Lc,"⟨⟩",Arg)=>.tpl(Lc,"⟨⟩",deComma(Arg)).
   genBkt(Lc,"(||)",Arg)=>unary(Lc,"(||)",Arg).
   genBkt(Lc,"[||]",Arg)=>unary(Lc,"[||]",Arg).
   genBkt(Lc,"<||>",Arg)=>unary(Lc,"<||>",Arg).
