@@ -38,7 +38,7 @@ termPo nthArg(normalPo term, int32 ix) {
   return term->args[ix];
 }
 
-termPo lastArg(normalPo term) {
+static termPo lastArg(normalPo term) {
   return term->args[lblArity(termLbl(term)) - 1];
 }
 
@@ -58,8 +58,8 @@ retCode showTerm(ioPo f, void* data, long depth, long precision, logical alt) {
 
 void initTerm() {}
 
-static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {
-  retCode ret = outChar(out, '(');
+static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt, char* prefix, char* suffix) {
+  retCode ret = outStr(out, prefix);
   if (depth > 0) {
     char* sep = "";
     int32 ar = termArity(nml);
@@ -73,7 +73,7 @@ static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth
   else
     ret = outStr(out, "...");
   if (ret == Ok)
-    ret = outChar(out, ')');
+    ret = outStr(out, suffix);
   return ret;
 }
 
@@ -90,7 +90,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     labelPo lbl = termLbl(nml);
 
     if (isTplLabel(lblName(lbl))) {
-      return showArgs(out, nml, precision, depth, alt);
+      return showArgs(out, nml, precision, depth, alt, "⟨", "⟩");
     }
     else if (lblArity(lbl) == 0) {
       return outMsg(out, ".%s", (alt ? lblSuffix(lbl, '#') : lblName(lbl)));
@@ -104,7 +104,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     else {
       retCode ret = outMsg(out, ".%s", (alt ? lblSuffix(lbl, '#') : lblName(lbl)));
       if (ret == Ok)
-        ret = showArgs(out, nml, precision, depth, alt);
+        ret = showArgs(out, nml, precision, depth, alt, "(", ")");
       return ret;
     }
   }
@@ -199,12 +199,6 @@ integer termHash(termPo t) {
 
     return hash;
   }
-}
-
-termPo termFinalizer(builtinClassPo class, termPo o) {
-  labelPo lbl = termLbl(C_NORMAL(o));
-
-  return o + NormalCellCount(lblArity(lbl));
 }
 
 // Special hash function used in case instruction. Only look at the label of the term
