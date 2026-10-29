@@ -17,11 +17,11 @@
 tracingLevel traceSSA = noTracing;
 #endif
 
-scopePo checkScope(scopePo scope, int32 tgt);
+static scopePo checkScope(scopePo scope, int32 tgt);
 
 #define operand(x) (code[pc+(x)].op.ltrl)
 
-retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc, int32 limit) {
+static retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc, int32 limit) {
   retCode ret = Ok;
 
   while (ret == Ok && pc < limit) {

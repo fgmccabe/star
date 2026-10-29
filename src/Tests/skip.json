@@ -1,0 +1,15 @@
+{
+  "sbc-test": [
+    "test.act0",
+    "test.ar1",
+    "test.do10",
+    "test.e",
+    "test.e1",
+    "test.e2",
+    "test.lftap4",
+    "test.rc3",
+    "test.stats",
+    "test.w",
+    "test.wordle"
+  ]
+}

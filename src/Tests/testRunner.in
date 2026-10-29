@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from pprint import pprint
 import subprocess
@@ -10,10 +11,20 @@ testDir = "@TESTDIR@/"
 tester = f"{testDir}/sbc-test"
 tracing = False
 ignore_failures = False
+skip_file = f"{testDir}skip.json"
+
+def loadSkipList(tester):
+    "Return the set of test names to skip for the tester's basename, from skip_file."
+    if not os.path.exists(skip_file):
+        return set()
+    with open(skip_file) as f:
+        skips = json.load(f)
+    tester_name = os.path.basename(tester)
+    return set(skips.get(tester_name, [])) | set(skips.get("*", []))
 
 def main(argv):
-    global tracing,tester,ignore_failures
-    
+    global tracing,tester,ignore_failures,skip_file
+
     pkgs = []
 
     try:
@@ -23,6 +34,7 @@ def main(argv):
                                            "all",
 					   "filter=",
                                            "ignore-failures",
+                                           "skip-file=",
                                            "tracing"])
     except getopt.GetoptError as e:
         print (e.msg)
@@ -39,23 +51,33 @@ def main(argv):
             print ("Open ",testDir+'catalog')
             with open(testDir+'catalog') as cat:
                 catalog = json.load(cat)
-                
+
                 for pk in catalog["content"]:
                     pkgs.append(pk)
         elif opt == "--filter":
             print ("Open ",testDir+'catalog')
             with open(testDir+'catalog') as cat:
                 catalog = json.load(cat)
-                
+
                 pkgs = [pk for pk in catalog["content"] if re.search(arg,pk)]
         elif opt == "--ignore-failures":
             ignore_failures = True
+        elif opt == "--skip-file":
+            skip_file = arg
         elif opt in ['-d','--tracing']:
             tracing = True
-    
+
+    skipped_tests = loadSkipList(tester)
+
     print ("Run tests on ",pkgs)
     failures = []
+    skipped = []
     for pkg in pkgs:
+        if pkg in skipped_tests:
+            print ("Skipping:",pkg)
+            skipped.append(pkg)
+            continue
+
         print ("Testing:",pkg)
 
         return_code = runTest(pkg)
@@ -66,6 +88,8 @@ def main(argv):
                 sys.exit(1)
             else:
                 failures.append(pkg)
+    if skipped != []:
+        print (skipped, "tests skipped")
     if failures != []:
         print (failures, "tests failed to complete")
 

@@ -18,7 +18,7 @@ void setupAnalysis(analysisPo analysis);
 
 retCode analyseMethod(methodPo mtd, analysisPo analysis);
 
-void tearDownAnalysis(analysisPo results);
+void tearDownAnalysis(const analysisPo results);
 void showAnalysis(ioPo out, analysisPo analysis);
 
 typedef enum {

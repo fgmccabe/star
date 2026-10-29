@@ -19,7 +19,7 @@ void initAnalysis() {
   }
 }
 
-void tearDownAnalysis(AnalysisRecord* results) {
+void tearDownAnalysis(const analysisPo results) {
   deleteSet(results->safes);
   eraseHash(results->vars);
 }
@@ -119,7 +119,8 @@ void markPhiVariable(analysisPo analysis, scopePo block, int32 phiNo) {
   assert(block->phiCnt > phiNo);
 }
 
-static varDescPo newVar(analysisPo analysis, scopePo scope, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
+static varDescPo newVar(analysisPo analysis, scopePo scope, int32 varNo, varKind kind, int32 pc,
+                        varAllocationState state) {
   varDescPo var = (varDescPo)allocPool(varPool);
 
   assert(kind == argument ? (varNo >= 0) : True);
@@ -272,12 +273,6 @@ static comparison compVarRange(arrayPo vars, int32 ix, int32 iy, void* cl) {
     return same;
 }
 
-static retCode showVarEntry(void* entry, int32 ix, void* cl) {
-  ioPo out = (ioPo)cl;
-  varDescPo var = *(varDescPo*)entry;
-  return showVarDesc(out, var);
-}
-
 arrayPo varStarts(analysisPo analysis) {
   arrayPo starts = allocArray(sizeof(varDescPo), (int32)hashSize(analysis->vars), True);
 
@@ -321,13 +316,4 @@ static retCode showVarInRange(ioPo out, void* entry, int32 ix, void* cl) {
 
 retCode showRanges(ioPo out, arrayPo vars) {
   return showArray(out, vars, showVarInRange, Null);
-}
-
-static retCode checkSlot(void* n, void* r, void* cl) {
-  analysisPo analysis = (analysisPo)cl;
-  varDescPo var = (varDescPo)r;
-
-  assert(var->state == allocated);
-
-  return Ok;
 }
