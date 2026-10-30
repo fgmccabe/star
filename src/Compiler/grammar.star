@@ -88,7 +88,7 @@ star.compiler.macro.grammar{
     Els = Txt::cons[char];
     valis .some(foldRight((C,X)=>.seq(Lc,.term(Lc,.chr(Lc,C)),X),.epsilon(Lc),Els))
   }
-  parseBody(A) where (_,Els) ?= isTuple(A) => parseBody(reComma(Els)).
+  parseBody(A) where (_,Els) ?= isRndTpl(A) => parseBody(reComma(Els)).
   parseBody(A) where (Lc,L) ?= isPull(A) => valof{
     if LL?=parseBody(L) then
       valis .some(.opt(Lc,LL))
@@ -394,7 +394,7 @@ star.compiler.macro.grammar{
  -- (S,..Args) => option[(P,S)]
 
   public grammarTypeMacro:(ast,macroContext) => macroState.
-  grammarTypeMacro(A,.typeterm) where (Lc,L,R) ?= isBinary(A,"-->") && (_,G,P) ?= isBinary(L,">>") && (_,Els) ?= isTuple(G) => valof{
+  grammarTypeMacro(A,.typeterm) where (Lc,L,R) ?= isBinary(A,"-->") && (_,G,P) ?= isBinary(L,">>") && (_,Els) ?= isRndTpl(G) => valof{
     Ft = mkFuncType(Lc,rndTuple(Lc,[R,..Els]),
       squareApply(Lc,"option",[rndTuple(Lc,[P,R])]));
 

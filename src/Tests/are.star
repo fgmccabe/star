@@ -27,7 +27,7 @@ test.are{
   contract all e ~~ eqq[e] ::= {
     eqq:(e,e)=>boolean.
   }
-  
+
   implementation four[integer->>exc] => {
     plus(X,Y) => _int_plus(X,Y).
     minus(X,Y) => _int_minus(X,Y).
@@ -79,4 +79,4 @@ test.are{
     }
   }
 }
-  
+

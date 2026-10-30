@@ -18,13 +18,13 @@ star.compiler.mirror{
   reflectType:(ast)=>ast.
   reflectType(A) where (Lc,"void") ?= isName(A) => enum(Lc,"voidTp").
   reflectType(A) where (Lc,Nm) ?= isName => mkCon(Lc,"nominal",[A]).
-  reflectType(A) where (Lc,Els) ?= isTuple(A) =>
+  reflectType(A) where (Lc,Els) ?= isRndTpl(A) =>
     mkCon(Lc,"tupleTp",typeElems(Lc,Els,reflectType)).
-  reflectType(A) where (Lc,L,R) ?= isFuncType(A) && (ALc,As) ?= isTuple(L) =>
+  reflectType(A) where (Lc,L,R) ?= isFuncType(A) && (ALc,As) ?= isRndTpl(L) =>
     mkCon(Lc,"funTp",[typeElems(Lc,As),reflectType(R),enum(Lc,"voidTp")]).
-  reflectType(A) where (Lc,L,R,T) ?= isThrwFunctionType(A) && (ALc,As) ?= isTuple(L) =>
+  reflectType(A) where (Lc,L,R,T) ?= isThrwFunctionType(A) && (ALc,As) ?= isRndTpl(L) =>
     mkCon(Lc,"funTp",[typeElems(Lc,As),reflectType(R),reflectType(T)]).
-  reflectType(A) where (Lc,L,T) ?= isPrcType(A) && (ALc,As) ?= isTuple(L) =>
+  reflectType(A) where (Lc,L,T) ?= isPrcType(A) && (ALc,As) ?= isRndTpl(L) =>
     mkCon(Lc,"prcTp",[typeElems(Lc,As,reflectType),(Th?=T ?? reflectType(Th)||enum(Lc,"voidTp"))]).
   reflectType(A) where (Lc,Els) ?= isBrTuple(A) =>
     mkCon(Lc,"faceTp",[typeElems(Lc,Els,typeField)]).

@@ -7,7 +7,7 @@ test.art{
   all a ~~ four[a] ~> ((a,a)=>a,(a,a)=>a,(a,a)=>a,(a,a)=>a,a,a).
   plus:all a ~~ (four[a])=>(a,a)=>a.
   plus(F) => F.0.
-  
+
   minus:all a ~~ (four[a])=>(a,a)=>a.
   minus(F) => F.1.
 
@@ -22,7 +22,7 @@ test.art{
 
   unum:all a ~~ (four[a])=>a.
   unum(F) => F.5.
-  
+
   -- Equality contract tuple
   -- (eq)
   all a ~~ eqq[a] ~> (((a,a)=>boolean)).
@@ -76,4 +76,4 @@ test.art{
     assert (float_eqq.0)(ft(5.0),120.0);
   }
 }
-  
+

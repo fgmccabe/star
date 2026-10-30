@@ -22,6 +22,8 @@ integer numAllocated = 0;
 integer totalAllocated = 0;
 integer allocationHeaps[64];
 
+static inline logical isNewRef(termPo t);
+
 void initHeap(long heapSize) {
   if (heap.base == NULL) {
     createHeap(heapSize);
@@ -146,10 +148,6 @@ logical hasCard(termPo t) {
   }
   else
     return False;
-}
-
-logical isOldRef(termPo t) {
-  return t >= heap.old && t < heap.oldLimit;
 }
 
 logical isNewRef(termPo t) {

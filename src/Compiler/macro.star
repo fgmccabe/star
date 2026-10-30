@@ -193,7 +193,7 @@ star.compiler.macro{
 
   macroTerm(A) => macroAst(A,.expression,examineTerm).
 
-  examineTerm(A) where _ ?= isName(A) && ~_ ?= isTuple(A) => A.
+  examineTerm(A) where _ ?= isName(A) && ~_ ?= isRndTpl(A) => A.
   examineTerm(A) where _ ?= isEnumSymb(A) => A.
   examineTerm(A) where isUnreachable(A) => A.
   examineTerm(A) where .int(_,_) .= A => A.
@@ -231,7 +231,7 @@ star.compiler.macro{
     mkMapLiteral(Lc,Els//macroTerm).
   examineTerm(A) where (Lc,Op,[Ix]) ?= isSquareTerm(A) =>
     squareTerm(Lc,macroTerm(Op),[macroTerm(Ix)]).
-  examineTerm(A) where (Lc,Els) ?= isTuple(A) =>
+  examineTerm(A) where (Lc,Els) ?= isRndTpl(A) =>
     rndTuple(Lc,Els//macroTerm).
   examineTerm(A) where (Lc,Els) ?= isSqTuple(A) =>
     sqTuple(Lc,Els//macroTerm).
@@ -343,7 +343,7 @@ star.compiler.macro{
     roundTerm(Lc,macroTerm(O),Els//macroPtn).
   examinePtn(A) where (Lc,O,Els) ?= isEnumCon(A) =>
     mkEnumCon(Lc,macroTerm(O),Els//macroPtn).
-  examinePtn(A) where (Lc,Els) ?= isTuple(A) =>
+  examinePtn(A) where (Lc,Els) ?= isRndTpl(A) =>
     rndTuple(Lc,Els//macroPtn).
   examinePtn(A) where (Lc,Els) ?= isSqTuple(A) =>
     sqTuple(Lc,Els//macroPtn).
@@ -389,7 +389,7 @@ star.compiler.macro{
     reXQuant(Lc,Q//macroTypeVar,macroType(T)).
   examineType(A) where (Lc,C,T) ?= isConstrained(A) =>
     reConstrain(C//macroConstraint,macroType(T)).
-  examineType(A) where (Lc,Els) ?= isTuple(A) =>
+  examineType(A) where (Lc,Els) ?= isRndTpl(A) =>
     rndTuple(Lc,Els//macroType).
   examineType(A) where (Lc,Els) ?= isBrTuple(A) =>
     brTuple(Lc,Els//macroTypeDef).
@@ -421,7 +421,7 @@ star.compiler.macro{
     mkTypeExists(Lc,macroType(L),macroType(R)).
   examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
     mkImplicit(Lc,Nm,macroType(T)).
-  examineConstraint(A) where (_,[El]) ?= isTuple(A) =>
+  examineConstraint(A) where (_,[El]) ?= isRndTpl(A) =>
     examineConstraint(El).
   examineConstraint(A) default => valof{
     reportError("cannot figure out constraint $(A)",locOf(A));
@@ -489,7 +489,7 @@ star.compiler.macro{
 */
 
   synthesizeMain:(option[locn],ast,cons[ast])=>cons[ast].
-  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFuncType(Tp) && (_,Tps)?=isTuple(Lhs) => valof{
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFuncType(Tp) && (_,Tps)?=isRndTpl(Lhs) => valof{
     (Vs,NVs) = synthVrs(Lc,Tps,[],[]);
 
     Action = synthCoercion(Lc,Tps,Vs,NVs,NVs,synth_main_fun);
@@ -507,7 +507,7 @@ star.compiler.macro{
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
     valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
   }
-  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,_) ?= isPrcType(Tp) && (_,Tps)?=isTuple(Lhs) => valof{
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,_) ?= isPrcType(Tp) && (_,Tps)?=isRndTpl(Lhs) => valof{
     (Vs,NVs) = synthVrs(Lc,Tps,[],[]);
 
     Action = synthCoercion(Lc,Tps,Vs,NVs,NVs,synth_main_prc);

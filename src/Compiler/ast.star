@@ -214,12 +214,12 @@ star.compiler.ast{
   public nAry:(option[locn],string,cons[ast])=>ast.
   nAry(Lc,Nm,Args) => .app(Lc,.nme(Lc,Nm),.tpl(Lc,"()",Args)).
 
-  public isTuple:(ast) => option[(option[locn],cons[ast])].
-  isTuple(.tpl(Lc,"()",A)) => .some((Lc,A)).
-  isTuple(_) => .none.
-
   public rndTuple:(option[locn],cons[ast]) => ast.
   rndTuple(Lc,Els) => .tpl(Lc,"()",Els).
+
+  public isTpl:(ast) => option[(option[locn],string,cons[ast])].
+  isTpl(.tpl(Lc,Bkt,As)) => .some((Lc,Bkt,As)).
+  isTpl(_) default => .none.
 
   public unit(Lc) => rndTuple(Lc,[]).
 

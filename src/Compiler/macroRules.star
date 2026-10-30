@@ -276,7 +276,7 @@ star.compiler.macro.rules{
   }
   makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isImplies(A) =>
     makeCondition(negated(Lc,mkConjunct(Lc,L,negated(Lc,R))),Lift,Succ,Zed).
-  makeCondition(A,Lift,Succ,Zed) where (_,[I]) ?= isTuple(A) =>
+  makeCondition(A,Lift,Succ,Zed) where (_,[I]) ?= isRndTpl(A) =>
     makeCondition(I,Lift,Succ,Zed).
   makeCondition(Other,Lift,Succ,Zed) =>
     mkConditional(locOf(Other),Other,Succ(Zed),Lift(Zed)).

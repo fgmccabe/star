@@ -326,7 +326,7 @@ star.compiler.checker{
     }
   }
 
-  headArgList(A) where (_,Args) ?= isTuple(A) => Args.
+  headArgList(A) where (_,Args) ?= isRndTpl(A) => Args.
   headArgList(A) default => [A].
 
   -- Guess a structure that matches the arcgument types of a rule.
@@ -644,9 +644,9 @@ star.compiler.checker{
     (Cond,Ev1) = checkCond(C,ErTp,Ev0,Path);
     valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
   }.
-  typeOfPtn(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isRndTpl(A) && ~ _ ?= isRndTpl(El) =>
     typeOfPtn(El,Tp,ErTp,Env,Path).
-  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isRndTpl(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,Lc,.none,[],Env,Path);
@@ -693,7 +693,7 @@ star.compiler.checker{
 
   typeOfArgPtn:argTyper.
 
-  typeOfArgPtn(A,Tps,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfArgPtn(A,Tps,ErTp,Env,Path) where (Lc,Els) ?= isRndTpl(A) => valof{
     Tvs = genTpVars(Els);
     checkArgTypes(A,Tvs,Tps,Env);
     (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,Lc,.none,[],Env,Path);
@@ -868,9 +868,15 @@ star.compiler.checker{
     checkType(V,refType(VTp),Tp,Env);
     valis .cell(Lc,Vl,Tp)
   }
-  typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
+  typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isRndTpl(A) && ~ _ ?= isRndTpl(El) =>
     typeOfExp(El,Tp,ErTp,Env,Path).
-  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isRndTpl(A) => valof{
+    Tvs = genTpVars(Els);
+    checkType(A,.tupleType(Tvs),Tp,Env);
+    Ptns = typeOfExps(Els,Tvs,ErTp,Lc,[],Env,Path);
+    valis .tple(Lc,Ptns)
+  }
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,"⟨⟩",Els) ?= isTpl(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     Ptns = typeOfExps(Els,Tvs,ErTp,Lc,[],Env,Path);
@@ -1297,7 +1303,7 @@ star.compiler.checker{
 	Ev = declareVar(Id,Id,Lc,VTp,faceOfType(Tp,Env),Env);
 	valis (.doDefn(Lc,.vr(ILc,Id,VTp),Val),Ev,Dcls)
       }
-    } else if (ILc,Els) ?= isTuple(Lhs) then {
+    } else if (ILc,Els) ?= isRndTpl(Lhs) then {
       TTp = newTypeVar("_T");
       (Ptn,PCond,Ev) = typeOfPtn(Lhs,TTp,ErTp,Env,Path);
       if C?=PCond then
@@ -1543,7 +1549,7 @@ star.compiler.checker{
     (Ptn,PCond,Ev) = typeOfPtn(L,PtnTp,ErTp,Env,Path);
     valis (mergeCond(Lc,.match(Lc,Ptn,Val),PCond),Ev)
   }
-  checkGoal(A,ErTp,Env,Path) where (_,[Inner]) ?= isTuple(A) =>
+  checkGoal(A,ErTp,Env,Path) where (_,[Inner]) ?= isRndTpl(A) =>
     checkGoal(Inner,ErTp,Env,Path).
   checkGoal(A,ErTp,Env,Path) => valof{
     Exp = typeOfExp(A,boolType,ErTp,Env,Path);
@@ -1582,7 +1588,7 @@ star.compiler.checker{
   genArgTps:(ast) => cons[tipe].
   genArgTps(A) where (_,Ar,_) ?= isWhere(A) =>
     genArgTps(Ar).
-  genArgTps(A) where (_,Els) ?= isTuple(A) =>
+  genArgTps(A) where (_,Els) ?= isRndTpl(A) =>
     genTpVars(Els).
 
   checkMain:(cons[cons[canonDef]],dict){}.

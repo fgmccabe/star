@@ -106,6 +106,10 @@ star.compiler.wff{
 
   public qbraceTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"{..}",Els)).
 
+  public isRndTpl:(ast) => option[(option[locn],cons[ast])].
+  isRndTpl(.tpl(Lc,"()",A)) => .some((Lc,A)).
+  isRndTpl(_) default => .none.
+
   public isQuantified:(ast)=>option[(option[locn],cons[ast],ast)].
   isQuantified(T) where
       (Lc,Lh,B)?=isBinary(T,"~~") && (_,V)?=isUnary(Lh,"all") =>
@@ -180,7 +184,7 @@ star.compiler.wff{
 	  (_,Els,_) ?= isPrcType(L) =>
     .some((Lc,Els,.some(T))).
   isPrcType(A) where
-      (Lc,Els,[]) ?= isBraceTerm(A) && _ ?= isTuple(Els) =>
+      (Lc,Els,[]) ?= isBraceTerm(A) && _ ?= isRndTpl(Els) =>
     .some((Lc,Els,.none)).
    isPrcType(_) default => .none.
 
@@ -483,13 +487,15 @@ star.compiler.wff{
   getQuantifiers(T) default => ([],T).
 
   public isFieldAcc:(ast) => option[(option[locn],ast,string)].
-  isFieldAcc(A) where (Lc,Rc,R) ?= isBinary(A,".") && (_,Id) ?= isNme(R) => .some((Lc,Rc,Id)).
+  isFieldAcc(A) where (Lc,Rc,R) ?= isBinary(A,".") &&
+      (_,Id) ?= isNme(R) => .some((Lc,Rc,Id)).
   isFieldAcc(_) default => .none.
 
   public mkFieldAcc(Lc,R,F) => binary(Lc,".",R,.nme(Lc,F)).
 
   public isTupleAcc:(ast) => option[(option[locn],ast,integer)].
-  isTupleAcc(A) where (Lc,L,R) ?= isBinary(A,".") && (_,Ix) ?= isInt(R) => .some((Lc,L,Ix)).
+  isTupleAcc(A) where (Lc,L,R) ?= isBinary(A,".") &&
+      (_,Ix) ?= isInt(R) => .some((Lc,L,Ix)).
   isTupleAcc(_) default => .none.
 
   public mkTupleAcc(Lc,R,Ix) => binary(Lc,".",R,.int(Lc,Ix)).
@@ -642,7 +648,7 @@ star.compiler.wff{
   public surfaceName(T) where (_,Id) ?= isName(T) => Id.
   surfaceName(T) where (_,Id,_) ?= isSquareApply(T) => Id.
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
-  surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
+  surfaceName(T) where (_,Els) ?= isRndTpl(T) => "()$(size(Els))".
   surfaceName(T) where _ ?= isFuncType(T) => "=>".
   surfaceName(T) where _ ?= isThrwFunctionType(T) => "=>".
   surfaceName(T) where _ ?= isRef(T) => "ref".
@@ -659,7 +665,7 @@ star.compiler.wff{
   public typeName:(ast)=>string.
   typeName(Tp) where (_,Id) ?= isName(Tp) => Id.
   typeName(Tp) where (_,Id,_) ?= isSquareApply(Tp) => Id.
-  typeName(Tp) where (_,Els) ?= isTuple(Tp) => "()$(size(Els))".
+  typeName(Tp) where (_,Els) ?= isRndTpl(Tp) => "()$(size(Els))".
 
   public collectImports:(cons[ast], cons[importSpec], cons[ast]) => (cons[importSpec],cons[ast]).
   collectImports([],Imp,Oth) => (Imp,reverse(Oth)).
@@ -681,7 +687,7 @@ star.compiler.wff{
   headName(A) where
       (_,D) ?= isDefault(A) => headName(D).
   headName(A) where (_,H,_) ?= isWhere(A) => headName(H).
-  headName(A) where (_,[E]) ?= isTuple(A) => headName(E).
+  headName(A) where (_,[E]) ?= isRndTpl(A) => headName(E).
   headName(_) default => .none.
 
   public isDefn:(ast) => option[(option[locn],ast,ast)].
@@ -710,7 +716,7 @@ star.compiler.wff{
   public isProcedure:(ast) => option[(option[locn],option[ast],boolean,ast,option[ast],ast)].
   isProcedure(A) where (Lc,L,Acs) ?= isBraceTerm(A) && _ ?= isRoundTerm(L) &&
       (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,reSequence(deSequence(Acs)))).
-  isProcedure(A) where (Lc,L,Acs) ?= isBraceTerm(A) && _ ?= isTuple(L) =>
+  isProcedure(A) where (Lc,L,Acs) ?= isBraceTerm(A) && _ ?= isRndTpl(L) =>
       .some((Lc,.none,.false,L,.none,reSequence(deSequence(Acs)))).
   isProcedure(A) where (Lc,L,R) ?= isBinary(A,"do") &&
       (N,H,C,D) ?= splitHd(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
@@ -736,7 +742,7 @@ star.compiler.wff{
   public splitHead:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
   splitHead(A,N,C,_) where (_,I) ?= isDefault(A) => splitHead(I,N,C,.true).
   splitHead(A,_,C,D) where (Lc,Nm,As) ?= isRoundTerm(A) => .some((.some(Nm),rndTuple(Lc,As),C,D)).
-  splitHead(A,N,C,D) where (Lc,[E]) ?= isTuple(A) => splitHead(E,N,C,D).
+  splitHead(A,N,C,D) where (Lc,[E]) ?= isRndTpl(A) => splitHead(E,N,C,D).
   splitHead(A,N,C1,D) where (Lc,L,C2) ?= isWhere(A) => splitHead(L,N,mergeCond(.some(C2),C1),D).
   splitHead(A,N,C,D) => .some((N,A,C,D)).
 

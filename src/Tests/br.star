@@ -11,7 +11,7 @@ test.br{
     zer:a.
     unum:a.
   }
-  
+
   implementation four[integer] => {
     plus(X,Y) => _int_plus(X,Y).
     minus(X,Y) => _int_minus(X,Y).

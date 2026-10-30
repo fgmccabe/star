@@ -65,8 +65,11 @@ extern long maxHeapSize;  // Maximum permitted size of heap
 void createHeap(long cellCount);
 
 logical isHeapRef(termPo t);
-logical isNewRef(termPo t);
-logical isOldRef(termPo t);
+
+static inline logical isOldRef(termPo t) {
+  return t >= heap.old && t < heap.oldLimit;
+}
+
 void recordTermUpdate(termPo t);
 logical hasCard(termPo t);
 
@@ -98,7 +101,7 @@ static inline logical inHeap(const termPo x) {
 }
 
 retCode scanTerm(ptrPo p, termHelper helper, void* cl);
-retCode scanHeap(termHelper helper, void *cl);
+retCode scanHeap(termHelper helper, void* cl);
 
 void heapSummary(ioPo out);
 void dumpGcStats(ioPo out);

@@ -165,7 +165,7 @@ star.compiler.dependencies{
   collectDefines([St,..Ss],Nm,Dfs) where
       (_,Nm) ?= ruleName(St) => collectDefines(Ss,Nm,[St,..Dfs]).
   collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
-	
+
   generateAnnotations:(cons[ast],cons[ast],cons[ast],map[string,ast]) =>
     map[string,ast].
   generateAnnotations([],_,_,As) => As.
@@ -284,7 +284,7 @@ star.compiler.dependencies{
     Rf1 = collectCondRefs(L,All,Rf0);
     valis collectCondRefs(R,All,Rf1)
   }
-  collectCondRefs(A,All,Rf) where (_,[C]) ?= isTuple(A) =>
+  collectCondRefs(A,All,Rf) where (_,[C]) ?= isRndTpl(A) =>
     collectCondRefs(C,All,Rf).
   collectCondRefs(E,All,Rf) => collectTermRefs(E,All,Rf).
 
@@ -315,7 +315,9 @@ star.compiler.dependencies{
     collectTermRefs(I,All,Rf).
   collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isRoundTerm(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Args) ?= isTuple(T) =>
+  collectTermRefs(T,All,Rf) where (_,Args) ?= isRndTpl(T) =>
+    collectTermListRefs(Args,All,Rf).
+  collectTermRefs(T,All,Rf) where (_,"⟨⟩",Args) ?= isTpl(T) =>
     collectTermListRefs(Args,All,Rf).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isCons(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
@@ -490,7 +492,7 @@ star.compiler.dependencies{
     collectTypeRefs(I,filterOut(All,Q),SoFar).
   collectTypeRefs(T,All,Rf) where (_,Cx,Tp) ?= isConstrained(T) =>
     collectConstraintRefs(Cx,All,collectTypeRefs(Tp,All,Rf)).
-  collectTypeRefs(T,All,SoFar) where (_,Els) ?= isTuple(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Els) ?= isRndTpl(T) =>
     collectTypeList(Els,All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,Els) ?= isBrTuple(T) =>
     collectFaceTypes(Els,All,SoFar).

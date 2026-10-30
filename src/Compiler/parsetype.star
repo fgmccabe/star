@@ -107,14 +107,14 @@ star.compiler.typeparse{
   }
   parseType(T,Env) where (Lc,Rhs) ?= isRef(T) =>
     refType(parseType(Rhs,Env)).
-  parseType(T,Env) where (Lc,[A]) ?= isTuple(T) => valof{
-    if (_,As) ?= isTuple(A) then{
+  parseType(T,Env) where (Lc,[A]) ?= isRndTpl(T) => valof{
+    if (_,As) ?= isRndTpl(A) then{
       ArgTps = parseTypes(As,Env);
       valis .tupleType(ArgTps)
     } else
     valis parseType(A,Env)
   }
-  parseType(T,Env) where (_,As) ?= isTuple(T) => valof{
+  parseType(T,Env) where (_,As) ?= isRndTpl(T) => valof{
     ArgTps = parseTypes(As,Env);
     valis .tupleType(ArgTps)
   }
@@ -153,7 +153,7 @@ star.compiler.typeparse{
     valis .voidType
   }
 
-  parseArgType(A,Env) where (_,As) ?= isTuple(A) => parseTypes(As,Env).
+  parseArgType(A,Env) where (_,As) ?= isRndTpl(A) => parseTypes(As,Env).
   parseArgType(A,Env) => [parseType(A,Env)].
 
   parseTypeArgs:(option[locn],cons[ast],dict) => (cons[tipe],cons[tipe]).
