@@ -159,6 +159,19 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
       assemCtxPo ctx = assemCtx(jit);
       str(LR, OF(FP, OffsetOf(StackFrame, link)));
     }
+
+    if (profileCalls) {
+      // Bump mtd->callCount directly -- too early in the method for invokeIntrinsic's
+      // live-variable machinery, which isn't set up until jitBlock starts running. X16/X17
+      // are the ARM64 PCS scratch registers, never used to pass arguments, so this is safe
+      // to splice in ahead of the method body without disturbing the just-populated args.
+      assemCtxPo ctx = assemCtx(jit);
+      mov(X16, IM((integer)&mtd->callCount));
+      ldr(X17, OF(X16, 0));
+      add(X17, X17, IM(1));
+      str(X17, OF(X16, 0));
+    }
+
     ret = jitBlock(&block, &state, entryPoint(mtd), 0, codeSize(mtd));
   }
 

@@ -31,6 +31,7 @@ typedef struct method_ {
   int32 stackDelta;   // Maximum depth of active locals
   int32 insCount;     // How many instructions are there in the code?
   ssaInsPo instructions; // The actual instructions
+  uinteger callCount; // How many times has this method been entered? Only maintained when profileCalls is set
 } MethodRec;
 
 extern int32 methodIndex;

@@ -49,6 +49,8 @@ static retCode delPkg(packagePo pkg, packagePo p);
 static integer pkHash(packagePo pkg);
 static comparison compPk(packagePo p1, packagePo p2);
 
+logical profileCalls = False;
+
 static treePo codeIndex;
 
 typedef struct code_index_ {
@@ -91,7 +93,49 @@ void recordMethodCode(methodPo mtd) {
 void recordMethodJitCode(methodPo mtd) {
   recordCode(mtd, (uinteger)mtd->jit.code, (uinteger)mtd->jit.code + mtd->jit.codeSize);
 }
+
+static retCode dumpJitMapEntry(void *n, void *r, void *c) {
+  locIndexPo entry = (locIndexPo)r;
+  ioPo out = (ioPo)c;
+  if (entry->mtd != Null && hasJit(entry->mtd))
+    return outMsg(out, "%lx %lx %A\n", entry->lowerBound, entry->upperBound, entry->mtd->lbl);
+  return Ok;
+}
+
+retCode dumpJitMap(char *path) {
+  ioPo out = openOutFile(path, utf8Encoding);
+  if (out == Null)
+    return Error;
+  retCode ret = processTree(dumpJitMapEntry, codeIndex, out);
+  closeIo(out);
+  return ret;
+}
 #endif
+
+void bumpCallCount(methodPo mtd) {
+  mtd->callCount++;
+}
+
+static retCode dumpCallCountEntry(void *n, void *r, void *c) {
+  locIndexPo entry = (locIndexPo)r;
+  ioPo out = (ioPo)c;
+  methodPo mtd = entry->mtd;
+
+  // Each method has exactly one bytecode-range entry in the tree (plus an optional, separate
+  // jit-range entry); key off the bytecode range so a jitted method isn't reported twice.
+  if (mtd != Null && mtd->callCount > 0 && entry->lowerBound == (uinteger)entryPoint(mtd))
+    return outMsg(out, "%ld %A\n", mtd->callCount, mtd->lbl);
+  return Ok;
+}
+
+retCode dumpCallCounts(char *path) {
+  ioPo out = openOutFile(path, utf8Encoding);
+  if (out == Null)
+    return Error;
+  retCode ret = processTree(dumpCallCountEntry, codeIndex, out);
+  closeIo(out);
+  return ret;
+}
 
 void rebalanceCodeTree() {
   rebalanceTree(codeIndex);
@@ -313,6 +357,7 @@ methodPo defineMtd(int32 insCount, ssaInsPo instructions, int32 lclCount, int32 
   mtd->lbl = lbl;
   mtd->lclcnt = lclCount;
   mtd->stackDelta = stackLimit;
+  mtd->callCount = 0;
 
   lbl->mtd = mtd;
 

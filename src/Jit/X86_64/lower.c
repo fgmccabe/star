@@ -173,6 +173,11 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
       assemCtxPo ctx = assemCtx(jit);
       mov(BS(FP, OffsetOf(StackFrame, link)), RG(LR));
     }
+
+    // profileCalls (-C/--call-counts) is only wired up for the ARM64 backend so far -- see
+    // src/Jit/ARM64/lower.c. This build's host architecture decides which backend is actually
+    // compiled (src/Jit/CMakeLists.txt), so it hasn't been possible to test an X86_64 version here.
+
     ret = jitBlock(&block, &state, entryPoint(mtd), 0, codeSize(mtd));
     failed = state.jit->failed;
     debug_state(&state);

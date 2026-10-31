@@ -72,6 +72,9 @@ ValueReturn run(enginePo P) {
 
       PROG = mtd;
 
+      if (profileCalls)
+        mtd->callCount++;
+
       for (int32 ax = arity - 1; ax >= 0; ax--) {
         *--SP = varble(operand(ax+3));
       }
@@ -133,6 +136,10 @@ ValueReturn run(enginePo P) {
       *--SP = closureFree(lam); // Put the free term as the first argument
 
       PROG = mtd;
+
+      if (profileCalls)
+        mtd->callCount++;
+
       ARGS = SP;
       PC = entryPoint(mtd);
       continue;

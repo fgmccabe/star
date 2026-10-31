@@ -433,6 +433,33 @@ static retCode setEnableTimers(char* option, OptionAction action) {
   return Ok;
 }
 
+#ifndef NOJIT
+static char jitMapFile[MAXFILELEN] = "";
+
+static void dumpJitMapAtExit() {
+  dumpJitMap(jitMapFile);
+}
+
+static retCode setJitMapFile(char* option, OptionAction action) {
+  uniCpy(jitMapFile, NumberOf(jitMapFile), option);
+  atexit(dumpJitMapAtExit);
+  return Ok;
+}
+#endif
+
+static char callCountFile[MAXFILELEN] = "";
+
+static void dumpCallCountsAtExit() {
+  dumpCallCounts(callCountFile);
+}
+
+static retCode setCallCountFile(char* option, OptionAction action) {
+  profileCalls = True;
+  uniCpy(callCountFile, NumberOf(callCountFile), option);
+  atexit(dumpCallCountsAtExit);
+  return Ok;
+}
+
 Option options[] = {
   {'d', "debug", hasArgument, STAR_DBG_OPTS, debugOption, "-d|--debug <flags>", debugOptHelp},
   {'p', "print-depth", hasArgument, STAR_DBG_OPTS, setDisplayDepth, "-p|--print-depth <depth>"},
@@ -454,6 +481,10 @@ Option options[] = {
   {'R', "stack-region", hasArgument, STAR_STACK_REGION, setStackRegionSize, "-R|--stack-region <size>"},
   {'l', "max-labels", hasArgument, STAR_MAX_LABELS, setMaxLabels, "-l|--max-labels <size>"},
   {'t', "enable-timers", noArgument, Null, setEnableTimers, "-t|--enable-timers"},
+#ifndef NOJIT
+  {'J', "jit-map", hasArgument, STAR_JIT_MAP, setJitMapFile, "-J|--jit-map <path>"},
+#endif
+  {'C', "call-counts", hasArgument, STAR_CALL_COUNTS, setCallCountFile, "-C|--call-counts <path>"},
 };
 
 int getEngineOptions(int argc, char** argv) {

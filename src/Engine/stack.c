@@ -26,7 +26,7 @@ static integer stkHash(builtinClassPo cl, termPo o);
 static retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static termPo stkFinalizer(builtinClassPo class, termPo o);
 
-BuiltinTerm StackClass = {
+static BuiltinTerm StackClass = {
   .special = {},
   .sizeFun = stkSize,
   .copyFun = stkCopy,
@@ -40,7 +40,7 @@ BuiltinTerm StackClass = {
 static labelPo underflowProg;
 static labelPo taskProg;
 
-builtinClassPo stackClass = &StackClass;
+static builtinClassPo stackClass = &StackClass;
 int32 stackIndex;
 
 static integer stackCount = 0;
@@ -257,22 +257,6 @@ void pushStack(stackPo stk, termPo ptr) {
 termPo stackVariable(stackPo stk, integer lclNo) {
   assert(validStkPtr(stk, stk->args+lclNo));
   return stk->args[lclNo];
-}
-
-static void moveStack2Stack(stackPo totsk, stackPo fromtsk, logical execJit, integer count) {
-  assert(validStkPtr(fromtsk, fromtsk->sp + count));
-  assert(stackHasSpace(totsk, count));
-
-  pushFrame(totsk, execJit, locateMethod((uinteger)fromtsk->pc));
-  totsk->pc = fromtsk->pc;
-
-  ptrPo src = fromtsk->sp + count;
-  ptrPo dst = totsk->args = totsk->sp;
-  for (integer ix = count; ix > 0; ix--) {
-    *--dst = *--src;
-  }
-  totsk->sp = dst;
-  fromtsk->sp += count;
 }
 
 retCode stkScan(termHelper helper, void* c, termPo o) {

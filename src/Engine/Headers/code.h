@@ -29,6 +29,12 @@ int32 lclCount(methodPo mtd);
 
 #ifndef NOJIT
 logical hasJitCode(methodPo mtd);
+
+retCode dumpJitMap(char *path);
 #endif
+
+extern logical profileCalls; // Set if every method entry should be counted
+void bumpCallCount(methodPo mtd);
+retCode dumpCallCounts(char *path);
 
 #endif
