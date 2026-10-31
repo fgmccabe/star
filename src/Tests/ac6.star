@@ -46,7 +46,7 @@ test.ac6{
       empty(.some(i));
     };
     timer_finish(timer!);
-    
+
     timer := timer_start(Count, "Accessing all elements in red/black list");
     for i in idxes do {
       El = (rb_list!)[i];

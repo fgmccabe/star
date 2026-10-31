@@ -3,7 +3,7 @@ test.ac8a{
   import star.assert.
 
   import test.throwing.
-  
+
   -- Experiments in throwing
 
 
@@ -27,7 +27,7 @@ test.ac8a{
     }
   }
   */
-  
+
   f:(integer) => integer.
   f(X) => valof{
     Tsk = _fiber((TryTsk,_)=> valof{
@@ -60,4 +60,4 @@ test.ac8a{
     show f(10)
   }
 }
-    
+

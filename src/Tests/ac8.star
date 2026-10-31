@@ -1,7 +1,7 @@
 test.ac8{
   import star.
   import star.assert.
-  
+
   -- Experiments in throwing
 
   all e,v ~~ rslt[e,v] ::= .ok(v) | .err(e).
@@ -49,4 +49,4 @@ test.ac8{
     showMsg("f(10) = $(f(10))")
   }
 }
-    
+

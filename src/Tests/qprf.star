@@ -25,7 +25,7 @@ test.qprf{
 
   gpq: (cons[(integer,integer)]) => cons[(integer,integer)].
   gpq(Prs) => { (X,Y) | (X,Z) in Prs && (Z,Y) in Prs }
-  
+
   main:(integer){}.
   main(Mx){
     idxes = pairs(Mx,5);
@@ -74,8 +74,3 @@ test.qprf{
     }
 }
 
-
-
-    
-
-  

@@ -17,5 +17,5 @@ test.c2{
     assert cP(.some(1),.some(2)) == .some((1,2));
     assert testP("a","b")=="fred";
   }
-}  
-  
+}
+
