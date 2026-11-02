@@ -43,5 +43,4 @@ star.date{
   public parseTime:(string,string) => option[time].
   parseTime(T,F) => ( try .some(.time(_parsetime(T,F))) catch { _ => .none}).
 }
-  
-    
+

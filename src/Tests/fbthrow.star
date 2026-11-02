@@ -24,9 +24,13 @@ test.fbthrow{
     try{
       show f(2);
       show f(10);
-      show "should not reach here"
+      unreachable;
     } catch {
-      E do showMsg("caught $(E)")
-    }
+      E do {
+	show E;
+	assert E=="too big"
+      }
+    };
+    showMsg("Ok")
   }
 }

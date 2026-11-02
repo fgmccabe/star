@@ -157,7 +157,7 @@ double get_date(void) {
     tmptr->tm_hour = 0;
     tmptr->tm_min = 0;
     tmptr->tm_sec = 0;
-    tmptr->tm_gmtoff = timezone_offset;
+    tmptr->tm_isdst = -1; // midnight may be on the other side of a DST transition from now
 
     return (double) mktime(tmptr);
   } else
