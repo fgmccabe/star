@@ -7,13 +7,13 @@
 	   funResType/2,funExType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,isProcedureType/1,
-	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
+	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/4,
 	   isThrowingType/3,
 	   isIntegerType/1,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   ssTipe/2,
 	   contractType/2,contractTypes/2,
-	   fiberType/3,
+	   fiberType/4,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
@@ -419,8 +419,8 @@ isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
 mkRefTp(A,tpExp(tpFun("ref",1),A)).
 
-fiberType(R,S,Tp) :-
-  mkTypeExp(tpFun("fiber",2),[R,S],Tp).
+fiberType(R,S,E,Tp) :-
+  mkTypeExp(tpFun("fiber",3),[R,S,E],Tp).
 
 isTypeLam(Tp) :- isTypeLam(Tp,_).
 
@@ -591,12 +591,14 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		allType(kVar("e"),consType([kVar("e")],tpExp(tpFun("option",1),kVar("e"))))),
 	 typeDec("ioHandle",type("ioHandle"),typeExists(type("ioHandle"),faceType([],[])),[]),
 	 typeDec("fiber",
-		 tpFun("fiber",2),
+		 tpFun("fiber",3),
 		 allType(kVar("a"),
 			 allType(kVar("e"),
-				 typeExists(tpExp(tpExp(tpFun("fiber",2),kVar("a")),
-						  kVar("e")),
-					    faceType([],[])))),[]),
+				 allType(kVar("x"),
+					 typeExists(tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("a")),
+							  kVar("e")),
+							  kVar("x")),
+					    faceType([],[]))))),[]),
 	 typeDec("future",
 		 tpFun("future",2),
 		 allType(kVar("a"),

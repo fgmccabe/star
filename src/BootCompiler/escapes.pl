@@ -51,8 +51,8 @@ escapeType("_big2ints",funType([type("bigint")],tpExp(tpFun("cons",1),type("inte
 escapeType("_str2big",funType([type("string")],type("bigint"),type("errorCode"))).
 escapeType("_big2str",funType([type("bigint")],type("string"),voidType)).
 escapeType("_big_format",funType([type("bigint"),type("string")],type("string"),type("errorCode"))).
-escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))],type("boolean"),voidType)))).
-escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),funType([funType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")],kVar("s"),voidType)],tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),voidType)))).
+escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType([tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("r")),kVar("s")),kVar("e")),tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("r")),kVar("s")),kVar("e"))],type("boolean"),voidType))))).
+escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType([funType([tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("r")),kVar("s")),kVar("e")),kVar("r")],kVar("s"),kVar("e"))],tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("r")),kVar("s")),kVar("e")),voidType))))).
 escapeType("_sqrt",funType([type("float")],type("float"),type("errorCode"))).
 escapeType("_exp",funType([type("float")],type("float"),type("errorCode"))).
 escapeType("_ln",funType([type("float")],type("float"),voidType)).

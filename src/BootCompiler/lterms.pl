@@ -220,6 +220,10 @@ ssTrm(rtire(_,T,E,_),Dp,sq([TT,ss(" retire "),EE])) :-
 ssTrm(resme(_,T,E,_),Dp,sq([TT,ss(" resume "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
+ssTrm(xresme(_,T,E,_,ErTp),Dp,sq([TT,ss(" resume "),EE,ss(" throws "),ETp])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE),
+  ssType(ErTp,false,Dp,ETp).
 
 dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
@@ -450,6 +454,9 @@ rewriteTerm(AQ,EX,vlof(Lc,A,Tp),vlof(Lc,AA,Tp)) :-
 rewriteTerm(AQ,EX,tsk(Lc,F),tsk(Lc,FF)) :-
   rewriteTerm(AQ,EX,F,FF).
 rewriteTerm(AQ,EX,resme(Lc,T,E,Tp),resme(Lc,TT,EE,Tp)) :-
+  rewriteTerm(AQ,EX,T,TT),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteTerm(AQ,EX,xresme(Lc,T,E,Tp,ErTp),xresme(Lc,TT,EE,Tp,ErTp)) :-
   rewriteTerm(AQ,EX,T,TT),
   rewriteTerm(AQ,EX,E,EE).
 rewriteTerm(AQ,EX,susp(Lc,T,E,Tp),susp(Lc,TT,EE,Tp)) :-
@@ -704,6 +711,10 @@ inTerm(resme(_,T,_M,_),Nm) :-
   is_member(T,Nm).
 inTerm(resme(_,_T,M,_),Nm) :-
   inTerm(M,Nm),!.
+inTerm(xresme(_,T,_M,_,_),Nm) :-
+  is_member(T,Nm).
+inTerm(xresme(_,_T,M,_,_),Nm) :-
+  inTerm(M,Nm),!.
 inTerm(susp(_,T,_M,_),Nm) :-
   is_member(T,Nm).
 inTerm(susp(_,_T,M,_),Nm) :-
@@ -820,6 +831,7 @@ tipeOf(enum(_),voidType).
 tipeOf(ctpl(_,Args),tplType(AA)) :-
   map(Args,lterms:tipeOf,AA).
 tipeOf(resme(_,_,_,T),T).
+tipeOf(xresme(_,_,_,T,_),T).
 tipeOf(susp(_,_,_,T),T).
 tipeOf(rtire(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
@@ -1000,6 +1012,9 @@ validTerm(error(Lc,R),_,D) :-
 validTerm(tsk(Lc,F),_,D) :-
   validTerm(F,Lc,D).
 validTerm(resme(Lc,T,E,_),_,D) :-
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(xresme(Lc,T,E,_,_),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validTerm(susp(Lc,T,E,_),_,D) :-

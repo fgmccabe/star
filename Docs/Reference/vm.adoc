@@ -303,6 +303,10 @@ Suspends the execution of fiber `V0`, passing the event `V1` to the scheduler.
 
 ==== `Resume V0, V1`
 Resumes the execution of fiber `V0`, passing the event `V1` into the fiber.
+Like `Call`/`OCall`, `Resume` is followed by an `RSP` or `RSX` instruction to
+collect its result: `RSX` is emitted when the fiber being resumed may throw
+an exception, so that an uncaught exception from the fiber's computation
+breaks out to the enclosing `try` block instead of aborting execution.
 
 ==== `Retire V0, V1`
 Terminates the fiber `V0` and returns the event `V1`.

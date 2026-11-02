@@ -1133,7 +1133,8 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
     MsgTp = newTypeVar("_M");
-    FTp = fiberType(Tp,MsgTp);
+    FETp = newTypeVar("_E");
+    FTp = fiberType(Tp,MsgTp,FETp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     valis .susp(Lc,Tsk,Msg,Tp)
@@ -1141,17 +1142,29 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isRetire(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
-    FTp = fiberType(TTp,MsgTp);
+    FETp = newTypeVar("_E");
+    FTp = fiberType(TTp,MsgTp,FETp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     valis .retyre(Lc,Tsk,Msg,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
     MsgTp = newTypeVar("_M");
-    FTp = fiberType(MsgTp,Tp);
+    FETp = newTypeVar("_E");
+    FTp = fiberType(MsgTp,Tp,FETp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
-    valis .resum(Lc,Tsk,Msg,Tp)
+    if sameType(FETp,.voidType,Env) then
+      valis .resum(Lc,Tsk,Msg,Tp)
+    else if ErTp==.voidType then{
+      reportError("resume of fiber throwing $(FETp) outside a try/catch",Lc);
+      valis .resum(Lc,Tsk,Msg,Tp)
+    } else if sameType(FETp,ErTp,Env) then
+      valis .xresum(Lc,Tsk,Msg,Tp,ErTp)
+    else{
+      reportError("resume throws $(FETp), which is not consistent with $(ErTp)",Lc);
+      valis .resum(Lc,Tsk,Msg,Tp)
+    }
   }
   typeOfExp(A,Tp,_,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
@@ -1390,7 +1403,8 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
-    FTp = fiberType(TTp,MsgTp);
+    FETp = newTypeVar("_E");
+    FTp = fiberType(TTp,MsgTp,FETp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     isValidLastAct(Lc,Tp,Mode);
@@ -1399,7 +1413,8 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,L,R) ?= isRetire(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
-    FTp = fiberType(TTp,MsgTp);
+    FETp = newTypeVar("_E");
+    FTp = fiberType(TTp,MsgTp,FETp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     valis (.doExp(Lc,.retyre(Lc,Tsk,Msg,Tp)),Env,Dcls)
@@ -1407,11 +1422,22 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,L,R) ?= isResume(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
-    FTp = fiberType(MsgTp,TTp);
+    FETp = newTypeVar("_E");
+    FTp = fiberType(MsgTp,TTp,FETp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env,Dcls)
+    if sameType(FETp,.voidType,Env) then
+      valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env,Dcls)
+    else if ErTp==.voidType then{
+      reportError("resume of fiber throwing $(FETp) outside a try/catch",Lc);
+      valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env,Dcls)
+    } else if sameType(FETp,ErTp,Env) then
+      valis (.doExp(Lc,.xresum(Lc,Tsk,Msg,TTp,ErTp)),Env,Dcls)
+    else{
+      reportError("resume throws $(FETp), which is not consistent with $(ErTp)",Lc);
+      valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env,Dcls)
+    }
   }
   checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
     isValidLastAct(Lc,Tp,Mode);

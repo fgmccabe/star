@@ -85,6 +85,9 @@ freeVars(retire(_,T,M,_),Ex,Q,F,Fv) :-
 freeVars(resume(_,T,M,_),Ex,Q,F,Fv) :-
   freeVars(T,Ex,Q,F,F0),
   freeVars(M,Ex,Q,F0,Fv).
+freeVars(xresume(_,T,M,_,_),Ex,Q,F,Fv) :-
+  freeVars(T,Ex,Q,F,F0),
+  freeVars(M,Ex,Q,F0,Fv).
 freeVars(T,_,_,F,F) :-
   locOfCanon(T,Lc),
   reportError("cannot find free vars in %s",[can(T)],Lc).

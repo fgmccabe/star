@@ -35,7 +35,7 @@ star.compiler.intrinsics{
     | "_blsr" => .some((.funType([.nomnal("integer"),.nomnal("integer")],.nomnal("integer"),.voidType),([Rs, V0, V1],Lb) => .iBLsr(Rs, V0, V1)))  -- logical right shift
     | "_basr" => .some((.funType([.nomnal("integer"),.nomnal("integer")],.nomnal("integer"),.voidType),([Rs, V0, V1],Lb) => .iBAsr(Rs, V0, V1)))  -- arithmetic right shift
     | "_bnot" => .some((.funType([.nomnal("integer")],.nomnal("integer"),.voidType),([Rs, V0],Lb) => .iBNot(Rs, V0)))  -- bitwise negate number
-    | "_fiber" => .some((.allType(.kVar("r"),.allType(.kVar("s"),.funType([.funType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s"))],.kVar("r"),.voidType)],.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.voidType))),([Rs, V0],Lb) => .iFiber(Rs, V0)))  -- create a new fiber
+    | "_fiber" => .some((.allType(.kVar("r"),.allType(.kVar("s"),.allType(.kVar("e"),.funType([.funType([.tpExp(.tpExp(.tpExp(.tpFun("fiber",3),.kVar("r")),.kVar("s")),.kVar("e"))],.kVar("r"),.kVar("e"))],.tpExp(.tpExp(.tpExp(.tpFun("fiber",3),.kVar("r")),.kVar("s")),.kVar("e")),.voidType)))),([Rs, V0],Lb) => .iFiber(Rs, V0)))  -- create a new fiber
 
     | _ default => .none
   }

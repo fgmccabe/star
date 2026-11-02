@@ -538,7 +538,7 @@ star.compiler.types{
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public tagType(Tp) => .tpExp(.tpFun("tag",1),Tp).
   public optType(Tp) => .tpExp(.tpFun("option",1),Tp).
-  public fiberType(R,S) => .tpExp(.tpExp(.tpFun("fiber",2),R),S).
+  public fiberType(R,S,E) => .tpExp(.tpExp(.tpExp(.tpFun("fiber",3),R),S),E).
   public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
   public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
 

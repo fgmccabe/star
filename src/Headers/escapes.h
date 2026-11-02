@@ -10,7 +10,7 @@
 #define option(T) "Uz1'option'" T
 #define either(E, O) "UUz2'star.either*either'" E O
 #define future(F, E) "UUz2'future'" F E
-#define fiber(R, S) "UUz2'fiber'" R S
+#define fiber(R, S, E) "UUUz3'fiber'" R S E
 #define throws(A, R, E) "T" tpl(A) R E
 #define func(A, R) "F" tpl(A) R
 #define proc(A) "P" tpl(A) vd
@@ -102,8 +102,8 @@ escape(_big2str, func(big, strng), "convert bigint to string")
 
 escape(_big_format, throws(big strng, strng, ERR), "format a big integer")
 
-escape(_fiber_eq,all(r, all(s, func(fiber(r, s) fiber(r, s), bool))),"compare two fiber identifiers")
-escape(_fiber,all(r, all(s, func(func(fiber(r, s) r, s), fiber(r, s)))),"create a new fiber")
+escape(_fiber_eq,all(r, all(s, all(e, func(fiber(r, s, e) fiber(r, s, e), bool)))),"compare two fiber identifiers")
+escape(_fiber,all(r, all(s, all(e, func(throws(fiber(r, s, e) r, s, e), fiber(r, s, e))))),"create a new fiber")
 
 escape(_sqrt, throws(flt, flt, ERR), "square root")
 escape(_exp, throws(flt, flt, ERR), "exponential")

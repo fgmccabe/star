@@ -152,6 +152,8 @@ star.compiler.inline{
       .cRetyr(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cResum(Lc,T,M,Tp) =>
       .cResum(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
+    | .cXResum(Lc,T,M,Tp,ErTp) =>
+      .cXResum(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp,ErTp)
     | .cValof(Lc,Act,Tp) => valofAct(Lc,simplifyAct(Act,Map,Depth),Tp)
     | .cVarNme(Lc,Nm,V,E) where .cVar(_,_).=V =>
       .cVarNme(Lc,Nm,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth))

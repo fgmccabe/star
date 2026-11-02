@@ -24,6 +24,8 @@ star.compiler.mirror{
     mkCon(Lc,"funTp",[typeElems(Lc,As),reflectType(R),enum(Lc,"voidTp")]).
   reflectType(A) where (Lc,L,R,T) ?= isThrwFunctionType(A) && (ALc,As) ?= isRndTpl(L) =>
     mkCon(Lc,"funTp",[typeElems(Lc,As),reflectType(R),reflectType(T)]).
+  reflectType(A) where (Lc,R,S,.some(T)) ?= isFiberType(A) =>
+    reflectTypeExp(Lc,mkCon(Lc,"tpFun",[.str(Lc,"fiber"),.int(Lc,3)]),[R,S,T]).
   reflectType(A) where (Lc,L,T) ?= isPrcType(A) && (ALc,As) ?= isRndTpl(L) =>
     mkCon(Lc,"prcTp",[typeElems(Lc,As,reflectType),(Th?=T ?? reflectType(Th)||enum(Lc,"voidTp"))]).
   reflectType(A) where (Lc,Els) ?= isBrTuple(A) =>

@@ -30,5 +30,5 @@ isIntrinsic("_blsl",funType([type("integer"),type("integer")],type("integer"),vo
 isIntrinsic("_blsr",funType([type("integer"),type("integer")],type("integer"),voidType),iBLsr,noThrow).  % logical right shift
 isIntrinsic("_basr",funType([type("integer"),type("integer")],type("integer"),voidType),iBAsr,noThrow).  % arithmetic right shift
 isIntrinsic("_bnot",funType([type("integer")],type("integer"),voidType),iBNot,noThrow).  % bitwise negate number
-isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),funType([funType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))],kVar("r"),voidType)],tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),voidType))),iFiber,noThrow).  % create a new fiber
+isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType([funType([tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("r")),kVar("s")),kVar("e"))],kVar("r"),kVar("e"))],tpExp(tpExp(tpExp(tpFun("fiber",3),kVar("r")),kVar("s")),kVar("e")),voidType)))),iFiber,noThrow).  % create a new fiber
 

@@ -7,7 +7,7 @@
 #define option(T) "Uz1'option'" T
 #define either(E,O) "UUz2'star.either*either'" E O
 #define future(F,E) "UUz2'future'" F E
-#define fiber(R,S) "UUz2'fiber'" R S
+#define fiber(R,S,E) "UUUz3'fiber'" R S E
 #define throws(A,R,E) "T" tpl(A) R E
 #define func(A,R) "F" tpl(A) R
 #define tpl(E) "(" E ")"
@@ -67,7 +67,7 @@ intrinsic(_blsr,func(int int,int),"BLsr",True,"logical right shift")
 intrinsic(_basr,func(int int,int),"BAsr",True,"arithmetic right shift")
 intrinsic(_bnot,func(int,int),"BNot",True,"bitwise negate number")
 
-intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r),fiber(r,s)))),"Fiber",True,"create a new fiber")
+intrinsic(_fiber,all(r,all(s,all(e,func(throws(fiber(r,s,e),r,e),fiber(r,s,e))))),"Fiber",True,"create a new fiber")
 
 #undef io
 #undef ERR

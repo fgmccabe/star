@@ -377,6 +377,8 @@ star.compiler.macro{
     mkFuncType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R,E) ?= isThrwFunctionType(A) =>
     mkThrowingFunType(Lc,macroType(L),macroType(R),macroType(E)).
+  examineType(A) where (Lc,R,S,.some(E)) ?= isFiberType(A) =>
+    mkFiberType(Lc,macroType(R),macroType(S),.some(macroType(E))).
   examineType(A) where (Lc,L,R) ?= isPrcType(A) =>
     mkPrcType(Lc,macroType(L),fmap(macroType,R)).
   examineType(A) where (Lc,R) ?= isRef(A) =>

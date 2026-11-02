@@ -55,6 +55,17 @@ star.compiler.typeparse{
       valis .voidType
     }
   }
+  parseType(T,Env) where (Lc,Lhs,Rhs,.none) ?= isFiberType(T) => valof{
+    R = parseType(Lhs,Env);
+    S = parseType(Rhs,Env);
+    valis fiberType(R,S,.voidType)
+  }
+  parseType(T,Env) where (Lc,Lhs,Rhs,.some(Ehs)) ?= isFiberType(T) => valof{
+    R = parseType(Lhs,Env);
+    S = parseType(Rhs,Env);
+    E = parseType(Ehs,Env);
+    valis fiberType(R,S,E)
+  }
   parseType(Tp,Env) where (Lc,O,Args) ?= isSquareTerm(Tp) && (OLc,Nm)?=isName(O) => valof{
     ArgTps = parseTypes(Args,Env);
     (Op,Rl) = parseTypeName(OLc,Nm,Env);
@@ -99,11 +110,6 @@ star.compiler.typeparse{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
     valis .cnsType(A,R)
-  }
-  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
-    R = parseType(Lhs,Env);
-    S = parseType(Rhs,Env);
-    valis fiberType(R,S)
   }
   parseType(T,Env) where (Lc,Rhs) ?= isRef(T) =>
     refType(parseType(Rhs,Env)).

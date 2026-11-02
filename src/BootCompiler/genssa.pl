@@ -604,6 +604,14 @@ compExp(resme(Lc,T,M,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),
   bindExpToVar(M,Lc,Brks,Opts,MVr,L1,Lx,D1,Dx,C1,C2),
   genDbg(Opts,Lc,C2,[iResume(TVr,MVr),iRSP(RsVr)|Cx]).
+compExp(xresme(Lc,T,M,_Tp,_ErTp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
+  (is_member(("$try",TryLvl),Brks) ->
+   chLine(Opts,OLc,Lc,C,C0),
+   bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),
+   bindExpToVar(M,Lc,Brks,Opts,MVr,L1,Lx,D1,Dx,C1,C2),
+   genDbg(Opts,Lc,C2,[iResume(TVr,MVr),iRSX(TryLvl,RsVr)|Cx]);
+   reportError("not in scope of try",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 compExp(rtire(Lc,T,M,_Tp),OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   chLine(Opts,OLc,Lc,C,C0),
   bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),

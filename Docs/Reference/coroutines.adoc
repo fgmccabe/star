@@ -294,16 +294,25 @@ takes the form:
 ----
 type --> fiberType.
 
-fiberType --> ["fiber", "["], resumeType, [","], suspendType, ["]"].
+fiberType --> ["fiber", "["], resumeType, [","], suspendType, ["]"], throwsClause?.
 
 resumeType --> type.
 
 suspendType --> type.
+
+throwsClause --> ["throws"], type.
 ----
 
 The `resumeType` refers to values that can be sent to the fiber -- as it is
 resumed -- and the `suspendType` type argument refers to values that the fiber
 may suspend with (see below) -- i.e., may return to the external computation.
+
+The optional `throwsClause` names the type of exception that the fiber's
+computation may throw without catching itself. A plain `fiber[r,s]` is sugar for
+a fiber that cannot throw -- equivalent to `fiber[r,s] throws void`. A fiber
+whose body may raise an uncaught exception must be declared `fiber[r,s] throws
+e`; see <<resumeThrows>> below for how such an exception is caught by whoever
+resumes the fiber.
 
 === Create a `fiber`
 
@@ -317,12 +326,17 @@ fiber performs.  The general form of the type of a fiber function is:
 
 [source,star]
 ----
-all r,s ~~ (fiber[r,s],r) => s
+all r,s,e ~~ (fiber[r,s,e],r) => s throws e
 ----
 
 The `r` type indicates the type of the value given to the fiber whenever it is
 resumed, and the `s` type indicates the type that the fiber will return and what
-it will yield should it suspend.
+it will yield should it suspend. The `e` type is the fiber function's own
+exception type: if the fiber function throws a value of type `e` and does not
+catch it itself, the exception propagates out of the fiber -- to be caught by
+whoever `resume`s it (see <<resumeThrows>>). A fiber function that cannot throw
+simply declares `e` as `void`, which is what the `fiber[r,s]` sugar for
+<<fiberType>> assumes.
 
 Note the second occurrance of `r`: when a fiber is resumed for the first time,
 the value given during the corresponding `_resume` operation is modeled as the
@@ -335,7 +349,7 @@ The type of `_fiber` is:
 
 [source,star]
 ----
-_fiber: all r,s ~~ ((fiber[r,s],r)=>s)=>fiber[r,s]
+_fiber: all r,s,e ~~ ((fiber[r,s,e],r)=>s throws e)=>fiber[r,s,e]
 ----
 
 I.e., it returns a new fiber.
@@ -349,12 +363,13 @@ _suspension event_:
 
 [source,star]
 ----
-(suspend): all r,s ~~ (fiber[r,s],s) => r
+(suspend): all r,s,e ~~ (fiber[r,s,e],s) => r
 ----
 
 The returned value from a use of `suspend` is the value used
 when the fiber is resumed using `resume`.
 
+[#resumeThrows]
 === Resume using `resume`
 
 The `resume` operator is used when one wishes to resume a fiber.
@@ -364,7 +379,7 @@ _resumption event_:
 
 [source,star]
 ----
-(resume): all r,s ~~ (fiber[r,s],r) => s
+(resume): all r,s,e ~~ (fiber[r,s,e],r) => s throws e
 ----
 
 The second argument -- of type `r` -- is passed to the fiber
@@ -378,6 +393,45 @@ both cases the value returned by `resume` is the value returned
 by the fiber function -- or the value passed in a call to
 `suspend`.
 
+If the fiber being resumed is declared with a non-`void` exception type
+(`fiber[r,s] throws e`) and its fiber function throws a value of type `e`
+without catching it, that exception propagates out of the `resume` that
+most recently resumed it -- exactly as if `resume` itself had thrown. This
+means a `resume` of a throwing fiber is only permitted where an ordinary
+throwing call would be: inside a `try`/`catch`, or inside a function whose
+own `throws e` declaration matches the fiber's exception type. Resuming a
+throwing fiber outside of such a scope, or where the enclosing exception
+type does not match the fiber's, is rejected at compile time.
+
+[source,star]
+----
+body:(fiber[integer,integer] throws string,integer) => integer throws string.
+body(this,E) => valof{
+  if E>5 then
+    throw "too big"
+  else
+    valis 3*E
+}
+
+f:(integer) => integer throws string.
+f(X) => valof{
+  valis _fiber(body) resume X
+}
+
+main(){
+  try{
+    show f(2);   -- prints 6
+    show f(10)   -- body throws "too big"
+  } catch {
+    E do showMsg("caught $(E)")  -- prints: caught "too big"
+  }
+}
+----
+
+A fiber declared without a `throws` clause (the `fiber[r,s]` sugar) is
+unaffected by this: `resume` of such a fiber behaves exactly as before, with
+no exception-handling requirement at the call site.
+
 === Retiring a fiber with `retire`
 
 The `retire` function can be used by a fiber when it wished to
@@ -386,7 +440,7 @@ normal way is simply return from the fiber function.
 
 [source,star]
 ----
-(retire): all r,s ~~ (fiber[r,s],s) => ()
+(retire): all r,s,e ~~ (fiber[r,s,e],s) => ()
 ----
 
 The `retire` operator does not actually return. When invoked, the

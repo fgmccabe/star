@@ -48,7 +48,8 @@ star.compiler.canon{
   .vlof(option[locn],canonAction,tipe) |
   .susp(option[locn],canon,canon,tipe) |
   .retyre(option[locn],canon,canon,tipe) |
-  .resum(option[locn],canon,canon,tipe).
+  .resum(option[locn],canon,canon,tipe) |
+  .xresum(option[locn],canon,canon,tipe,tipe).
 
   public canonVar ::= .var(string,tipe).
 
@@ -124,6 +125,7 @@ star.compiler.canon{
       | .retyre(_,_,_,Tp) => Tp
       | .resum(_,_
 	,_,Tp) => Tp
+      | .xresum(_,_,_,Tp,_) => Tp
     }
   .}
 
@@ -192,6 +194,7 @@ star.compiler.canon{
       | .susp(Lc,_,_,_) => Lc
       | .retyre(Lc,_,_,_) => Lc
       | .resum(Lc,_,_,_) => Lc
+      | .xresum(Lc,_,_,_,_) => Lc
     }
   }
 
@@ -334,6 +337,8 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) retire #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .resum(_,T,M,_) where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
       "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) resume #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
+    | .xresum(_,T,M,_,ETp) where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
+      "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) resume #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr)) throws $(ETp)"
   }
 
   showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>

@@ -39,6 +39,20 @@ parseType(T,Env,B,Tp) :-
 parseType(Nm,Env,Q,Tp) :-
   isIden(Nm,Lc,Id), !,
   parseTypeName(Lc,Id,Env,Q,Tp).
+parseType(F,Env,Q,Tp) :-
+  isThrows(F,_,Fb,E),
+  isSquareTerm(Fb,_,Op,[R,S]),
+  isIden(Op,_,"fiber"),!,
+  parseType(R,Env,Q,RT),
+  parseType(S,Env,Q,ST),
+  parseType(E,Env,Q,ET),
+  fiberType(RT,ST,ET,Tp).
+parseType(F,Env,Q,Tp) :-
+  isSquareTerm(F,_,Op,[R,S]),
+  isIden(Op,_,"fiber"),!,
+  parseType(R,Env,Q,RT),
+  parseType(S,Env,Q,ST),
+  fiberType(RT,ST,voidType,Tp).
 parseType(Sq,Env,Q,Tp) :-
   isSquareTerm(Sq,Lc,N,Args),!,
   parseType(N,Env,Q,Op),

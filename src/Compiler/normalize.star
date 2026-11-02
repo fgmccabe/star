@@ -504,6 +504,11 @@ star.compiler.normalize{
     (MM,Ex2) = liftExp(M,Map,Q,Ex1);
     valis (.cResum(Lc,TT,MM,Tp::ltipe),Ex2)
   }
+  liftExp(.xresum(Lc,T,M,Tp,ETp),Map,Q,Ex) => valof{
+    (TT,Ex1) = liftExp(T,Map,Q,Ex);
+    (MM,Ex2) = liftExp(M,Map,Q,Ex1);
+    valis (.cXResum(Lc,TT,MM,Tp::ltipe,ETp::ltipe),Ex2)
+  }
   liftExp(.susp(Lc,T,M,Tp),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (MM,Ex2) = liftExp(M,Map,Q,Ex1);

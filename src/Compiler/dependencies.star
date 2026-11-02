@@ -472,6 +472,8 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R,E) ?= isThrwFunctionType(T) =>
     collectTypeRefs(E,All,collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar))).
+  collectTypeRefs(T,All,SoFar) where (_,R,S,.some(E)) ?= isFiberType(T) =>
+    collectTypeRefs(E,All,collectTypeRefs(S,All,collectTypeRefs(R,All,SoFar))).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isPrcType(T) =>
     collectTypeRefs(L,All,collectOptType(R,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,R) ?= isGeneratorType(T) =>

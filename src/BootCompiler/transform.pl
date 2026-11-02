@@ -482,6 +482,9 @@ liftExp(task(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(resume(Lc,T,M,Tp),resme(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(xresume(Lc,T,M,Tp,ErTp),xresme(Lc,TT,MM,Tp,ErTp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(suspend(Lc,T,M,Tp),susp(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).

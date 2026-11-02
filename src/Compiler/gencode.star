@@ -386,6 +386,16 @@ star.compiler.gencode{
     (TC,TV) = bindExpToVar(T,Lc,Brks,.notLast,Ctx);
     valis chLine(OLc,Lc)++EC++TC++[.iResume(TV,EV),.iRSP(Vr)]
   }
+  compExp(.cXResum(Lc,T,E,Tp,_),OLc,Vr,Brks,_Last,Ctx) => valof{
+    (EC,EV) = bindExpToVar(E,Lc,Brks,.notLast,Ctx);
+    (TC,TV) = bindExpToVar(T,Lc,Brks,.notLast,Ctx);
+    if XLbl ?= Brks["$try"] then{
+      valis chLine(OLc,Lc)++EC++TC++[.iResume(TV,EV),.iRSX(XLbl,Vr)]
+    } else{
+      reportError("resume of throwing fiber outside a try scope",Lc);
+      valis []
+    }
+  }
   compExp(.cSusp(Lc,T,E,Tp),OLc,Vr,Brks,_Last,Ctx) => valof{
     (EC,EV) = bindExpToVar(E,Lc,Brks,.notLast,Ctx);
     (TC,TV) = bindExpToVar(T,Lc,Brks,.notLast,Ctx);

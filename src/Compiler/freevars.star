@@ -67,6 +67,7 @@ star.compiler.freevars{
     }
     | .vlof(_,A,_) => freeVarsInAct(A,Q,Fv)
     | .resum(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
+    | .xresum(_,T,M,_,_) => freeVarsInExp(M,Q,freeVarsInExp(T,Q,Fv))
     | .susp(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
     | .retyre(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
     | _ default => valof{

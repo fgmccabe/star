@@ -894,22 +894,33 @@ typeOfExp(A,Tp,ErTp,Env,Env,throw(Lc,ErExp,Tp),Opts,Path) :-
 typeOfExp(A,Tp,ErTp,Env,Env,suspend(Lc,T,M,Tp),Opts,Path) :-
   isSuspend(A,Lc,L,R),!,
   newTypeVar("M",MTp),
-  fiberType(Tp,MTp,FTp),
+  newTypeVar("E",FETp),
+  fiberType(Tp,MTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
 typeOfExp(A,Tp,ErTp,Env,Env,retire(Lc,T,M,Tp),Opts,Path) :-
   isRetire(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
-  fiberType(TTp,MTp,FTp),
+  newTypeVar("E",FETp),
+  fiberType(TTp,MTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
-typeOfExp(A,Tp,ErTp,Env,Env,resume(Lc,T,M,Tp),Opts,Path) :-
+typeOfExp(A,Tp,ErTp,Env,Env,Exp,Opts,Path) :-
   isResume(A,Lc,L,R),!,
   newTypeVar("M",MTp),
-  fiberType(MTp,Tp,FTp),
+  newTypeVar("E",FETp),
+  fiberType(MTp,Tp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
-  typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
+  typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
+  (deRef(FETp,voidType) ->
+     Exp=resume(Lc,T,M,Tp)
+   ; sameType(FETp,ErTp,Lc,Env) ->
+     Exp=xresume(Lc,T,M,Tp,ErTp)
+   ;
+     reportError("resume throws %s which is not consistent with %s",[FETp,ErTp],Lc),
+     Exp=resume(Lc,T,M,Tp)
+  ).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Opts,Path) :-
   isRoundTerm(Term,Lc,F,A),
   checkFunCall(Lc,F,A,Tp,ErTp,Env,Exp,Opts,Path).
@@ -1129,7 +1140,8 @@ checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,
   isSuspend(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
-  fiberType(TTp,MTp,FTp),
+  newTypeVar("E",FETp),
+  fiberType(TTp,MTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
@@ -1137,17 +1149,27 @@ checkAction(A,Tp,ErTp,_Last,Env,Env,Dcls,Dcls,doExp(Lc,retire(Lc,T,M,Tp)),Opts,P
   isRetire(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
-  fiberType(TTp,MTp,FTp),
+  newTypeVar("E",FETp),
+  fiberType(TTp,MTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,Exp),Opts,Path) :-
   isResume(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
-  fiberType(MTp,TTp,FTp),
+  newTypeVar("E",FETp),
+  fiberType(MTp,TTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
-  validLastAct(A,Lc,Tp,Last).
+  validLastAct(A,Lc,Tp,Last),
+  (deRef(FETp,voidType) ->
+     Exp=resume(Lc,T,M,TTp)
+   ; sameType(FETp,ErTp,Lc,Env) ->
+     Exp=xresume(Lc,T,M,TTp,ErTp)
+   ;
+     reportError("resume throws %s which is not consistent with %s",[FETp,ErTp],Lc),
+     Exp=resume(Lc,T,M,TTp)
+  ).
 checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,Exp),Opts,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
   checkProcCall(Lc,F,Args,ErTp,Env,Exp,Opts,Path),

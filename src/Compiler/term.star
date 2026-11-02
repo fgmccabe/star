@@ -48,6 +48,7 @@ star.compiler.term{
   | .cIxCase(option[locn],cExp,cons[cCase[cExp]],cExp,ltipe)
   | .cMatch(option[locn],cExp,cExp)
   | .cResum(option[locn],cExp,cExp,ltipe)
+  | .cXResum(option[locn],cExp,cExp,ltipe,ltipe)
   | .cSusp(option[locn],cExp,cExp,ltipe)
   | .cRetyr(option[locn],cExp,cExp,ltipe)
   | .cVarNme(option[locn],string,cExp,cExp)
@@ -161,6 +162,7 @@ star.compiler.term{
     | .cNeg(_,R) => "~#(dspExp(R,ShTp,Off))"
     | .cSeq(Lc,L,R) => "{#(dspSeq(.cSeq(Lc,L,R),ShTp,Off++"  "))}"
     | .cResum(_,P,E,_) => "#(dspExp(P,ShTp,Off)) resume #(dspExp(E,ShTp,Off))"
+    | .cXResum(_,P,E,_,ETp) => "#(dspExp(P,ShTp,Off)) resume #(dspExp(E,ShTp,Off)) throws $(ETp)"
     | .cSusp(_,P,E,_) => "#(dspExp(P,ShTp,Off)) suspend #(dspExp(E,ShTp,Off))"
     | .cRetyr(_,P,E,_) => "#(dspExp(P,ShTp,Off)) retire #(dspExp(E,ShTp,Off))"
     | .cVarNme(_,Nm,V,E) => "<var #(Nm) = #(dspExp(V,ShTp,Off)) in #(dspExp(E,ShTp,Off))>"
@@ -303,6 +305,7 @@ star.compiler.term{
     onIxCase(_,_,SelCmp,Cases,DfltCmp,_)=>(X2)=>(.cIxCase(_,S2,C2,D2,_).=X2 && SelCmp(S2) && eqCasesE(Cases,C2) && DfltCmp(D2)).
     onMatch(_,_,PCmp,VCmp)=>(X2)=>(.cMatch(_,P2,V2).=X2 && VCmp(V2) && PCmp(P2)).
     onResum(_,_,PCmp,VCmp,_)=>(X2)=>(.cResum(_,P2,V2,_).=X2 && VCmp(V2) && PCmp(P2)).
+    onXResum(_,_,PCmp,VCmp,_,_)=>(X2)=>(.cXResum(_,P2,V2,_,_).=X2 && VCmp(V2) && PCmp(P2)).
     onSusp(_,_,PCmp,VCmp,_)=>(X2)=>(.cSusp(_,P2,V2,_).=X2 && VCmp(V2) && PCmp(P2)).
     onRetyr(_,_,PCmp,VCmp,_)=>(X2)=>(.cRetyr(_,P2,V2,_).=X2 && VCmp(V2) && PCmp(P2)).
     onVarNme(_,_,N1,VCmp,BCmp)=>(X2)=>(.cVarNme(_,N2,V2,B2).=X2 && N1==N2 && VCmp(V2) && BCmp(B2)).
@@ -416,6 +419,7 @@ star.compiler.term{
       | .cCnd(Lc,_,_,_) => Lc
       | .cAbort(Lc,_) => Lc
       | .cResum(Lc,_,_,_) => Lc
+      | .cXResum(Lc,_,_,_,_) => Lc
       | .cSusp(Lc,_,_,_) => Lc
       | .cRetyr(Lc,_,_,_) => Lc
       | .cVarNme(Lc,_,_,_) => Lc
@@ -460,6 +464,7 @@ star.compiler.term{
       | .cCnd(_,_,L,_) => tpOf(L)
       | .cMatch(_,_,_) => .bool
       | .cResum(_,_,_,T) => T
+      | .cXResum(_,_,_,T,_) => T
       | .cSusp(_,_,_,T) => T
       | .cRetyr(_,_,_,T) => T
       | .cTry(_,_,_,_,T) => T
@@ -597,6 +602,7 @@ star.compiler.term{
     onIxCase : (env,option[locn],r,cons[cCase[cExp]],r,ltipe) => r.
     onMatch  : (env,option[locn],r,r) => r.
     onResum  : (env,option[locn],r,r,ltipe) => r.
+    onXResum : (env,option[locn],r,r,ltipe,ltipe) => r.
     onSusp   : (env,option[locn],r,r,ltipe) => r.
     onRetyr  : (env,option[locn],r,r,ltipe) => r.
     onVarNme : (env,option[locn],string,r,r) => r.
@@ -670,6 +676,7 @@ star.compiler.term{
       Alg.onIxCase(Nv,Lc,foldExp(Sel,Nv,Alg),Cases,foldExp(Dflt,Nv,Alg),Tp)
     | .cMatch(Lc,P,E) => Alg.onMatch(Nv,Lc,foldExp(P,Nv,Alg),foldExp(E,Nv,Alg))
     | .cResum(Lc,T,M,Tp) => Alg.onResum(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp)
+    | .cXResum(Lc,T,M,Tp,ErTp) => Alg.onXResum(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp,ErTp)
     | .cSusp(Lc,T,M,Tp) => Alg.onSusp(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp)
     | .cRetyr(Lc,T,M,Tp) => Alg.onRetyr(Nv,Lc,foldExp(T,Nv,Alg),foldExp(M,Nv,Alg),Tp)
     | .cVarNme(Lc,N,V,E) => Alg.onVarNme(Nv,Lc,N,foldExp(V,Nv,Alg),foldExp(E,Nv,Alg))
@@ -745,6 +752,7 @@ star.compiler.term{
     onIxCase(Nv,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,foldCasesE(Cases,Nv,identityAlgebra),Dflt,Tp).
     onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
     onResum(_,Lc,T,M,Tp)=>.cResum(Lc,T,M,Tp).
+    onXResum(_,Lc,T,M,Tp,ErTp)=>.cXResum(Lc,T,M,Tp,ErTp).
     onSusp(_,Lc,T,M,Tp)=>.cSusp(Lc,T,M,Tp).
     onRetyr(_,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,Tp).
     onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
@@ -813,6 +821,7 @@ star.compiler.term{
     onIxCase(Tst,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,rwCasesE(Cases,Tst),Dflt,Tp).
     onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
     onResum(_,Lc,T,M,Tp)=>.cResum(Lc,T,M,Tp).
+    onXResum(_,Lc,T,M,Tp,ErTp)=>.cXResum(Lc,T,M,Tp,ErTp).
     onSusp(_,Lc,T,M,Tp)=>.cSusp(Lc,T,M,Tp).
     onRetyr(_,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,Tp).
     onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
@@ -914,6 +923,7 @@ star.compiler.term{
     onIxCase(Nv,_,Sel,Cases,Dflt,_)=>caseSumE(Cases,Nv,Sel)+Dflt+1.
     onMatch(_,_,P,E)=>sum1([P,E]).
     onResum(_,_,T,M,_)=>sum1([T,M]).
+    onXResum(_,_,T,M,_,_)=>sum1([T,M]).
     onSusp(_,_,T,M,_)=>sum1([T,M]).
     onRetyr(_,_,T,M,_)=>sum1([T,M]).
     onVarNme(_,_,_,_,E)=>sum1([E]).
@@ -1009,6 +1019,7 @@ star.compiler.term{
     onIxCase(Sc,Lc,Sel,Cases,Dflt,Tp)=>.cIxCase(Lc,Sel,frshnCasesE(Cases,Sc),Dflt,Tp).
     onMatch(_,Lc,P,E)=>.cMatch(Lc,P,E).
     onResum(_,Lc,T,M,Tp)=>.cResum(Lc,T,M,Tp).
+    onXResum(_,Lc,T,M,Tp,ErTp)=>.cXResum(Lc,T,M,Tp,ErTp).
     onSusp(_,Lc,T,M,Tp)=>.cSusp(Lc,T,M,Tp).
     onRetyr(_,Lc,T,M,Tp)=>.cRetyr(Lc,T,M,Tp).
     onVarNme(_,Lc,N,V,E)=>.cVarNme(Lc,N,V,E).
@@ -1319,6 +1330,7 @@ star.compiler.term{
       valis validPtn(V,V1) && validE(E,V1)
     }
     | .cResum(_,L,R,_) => validE(L,Vrs) && validE(R,Vrs)
+    | .cXResum(_,L,R,_,ErTp) => validE(L,Vrs) && validE(R,Vrs) && ~.vdTipe.=ErTp
     | .cSusp(_,L,R,_) => validE(L,Vrs) && validE(R,Vrs)
     | .cRetyr(_,L,R,_) => validE(L,Vrs) && validE(R,Vrs)
     | .cVarNme(_,_,_,E) => validE(E,Vrs)
@@ -1493,6 +1505,7 @@ star.compiler.term{
     onIxCase(Env,_,Sel,Cases,Dflt,_)=>Sel||presentCasesE(Cases,Env)||Dflt.
     onMatch(_,_,P,E)=>P||E.
     onResum(_,_,T,M,_)=>T||M.
+    onXResum(_,_,T,M,_,_)=>T||M.
     onSusp(_,_,T,M,_)=>T||M.
     onRetyr(_,_,T,M,_)=>T||M.
     onVarNme(_,_,_,_,E)=>E.
@@ -1611,6 +1624,7 @@ star.compiler.term{
     | .cAbort(Lc,Msg) => mkCons("abrt",[Lc::data,.strg(Msg)])
     | .cTry(Lc,B,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(E),frzeExp(H),frzeTp(Tp)])
     | .cResum(Lc,L,R,Tp) => mkCons("rsme",[Lc::data,frzeExp(L),frzeExp(R),frzeTp(Tp)])
+    | .cXResum(Lc,L,R,Tp,ErTp) => mkCons("xrsme",[Lc::data,frzeExp(L),frzeExp(R),frzeTp(Tp),frzeTp(ErTp)])
     | .cSusp(Lc,L,R,Tp) => mkCons("susp",[Lc::data,frzeExp(L),frzeExp(R),frzeTp(Tp)])
     | .cRetyr(Lc,L,R,Tp) => mkCons("retyr",[Lc::data,frzeExp(L),frzeExp(R),frzeTp(Tp)])
     | .cVarNme(Lc,N,V,B) => mkCons("vrs",[Lc::data,.strg(N),frzeExp(V),frzeExp(B)])
@@ -1721,6 +1735,8 @@ star.compiler.term{
     | .term("try",[Lc,B,E,H,Sig]) =>
       .cTry(thawLoc(Lc),thwTrm(B),thwTrm(E),thwTrm(H),thwTp(Sig))
     | .term("rsme",[Lc,L,R,Sig]) => .cResum(thawLoc(Lc),thwTrm(L),thwTrm(R),thwTp(Sig))
+    | .term("xrsme",[Lc,L,R,Sig,ESig]) =>
+      .cXResum(thawLoc(Lc),thwTrm(L),thwTrm(R),thwTp(Sig),thwTp(ESig))
     | .term("susp",[Lc,L,R,Sig]) => .cSusp(thawLoc(Lc),thwTrm(L),thwTrm(R),thwTp(Sig))
     | .term("retyr",[Lc,L,R,Sig]) => .cRetyr(thawLoc(Lc),thwTrm(L),thwTrm(R),thwTp(Sig))
     | .term("vrs",[Lc,.strg(N),V,B]) => .cVarNme(thawLoc(Lc),N,thwTrm(V),thwTrm(B))
@@ -1843,6 +1859,7 @@ star.compiler.term{
     | .cAbort(_,_) => SoF
     | .cTry(_,B,E,H,_) => foldV(H,.inExp,Fn,foldV(B,.inExp,Fn,foldV(E,.inExp,Fn,SoF)))
     | .cResum(_,L,R,_) => foldV(R,.inExp,Fn,foldV(L,.inPtn,Fn,SoF))
+    | .cXResum(_,L,R,_,_) => foldV(R,.inExp,Fn,foldV(L,.inPtn,Fn,SoF))
     | .cSusp(_,L,R,_) => foldV(R,.inExp,Fn,foldV(L,.inPtn,Fn,SoF))
     | .cRetyr(_,L,R,_) => foldV(R,.inExp,Fn,foldV(L,.inPtn,Fn,SoF))
     | .cVarNme(_,_,_,B) => foldV(B,Mode,Fn,SoF)
