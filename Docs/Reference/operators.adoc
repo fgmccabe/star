@@ -87,7 +87,7 @@ interpretation.
 |`+++=&lt;+++` | 900 | non-associative infix | less than or equal
 |`+++==+++` | 900 | non-associative infix | equality predicate
 |`+++=&gt;+++` | 950 | right associative infix | function arrow
-|`+++=&gt;&gt;+++` | 950 | right associative infix | continuation arrow
+|`+++=&gt;&gt;+++` | 951 | non-associative infix | fiber arrow
 |`+++&gt;+++` | 900 | non-associative infix | greater than
 |`+++&gt;=+++` | 900 | non-associative infix | greater than or equal
 |`+++&gt;&gt;+++` | 950 | right associative infix | grammar produce value

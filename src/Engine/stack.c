@@ -479,6 +479,16 @@ stackPo newStack(enginePo P, logical execJit, termPo lam) {
 
 void attachStack(enginePo P, stackPo top) {
   stackPo stk = P->stk;
+
+  switch(stackState(top)){
+  case suspended:
+    break;
+  case moribund:
+    syserr("resume of a completed fiber");
+  case active:
+    syserr("resume of an already active fiber");
+  }
+
   stackPo bottom = top->bottom;
   assert(bottom != Null && isAttachedStack(bottom, top));
 
@@ -515,7 +525,16 @@ void detachStack(enginePo P, stackPo top) {
     verifyStack(base);
   }
 #endif
-  assert(stackState(top) == active && top->bottom == Null);
+
+  switch(stackState(top)){
+  case suspended:
+    syserr("suspending an already suspendede fiber");
+  case moribund:
+    syserr("suspending a completed fiber");
+  case active:
+    break;
+  }
+
   assert(isAttachedStack(base, top));
 
   stackPo s = base;

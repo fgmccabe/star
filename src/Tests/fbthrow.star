@@ -6,7 +6,7 @@ test.fbthrow{
   catches the exception via resume's new throwing form.
   */
 
-  body:(fiber[integer,integer] throws string,integer) => integer throws string.
+  body:((integer)=>>integer throws string,integer) => integer throws string.
   body(this,E) => valof{
     if E>5 then
       throw "too big"

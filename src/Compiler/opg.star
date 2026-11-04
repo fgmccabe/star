@@ -39,13 +39,13 @@ star.compiler.opg{
       (ILft,IPr,IRgt) ?= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
       (PLft,PPr) ?= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority &&
       legalNextRight(Toks,IRgt) &&	-- Use infix
-      (Rhs,RPriority,RToks,Needs) .= term(Toks,IRgt) =>
-    termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Needs),Priority).
+      (Rhs,_,RToks,Needs) .= term(Toks,IRgt) =>
+    termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),IPr,RToks,Needs),Priority).
   termRight((Lhs,LeftPriority,[.tok(Lc,.idTok(Op)),..Toks],LeftNeed),Priority) where
       (ILft,IPr,IRgt) ?= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
       legalNextRight(Toks,IRgt) &&
-    (Rhs,RPriority,RToks,Needs) .= term(Toks,IRgt) =>
-    termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Needs),Priority).
+    (Rhs,_,RToks,Needs) .= term(Toks,IRgt) =>
+    termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),IPr,RToks,Needs),Priority).
   termRight((Lhs,LeftPriority,[.tok(Lc,.idTok(Op)),..Toks],LeftNeed),Priority) where
       (PLft,PPr) ?= isPostfixOp(Op) &&
 	  PPr=<Priority && PLft>=LeftPriority &&

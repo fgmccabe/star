@@ -189,7 +189,8 @@ star.compiler.macro{
     mkProcedure(Lc,.none,Dflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
   examineCaseAction(A) => valof{
     reportError("cannot figure out case $(A)",locOf(A));
-    valis A}
+    valis A
+  }
 
   macroTerm(A) => macroAst(A,.expression,examineTerm).
 
@@ -377,8 +378,10 @@ star.compiler.macro{
     mkFuncType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R,E) ?= isThrwFunctionType(A) =>
     mkThrowingFunType(Lc,macroType(L),macroType(R),macroType(E)).
-  examineType(A) where (Lc,R,S,.some(E)) ?= isFiberType(A) =>
-    mkFiberType(Lc,macroType(R),macroType(S),.some(macroType(E))).
+  examineType(A) where (Lc,L,R) ?= isFiberArrowType(A) =>
+    mkThrowingFiberArrowType(Lc,macroType(L),macroType(R),.nme(Lc,"void")).
+  examineType(A) where (Lc,L,R,E) ?= isThrwFiberArrowType(A) =>
+    mkThrowingFiberArrowType(Lc,macroType(L),macroType(R),macroType(E)).
   examineType(A) where (Lc,L,R) ?= isPrcType(A) =>
     mkPrcType(Lc,macroType(L),fmap(macroType,R)).
   examineType(A) where (Lc,R) ?= isRef(A) =>

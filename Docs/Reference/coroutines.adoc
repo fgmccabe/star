@@ -294,25 +294,45 @@ takes the form:
 ----
 type --> fiberType.
 
-fiberType --> ["fiber", "["], resumeType, [","], suspendType, ["]"], throwsClause?.
+fiberType --> ["fiber", "["], resumeType, [","], suspendType, [","], throwsType, ["]"].
+fiberType --> ["fiber", "["], resumeType, [","], suspendType, ["]"].
+fiberType --> resumeType, ["=>>"], suspendType, (["throws"], throwsType)?.
 
 resumeType --> type.
 
 suspendType --> type.
 
-throwsClause --> ["throws"], type.
+throwsType --> type.
 ----
 
 The `resumeType` refers to values that can be sent to the fiber -- as it is
 resumed -- and the `suspendType` type argument refers to values that the fiber
 may suspend with (see below) -- i.e., may return to the external computation.
+The `throwsType` names the type of exception that the fiber's computation may
+throw without catching itself.
 
-The optional `throwsClause` names the type of exception that the fiber's
-computation may throw without catching itself. A plain `fiber[r,s]` is sugar for
-a fiber that cannot throw -- equivalent to `fiber[r,s] throws void`. A fiber
-whose body may raise an uncaught exception must be declared `fiber[r,s] throws
-e`; see <<resumeThrows>> below for how such an exception is caught by whoever
-resumes the fiber.
+`fiber` always takes three type arguments. The explicit 3-argument bracket
+form `fiber[r,s,e]` is the primary way to write it; the 2-argument form
+`fiber[r,s]` is sugar for a fiber that cannot throw -- equivalent to
+`fiber[r,s,void]`.
+
+As an alternative to the bracket form, a fiber type can be written with the
+`=>>` arrow -- parsed much like a function type's `=>`: `r =>> s` is sugar
+for `fiber[r,s,void]`, and `r =>> s throws e` is sugar for `fiber[r,s,e]`.
+
+CAUTION: `=>` and `=>>` may not be mixed without parentheses. Writing
+`(Args) => r =>> s` (with or without a trailing `throws`) is a compile-time
+(parse) error: it is ambiguous whether the function or the fiber owns the
+arrow/throws, so it must be disambiguated explicitly with parentheses.
++
+To declare a function that itself throws `e` and returns a plain,
+non-throwing fiber, parenthesize just the fiber arrow, excluding `throws`
+from it: `(Args) => (r =>> s) throws e`. To declare a (non-throwing) function
+that returns a fiber which itself throws `e`, parenthesize the fiber arrow
+together with its own `throws`: `(Args) => (r =>> s throws e)`. The
+3-argument bracket form has no such ambiguity and needs no parentheses:
+`(Args) => fiber[r,s,e]` always means a non-throwing function returning a
+throwing fiber.
 
 === Create a `fiber`
 
@@ -334,12 +354,11 @@ resumed, and the `s` type indicates the type that the fiber will return and what
 it will yield should it suspend. The `e` type is the fiber function's own
 exception type: if the fiber function throws a value of type `e` and does not
 catch it itself, the exception propagates out of the fiber -- to be caught by
-whoever `resume`s it (see <<resumeThrows>>). A fiber function that cannot throw
-simply declares `e` as `void`, which is what the `fiber[r,s]` sugar for
-<<fiberType>> assumes.
+whoever `resume``s it (see <<resumeThrows>>). A fiber function that cannot throw
+simply declares `e` as `void`, which is what the `r =>> s` arrow assumes.
 
 Note the second occurrance of `r`: when a fiber is resumed for the first time,
-the value given during the corresponding `_resume` operation is modeled as the
+the value given during the corresponding `resume` operation is modeled as the
 second argument to the fiber function.
 
 The `_fiber` function takes a fiber function and returns a new
@@ -394,7 +413,7 @@ by the fiber function -- or the value passed in a call to
 `suspend`.
 
 If the fiber being resumed is declared with a non-`void` exception type
-(`fiber[r,s] throws e`) and its fiber function throws a value of type `e`
+(`fiber[r,s,e]`) and its fiber function throws a value of type `e`
 without catching it, that exception propagates out of the `resume` that
 most recently resumed it -- exactly as if `resume` itself had thrown. This
 means a `resume` of a throwing fiber is only permitted where an ordinary
@@ -405,7 +424,7 @@ type does not match the fiber's, is rejected at compile time.
 
 [source,star]
 ----
-body:(fiber[integer,integer] throws string,integer) => integer throws string.
+body:(fiber[integer,integer,string],integer) => integer throws string.
 body(this,E) => valof{
   if E>5 then
     throw "too big"
@@ -428,9 +447,8 @@ main(){
 }
 ----
 
-A fiber declared without a `throws` clause (the `fiber[r,s]` sugar) is
-unaffected by this: `resume` of such a fiber behaves exactly as before, with
-no exception-handling requirement at the call site.
+A fiber declared with a `void` exception type is not permitted to throw an
+exception, and `resume` of such a fiber does not handle exceptions.
 
 === Retiring a fiber with `retire`
 

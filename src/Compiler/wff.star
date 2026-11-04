@@ -652,6 +652,8 @@ star.compiler.wff{
   surfaceName(T) where _ ?= isFuncType(T) => "=>".
   surfaceName(T) where _ ?= isThrwFunctionType(T) => "=>".
   surfaceName(T) where _ ?= isFiberType(T) => "fiber".
+  surfaceName(T) where _ ?= isFiberArrowType(T) => "=>>".
+  surfaceName(T) where _ ?= isThrwFiberArrowType(T) => "=>>".
   surfaceName(T) where _ ?= isRef(T) => "ref".
 
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
@@ -832,19 +834,31 @@ star.compiler.wff{
 
   public mkFiberTerm(Lc,As) => brApply(Lc,"fiber",[As]).
 
-  public isFiberType:(ast) => option[(option[locn],ast,ast,option[ast])].
-  isFiberType(A) where
-      (Lc,L,E) ?= isBinary(A,"throws") &&
-	  (_,R,S,.none) ?= isFiberType(L) =>
-    .some((Lc,R,S,.some(E))).
+  public isFiberType:(ast) => option[(option[locn],ast,ast)].
   isFiberType(A) where (Lc,.nme(_,"fiber"),[R,S]) ?= isSquareTerm(A) =>
-    .some((Lc,R,S,.none)).
+    .some((Lc,R,S)).
   isFiberType(_) default => .none.
 
-  public mkFiberType:(option[locn],ast,ast,option[ast]) => ast.
-  mkFiberType(Lc,R,S,.none) => squareApply(Lc,"fiber",[R,S]).
-  mkFiberType(Lc,R,S,.some(E)) =>
-    binary(Lc,"throws",squareApply(Lc,"fiber",[R,S]),E).
+  public mkFiberType:(option[locn],ast,ast,ast) => ast.
+  mkFiberType(Lc,R,S,E) => squareApply(Lc,"fiber",[R,S,E]).
+
+  -- "R =>> S" / "R =>> S throws E": an alternate, arrow-style spelling of
+  -- fiber[R,S,void]/fiber[R,S,E], parsed exactly like "=>"/isThrwFunctionType.
+  public isFiberArrowType:(ast) => option[(option[locn],ast,ast)].
+  isFiberArrowType(A) where
+      (Lc,L,R) ?= isBinary(A,"=>>") && ~ _ ?= isBinary(R,"throws") =>
+    .some((Lc,L,R)).
+  isFiberArrowType(_) default => .none.
+
+  public mkFiberArrowType(Lc,L,R) => binary(Lc,"=>>",L,R).
+
+  public isThrwFiberArrowType:(ast) => option[(option[locn],ast,ast,ast)].
+  isThrwFiberArrowType(A) where
+      (Lc,L,R) ?= isBinary(A,"=>>") && (_,Rs,Et) ?= isBinary(R,"throws") =>
+    .some((Lc,L,Rs,Et)).
+  isThrwFiberArrowType(_) default => .none.
+
+  public mkThrowingFiberArrowType(Lc,L,R,E) => binary(Lc,"=>>",L,binary(Lc,"throws",R,E)).
 
   public isGenerator(A) where (Lc,.nme(_,"generator"),[Bd]) ?= isBrTerm(A)  =>
     .some((Lc,Bd)).

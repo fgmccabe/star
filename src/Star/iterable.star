@@ -22,7 +22,7 @@ star.iterable{
   }
 
   public iterGenerator:all c,e ~~ iter[c->>e] |= (c) => generator[e].
-  iterGenerator(L) => _fiber((this,first) => 
+  iterGenerator(L) => _fiber((this,first) =>
       let{
 	yieldFn:(e,())=>().
 	yieldFn(E,_) => valof{

@@ -55,12 +55,17 @@ star.compiler.typeparse{
       valis .voidType
     }
   }
-  parseType(T,Env) where (Lc,Lhs,Rhs,.none) ?= isFiberType(T) => valof{
+  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
     R = parseType(Lhs,Env);
     S = parseType(Rhs,Env);
     valis fiberType(R,S,.voidType)
   }
-  parseType(T,Env) where (Lc,Lhs,Rhs,.some(Ehs)) ?= isFiberType(T) => valof{
+  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFiberArrowType(T) => valof{
+    R = parseType(Lhs,Env);
+    S = parseType(Rhs,Env);
+    valis fiberType(R,S,.voidType)
+  }
+  parseType(T,Env) where (Lc,Lhs,Rhs,Ehs) ?= isThrwFiberArrowType(T) => valof{
     R = parseType(Lhs,Env);
     S = parseType(Rhs,Env);
     E = parseType(Ehs,Env);

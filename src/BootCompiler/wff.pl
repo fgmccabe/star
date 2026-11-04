@@ -17,6 +17,7 @@
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
 	      isFuncType/4,funcType/4,
+	      isFiberArrow/4,fiberArrow/4,
 	      isProcType/4,mkProcType/4,
 	      isTaskType/3,mkTaskType/3,
 	      mkSqType/4,
@@ -371,6 +372,14 @@ isFuncType(T,Lc,Lh,Rh) :-
 
 funcType(Lc,L,R,Tp) :-
   binary(Lc,"=>",L,R,Tp).
+
+% "R =>> S" / "R =>> S throws E": an alternate, arrow-style spelling of
+% fiber[R,S,void]/fiber[R,S,E], parsed exactly like "=>"/isFuncType.
+isFiberArrow(T,Lc,Lh,Rh) :-
+  isBinary(T,Lc,"=>>",Lh,Rh).
+
+fiberArrow(Lc,L,R,Tp) :-
+  binary(Lc,"=>>",L,R,Tp).
 
 isProcType(T,Lc,ATp,some(Tr)) :-
   isThrows(T,Lc,L,Tr),

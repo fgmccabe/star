@@ -39,19 +39,26 @@ parseType(T,Env,B,Tp) :-
 parseType(Nm,Env,Q,Tp) :-
   isIden(Nm,Lc,Id), !,
   parseTypeName(Lc,Id,Env,Q,Tp).
-parseType(F,Env,Q,Tp) :-
-  isThrows(F,_,Fb,E),
-  isSquareTerm(Fb,_,Op,[R,S]),
-  isIden(Op,_,"fiber"),!,
-  parseType(R,Env,Q,RT),
-  parseType(S,Env,Q,ST),
-  parseType(E,Env,Q,ET),
-  fiberType(RT,ST,ET,Tp).
+% fiber[R,S] (2-arg) is sugar for a fiber[R,S,void]
 parseType(F,Env,Q,Tp) :-
   isSquareTerm(F,_,Op,[R,S]),
   isIden(Op,_,"fiber"),!,
   parseType(R,Env,Q,RT),
   parseType(S,Env,Q,ST),
+  fiberType(RT,ST,voidType,Tp).
+% "R =>> S" / "R =>> S throws E": an alternate, arrow-style spelling of
+% fiber[R,S,void]/fiber[R,S,E], parsed exactly like "=>"/isFuncType.
+parseType(F,Env,Q,Tp) :-
+  isFiberArrow(F,_,L,R),
+  isThrows(R,_,Rs,E),!,
+  parseType(L,Env,Q,RT),
+  parseType(Rs,Env,Q,ST),
+  parseType(E,Env,Q,ET),
+  fiberType(RT,ST,ET,Tp).
+parseType(F,Env,Q,Tp) :-
+  isFiberArrow(F,_,L,R),!,
+  parseType(L,Env,Q,RT),
+  parseType(R,Env,Q,ST),
   fiberType(RT,ST,voidType,Tp).
 parseType(Sq,Env,Q,Tp) :-
   isSquareTerm(Sq,Lc,N,Args),!,
@@ -138,7 +145,7 @@ parseArgType(T,Env,Q,[Tp]) :-
   parseType(T,Env,Q,Tp).
 
 parseResultType(A,Env,Q,AT,funType(AT,RT,ET)) :-
-  isThrows(A,_,L,R),
+  isThrows(A,_,L,R),!,
   parseType(L,Env,Q,RT),
   parseType(R,Env,Q,ET).
 parseResultType(A,Env,Q,AT,funType(AT,RT,voidType)) :-
