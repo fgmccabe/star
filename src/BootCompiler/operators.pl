@@ -119,7 +119,7 @@
   operator("show", [prefixOp(1240, 1239)]).
   operator("suspend", [prefixOp(899, 898), infixOp(898, 899, 898)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
-  operator("throw", [prefixOp(230, 229)]).
+  operator("throw", [infixOp(229, 230, 229), prefixOp(230, 229)]).
   operator("throws", [infixOp(949, 950, 949)]).
   operator("trace", [infixOp(139, 140, 139), prefixOp(140, 139)]).
   operator("try", [prefixOp(1200, 1199)]).

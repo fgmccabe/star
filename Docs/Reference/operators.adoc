@@ -137,6 +137,7 @@ interpretation.
 |`+++suspend+++` | 899 | non-associative prefix | suspend task
 |`+++suspend+++` | 899 | non-associative infix | suspend task
 |`+++then+++` | 1180 | non-associative infix | if ... then ... else
+|`+++throw+++` | 230 | non-associative infix | throw an exception to a fiber
 |`+++throw+++` | 230 | non-associative prefix | throw an exception
 |`+++throws+++` | 950 | non-associative infix | can throw an exception
 |`+++trace+++` | 140 | non-associative infix | display tracing message

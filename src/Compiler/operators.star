@@ -136,7 +136,7 @@ star.compiler.operators{
     | "show" => [.prefixOp(1240,1239)]
     | "suspend" => [.prefixOp(899,898), .infixOp(898,899,898)]
     | "then" => [.infixOp(1179,1180,1179)]
-    | "throw" => [.prefixOp(230,229)]
+    | "throw" => [.infixOp(229,230,229), .prefixOp(230,229)]
     | "throws" => [.infixOp(949,950,949)]
     | "trace" => [.infixOp(139,140,139), .prefixOp(140,139)]
     | "try" => [.prefixOp(1200,1199)]
