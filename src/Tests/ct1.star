@@ -17,7 +17,7 @@ test.ct1{
 	Count := Count!-1
       }
     } catch { _ do showMsg("something went wrong") };
-    retire .retired_
+    this throw .retired_
   }
 
   pong:(emitter[boolean]) => (task[()])=>().

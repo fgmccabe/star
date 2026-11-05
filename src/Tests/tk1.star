@@ -28,7 +28,7 @@ test.tk1{
 	  
 	  valis ()
 	} catch {
-	  _ do retire .retired_
+	  _ do this throw .retired_
 	}
       };
 	

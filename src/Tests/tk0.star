@@ -37,7 +37,7 @@ test.tk0{
 	} catch {
 	  Msg do {
 	    showMsg(Msg);
-	    retire .retired_
+	    this throw .retired_
 	  }
 	}
       };

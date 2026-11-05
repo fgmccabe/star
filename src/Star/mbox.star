@@ -5,14 +5,13 @@ star.mbox{
   .blocked(()=>boolean) |
   .result_(e) |
   .requestIO(ioHandle,()=>boolean) |
-  .schedule(task[e]) |
-  .retired_.
+  .schedule(task[e]).
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
-  public mboxException ::= .deadlock | .canceled.
+  public mboxException ::= .deadlock | .canceled | .retired_.
 
-  public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
+  public all e ~~ task[e] ~> (resumeProtocol =>> suspendProtocol[e] throws mboxException).
 
   public all e ~~ taskFun[e] ~> ((task[e])=>e).
 
@@ -73,7 +72,8 @@ star.mbox{
 
   public implementation display[mboxException] => {
     disp(.canceled) => "canceled".
-    disp(.deadlock) => "deadlocked"
+    disp(.deadlock) => "deadlocked".
+    disp(.retired_) => "retired"
   }
 
   spawnTask:all e ~~ (taskFun[e]) => task[e].
@@ -111,30 +111,37 @@ star.mbox{
 
     while ~isEmpty(Q!) || ~isEmpty(BlockQ!) || ~isEmpty(IoQ!) do{
       while ~isEmpty(Q!) do{
-	if [T,..Rs] .= Q! then{
+	if [(T:task[e]),..Rs] .= Q! then{
 	  Q := Rs;
-	  case T resume .go_ahead in {
-	    | .yield_ do {
-	      Q:=Q!++[T];
-	    }
-	    | .result_(Rslt) do {
-	      while [C,..Cs] .= Q! do{
-		Q := Cs;
-		C resume .shut_down_;
-	      };
+	  try{
+	    case T resume .go_ahead in {
+	      | .yield_ do {
+		Q:=Q!++[T];
+	      }
+	      | .result_(Rslt) do {
+		while [(C:task[e]),..Cs] .= Q! do{
+		  Q := Cs;
+		  try{
+		    C resume .shut_down_;
+		  } catch {
+		    | .retired_ do {}
+		  }
+		};
 
-	      valis Rslt
+		valis Rslt
+	      }
+	      | .schedule(Fb) do {
+		Q := Q! ++ [Fb,T]
+	      }
+	      | .blocked(P) do {
+		BlockQ := [(P,T),..BlockQ!]
+	      }
+	      | .requestIO(Io,Rdy) do {
+		IoQ := [(Io,Rdy,T),..IoQ!];
+	      }
 	    }
+	  } catch {
 	    | .retired_ do { }
-	    | .schedule(Fb) do {
-	      Q := Q! ++ [Fb,T]
-	    }
-	    | .blocked(P) do {
-	      BlockQ := [(P,T),..BlockQ!]
-	    }
-	    | .requestIO(Io,Rdy) do {
-	      IoQ := [(Io,Rdy,T),..IoQ!];
-	    }
 	  }
 	}
       };
@@ -182,8 +189,7 @@ star.mbox{
     disp(.yield_) => "yield".
     disp(.blocked(B)) => "blocked $(B())".
     disp(.result_(e)) => "result #(_stringOf(e,2))".
-    disp(.schedule(F)) => "schedule #(_stringOf(F,2))".
-    disp(.retired_) => "retired"
+    disp(.schedule(F)) => "schedule #(_stringOf(F,2))"
   }
 
   implementation display[resumeProtocol] => {
@@ -203,10 +209,10 @@ star.mbox{
 	if _futureIsResolved(Ft) then{
 	  valis _futureVal(Ft)
 	} else
-	retire .retired_
+	this throw .retired_
       }
       | _ do
-	retire .retired_
+	this throw .retired_
     }
   }
 
@@ -218,11 +224,11 @@ star.mbox{
     Fb = _fiber((this,_)=>.result_(valof{
 	  try{
 	    C := .either(TFn());	-- this marks the future as resolved
-	    retire .retired_
+	    this throw .retired_
 	  } catch {
 	    Ex do {
 	      C := .other(Ex);
-	      retire .retired_
+	      this throw .retired_
 	    }
 	  }
 	}));

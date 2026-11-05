@@ -12,7 +12,7 @@ test.sieve{
 	postMsg(Ix!,Chnnl)
       }
     } catch { .canceled do {} };
-    retire .retired_
+    this throw .retired_
   }
 
   divides(X,Y) => (try X%Y==0 catch {_ => .false}).
@@ -40,7 +40,7 @@ test.sieve{
 	valis Nxt
       }
     } catch { .canceled do {}};
-    retire .retired_
+    this throw .retired_
   }
 
   _main:(cons[string]) => integer.
@@ -53,7 +53,7 @@ test.sieve{
     Gn = gen(IChnnl);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
-      Tsk retire .retired_
+      Tsk throw .retired_
     };
 
     try{
