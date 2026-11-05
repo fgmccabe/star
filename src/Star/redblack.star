@@ -254,13 +254,12 @@ star.redblack{
   public implementation all k,v ~~ generate[rbtree[k,v]->>keyval[k,v]] => {
     _generate(T) => generator{
       let{.
-	loop:(rbtree[k,v]) => ().
-	loop(.lf) => ().
-	loop(.nd(_,L,K,V,R)) => valof{
+	loop:(rbtree[k,v]){}.
+	loop(.lf) do {}.
+	loop(.nd(_,L,K,V,R)){
 	  loop(L);
 	  yield (K->V);
 	  loop(R);
-	  valis ()
 	}
       .}
       in loop(T);
