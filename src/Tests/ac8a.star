@@ -35,29 +35,32 @@ test.ac8a{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
 	      showMsg("retiring...");
-	      TryTsk retire .err(E)
+	      TryTsk throw E
 	    }
 	  }
 	} in {
 	  showMsg("starting f($(X))");
-	  TryTsk retire .ok(ff(X))
+	  valis ff(X)
 	}
       });
 
-    case Tsk resume () in {
-      | .err(E) do {
+    try{
+      V = Tsk resume ();
+      valis 5*V
+    } catch {
+      E do {
 	showMsg("We got exception $(E)");
 	valis -E
       }
-      | .ok(V) do
-	  valis 5*V
-      }
+    }
   }
 
   main:(){}.
   main(){
     show f(1);
-    show f(10)
+    show f(10);
+    assert f(1) == 15;
+    assert f(10) == -10
   }
 }
 

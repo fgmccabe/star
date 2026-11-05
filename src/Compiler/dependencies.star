@@ -359,6 +359,8 @@ star.compiler.dependencies{
     collectDoRefs(As,All,Rf).
   collectTermRefs(A,All,Rf) where (_,R) ?= isThrow(A) =>
     collectTermRefs(R,All,Rf).
+  collectTermRefs(A,All,Rf) where (_,L,R) ?= isFiberThrow(A) =>
+    collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTry(A) =>
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>

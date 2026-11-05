@@ -274,6 +274,9 @@ overloadTerm(suspend(Lc,T,M,Tp),Dict,Opts,St,Stx,suspend(Lc,TT,MM,Tp)) :-!,
 overloadTerm(retire(Lc,T,M,Tp),Dict,Opts,St,Stx,retire(Lc,TT,MM,Tp)) :-!,
   overloadTerm(T,Dict,Opts,St,St0,TT),
   overloadTerm(M,Dict,Opts,St0,Stx,MM).
+overloadTerm(xretire(Lc,T,M,Tp),Dict,Opts,St,Stx,xretire(Lc,TT,MM,Tp)) :-!,
+  overloadTerm(T,Dict,Opts,St,St0,TT),
+  overloadTerm(M,Dict,Opts,St0,Stx,MM).
 overloadTerm(resume(Lc,T,M,Tp),Dict,Opts,St,Stx,resume(Lc,TT,MM,Tp)) :-!,
   overloadTerm(T,Dict,Opts,St,St0,TT),
   overloadTerm(M,Dict,Opts,St0,Stx,MM).

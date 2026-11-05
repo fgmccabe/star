@@ -457,6 +457,11 @@ star.compiler.resolve{
     (MM,St2) = overloadTerm(M,Dict,St1);
     valis (.retyre(Lc,TT,MM,Tp),St2)
   }
+  overloadTerm(.xretyre(Lc,T,M,Tp),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (MM,St2) = overloadTerm(M,Dict,St1);
+    valis (.xretyre(Lc,TT,MM,Tp),St2)
+  }
   overloadTerm(.resum(Lc,T,M,Tp),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
     (MM,St2) = overloadTerm(M,Dict,St1);

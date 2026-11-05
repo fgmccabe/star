@@ -28,39 +28,36 @@ test.dyn1{
   }
   */
 
-  all e,v ~~ rslt[e,v] ::= .ok(v) | .err(e).
-  
-  implementation all e,v ~~ display[e],display[v] |= display[rslt[e,v]] => {
-    disp(.ok(V)) => "ok $(V)".
-    disp(.err(E)) => "bad $(E)"
-  }
-
   f:(integer) => integer.
   f(X) => valof{
-    case _fiber((TryTsk,_) =>valof{
-	let{
-	  _throw(E) => valof{
-	    showMsg("retiring...");
-	    TryTsk retire .err(E)
+    try{
+      V = _fiber((TryTsk,_) =>valof{
+	  let{
+	    _throw:(integer)=>integer.
+	    _throw(E) => valof{
+	      showMsg("retiring...");
+	      TryTsk throw E
+	    }
+	  } in {
+	    showMsg("starting f($(X))");
+	    valis fe(X)
 	  }
-	} in {
-	  showMsg("starting f($(X))");
-	  TryTsk retire .ok(fe(X))
-	}
-      }) resume () in {
-      | .err(E) do {
+	}) resume ();
+      valis 5*V
+    } catch {
+      E do {
 	showMsg("We got exception $(E)");
 	valis -E
       }
-      | .ok(V) do
-	valis 5*V
-      }
+    }
   }
 
   main:(){}.
   main(){
     show f(1);
     show f(10);
+    assert f(1) == 15;
+    assert f(10) == -10
   }
 }
-    
+

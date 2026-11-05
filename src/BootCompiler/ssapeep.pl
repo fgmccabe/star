@@ -64,6 +64,8 @@ vrRead(Vr,iResume(Vr,_)).
 vrRead(Vr,iResume(_,Vr)).
 vrRead(Vr,iRetire(Vr,_)).
 vrRead(Vr,iRetire(_,Vr)).
+vrRead(Vr,iXRetire(Vr,_)).
+vrRead(Vr,iXRetire(_,Vr)).
 
 vrRead(Vr,iBind(_,_,Vr)).
 vrRead(Vr,iMv(_,Vr)).
@@ -253,6 +255,7 @@ dropUnreachable([iTOCall(Lb,As)|_],[iTOCall(Lb,As)]) :-!.
 dropUnreachable([iAbort(Lt,Vr)|_],[iAbort(Lt,Vr)]) :-!.
 dropUnreachable([iHalt(Vr)|_],[iHalt(Vr)]) :-!.
 dropUnreachable([iRetire(Cn,As)|_],[iRetire(Cn,As)]) :-!.
+dropUnreachable([iXRetire(Cn,As)|_],[iXRetire(Cn,As)]) :-!.
 dropUnreachable([iCase(Mx,Cs)|_],[iCase(Mx,Cs)]) :-!.
 dropUnreachable([iICase(Mx,Cs)|_],[iICase(Mx,Cs)]) :- !.
 dropUnreachable([iIxCase(Mx,Cs)|_],[iIxCase(Mx,Cs)]) :- !.
@@ -313,6 +316,7 @@ peep([iCont(Lb)|_],_Lbls,[iCont(Lb)]) :-!.
 peep([iRet(L)|_],_Lbls,[iRet(L)]) :-!.
 peep([iXRet(L)|_],_Lbls,[iXRet(L)]) :-!.
 peep([iRetire(V1,V2)|_],_,[iRetire(V1,V2)]) :-!.
+peep([iXRetire(V1,V2)|_],_,[iXRetire(V1,V2)]) :-!.
 peep([iCase(Vr,Cs)|_],_Lbls,[iCase(Vr,Cs)]).
 peep([iICase(Vr,Cs)|_],_Lbls,[iICase(Vr,Cs)]).
 peep([iIxCase(Vr,Cs)|_],_Lbls,[iIxCase(Vr,Cs)]).

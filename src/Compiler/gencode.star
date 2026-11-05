@@ -406,6 +406,11 @@ star.compiler.gencode{
     (TC,TV) = bindExpToVar(T,Lc,Brks,.notLast,Ctx);
     valis chLine(OLc,Lc)++EC++TC++[.iRetire(TV,EV)]
   }
+  compExp(.cXRetyr(Lc,T,E,Tp),OLc,_,Brks,_,Ctx) => valof{
+    (EC,EV) = bindExpToVar(E,Lc,Brks,.notLast,Ctx);
+    (TC,TV) = bindExpToVar(T,Lc,Brks,.notLast,Ctx);
+    valis chLine(OLc,Lc)++EC++TC++[.iXRetire(TV,EV)]
+  }
   compExp(.cVarNme(Lc,ONm,V,E),_,Vr,Brks,Last,Ctx) => valof{
     if .cVar(_,.cV(VNm,_)) .= V then
       valis genBind(Lc,ONm,VNm)++compExp(E,Lc,Vr,Brks,Last,Ctx)

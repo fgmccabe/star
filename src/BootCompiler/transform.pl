@@ -491,6 +491,9 @@ liftExp(suspend(Lc,T,M,Tp),susp(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(retire(Lc,T,M,Tp),rtire(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(xretire(Lc,T,M,Tp),xrtire(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(thnkRef(Lc,E,Tp),ocall(Lc,EE,[],Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(newSV(Lc,Tp),sav(Lc,Tp),Qx,Qx,_Map,_Opts,Exx,Exx).

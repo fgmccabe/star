@@ -999,7 +999,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
     }
     case sResume:
     case sSuspend:
-    case sRetire: {
+    case sRetire:
+    case sXRetire: {
       int32 insSize = 3;
       int32 srcVr1 = operand(1);
       int32 srcVr2 = operand(2);

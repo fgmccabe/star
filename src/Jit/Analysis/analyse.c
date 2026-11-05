@@ -418,7 +418,8 @@ static retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, i
     }
     case sResume:
     case sSuspend:
-    case sRetire: {
+    case sRetire:
+    case sXRetire: {
       int32 nextPc = pc + 3;
       tryRet(recordVariableUse(analysis, scope, operand(1), nextPc));
       ret = recordVariableUse(analysis, scope, operand(2), nextPc);

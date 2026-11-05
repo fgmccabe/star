@@ -15,22 +15,25 @@ test.dyn2{
   fs(X) => (X<0 ?? raiz("negative arg") || X>100 ?? raiz(10) || X*4).
 
   f:(integer) => integer.
-  f(X) => _fiber((K,_)=>
+  f(X) => (try _fiber((K,_)=>
 	let{
 	  implementation raising[string] => {
 	    raiz(M) => valof{
 	      showMsg("error message: #(M)");
-	      K retire -1;
+	      K throw (-1);
 	    }
 	  }
 
 	  implementation raising[integer] => {
 	    raiz(I) => valof{
 	      showMsg("error value: $(I)");
-	      K retire I;
+	      K throw I;
 	    }
 	  }
-	} in fs(X)) resume ().
+	} in fs(X)) resume ()
+      catch {
+	E => E
+      }).
 
   main:(){}.
   main(){

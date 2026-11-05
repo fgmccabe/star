@@ -929,6 +929,11 @@ star.compiler.wff{
 
   public mkThrow(Lc,E) => unary(Lc,"throw",E).
 
+  public isFiberThrow:(ast) => option[(option[locn],ast,ast)].
+  isFiberThrow(A) => isBinary(A,"throw").
+
+  public mkFiberThrow(Lc,L,R) => binary(Lc,"throw",L,R).
+
   public isAsync(A) => isUnary(A,"async").
 
   public mkAsync(Lc,I) => unary(Lc,"async",I).

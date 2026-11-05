@@ -1148,6 +1148,15 @@ star.compiler.checker{
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     valis .retyre(Lc,Tsk,Msg,Tp)
   }
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isFiberThrow(A) => valof{
+    TTp = newTypeVar("_T");
+    MsgTp = newTypeVar("_M");
+    FETp = newTypeVar("_E");
+    FTp = fiberType(TTp,MsgTp,FETp);
+    Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
+    Msg = typeOfExp(R,FETp,ErTp,Env,Path);
+    valis .xretyre(Lc,Tsk,Msg,Tp)
+  }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
     MsgTp = newTypeVar("_M");
     FETp = newTypeVar("_E");
@@ -1418,6 +1427,15 @@ star.compiler.checker{
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     valis (.doExp(Lc,.retyre(Lc,Tsk,Msg,Tp)),Env,Dcls)
+  }
+  checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,L,R) ?= isFiberThrow(A) => valof{
+    TTp = newTypeVar("_T");
+    MsgTp = newTypeVar("_M");
+    FETp = newTypeVar("_E");
+    FTp = fiberType(TTp,MsgTp,FETp);
+    Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
+    Msg = typeOfExp(R,FETp,ErTp,Env,Path);
+    valis (.doExp(Lc,.xretyre(Lc,Tsk,Msg,Tp)),Env,Dcls)
   }
   checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,L,R) ?= isResume(A) => valof{
     TTp = newTypeVar("_T");

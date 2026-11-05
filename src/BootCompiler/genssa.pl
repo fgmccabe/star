@@ -617,6 +617,11 @@ compExp(rtire(Lc,T,M,_Tp),OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),
   bindExpToVar(M,Lc,Brks,Opts,MVr,L1,Lx,D1,Dx,C1,C2),
   genDbg(Opts,Lc,C2,[iRetire(TVr,MVr)|Cx]).
+compExp(xrtire(Lc,T,M,_Tp),OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),
+  bindExpToVar(M,Lc,Brks,Opts,MVr,L1,Lx,D1,Dx,C1,C2),
+  genDbg(Opts,Lc,C2,[iXRetire(TVr,MVr)|Cx]).
 compExp(Cond,Lc,RsVr,Brks,Opts,L,Lx,D,Dx,
 	[iLbl(Ok,iBlock([RsVr],
 			[iLbl(Fl,iBlock([],C1)),iMC(FlVr,enum(False)),

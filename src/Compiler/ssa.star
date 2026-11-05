@@ -91,6 +91,7 @@ star.compiler.ssa{
     | .iSuspend(varNm, varNm)
     | .iResume(varNm, varNm)
     | .iRetire(varNm, varNm)
+    | .iXRetire(varNm, varNm)
     | .iUnderflow
     | .iLine(data)
     | .iBind(data, data, varNm)
@@ -278,18 +279,19 @@ star.compiler.ssa{
   mnem(.iSuspend(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(69),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
   mnem(.iResume(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(70),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
   mnem(.iRetire(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(71),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iUnderflow, Pc,Lbls,Lt0,Lcs) => ([.intgr(72)],Pc+1,Lt0).
+  mnem(.iXRetire(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(72),findLocal(V0,Lcs),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iUnderflow, Pc,Lbls,Lt0,Lcs) => ([.intgr(73)],Pc+1,Lt0).
   mnem(.iLine(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0);
-    valis ([.intgr(73),.intgr(L1)],Pc+2,Lt1);
+    valis ([.intgr(74),.intgr(L1)],Pc+2,Lt1);
   }
   mnem(.iBind(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0);(Lt2, L2) = findLit(Lt1,V1);
-    valis ([.intgr(74),.intgr(L1),.intgr(L2),findLocal(V2,Lcs)],Pc+4,Lt2);
+    valis ([.intgr(75),.intgr(L1),.intgr(L2),findLocal(V2,Lcs)],Pc+4,Lt2);
   }
   mnem(.iDBug(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (Lt1, L1) = findLit(Lt0,V0);
-    valis ([.intgr(75),.intgr(L1)],Pc+2,Lt1);
+    valis ([.intgr(76),.intgr(L1)],Pc+2,Lt1);
   }
 
   mnem(I,Pc,Lbls,Lts,Lcs) => valof{
@@ -441,6 +443,7 @@ star.compiler.ssa{
   showIns(.iSuspend(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Suspend #(V0), #(V1)",Pc+3).
   showIns(.iResume(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Resume #(V0), #(V1)",Pc+3).
   showIns(.iRetire(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))Retire #(V0), #(V1)",Pc+3).
+  showIns(.iXRetire(V0, V1), Pc, Sps) => ("#(showPc(Pc,Sps))XRetire #(V0), #(V1)",Pc+3).
   showIns(.iUnderflow, Pc, Sps) => ("#(showPc(Pc,Sps))Underflow",Pc+1).
   showIns(.iLine(V0), Pc, Sps) => ("#(showPc(Pc,Sps))Line $(V0)",Pc+2).
   showIns(.iBind(V0, V1, V2), Pc, Sps) => ("#(showPc(Pc,Sps))Bind $(V0), $(V1), #(V2)",Pc+3).
@@ -1050,6 +1053,13 @@ star.compiler.ssa{
      throw .exception("Var #(V1) in 'Retire' not inited");
     valis Lcls0
   }
+  validIns(.iXRetire(V0, V1), Lcls0, Lbls) => valof{
+   if ~varInited(Lcls0, V0) then
+     throw .exception("Var #(V0) in 'XRetire' not inited");
+   if ~varInited(Lcls0, V1) then
+     throw .exception("Var #(V1) in 'XRetire' not inited");
+    valis Lcls0
+  }
   validIns(.iUnderflow, Lcls0, Lbls) => valof{
     valis Lcls0
   }
@@ -1074,5 +1084,5 @@ star.compiler.ssa{
   hasEntryInstruction([_,..Ins]) => hasEntryInstruction(Ins).
   hasEntryInstruction([]) => .none.
 
-  public opcodeHash = 2096417289399390681.
+  public opcodeHash = 1301716194416003270.
 }

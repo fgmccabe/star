@@ -217,6 +217,9 @@ ssTrm(susp(_,T,E,_),Dp,sq([TT,ss(" suspend "),EE])) :-
 ssTrm(rtire(_,T,E,_),Dp,sq([TT,ss(" retire "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
+ssTrm(xrtire(_,T,E,_),Dp,sq([TT,ss(" throw "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
 ssTrm(resme(_,T,E,_),Dp,sq([TT,ss(" resume "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
@@ -463,6 +466,9 @@ rewriteTerm(AQ,EX,susp(Lc,T,E,Tp),susp(Lc,TT,EE,Tp)) :-
   rewriteTerm(AQ,EX,T,TT),
   rewriteTerm(AQ,EX,E,EE).
 rewriteTerm(AQ,EX,rtire(Lc,T,E,Tp),rtire(Lc,TT,EE,Tp)) :-
+  rewriteTerm(AQ,EX,T,TT),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteTerm(AQ,EX,xrtire(Lc,T,E,Tp),xrtire(Lc,TT,EE,Tp)) :-
   rewriteTerm(AQ,EX,T,TT),
   rewriteTerm(AQ,EX,E,EE).
 rewriteTerm(AQ,EX,error(Lc,M),error(Lc,MM)) :-!,
@@ -723,6 +729,10 @@ inTerm(rtire(_,T,_M,_),Nm) :-
   is_member(T,Nm),!.
 inTerm(rtire(_,_T,M,_),Nm) :-
   inTerm(M,Nm),!.
+inTerm(xrtire(_,T,_M,_),Nm) :-
+  is_member(T,Nm),!.
+inTerm(xrtire(_,_T,M,_),Nm) :-
+  inTerm(M,Nm),!.
 inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
@@ -834,6 +844,7 @@ tipeOf(resme(_,_,_,T),T).
 tipeOf(xresme(_,_,_,T,_),T).
 tipeOf(susp(_,_,_,T),T).
 tipeOf(rtire(_,_,_,T),T).
+tipeOf(xrtire(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
   tipeOf(E,T).
 tipeOf(cse(_,_G,_C,_D,T),T).
@@ -1021,6 +1032,9 @@ validTerm(susp(Lc,T,E,_),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validTerm(rtire(Lc,T,E,_),_,D) :-
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(xrtire(Lc,T,E,_),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validTerm(error(Lc,M),_,D) :-

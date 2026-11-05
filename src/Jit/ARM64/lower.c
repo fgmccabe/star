@@ -1308,7 +1308,25 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       ArgSpec specs[3] = {
         argSpec(localFlex(state, pc, opand(1)), RG(X1)),
         argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
-        argSpec(IM(0), RG(RTS))
+        argSpec(IM(Normal), RG(RTS))
+      };
+      shuffleVars(jit, specs, 3, &jit->freeRegs);
+      stp(RTV, RTS, PRX(SP,-16));
+      invokeIntrinsic(state, pc, pc, (runtimeFn)detachDropStack, 2,
+                      (FlexOp[]){RG(PR), RG(X1)}, True, 0, (FlexOp[]){});
+      ldp(RTV, RTS, PSX(SP,16));
+
+      ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+      br(X16);
+      pc += insSize;
+      continue;
+    }
+    case sXRetire: {
+      int32 insSize = 3;
+      ArgSpec specs[3] = {
+        argSpec(localFlex(state, pc, opand(1)), RG(X1)),
+        argSpec(localFlex(state, pc, opand(2)), RG(RTV)),
+        argSpec(IM(Abnormal), RG(RTS))
       };
       shuffleVars(jit, specs, 3, &jit->freeRegs);
       stp(RTV, RTS, PRX(SP,-16));
@@ -1524,7 +1542,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
                           }, False, 0, (FlexOp[]){});
           break;
         }
-        case sRetire: {
+        case sRetire:
+        case sXRetire: {
           FlexOp con = localFlex(state, pc, operand(state, nextPc, 1));
           FlexOp evt = localFlex(state, pc, operand(state, nextPc, 2));
           invokeIntrinsic(state, pc, nextPc, (runtimeFn)retireDebug, 4, (FlexOp[]){

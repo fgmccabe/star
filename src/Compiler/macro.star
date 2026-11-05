@@ -160,6 +160,8 @@ star.compiler.macro{
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,T) ?= isValis(A) => mkValis(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T) ?= isThrow(A) => mkThrow(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,T,M) ?= isFiberThrow(A) =>
+    mkFiberThrow(Lc,macroTerm(T),macroTerm(M)).
   examineAction(A) where (Lc,D,B) ?= isLetDef(A) =>
     mkLetDef(Lc,macroStmts(D),macroAction(B)).
   examineAction(A) where (Lc,D,B) ?= isLetRecDef(A) =>
@@ -276,6 +278,8 @@ star.compiler.macro{
     mkTryCatch(Lc,macroTerm(B),macroTerm(H)).
   examineTerm(A) where (Lc,T) ?= isThrow(A) =>
     mkThrow(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,L,R) ?= isFiberThrow(A) =>
+    mkFiberThrow(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,L,R) ?= isResume(A) =>
     mkResume(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,L,R) ?= isSuspend(A) =>

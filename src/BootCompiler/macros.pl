@@ -157,6 +157,10 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
+examineType(T,Tx) :- isFiberArrow(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  fiberArrow(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :-
   isProcType(T,Lc,L,R),!,
   macroType(L,Lx),
@@ -547,6 +551,11 @@ examineTerm(A,Ax) :-
   macroTerm(V,Vx),
   mkThrow(Lc,Vx,Ax).
 examineTerm(A,Ax) :-
+  isFiberThrow(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkFiberThrow(Lc,Tx,Mx,Ax).
+examineTerm(A,Ax) :-
   isResume(A,Lc,T,M),!,
   macroTerm(T,Tx),
   macroTerm(M,Mx),
@@ -762,6 +771,11 @@ examineAction(A,Ax) :-
   isThrow(A,Lc,V),!,
   macroTerm(V,Vx),
   mkThrow(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isFiberThrow(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkFiberThrow(Lc,Tx,Mx,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),

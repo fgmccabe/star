@@ -235,6 +235,7 @@ star.compiler.ssa{
   showIns(.iSuspend(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))Suspend \#(V0), \#(V1)",Pc+3).
   showIns(.iResume(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))Resume \#(V0), \#(V1)",Pc+3).
   showIns(.iRetire(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))Retire \#(V0), \#(V1)",Pc+3).
+  showIns(.iXRetire(V0, V1), Pc, Sps) => ("\#(showPc(Pc,Sps))XRetire \#(V0), \#(V1)",Pc+3).
   showIns(.iUnderflow, Pc, Sps) => ("\#(showPc(Pc,Sps))Underflow",Pc+1).
   showIns(.iLine(V0), Pc, Sps) => ("\#(showPc(Pc,Sps))Line $(V0)",Pc+2).
   showIns(.iBind(V0, V1, V2), Pc, Sps) => ("\#(showPc(Pc,Sps))Bind $(V0), $(V1), \#(V2)",Pc+3).

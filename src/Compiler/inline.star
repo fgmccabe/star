@@ -150,6 +150,8 @@ star.compiler.inline{
       .cSusp(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cRetyr(Lc,T,M,Tp) =>
       .cRetyr(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
+    | .cXRetyr(Lc,T,M,Tp) =>
+      .cXRetyr(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cResum(Lc,T,M,Tp) =>
       .cResum(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cXResum(Lc,T,M,Tp,ErTp) =>

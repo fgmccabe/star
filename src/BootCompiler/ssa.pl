@@ -372,17 +372,21 @@ mnem([iRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(71), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(72)|Cd],Cdx) :-
+mnem([iXRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(72), Off0, Off1|Cd],Cdx) :-
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(73),intgr(L0)|Cd],Cdx) :-
+mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(73)|Cd],Cdx) :-
+  mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
+mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(74),intgr(L0)|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
-mnem([iBind(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(74),intgr(L0),intgr(L1), Off2|Cd],Cdx) :-
+mnem([iBind(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(75),intgr(L0),intgr(L1), Off2|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   findLit(Lt1,V1,L1,Lt2),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt2,Ltx,LsMap,Cd,Cdx).
-mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(75),intgr(L0)|Cd],Cdx) :-
+mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(76),intgr(L0)|Cd],Cdx) :-
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
 
@@ -699,6 +703,8 @@ showMnem(iResume(V0, V1),Pc,sq([PcDx,ss(": "),ss("Resume"),ss(" "),ss(V0),ss(" "
   showPc(Pc,PcDx).
 showMnem(iRetire(V0, V1),Pc,sq([PcDx,ss(": "),ss("Retire"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
+showMnem(iXRetire(V0, V1),Pc,sq([PcDx,ss(": "),ss("XRetire"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
 showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
   showPc(Pc,PcDx).
 showMnem(iLine(V0),Pc,sq([PcDx,ss(": "),ss("Line"),ss(" "),SS0])) :- !,
@@ -719,7 +725,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(2096417289399390681).
+ssaHash(1301716194416003270).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

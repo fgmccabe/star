@@ -92,6 +92,7 @@ star.compiler.rewrite{
     | .cXResum(Lc,T,M,Tp,ErTp) => .cXResum(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp,ErTp)
     | .cSusp(Lc,T,M,Tp) => .cSusp(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
     | .cRetyr(Lc,T,M,Tp) => .cRetyr(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
+    | .cXRetyr(Lc,T,M,Tp) => .cXRetyr(Lc,rwTerm(T,Mp,ExtFn),rwTerm(M,Mp,ExtFn),Tp)
     | .cVarNme(Lc,N,V,E) => .cVarNme(Lc,N,rwTerm(V,Mp,ExtFn),rwTerm(E,Mp,ExtFn))
     | .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Mp,ExtFn),Tp)
     | .cAbort(Lc,Ms) => .cAbort(Lc,Ms)

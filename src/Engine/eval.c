@@ -1006,6 +1006,29 @@ ValueReturn run(enginePo P) {
         continue;
       }
     }
+    case sXRetire: {
+      // Similar to retire, except that we return an abnormal status
+      stackPo fiber = C_STACK(varble(operand(1)));
+      termPo event = varble(operand(2));
+
+      if (stackState(fiber) != active) {
+        logMsg(logFile, "tried to retire a non-active stack %T", fiber);
+        bail();
+      }
+      else {
+        saveRegisters();
+        detachStack(P, fiber);
+        dropStack(fiber);
+        restoreRegisters();
+        RSLT.value = event;
+        RSLT.status = Abnormal;
+#ifdef TRACESTACK
+        if (traceStack > noTracing)
+          verifyStack(STK);
+#endif
+        continue;
+      }
+    }
     case sUnderflow: {
       saveRegisters(); // Seal off the current stack
       assert(stackState(STK) == active);

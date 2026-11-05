@@ -519,6 +519,11 @@ star.compiler.normalize{
     (MM,Ex2) = liftExp(M,Map,Q,Ex1);
     valis (.cRetyr(Lc,TT,MM,Tp::ltipe),Ex2)
   }
+  liftExp(.xretyre(Lc,T,M,Tp),Map,Q,Ex) => valof{
+    (TT,Ex1) = liftExp(T,Map,Q,Ex);
+    (MM,Ex2) = liftExp(M,Map,Q,Ex1);
+    valis (.cXRetyr(Lc,TT,MM,Tp::ltipe),Ex2)
+  }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
     valis (.cValof(Lc,Acts,Tp::ltipe),Ex1)

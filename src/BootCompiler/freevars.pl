@@ -82,6 +82,9 @@ freeVars(suspend(_,T,M,_),Ex,Q,F,Fv) :-
 freeVars(retire(_,T,M,_),Ex,Q,F,Fv) :-
   freeVars(T,Ex,Q,F,F0),
   freeVars(M,Ex,Q,F0,Fv).
+freeVars(xretire(_,T,M,_),Ex,Q,F,Fv) :-
+  freeVars(T,Ex,Q,F,F0),
+  freeVars(M,Ex,Q,F0,Fv).
 freeVars(resume(_,T,M,_),Ex,Q,F,Fv) :-
   freeVars(T,Ex,Q,F,F0),
   freeVars(M,Ex,Q,F0,Fv).

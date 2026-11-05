@@ -906,6 +906,14 @@ typeOfExp(A,Tp,ErTp,Env,Env,retire(Lc,T,M,Tp),Opts,Path) :-
   fiberType(TTp,MTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
+typeOfExp(A,Tp,ErTp,Env,Env,xretire(Lc,T,M,Tp),Opts,Path) :-
+  isFiberThrow(A,Lc,L,R),!,
+  newTypeVar("T",TTp),
+  newTypeVar("M",MTp),
+  newTypeVar("E",FETp),
+  fiberType(TTp,MTp,FETp,FTp),
+  typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
+  typeOfExp(R,FETp,ErTp,Env,_,M,Opts,Path).
 typeOfExp(A,Tp,ErTp,Env,Env,Exp,Opts,Path) :-
   isResume(A,Lc,L,R),!,
   newTypeVar("M",MTp),
@@ -913,7 +921,7 @@ typeOfExp(A,Tp,ErTp,Env,Env,Exp,Opts,Path) :-
   fiberType(MTp,Tp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
-  (deRef(FETp,voidType) ->
+  (sameType(FETp,voidType,Lc,Env) ->
      Exp=resume(Lc,T,M,Tp)
    ; sameType(FETp,ErTp,Lc,Env) ->
      Exp=xresume(Lc,T,M,Tp,ErTp)
@@ -1153,6 +1161,14 @@ checkAction(A,Tp,ErTp,_Last,Env,Env,Dcls,Dcls,doExp(Lc,retire(Lc,T,M,Tp)),Opts,P
   fiberType(TTp,MTp,FETp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
+checkAction(A,Tp,ErTp,_Last,Env,Env,Dcls,Dcls,doExp(Lc,xretire(Lc,T,M,Tp)),Opts,Path) :-
+  isFiberThrow(A,Lc,L,R),!,
+  newTypeVar("T",TTp),
+  newTypeVar("M",MTp),
+  newTypeVar("E",FETp),
+  fiberType(TTp,MTp,FETp,FTp),
+  typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
+  typeOfExp(R,FETp,ErTp,Env,_,M,Opts,Path).
 checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,Exp),Opts,Path) :-
   isResume(A,Lc,L,R),!,
   newTypeVar("T",TTp),
@@ -1162,7 +1178,7 @@ checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,Exp),Opts,Path) :-
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
   validLastAct(A,Lc,Tp,Last),
-  (deRef(FETp,voidType) ->
+  (sameType(FETp,voidType,Lc,Env) ->
      Exp=resume(Lc,T,M,TTp)
    ; sameType(FETp,ErTp,Lc,Env) ->
      Exp=xresume(Lc,T,M,TTp,ErTp)

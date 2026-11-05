@@ -63,6 +63,7 @@
 	      isCollect/3,mkCollect/3,isElemis/3,mkElemis/3,
 	      isTry/4,mkTry/4,
 	      isThrow/3,mkThrow/3,
+	      isFiberThrow/4,mkFiberThrow/4,
 	      isThrows/4,mkThrows/4,
 	      isResume/4,mkResume/4,isSuspend/4,mkSuspend/4,isRetire/4,mkRetire/4,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
@@ -991,6 +992,12 @@ isThrow(A,Lc,E) :-
 mkThrow(Lc,A,E) :-
   unary(Lc,"throw",A,E).
 
+isFiberThrow(A,Lc,T,M) :-
+  isBinary(A,Lc,"throw",T,M).
+
+mkFiberThrow(Lc,T,M,A) :-
+  binary(Lc,"throw",T,M,A).
+
 isThrows(A,Lc,V,E) :-
   isBinary(A,Lc,"throws",V,E).
 
@@ -1174,6 +1181,8 @@ actionFold(A,Op,Ax) :-
   mkTry(Lc,Bx,Cs,Ax).
 actionFold(A,_,A) :-
   isThrow(A,_,_),!.
+actionFold(A,_,A) :-
+  isFiberThrow(A,_,_,_),!.
 actionFold(A,Op,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   foldOverAction(Op,B,Bx),

@@ -101,7 +101,7 @@
   ("show" ( (prefix 1240 1239)))
   ("suspend" ( (prefix 899 898) (infix 898 899 898)))
   ("then" ( (infix 1179 1180 1179)))
-  ("throw" ( (prefix 230 229)))
+  ("throw" ( (infix 229 230 229) (prefix 230 229)))
   ("throws" ( (infix 949 950 949)))
   ("trace" ( (infix 139 140 139) (prefix 140 139)))
   ("try" ( (prefix 1200 1199)))

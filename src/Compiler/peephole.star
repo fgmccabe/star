@@ -53,6 +53,7 @@ star.compiler.peephole{
   vrRead(Vr,.iSuspend(T,E)) => T==Vr || E==Vr.
   vrRead(Vr,.iResume(T,E)) => T==Vr || E==Vr.
   vrRead(Vr,.iRetire(T,E)) => T==Vr || E==Vr.
+  vrRead(Vr,.iXRetire(T,E)) => T==Vr || E==Vr.
 
   vrRead(Vr,.iBind(_,_,V)) => V==Vr.
   vrRead(Vr,.iMv(_,V)) => V==Vr.
@@ -203,6 +204,7 @@ star.compiler.peephole{
   dropUnreachable([.iAbort(Lc,Vr),.._]) => [.iAbort(Lc,Vr)].
   dropUnreachable([.iHalt(Vr),.._]) => [.iHalt(Vr)].
   dropUnreachable([.iRetire(T,E),.._]) => [.iRetire(T,E)].
+  dropUnreachable([.iXRetire(T,E),.._]) => [.iXRetire(T,E)].
   dropUnreachable([.iCase(Mx,Cs),.._]) => [.iCase(Mx,Cs)].
   dropUnreachable([.iICase(Mx,Cs),.._]) => [.iICase(Mx,Cs)].
   dropUnreachable([.iIxCase(Mx,Cs),.._]) => [.iIxCase(Mx,Cs)].
@@ -244,6 +246,7 @@ star.compiler.peephole{
   peep([.iRet(Vr),.._],_Lbls) => [.iRet(Vr)].
   peep([.iXRet(Vr),.._],_Lbls) => [.iXRet(Vr)].
   peep([.iRetire(T,E),.._],_Lbls) => [.iRetire(T,E)].
+  peep([.iXRetire(T,E),.._],_Lbls) => [.iXRetire(T,E)].
   peep([.iICase(Mx,Cs),.._],Lbls) => [.iICase(Mx,Cs)].
   peep([.iCase(Mx,Cs),.._],Lbls) => [.iCase(Mx,Cs)].
   peep([.iIxCase(Mx,Cs),.._],Lbls) => [.iIxCase(Mx,Cs)].
