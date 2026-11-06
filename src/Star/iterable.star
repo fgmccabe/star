@@ -12,10 +12,10 @@ star.iterable{
     (group_by) : (coll[v], (v)=>k) => m[k,coll[v]]
   }
 
-  public sus_generator[e] ::= ._yld(e) | ._all.
+  public sus_generator ::= ._all.
   public res_generator ::= ._next | ._cancel.
 
-  public all e ~~ generator[e] ~> fiber[res_generator,sus_generator[e]].
+  public all e ~~ generator[e] ~> (res_generator =>> e throws sus_generator).
 
   public contract all c,e ~~ generate[c->>e] ::= {
     _generate:(c)=> generator[e]
@@ -26,26 +26,31 @@ star.iterable{
       let{
 	yieldFn:(e,())=>().
 	yieldFn(E,_) => valof{
-	  case this suspend ._yld(E) in {
+	  case this suspend E in {
 	  | ._next do {}
-	  | ._cancel do retire ._all
+	  | ._cancel do this throw ._all
 	  };
 	  valis ()
 	}
       } in (case first in {
 	| ._next => valof{
 	    _iter(L,(),yieldFn);
-	    valis ._all
+	    this throw ._all
 	  }
-	| ._cancel => ._all
+	| ._cancel => valof{
+	    this throw ._all
+	  }
       })).
 
   public implementation all e ~~ iter[generator[e]->>e] => {
     _iter:all x ~~ (generator[e],x,(e,x)=>x) => x.
     _iter(G,X,Fn) => valof{
       XX := X;
-      case G resume ._next in {
-	| ._yld(E) do { XX := Fn(E,XX!)}
+      try{
+	while .true do{
+	  XX := Fn((G resume ._next),XX!)
+	}
+      } catch {
 	| ._all do valis XX!
       };
       valis XX!

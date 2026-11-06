@@ -1064,9 +1064,8 @@ checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dx,Ax,Opts,Path) :-
 checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doLbld(Lc,Lb,Ax),Opts,Path) :-
   isLbldAction(A,Lc,L,[AA]),!,isIden(L,_,Lb),
   checkAction(AA,Tp,ErTp,Last,Env,_,Dcls,_,Ax,Opts,Path).
-checkAction(A,Tp,_,Last,Env,Env,Dx,Dx,doBrk(Lc,Lb),_Opts,_Path) :-
-  isBreak(A,Lc,L),!,isIden(L,_,Lb),
-  validLastAct(A,Lc,Tp,Last).
+checkAction(A,_Tp,_,_Last,Env,Env,Dx,Dx,doBrk(Lc,Lb),_Opts,_Path) :-
+  isBreak(A,Lc,L),!,isIden(L,_,Lb).
 checkAction(A,Tp,ErTp,_,Env,Env,Dx,Dx,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).

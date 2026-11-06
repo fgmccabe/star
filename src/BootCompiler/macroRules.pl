@@ -566,12 +566,17 @@ rangeMacro(T,expression,Rp) :-
   for P in C do B
   becomes
   {
-    I .= _generate(C);
+    I = _generate(C);
     lb{ while .true do{
-      case I resume ._next in {
-        _yld(P) => B.
-        _yld(_) default => {}.
-        ._all => break lb
+      case valof{
+        try{
+          valis (I resume ._next)
+        } catch {
+          ._all => break lb
+        }
+      } in {
+        P => B.
+        _ default => {}
       }
     }
   }
@@ -589,21 +594,25 @@ forLoopMacro(A,action,Ax) :-
   mkEnum(Lc,"_all",All),
   mkEquation(Lc,All,none,Brk,EndEq),
 
-  /* build :_yld(P) => B */
-  mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
-  mkEquation(Lc,BYld,none,Bd,YldEqn),
-
-  /* build :_yld(_) default => {} */
-  braceTuple(Lc,[],Nop),
-  mkAnon(Lc,Anon),
-  mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
-  mkDefault(Lc,DYld,Dflt),
-  mkEquation(Lc,Dflt,none,Nop,DefltEqn),
-
-  /* build case I resume ._next in .. */
+  /* Build valof{ try{ valis (I resume ._next) } catch { ._all => break Lb } } */
   mkEnum(Lc,"_next",Next),
   mkResume(Lc,I,Next,G),
-  caseExp(Lc,G,[YldEqn,DefltEqn,EndEq],Rsme),
+  mkValis(Lc,G,ValisG),
+  mkTry(Lc,ValisG,[EndEq],TryG),
+  braceTuple(Lc,[TryG],TryBlk),
+  mkValof(Lc,TryBlk,NxtVal),
+
+  /* build P => B */
+  mkEquation(Lc,P,none,Bd,YldEqn),
+
+  /* build _ default => {} */
+  braceTuple(Lc,[],Nop),
+  mkAnon(Lc,Anon),
+  mkDefault(Lc,Anon,Dflt),
+  mkEquation(Lc,Dflt,none,Nop,DefltEqn),
+
+  /* build case valof{...} in .. */
+  caseExp(Lc,NxtVal,[YldEqn,DefltEqn],Rsme),
   braceTuple(Lc,[Rsme],Resume),
 
   /* Build while .true loop */
@@ -622,10 +631,15 @@ forLoopMacro(A,action,Ax) :-
   becomes
   lb{
   while .true do{
-  case G resume ._next in {
-    | _yld(P) => B
-    | _yld(_) default => {}
-    | ._all => break lb
+  case valof{
+    try{
+      valis (G resume ._next)
+    } catch {
+      | ._all => break lb
+    }
+  } in {
+    | P => B
+    | _ default => {}
   }
   }
   }
@@ -645,21 +659,25 @@ forMacro(A,action,Ax) :-
   mkEnum(Lc,"_all",All),
   mkEquation(Lc,All,none,Brk,EndEq),
 
-  /* build :_yld(P) => B */
-  mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
-  mkEquation(Lc,BYld,none,B,YldEqn),
-
-  /* build :_yld(_) default => {} */
-  braceTuple(Lc,[],Nop),
-  mkAnon(Lc,Anon),
-  mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
-  mkDefault(Lc,DYld,Dflt),
-  mkEquation(Lc,Dflt,none,Nop,DefltEqn),
-
-  /* build case _resume(G,._next) in .. */
+  /* Build valof{ try{ valis (G resume ._next) } catch { ._all => break Lb } } */
   mkEnum(Lc,"_next",Next),
   mkResume(Lc,G,Next,GV),
-  caseExp(Lc,GV,[YldEqn,DefltEqn,EndEq],Rsme),
+  mkValis(Lc,GV,ValisG),
+  mkTry(Lc,ValisG,[EndEq],TryG),
+  braceTuple(Lc,[TryG],TryBlk),
+  mkValof(Lc,TryBlk,NxtVal),
+
+  /* build P => B */
+  mkEquation(Lc,P,none,B,YldEqn),
+
+  /* build _ default => {} */
+  braceTuple(Lc,[],Nop),
+  mkAnon(Lc,Anon),
+  mkDefault(Lc,Anon,Dflt),
+  mkEquation(Lc,Dflt,none,Nop,DefltEqn),
+
+  /* build case valof{...} in .. */
+  caseExp(Lc,NxtVal,[YldEqn,DefltEqn],Rsme),
   braceTuple(Lc,[Rsme],Resume),
 
   /* Build while .true loop */
@@ -672,7 +690,7 @@ forMacro(A,action,Ax) :-
    becomes
    _fiber((this,_) => valof{
      A*;
-   valis .all
+   this throw ._all
    })
 */
    
@@ -680,7 +698,7 @@ generatorMacro(E,expression,Ex) :-
   isGenerator(E,Lc,B),!,
 
   mkEnum(Lc,"_all",All),
-  mkValis(Lc,All,Rt),
+  mkFiberThrow(Lc,name(Lc,"this"),All,Rt),
 
   mkSequence(Lc,B,Rt,TB),
   braceTuple(Lc,[TB],VB),
@@ -693,29 +711,27 @@ generatorMacro(E,expression,Ex) :-
 
 /* yield E
    becomes
-   case this suspend ._yld(E) in {
+   case this suspend E in {
      ._next do {}.
-     ._cancel do retire ._all
+     ._cancel do this throw ._all
    }
 */
 yieldMacro(E,action,Ax) :-
   isUnary(E,Lc,"yield",A),!,
-
-  mkConApply(Lc,name(Lc,"_yld"),[A],Yld),
 
   /* build ._next => {} */
   braceTuple(Lc,[],Nop),
   mkEnum(Lc,"_next",Nxt),
   mkProcedure(Lc,Nxt,none,Nop,NxtRl),
 
-  /* build ._cancel => _retire(this,._all) */
+  /* build ._cancel => this throw ._all */
   mkEnum(Lc,"_cancel",Can),
   mkEnum(Lc,"_all",All),
-  mkRetire(Lc,name(Lc,"this"),All,Rs),
+  mkFiberThrow(Lc,name(Lc,"this"),All,Rs),
   mkProcedure(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */
-  mkSuspend(Lc,name(Lc,"this"),Yld,SS),
+  mkSuspend(Lc,name(Lc,"this"),A,SS),
   caseExp(Lc,SS,[NxtRl,Cancel],Ax).
 
 /* task { A }

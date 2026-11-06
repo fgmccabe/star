@@ -760,6 +760,11 @@ star.compiler.wff{
       (H,C,D) ?= splitLHead(L,.none,.false) => .some((Lc,D,H,C,R)).
   isLambda(_) default => .none.
 
+  public isPRule:(ast) => option[(option[locn],boolean,ast,option[ast],ast)].
+  isPRule(A) where (Lc,L,R) ?= isBinary(A,"do") &&
+      (H,C,D) ?= splitLHead(L,.none,.false) => .some((Lc,D,H,C,R)).
+  isPRule(_) default => .none.
+
   splitLHead:(ast,option[ast],boolean) => option[(ast,option[ast],boolean)].
   splitLHead(A,C,_) where (_,I) ?= isDefault(A) => splitLHead(I,C,.true).
   splitLHead(A,C1,D) where (Lc,L,C2) ?= isWhere(A) => splitLHead(L,mergeCond(.some(C2),C1),D).

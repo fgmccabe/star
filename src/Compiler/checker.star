@@ -457,7 +457,7 @@ star.compiler.checker{
   processCaseRules([],_,_,_,Rls,.none,_,_,_) => reverse(Rls).
   processCaseRules([],_,_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
   processCaseRules([St,..Ss],GTp,ResltTp,ErTp,Rls,Deflt,Env,Outer,Path) => valof{
-    if (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(St) then{
+    if (Lc,IsDeflt,Arg,Cnd,R) ?= isPRule(St) then{
       Rl = processCaseRule(Lc,Arg,Cnd,R,GTp,ResltTp,ErTp,Outer,Path);
       if IsDeflt then{
 	if DRl ?= Deflt then{
@@ -1292,10 +1292,8 @@ star.compiler.checker{
     (RR,E1,_) = checkActions(Lc,Ac,Tp,ErTp,Mode,Env,Dcls,Path);
     valis (.doLbld(Lc,Lb,RR),E1,Dcls)
   }
-  checkAction(A,Tp,_ErTp,Mode,Env,Dcls,_Path) where (Lc,Lb) ?= isBreak(A) => valof{
-    isValidLastAct(Lc,Tp,Mode);
-    valis (.doBrk(Lc,Lb),Env,Dcls)
-  }
+  checkAction(A,_Tp,_ErTp,_Mode,Env,Dcls,_Path) where (Lc,Lb) ?= isBreak(A) =>
+    (.doBrk(Lc,Lb),Env,Dcls).
   checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,E) ?= isValis(A) => valof{
     V = typeOfExp(E,Tp,ErTp,Env,Path);
     valis (.doValis(Lc,V),Env,Dcls)

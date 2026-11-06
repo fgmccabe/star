@@ -175,9 +175,9 @@ mkExpCase(_,_,Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
 mkExpCase(Tp,inScalars,Lc,V,_,Cases,Deflt,cse(Lc,V,Cases,Deflt,Tp)).
 mkExpCase(Tp,inConstructors,Lc,V,_,Cases,Deflt,unpack(Lc,V,Cases,Deflt,Tp)).
 
-mkActCase(inVars,Lc,_,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
+mkActCase(_,Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
   call(Conder,Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
-mkActCase(inScalars,Lc,V,_,Cases,Deflt,cse(Lc,V,Cases,Deflt)).
+mkActCase(inScalars,Lc,V,_,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 mkActCase(inConstructors,Lc,V,_,Cases,Deflt,unpack(Lc,V,Cases,Deflt)).
 
 showCase((Lbl,Exp,Lc),C,Cx) :-

@@ -116,7 +116,7 @@ star.compiler.macro.infra{
 
     actionCaseFold(A) where (Lc,Dflt,L,C,R) ?= isLambda(A) =>
       mkLambda(Lc,Dflt,L,C,actionFold(R)).
-    actionCaseFold(A) where (Lc,.none,Dflt,L,C,R) ?= isProcedure(A) =>
+    actionCaseFold(A) where (Lc,Dflt,L,C,R) ?= isPRule(A) =>
       mkProcedure(Lc,.none,Dflt,L,C,actionFold(R)).
     actionCaseFold(A) => valof{
       reportError("cannot figure out case $(A)",locOf(A));

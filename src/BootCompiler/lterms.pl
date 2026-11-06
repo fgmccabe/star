@@ -817,55 +817,54 @@ isCnd(mtch(_,_,_)).
 isCnd(ng(_,R)) :- isCnd(R).
 isCnd(cnd(_,L,R)) :- isCnd(L);isCnd(R).
 
-tipeOf(voyd,voidType).
-tipeOf(unreach(_,Tp),Tp).
-tipeOf(ann(Tp),Tp).
-tipeOf(idnt(_,T),T).
-tipeOf(chr(_),type("char")).
-tipeOf(intgr(_),type("integer")).
-tipeOf(bigx(_),type("bigint")).
-tipeOf(strg(_),type("string")).
-tipeOf(flot(_),type("float")).
-tipeOf(thrw(_,_),voidType).
-tipeOf(cll(_,_,_,T),T).
-tipeOf(xcll(_,_,_,T,_),T).
-tipeOf(ocall(_,_,_,T),T).
-tipeOf(xocall(_,_,_,T,_),T).
-tipeOf(ecll(_,_,_,T),T).
-tipeOf(xecll(_,_,_,T,_),T).
-tipeOf(nth(_,_,_,T),T).
-tipeOf(cel(_,V),T) :- tipeOf(V,VT), mkRefTp(VT,T).
-tipeOf(get(_,_,T),T).
-tipeOf(setix(_,_,_,_),voidType).
-tipeOf(enum(_),voidType).
-tipeOf(ctpl(_,Args),tplType(AA)) :-
+tipeOf(voyd,voidType) :- !.
+tipeOf(unreach(_,Tp),Tp) :- !.
+tipeOf(ann(Tp),Tp) :- !.
+tipeOf(idnt(_,T),T) :- !.
+tipeOf(chr(_),type("char")) :- !.
+tipeOf(intgr(_),type("integer")) :- !.
+tipeOf(bigx(_),type("bigint")) :- !.
+tipeOf(strg(_),type("string")) :- !.
+tipeOf(flot(_),type("float")) :- !.
+tipeOf(thrw(_,_),voidType) :- !.
+tipeOf(cll(_,_,_,T),T) :- !.
+tipeOf(xcll(_,_,_,T,_),T) :- !.
+tipeOf(ocall(_,_,_,T),T) :- !.
+tipeOf(xocall(_,_,_,T,_),T) :- !.
+tipeOf(ecll(_,_,_,T),T) :- !.
+tipeOf(xecll(_,_,_,T,_),T) :- !.
+tipeOf(nth(_,_,_,T),T) :- !.
+tipeOf(cel(_,V),T) :- !, tipeOf(V,VT), mkRefTp(VT,T).
+tipeOf(get(_,_,T),T) :- !.
+tipeOf(setix(_,_,_,_),voidType) :- !.
+tipeOf(enum(_),voidType) :- !.
+tipeOf(ctpl(_,Args),tplType(AA)) :- !,
   map(Args,lterms:tipeOf,AA).
-tipeOf(resme(_,_,_,T),T).
-tipeOf(xresme(_,_,_,T,_),T).
-tipeOf(susp(_,_,_,T),T).
-tipeOf(rtire(_,_,_,T),T).
-tipeOf(xrtire(_,_,_,T),T).
-tipeOf(whr(_,E,_),T) :-
+tipeOf(resme(_,_,_,T),T) :- !.
+tipeOf(xresme(_,_,_,T,_),T) :- !.
+tipeOf(susp(_,_,_,T),T) :- !.
+tipeOf(rtire(_,_,_,T),T) :- !.
+tipeOf(xrtire(_,_,_,T),T) :- !.
+tipeOf(whr(_,E,_),T) :- !,
   tipeOf(E,T).
-tipeOf(cse(_,_G,_C,_D,T),T).
-tipeOf(unpack(_,_G,_C,_D,T),T).
-tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
-tipeOf(cnj(_,_,_),type("boolean")).
-tipeOf(dsj(_,_,_),type("boolean")).
-tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
-tipeOf(mtch(_,_,_),type("boolean")).
-tipeOf(ng(_,_),type("boolean")).
-tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
-tipeOf(tryX(_,B,_,_),T) :- tipeOf(B,T).
-tipeOf(thrw(_,_),voidType).
-tipeOf(sav(_,T),T).
-tipeOf(savIsSet(_,_),type("boolean")).
-tipeOf(savGet(_,_,Tp),Tp).
+tipeOf(cse(_,_G,_C,_D,T),T) :- !.
+tipeOf(unpack(_,_G,_C,_D,T),T) :- !.
+tipeOf(seqD(_,_,R),T) :- !, tipeOf(R,T).
+tipeOf(cnj(_,_,_),type("boolean")) :- !.
+tipeOf(dsj(_,_,_),type("boolean")) :- !.
+tipeOf(cnd(_,_,L,_),T) :- !, tipeOf(L,T).
+tipeOf(mtch(_,_,_),type("boolean")) :- !.
+tipeOf(ng(_,_),type("boolean")) :- !.
+tipeOf(ltt(_,_,_,E),T) :- !, tipeOf(E,T).
+tipeOf(tryX(_,B,_,_),T) :- !, tipeOf(B,T).
+tipeOf(sav(_,T),T) :- !.
+tipeOf(savIsSet(_,_),type("boolean")) :- !.
+tipeOf(savGet(_,_,Tp),Tp) :- !.
 tipeOf(savSet(_,S,T),Nm) :-!,
   inTerm(S,Nm);inTerm(T,Nm).
-tipeOf(clos(_,_,_,Tp),Tp).
-tipeOf(vlof(_,_,T),T).
-tipeOf(error(_,_),voidType).
+tipeOf(clos(_,_,_,Tp),Tp) :- !.
+tipeOf(vlof(_,_,T),T) :- !.
+tipeOf(error(_,_),voidType) :- !.
 tipeOf(T,_) :-
   reportFatal("Cannot determine type of %s",[ltrm(T)]).
 
