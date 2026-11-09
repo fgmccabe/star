@@ -1028,6 +1028,17 @@ star.compiler.wff{
 
   public mkForIn(Lc,El,It,B) => binary(Lc,"do",unary(Lc,"for",binary(Lc,"in",El,It)),B).
 
+  public isForComprehension:(ast) => option[(option[locn],ast,ast,ast)].
+  isForComprehension(A) where
+      (Lc,LL,Bd) ?= isBinary(A,"do") &&
+	  (_, Ts) ?= isUnary(LL,"for") &&
+	      (_,P,G) ?= isComprehension(Ts) =>
+    .some((Lc,P,G,Bd)).
+  isForComprehension(_) default => .none.
+
+  public mkForComprehension(Lc,P,G,B) =>
+    binary(Lc,"do",unary(Lc,"for",mkComprehension(Lc,P,G)),B).
+
   public isCons:(ast) => option[(option[locn],ast,ast)].
   isCons(A) => isBinary(A,",..").
 

@@ -106,6 +106,8 @@ star.compiler.macro.infra{
       mkForIn(Lc,El,C,actionFold(B)).
     actionWalk(A) where (Lc,El,C,B) ?= isForDo(A) =>
       mkForDo(Lc,El,C,actionFold(B)).
+    actionWalk(A) where (Lc,P,C,B) ?= isForComprehension(A) =>
+      mkForComprehension(Lc,P,C,actionFold(B)).
     actionWalk(A) where (Lc,D,B) ?= isLetDef(A) =>
       mkLetDef(Lc,D,actionFold(B)).
     actionWalk(A) where (Lc,D,B) ?= isLetRecDef(A) =>

@@ -189,6 +189,7 @@
     "test.q2": "q2.star",
     "test.q4": "q4.star",
     "test.qc": "qc.star",
+    "test.qf": "qf.star",
     "test.qp": "qp.star",
     "test.qprf": "qprf.star",
     "test.qv": "qv.star",

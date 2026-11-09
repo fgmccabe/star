@@ -626,6 +626,27 @@ forLoopMacro(A,action,Ax) :-
   mkDefn(Lc,I,IT,S1),
   mkSequence(Lc,[S1,Lbld],Ax).
 
+ /*
+  for { P | G } do B
+  becomes
+
+  let{
+  Lm(P) => valof{ B; valis () }
+  } in Comprehension(G,Lm,())
+  */
+forLoopMacro(A,action,Ax) :-
+  isForComprehension(A,Lc,P,Cnd,B),!,
+  genIden(Lc,Lm),
+  roundTuple(Lc,[],Unit),
+  mkValis(Lc,Unit,VU),
+  mkSequence(Lc,B,VU,TB),
+  braceTuple(Lc,[TB],VB),
+  mkValof(Lc,VB,GVl),
+  roundTerm(Lc,Lm,[P],Hd),
+  mkEquation(Lc,Hd,none,GVl,Lam),
+  makeCondition(Cnd,macroRules:passThru,macroRules:rtn(Hd),grounded(Unit),Comp),
+  mkLetDef(Lc,[Lam],Comp,Ax).
+
 /*
   for P : G do B
   becomes

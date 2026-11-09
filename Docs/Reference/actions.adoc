@@ -374,6 +374,7 @@ that are in scope for the body of the loop.
 ----
 forAction --> ["for"], pattern, ["in"], expression, ["do"], action.
 forAction --> ["for"], pattern, [":"], expression, ["do"], action.
+forAction --> ["for"], comprehension, ["do"], action.
 ----
 
 `for` loops are governed by the collection being iterated over; which in turn
@@ -420,6 +421,52 @@ equivalent to the double <<whileAction>>:
   }
 }
 ----
+
+[#forComprehensionAction]
+==== For Comprehension
+
+(((for action,comprehension))) (((comprehension,for action)))
+A `for` loop may also be written using <<comprehension>> syntax: instead of a
+single `pattern in expression` generator, the loop header is a _query condition_
+(see <<queryCondition>>) enclosed in braces, in the same form used by
+comprehension expressions. This allows multiple, possibly dependent, generators
+-- and filtering conditions -- to be combined directly in the `for` loop header,
+rather than being expressed as nested `for` actions guarded by `if` actions.
+
+[source,star]
+----
+for { Pattern | Condition } do Action
+----
+
+_Pattern_ is matched against each solution of _Condition_; the body
+_Action_ is then performed once for every such solution, with the
+variables of _Pattern_ bound accordingly.
+
+For example:
+[source,star]
+----
+collect{
+  for {(X,Y) | (X,Z) in parent && (Z,Y) in parent} do {
+    elemis (X,Y)
+  }
+}
+----
+collects grandparents into the re-assignable variable `gps`, and is
+equivalent to the nested `for` loop:
+[source,star]
+----
+collect{
+  for (X,Z) in parent do {
+    for (Z,Y) in parent do {
+      elemis (X,Y)
+    }
+  }
+|
+----
+Any <<queryCondition>> may be used -- including conjunctions (`&&`) of
+several <<searchCondition,search conditions>> and other tests -- allowing
+the dependencies between generators and the filtering of their results to be
+expressed as a single condition.
 
 [#letAction]
 === Let Action

@@ -71,6 +71,7 @@
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
 	      isWhileDo/4,isForDo/4,isForDo/5,
+	      isForComprehension/5,mkForComprehension/5,
 	      mkWhileDo/4,mkForDo/5,
 	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,deSequence/2,reSequence/2,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
@@ -85,6 +86,7 @@
 	      foldOverAction/3]).
 :- use_module(abstract).
 :- use_module(misc).
+:- use_module(errors).
 :- use_module(operators).
 
 isAnnotation(St,Lc,none,A) :-
@@ -1106,6 +1108,16 @@ mkForDo(Lc,El,It,B,S) :-
   unary(Lc,"for",T,Ts),
   binary(Lc,"do",Ts,B,S).
 
+isForComprehension(A,Lc,Ptn,Cnd,Bd) :-
+  isBinary(A,Lc,"do",LL,Bd),
+  isUnary(LL,_,"for",Ts),
+  isComprehension(Ts,_,Ptn,Cnd),!.
+
+mkForComprehension(Lc,Ptn,Cnd,B,S) :-
+  mkComprehension(Lc,Ptn,Cnd,T),
+  unary(Lc,"for",T,Ts),
+  binary(Lc,"do",Ts,B,S).
+
 isActionSeq(A,Lc,S1,S2) :-
   isBinary(A,Lc,";",S1,S2).
 isActionSeq(A,Lc,S) :-
@@ -1191,6 +1203,10 @@ actionFold(A,Op,Ax) :-
   isForDo(A,Lc,E,T,B),!,
   foldOverAction(Op,B,Bx),
   mkForDo(Lc,E,T,Bx,Ax).
+actionFold(A,Op,Ax) :-
+  isForComprehension(A,Lc,P,C,B),!,
+  foldOverAction(Op,B,Bx),
+  mkForComprehension(Lc,P,C,Bx,Ax).
 actionFold(A,_,A) :-
   isValis(A,_,_),!.
 actionFold(A,_,A) :-
@@ -1223,6 +1239,10 @@ actionCaseFold(Op,A,Ax) :-
   isEquation(A,Lc,P,G,V),!,
   foldOverAction(Op,V,VV),
   mkEquation(Lc,P,G,VV,Ax).
+actionCaseFold(Op,A,Ax) :-
+  isProcedure(A,Lc,P,G,V),!,
+  foldOverAction(Op,V,VV),
+  mkProcedure(Lc,P,G,VV,Ax).
 actionCaseFold(_,T,T) :-
   locOfAst(T,Lc),
   reportError("'%s' should be an action case",[ast(T)],Lc).

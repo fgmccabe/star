@@ -16,6 +16,13 @@ test.qprf{
     }
   }
 
+  gpc : (cons[(integer,integer)]) => cons[(integer,integer)].
+  gpc(Prs) => collect{
+    for {(X,Y) | (X,Z) in Prs && (Z,Y) in Prs} do{
+      elemis (X,Y)
+    }
+  }
+
   gpf:(cons[(integer,integer)]) => cons[(integer,integer)].
   gpf(Prs) =>
     foldLeft(((X,Z),L) =>
@@ -74,6 +81,10 @@ test.qprf{
     gps = gp(idxes);
     itTime = timer_finish(timer!);
 
+    timer := timer_start(Mx*Mx, "comprehending");
+    gpcs = gpc(idxes);
+    qcTime = timer_finish(timer!);
+
     timer := timer_start(Mx*Mx, "folding gps");
     gpfld = gpf(idxes);
     fTime = timer_finish(timer!);
@@ -87,12 +98,13 @@ test.qprf{
     tTime = timer_finish(timer!);
 
     assert [|gps|] == [|gpfld|] && [|gpfld|] == [|gpsq|] &&
-    [|gps|] == [|gptsk|] ;
+	[|gps|] == [|gptsk|] && [|gpcs|] == [|gpsq|];
 
     try{
       showMsg("Query/Iterative = $(qTime/itTime)");
       showMsg("Query/Folding = $(qTime/fTime)");
       showMsg("Query/Task = $(qTime/tTime)");
+      showMsg("Query/Comprehending = $(qTime/qcTime)");
       showMsg("Folding/Iterative = $(fTime/itTime)");
     } catch {
       .exception(M) do {
@@ -120,4 +132,3 @@ test.qprf{
     valis 0
     }
 }
-

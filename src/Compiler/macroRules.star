@@ -40,7 +40,7 @@ star.compiler.macro.rules{
     "<||>" -> [(.expression,quoteMacro)],
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
-    ":" -> [(.actn,forLoopMacro),(.expression,rangeMacro)],
+    ":" -> [(.actn,forGenLoopMacro),(.expression,rangeMacro)],
     "*" -> [(.expression,multicatMacro)],
     "|:" -> [(.rule,caseRuleMacro)],
     "{}" -> [(.expression,comprehensionMacro),
@@ -55,7 +55,7 @@ star.compiler.macro.rules{
     "?|" -> [(.expression,optionCondMacro)],
     "?" -> [(.pattern,optionLiftMacro),(.expression,pullMacro)],
     "!" -> [(.expression,binRefMacro)],
-    "do" -> [(.actn,forInLoopMacro),(.expression,doMacro)],
+    "do" -> [(.actn,forLoopMacro),(.expression,doMacro)],
     "valof" -> [(.expression,valofMacro)],
     "collect" -> [(.expression,collectMacro)],
     "implementation" -> [(.statement,implementationMacro)],
@@ -338,7 +338,7 @@ star.compiler.macro.rules{
   quoteAst(.chr(Lc,Cx)) => binary(Lc,"_char",mkLoc(Lc),.chr(Lc,Cx)).
   quoteAst(.str(Lc,Sx)) => binary(Lc,"_string",mkLoc(Lc),.str(Lc,Sx)).
   quoteAst(.tpl(Lc,Nm,Els)) => ternary(Lc,"_tuple",mkLoc(Lc),.str(Lc,Nm),
-      macroListEntries(Lc,Els//quoteAst,genNil,genCons)).
+    macroListEntries(Lc,Els//quoteAst,genNil,genCons)).
   quoteAst(.app(Lc,Op,Arg)) => ternary(Lc,"_apply",mkLoc(Lc),quoteAst(Op),quoteAst(Arg)).
 
   implementation quote[ast] => {
@@ -373,7 +373,7 @@ star.compiler.macro.rules{
 
   */
 
-  forLoopMacro(A,.actn) where (Lc,P,G,B) ?= isForDo(A) => valof{
+  forGenLoopMacro(A,.actn) where (Lc,P,G,B) ?= isForDo(A) => valof{
     Lb = genId("Lb");
 
     /* Build ._all do break Lb */
@@ -400,7 +400,7 @@ star.compiler.macro.rules{
 
     valis .active(Lbld)
   }
-  forLoopMacro(_,.actn) default => .inactive.
+  forGenLoopMacro(_,.actn) default => .inactive.
 
 /*
    Lb..<Up
@@ -451,7 +451,7 @@ star.compiler.macro.rules{
   }
   */
 
-  forInLoopMacro(A,.actn) where (Lc,P,C,B) ?= isForIn(A) => valof{
+  forLoopMacro(A,.actn) where (Lc,P,C,B) ?= isForIn(A) => valof{
     I = genName(Lc,"I");
     Lb = genId("Lb");
 
@@ -483,7 +483,34 @@ star.compiler.macro.rules{
 
     valis .active(mkSequence(Lc,S1,Lbld))
   }
-  forInLoopMacro(_,.actn) default => .inactive.
+
+
+ /*
+  for { P | G } do B
+  becomes
+
+  let{
+  Lm(P) => valof{ B; valis () }
+  } in Comprehension(G,Lm,())
+  */
+
+  forLoopMacro(A,.actn) where (Lc,P,G,B) ?= isForComprehension(A) => valof{
+    Lm = genId("Lm");
+
+    Unit = rndTuple(Lc,[]);
+
+    Lam = mkEquation(Lc,.some(.nme(Lc,Lm)),.false,rndTuple(Lc,[P]),.none,
+      mkValof(Lc,[B,mkValis(Lc,Unit)]));
+
+    -- Build Comprehension
+    CC = makeCondition(G,passThru,
+      genResult(unary(Lc,Lm,P)),
+      .grounded(Unit));
+
+    valis .active(mkLetDef(Lc,[Lam],CC))
+  }
+
+  forLoopMacro(_,.actn) default => .inactive.
 
   /* Do notation ... converting to monad calls */
   doMacro(E,.expression) where (ELc,As) ?= isDo(E) => let{.
