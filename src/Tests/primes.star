@@ -51,14 +51,13 @@ test.primes{
 
   primeSieve:(integer,generator[integer]) => integer.
   primeSieve(Limit,Gen) => valof{
-    try{
-      Nxt = Gen resume ._next;
-      if Nxt < Limit then
-	valis primeSieve(Limit,primeFilter(Nxt,Gen))
-      else
-      valis Nxt
-    } catch {
-      | ._all do valis Limit
+    case Gen resume ._next in {
+      | ._yld(Nxt) do {
+	if Nxt < Limit then
+	  valis primeSieve(Limit,primeFilter(Nxt,Gen))
+	else
+	valis Nxt
+      }
     }
   }.
 

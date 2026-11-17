@@ -23,7 +23,8 @@ test.wlk{
     walk(T,(E,_) => valof{
 	  yield E;
 	  valis ()
-	},())
+	},());
+    valis ._all
   }
 
   driver:(tree[string])=>().

@@ -358,15 +358,10 @@ star.compiler.macro.rules{
   becomes
 
   lb{ while .true do{
-  case valof{
-    try{
-      valis (G resume ._next)
-    } catch {
-      | ._all do break lb
-    }
-  } in {
-    | P do B
-    | _ default do {}
+  case G resume ._next in {
+    | _yld(P) do B
+    | _yld(_) default do {}
+    | ._all do break lb
   }
   }
   }
@@ -379,18 +374,14 @@ star.compiler.macro.rules{
     /* Build ._all do break Lb */
     End = mkProcedure(Lc,.none,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
 
-    /* Build valof{ try{ valis (G resume ._next) } catch { | ._all do break Lb } } */
-    Try = mkTry(Lc,mkValis(Lc,mkResume(Lc,G,enum(Lc,"_next"))),[End]);
-    NxtVal = mkValof(Lc,[Try]);
+    /* build _yld(P) do B */
+    Yld = mkProcedure(Lc,.none,.false,mkCon(Lc,"_yld",[P]),.none,B);
 
-    /* build P do B */
-    Yld = mkProcedure(Lc,.none,.false,P,.none,B);
+    /* build _yld(_) default do {} */
+    Deflt = mkProcedure(Lc,.none,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build _ default do {} */
-    Deflt = mkProcedure(Lc,.none,.true,mkAnon(Lc),.none,brTuple(Lc,[]));
-
-    /* build case valof{...} in .. */
-    Resume = mkCaseExp(Lc,NxtVal,[Yld,Deflt]);
+    /* build case G resume ._next in .. */
+    Resume = mkCaseExp(Lc,mkResume(Lc,G,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -434,18 +425,13 @@ star.compiler.macro.rules{
   /*
   for P in C do B
   becomes
-  I = _generate(C);
+  I .= _generate(C);
   lb {
     while .true do{
-      case valof{
-	try{
-	  valis (I resume ._next)
-	} catch {
-	  | ._all do break lb
-	}
-      } in {
-	| P do B
-	| _ default do {}
+      case I resume ._next in {
+	| _yld(P) do B
+	| _yld(_) default do {}
+	| ._all do break lb
       }
     }
   }
@@ -458,18 +444,14 @@ star.compiler.macro.rules{
     /* Build ._all do break Lb */
     End = mkProcedure(Lc,.none,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
 
-    /* Build valof{ try{ valis (I resume ._next) } catch { | ._all do break Lb } } */
-    Try = mkTry(Lc,mkValis(Lc,mkResume(Lc,I,enum(Lc,"_next"))),[End]);
-    NxtVal = mkValof(Lc,[Try]);
+    /* build _yld(P) do B */
+    Yld = mkProcedure(Lc,.none,.false,mkCon(Lc,"_yld",[P]),.none,B);
 
-    /* build P do B */
-    Yld = mkProcedure(Lc,.none,.false,P,.none,B);
+    /* build _yld(_) default do {} */
+    Deflt = mkProcedure(Lc,.none,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build _ default do {} */
-    Deflt = mkProcedure(Lc,.none,.true,mkAnon(Lc),.none,brTuple(Lc,[]));
-
-    /* build case valof{...} in .. */
-    Resume = mkCaseExp(Lc,NxtVal,[Yld,Deflt]);
+    /* build case I resume ._next in .. */
+    Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -562,13 +544,13 @@ star.compiler.macro.rules{
   becomes
   _fiber((this,_)=>valof{
       A*;
-      this throw ._all
+      valis .all
     })
   */
 
   generatorMacro(E,.expression) where
       (Lc,A) ?= isGenerator(E) => valof{
-    All = mkFiberThrow(Lc,.nme(Lc,"this"),enum(Lc,"_all"));
+    All = mkValis(Lc,enum(Lc,"_all"));
 	valis .active(unary(Lc,"_fiber",
 	    mkLambda(Lc,.false,
 	      rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"_")]),
@@ -585,9 +567,9 @@ star.compiler.macro.rules{
 
   /* yield E
   becomes
-  case this suspend E in {
+  case this suspend ._yld(E) in {
     | ._next do {}
-    | ._cancel do this throw ._all
+    | ._cancel do retire._all
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
@@ -595,11 +577,11 @@ star.compiler.macro.rules{
     /* build ._next do {} */
     Nxt = mkProcedure(Lc,.none,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel do this throw ._all */
-    Cancel = mkProcedure(Lc,.none,.false,enum(Lc,"_cancel"),.none,mkFiberThrow(Lc,This,enum(Lc,"_all")));
+    /* build ._cancel do retire ._all */
+    Cancel = mkProcedure(Lc,.none,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,E),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
   }
 
   /* task { A }
