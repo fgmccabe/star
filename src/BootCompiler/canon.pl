@@ -64,7 +64,6 @@ isCanon(try(_,_,_,_)).
 isCanon(suspend(_,_,_,_)).
 isCanon(retire(_,_,_,_)).
 isCanon(resume(_,_,_,_)).
-isCanon(xresume(_,_,_,_,_)).
 isCanon(lbld(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -131,7 +130,6 @@ typeOfCanon(task(_,_,Tp),Tp) :-!.
 typeOfCanon(suspend(_,_,_,Tp),Tp) :- !.
 typeOfCanon(retire(_,_,_,Tp),Tp) :- !.
 typeOfCanon(resume(_,_,_,Tp),Tp) :- !.
-typeOfCanon(xresume(_,_,_,Tp,_),Tp) :- !.
 typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(newSV(_,Tp),Tp) :- !.
 typeOfCanon(svGet(_,_,Tp),Tp) :- !.
@@ -186,7 +184,6 @@ locOfCanon(task(Lc,_,_),Lc) :-!.
 locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
 locOfCanon(retire(Lc,_,_,_),Lc) :-!.
 locOfCanon(resume(Lc,_,_,_),Lc) :-!.
-locOfCanon(xresume(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(thnkRef(Lc,_,_),Lc) :-!.
 locOfCanon(newSV(Lc,_),Lc) :-!.
 locOfCanon(svGet(Lc,_,_),Lc) :-!.
@@ -331,9 +328,6 @@ ssTerm(retire(_,T,M,_),Dp,sq([TT,ss(" retire "),MM])) :-!,
   ssTerm(T,Dp,TT),
   ssTerm(M,Dp,MM).
 ssTerm(resume(_,T,M,_),Dp,sq([TT,ss(" resume "),MM])) :-!,
-  ssTerm(T,Dp,TT),
-  ssTerm(M,Dp,MM).
-ssTerm(xresume(_,T,M,_,_),Dp,sq([TT,ss(" resume "),MM])) :-!,
   ssTerm(T,Dp,TT),
   ssTerm(M,Dp,MM).
 ssTerm(thnkRef(_,A,_),Dp,sq([AA,ss("!!")])) :-!,
