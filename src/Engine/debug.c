@@ -874,9 +874,7 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
     break;
   case sResume:
     reslt = resumeDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
-    break;
   case sRetire:
-  case sXRetire:
     reslt = retireDebug(p, lc, stackVariable(stk, operand(pc, 1)), stackVariable(stk, operand(pc, 2)));
     break;
   default:
@@ -923,7 +921,6 @@ logical isDebuggableOp(ssaOp op) {
   case sSuspend:
   case sResume:
   case sRetire:
-  case sXRetire:
     return True;
   default:
     return False;

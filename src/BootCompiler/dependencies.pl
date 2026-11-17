@@ -315,10 +315,6 @@ collectTermRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
-  isFiberThrow(T,_,Ts,Ms),!,
-  collectTermRefs(Ts,All,Rf,Rf0),
-  collectTermRefs(Ms,All,Rf0,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
   isResume(T,_,Ts,Ms),!,
   collectTermRefs(Ts,All,Rf,Rf0),
   collectTermRefs(Ms,All,Rf0,Rfx).
@@ -506,10 +502,6 @@ collectTypeRefs(St,_,SoFar,SoFar) :-
   isUnary(St,_,"@",_).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isFuncType(T,_,L,R),
-  collectTypeRefs(L,All,SoFar,R0),
-  collectTypeRefs(R,All,R0,Rx).
-collectTypeRefs(T,All,SoFar,Rx) :-
-  isFiberArrow(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-

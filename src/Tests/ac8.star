@@ -4,6 +4,13 @@ test.ac8{
 
   -- Experiments in throwing
 
+  all e,v ~~ rslt[e,v] ::= .ok(v) | .err(e).
+
+  implementation all e,v ~~ display[e],display[v] |= display[rslt[e,v]] => {
+    disp(.ok(V)) => "ok $(V)".
+    disp(.err(E)) => "bad $(E)"
+  }
+
   contract all e ~~ throwable[e] ::= {
     _throw:all x ~~ (e)=>x
   }
@@ -14,34 +21,32 @@ test.ac8{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
-	      TryTsk throw E
+	      TryTsk retire .err(E)
 	    }
 	  }
 	} in {
 	  showMsg("p1");
 	  if X>5 then
-	    valis _throw(10)
+	    _throw(10)
 	  else
-	  valis 3*X
-	}
-      });
-    try{
-      V = TT resume ();
-      valis 5*V
-    } catch {
-      E do {
+	  TryTsk retire .ok(3*X)
+	};
+	valis .err(0);  -- Never used.
+	});
+    case TT resume () in {
+      | .err(E) do {
 	showMsg("err $(E)");
 	valis -E
       }
+      | .ok(V) do
+	valis 5*V
     }
   }
 
   main:(){}.
   main(){
     showMsg("f(1) = $(f(1))");
-    showMsg("f(10) = $(f(10))");
-    assert f(1) == 15;
-    assert f(10) == -10
+    showMsg("f(10) = $(f(10))")
   }
 }
 

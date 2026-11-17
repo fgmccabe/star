@@ -91,7 +91,6 @@ instr(Fiber, oUt lcl)
 instr(Suspend, lcl lcl)
 instr(Resume, lcl lcl)
 instr(Retire, lcl lcl)
-instr(XRetire, lcl lcl)
 instr(Underflow, none)
 
 instr(Line, lit)
