@@ -30,11 +30,11 @@ test.ct0{
 		  | .shut_down_ do throw .canceled
 		};
 		showMsg("After 2 pauses $(Cnt)");
-		Tsk throw .retired_
+		Tsk retire .blocked(()=>.false)
 	      } catch {
 		| _ do {
 		  showMsg("we were canceled");
-		  Tsk throw .retired_
+		  Tsk retire .retired_
 		}
 	      }
 	    });
