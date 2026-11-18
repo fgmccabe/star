@@ -106,7 +106,7 @@ star.strings{
   public implementation coercion[char,string->>void] => {
     _coerce(C) => _implode(.cons(C,.nil)).
   }
-  
+
   public stringQuote:(string)=>string.
   stringQuote(S) => _str_quote(S).
 
@@ -123,10 +123,14 @@ star.strings{
   }
 
   public implementation iter[string->>char] => let{.
-    strIter:all x ~~ (string,integer,integer,x,(char,x)=>x)=>x.
+    strIter:all x,xx ~~ (string,integer,integer,x,(char,x)=>x throws xx)=>x throws xx.
     strIter(S,P,P,X,F) => X.
-    strIter(S,P,L,X,F) where P<L => (try strIter(S,P+1,L,F(_str_charat(S,P),X),F) catch { _ => X}).
+    strIter(S,P,L,X,F) where P<L =>
+      strIter(S,P+1,L,F(nextChar(S,P),X),F).
     strIter(_,_,_,X,_) => X.
+
+    private nextChar(S,P) => ( try _str_charat(S,P) catch { _ => unreachable}).
+
   .} in {
     _iter(Txt,X,F) => strIter(Txt,0,size(Txt),X,F)
   }

@@ -401,6 +401,7 @@ star.vector{
   isEmptyVct(_) default => .false.
 
   public implementation all x ~~ iter[vect[x]->>x] => let{.
+    walk:all a,xx ~~ (vct[x],a,(x,a)=>a throws xx)=>a throws xx.
     walk(.e,A,_) => A.
     walk(.vct1(T0),A,F) => walk(T0,A,F).
     walk(.vct2(T0,T1),A,F) => walk(T1,walk(T0,A,F),F).

@@ -543,19 +543,25 @@ star.compiler.macro.rules{
   /* generator{A}
   becomes
   _fiber((this,_)=>valof{
-      A*;
-      valis .all
+      try{
+        A*;
+        valis .all
+      } catch {
+        ._cancelled do valis .all
+      }
     })
   */
 
   generatorMacro(E,.expression) where
       (Lc,A) ?= isGenerator(E) => valof{
     All = mkValis(Lc,enum(Lc,"_all"));
+    Hndlr = mkProcedure(Lc,.none,.false,enum(Lc,"_cancelled"),.none,All);
+    TryAct = mkTry(Lc,mkBlock(Lc,[A,All]),[Hndlr]);
 	valis .active(unary(Lc,"_fiber",
 	    mkLambda(Lc,.false,
 	      rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"_")]),
 	      .none,
-	  mkValof(Lc,[A,All]))))
+	  mkValof(Lc,[TryAct]))))
       }.
   generatorMacro(_,_) default => .inactive.
 
@@ -569,7 +575,7 @@ star.compiler.macro.rules{
   becomes
   case this suspend ._yld(E) in {
     | ._next do {}
-    | ._cancel do retire._all
+    | ._cancel do throw ._cancelled
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
@@ -577,8 +583,8 @@ star.compiler.macro.rules{
     /* build ._next do {} */
     Nxt = mkProcedure(Lc,.none,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel do retire ._all */
-    Cancel = mkProcedure(Lc,.none,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
+    /* build ._cancel do throw ._cancelled */
+    Cancel = mkProcedure(Lc,.none,.false,enum(Lc,"_cancel"),.none,mkThrow(Lc,enum(Lc,"_cancelled")));
 
     /* Build suspend */
     valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))

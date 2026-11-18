@@ -195,12 +195,12 @@ star.skew{
  .}
 
   public implementation all t ~~ iter[sk[t]->>t] => let{.
-    iterList:all x ~~ (rlist[t],x,(t,x)=>x)=>x.
+    iterList:all x,xx ~~ (rlist[t],x,(t,x)=>x throws xx)=>x throws xx.
     iterList(.nil,St,_) => St.
     iterList(.cons((_,T),R),St,Fn) =>
       iterList(R,iterTree(T,St,Fn),Fn).
 
-    iterTree:all x ~~ (tree[t],x,(t,x)=>x)=>x.
+    iterTree:all x,xx ~~ (tree[t],x,(t,x)=>x throws xx)=>x throws xx.
     iterTree(.eTree,St,Fn) => St.
     iterTree(.node(X,T1,T2),St,Fn) =>
       iterTree(T2,

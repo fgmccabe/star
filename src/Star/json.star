@@ -194,7 +194,7 @@ star.json{
   }
 
   public implementation iter[json->>json] => let{.
-    iterJ:all x ~~ (json,x,(json,x)=>x)=>x.
+    iterJ:all x,xx ~~ (json,x,(json,x)=>x throws xx)=>x throws xx.
     iterJ(.jColl(C),X,F) =>
       _iter(C,X,(((_->V),XX) => iterJ(V,XX,F))).
     iterJ(.jSeq(C),X,F) =>

@@ -143,7 +143,7 @@ star.cons{
       }
     }
   }
-    
+
   public implementation all e ~~ display[e] |= display[cons[e]] => let{.
     consDisp(.nil,L) => L.
     consDisp(.cons(X,.nil),L) => .cons(disp(X), L).

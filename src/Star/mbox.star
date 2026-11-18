@@ -215,17 +215,17 @@ star.mbox{
   tsk(sched,TFn) => valof{
     C = ref .neither;
 
-    Fb = _fiber((this,_)=>.result_(valof{
-	  try{
-	    C := .either(TFn());	-- this marks the future as resolved
-	    retire .retired_
-	  } catch {
-	    Ex do {
-	      C := .other(Ex);
-	      retire .retired_
-	    }
+    Fb = _fiber((this,_)=>valof{
+	try{
+	  C := .either(TFn());		-- this marks the future as resolved
+	  valis .retired_
+	} catch {
+	  Ex do {
+	    C := .other(Ex);
+	    valis .retired_
 	  }
-	}));
+	}
+      });
 
     sched suspend .schedule(Fb);
 

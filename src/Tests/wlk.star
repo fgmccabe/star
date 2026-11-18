@@ -14,7 +14,7 @@ test.wlk{
     disp = dispT
   }
 
-  walk:all e,x ~~ (tree[e],(e,x)=>x,x) => x.
+  walk:all e,x,xx ~~ (tree[e],(e,x)=>x throws xx,x) => x throws xx.
   walk(.empty,_,X) => X.
   walk(.node(L,E,R),F,X) => walk(R,F,F(E,walk(L,F,X))).
 

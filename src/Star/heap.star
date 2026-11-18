@@ -98,8 +98,9 @@ star.heap{
     }
   }
 
-  walk:all e,s ~~ (leq:(e,e)=>boolean) |= (heap[e],s,(e,s)=>s) => s.
+  walk:all e,s,xx ~~ (leq:(e,e)=>boolean) |= (heap[e],s,(e,s)=>s throws xx) => s throws xx.
   walk(.h(Ts),Sinit,F) => let{.
+    w:(cons[tree[e]],s) => s throws xx.
     w([],St) => St.
     w(Cs,St) => valof{
       (.eNode(X,_,Rs),Ts2) = removeMinTree(Cs);

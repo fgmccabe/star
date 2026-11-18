@@ -208,6 +208,7 @@
     "test.stats": "stats.star",
     "test.str1": "str1.star",
     "test.str2": "str2.star",
+    "test.strop": "strop.star",
     "test.syntax": "sy.star",
     "test.sys": "sys.star",
     "test.t": "t.star",

@@ -243,7 +243,7 @@ star.redblack{
   }
 
   public implementation all k,v ~~ iter[rbtree[k,v]->>keyval[k,v]] => let{.
-    iter:all x ~~ (rbtree[k,v],x,(keyval[k,v],x)=>x)=>x.
+    iter:all x,xx ~~ (rbtree[k,v],x,(keyval[k,v],x)=>x throws xx)=>x throws xx.
     iter(.lf,St,_) => St.
     iter(.nd(_,L,K,V,R),St,F) =>
       iter(R,F(K->V,iter(L,St,F)),F).
@@ -254,7 +254,7 @@ star.redblack{
   public implementation all k,v ~~ generate[rbtree[k,v]->>keyval[k,v]] => {
     _generate(T) => generator{
       let{.
-	loop:(rbtree[k,v]){}.
+	loop:(rbtree[k,v]){} throws cancelled_.
 	loop(.lf) do {}.
 	loop(.nd(_,L,K,V,R)){
 	  loop(L);

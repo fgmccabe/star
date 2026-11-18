@@ -16,6 +16,7 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
 
   char signFmt = (char) (uniIndexOf(format, formatLen, 0, '-') >= 0 ? '-' :
                          uniIndexOf(format, formatLen, 0, '+') >= 0 ? '+' : ' ');
+  char buff[outLen];
 
   *pos = 0;
 
@@ -28,14 +29,14 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
           switch (sign) {
             case positive:
             default:
-              attachChar(out, pos, outLen, ' ');
+              attachChar(buff, pos, outLen, ' ');
               break;
             case negative:
-              attachChar(out, pos, outLen, '-');
+              attachChar(buff, pos, outLen, '-');
               break;
           }
         } else {
-          attachChar(out, pos, outLen, ' ');
+          attachChar(buff, pos, outLen, ' ');
         }
         break;
       case '+':
@@ -44,69 +45,69 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
           switch (sign) {
             case positive:
             default:
-              attachChar(out, pos, outLen, '+');
+              attachChar(buff, pos, outLen, '+');
               break;
             case negative:
-              attachChar(out, pos, outLen, '-');
+              attachChar(buff, pos, outLen, '-');
               break;
           }
         } else {
-          attachChar(out, pos, outLen, ' ');
+          attachChar(buff, pos, outLen, ' ');
         }
         break;
       case '(':
         if (sign == negative) {
-          attachChar(out, pos, outLen, '(');
+          attachChar(buff, pos, outLen, '(');
         } else
-          attachChar(out, pos, outLen, ' ');
+          attachChar(buff, pos, outLen, ' ');
 
         break;
       case ')':
         if (sign == negative) {
-          attachChar(out, pos, outLen, ')');
+          attachChar(buff, pos, outLen, ')');
         } else
-          attachChar(out, pos, outLen, ' ');
+          attachChar(buff, pos, outLen, ' ');
 
         break;
       case '.':
       case ',':
       default:
         if (px >= 0 || zeroDigits > 0)
-          attachChar(out, pos, outLen, formChar);
+          attachChar(buff, pos, outLen, formChar);
         break;
       case ' ':
         if (px >= 0) {
-          // more of the raw result to write out
-          attachChar(out, pos, outLen, digits[px]);
+          // more of the raw result to write buff
+          attachChar(buff, pos, outLen, digits[px]);
           px--;
         } else if (zeroDigits > 0) {
           switch (signFmt) {
             case '-':
               if (sign == negative && !encounteredSign) {
                 encounteredSign = True;
-                attachChar(out, pos, outLen, '-');
+                attachChar(buff, pos, outLen, '-');
                 sign = positive;
                 signFmt = ' ';
               } else {
-                attachChar(out, pos, outLen, ' ');
+                attachChar(buff, pos, outLen, ' ');
               }
               break;
             case '+': {
               if (!encounteredSign) {
                 encounteredSign = True;
                 if (sign == positive) {
-                  attachChar(out, pos, outLen, '+');
+                  attachChar(buff, pos, outLen, '+');
                 } else {
-                  attachChar(out, pos, outLen, '-');
+                  attachChar(buff, pos, outLen, '-');
                 }
               } else {
-                attachChar(out, pos, outLen, ' ');
+                attachChar(buff, pos, outLen, ' ');
               }
               signFmt = ' ';
               break;
             }
             default:
-              attachChar(out, pos, outLen, ' ');
+              attachChar(buff, pos, outLen, ' ');
               break;
           }
         }
@@ -116,10 +117,10 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
       case '0':
         if (px >= 0) {
           // more of the raw result to write out
-          attachChar(out, pos, outLen, digits[px]);
+          attachChar(buff, pos, outLen, digits[px]);
           px--;
         } else if (zeroDigits > 0)
-          attachChar(out, pos, outLen, '0');
+          attachChar(buff, pos, outLen, '0');
 
         zeroDigits--;
         break;
@@ -127,7 +128,7 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
       case 'X':
         if (px >= 0) {
           // more of the raw result to write out
-          attachChar(out, pos, outLen, digits[px]);
+          attachChar(buff, pos, outLen, digits[px]);
           px--;
         }
         break;
@@ -142,7 +143,7 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
     }
   }
 
-  return uniReverse(out, *pos);
+  return uniReverse(buff, out, *pos);
 }
 
 integer countSignificants(const char *frmt, integer limit, const char *test) {

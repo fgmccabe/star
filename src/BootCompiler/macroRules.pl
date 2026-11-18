@@ -692,19 +692,28 @@ forMacro(A,action,Ax) :-
 /* generator{A}
    becomes
    _fiber((this,_) => valof{
-     A*;
-   valis .all
+     try{
+       A*;
+       valis .all
+     } catch {
+       ._cancelled do valis .all
+     }
    })
 */
-   
+
 generatorMacro(E,expression,Ex) :-
   isGenerator(E,Lc,B),!,
 
   mkEnum(Lc,"_all",All),
   mkValis(Lc,All,Rt),
 
-  mkSequence(Lc,B,Rt,TB),
-  braceTuple(Lc,[TB],VB),
+  mkEnum(Lc,"_cancelled",Cncl),
+  mkProcedure(Lc,Cncl,none,Rt,Hndlr),
+
+  braceTuple(Lc,[B,Rt],TryBody),
+  mkTry(Lc,TryBody,[Hndlr],TryAct),
+
+  braceTuple(Lc,[TryAct],VB),
   mkValof(Lc,VB,GVl),
 
   roundTuple(Lc,[name(Lc,"this"),name(Lc,"_")],LmLhs),
@@ -716,7 +725,7 @@ generatorMacro(E,expression,Ex) :-
    becomes
    case this suspend ._yld(E) in {
      ._next do {}.
-     ._cancel do retire ._all
+     ._cancel do throw ._cancelled
    }
 */
 yieldMacro(E,action,Ax) :-
@@ -729,11 +738,11 @@ yieldMacro(E,action,Ax) :-
   mkEnum(Lc,"_next",Nxt),
   mkProcedure(Lc,Nxt,none,Nop,NxtRl),
 
-  /* build ._cancel => _retire(this,._all) */
+  /* build ._cancel => throw ._cancelled */
   mkEnum(Lc,"_cancel",Can),
-  mkEnum(Lc,"_all",All),
-  mkRetire(Lc,name(Lc,"this"),All,Rs),
-  mkProcedure(Lc,Can,none,Rs,Cancel),
+  mkEnum(Lc,"_cancelled",Cncl),
+  mkThrow(Lc,Cncl,ThrwCncl),
+  mkProcedure(Lc,Can,none,ThrwCncl,Cancel),
 
   /* Build suspend */
   mkSuspend(Lc,name(Lc,"this"),Yld,SS),

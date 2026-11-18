@@ -889,6 +889,8 @@ star.compiler.wff{
   reSequence([A,..As]) =>
     binary(locOf(A),";",A,reSequence(As)).
 
+  public mkBlock(Lc,As) => brTuple(Lc,[reSequence(As)]).
+
   public isCollect:(ast) => option[(option[locn],cons[ast])].
   isCollect(A) where (Lc,B) ?= isUnary(A,"collect") && (_,Els) ?= isBrTuple(B) =>
     .some((Lc,deSequence(Els))).

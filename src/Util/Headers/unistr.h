@@ -107,7 +107,7 @@ logical uniSame(const char *s1, integer l1, const char *s2, integer l2);
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch);
 retCode uniAppend(char *dest, integer *pos, integer len, char *src);
 retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLen);
-retCode uniReverse(char *dest, integer len);
+retCode uniReverse(const char* src, char *dest, integer len);
 char *uniDupl(char *str, integer len);
 
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c);
@@ -115,7 +115,7 @@ integer uniLastIndexOf(const char *s, integer len, codePoint c);
 
 retCode uniCharAt(const char *src, integer len, integer index, codePoint *cp);
 
-long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen);
+integer uniSearch(const char* src, integer len, integer start, const char* tgt, integer tlen);
 codePoint uniSearchDelims(char *s, integer len, char *t);
 char *uniDuplicate(const char *s);
 void uniDestroy(char *s);

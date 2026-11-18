@@ -166,7 +166,7 @@ ValueReturn s__str_len(enginePo P, termPo s) {
   integer len;
   const char* str = strVal(s, &len);
 
-  return normalReturn(makeInteger(len));
+  return normalReturn(makeInteger(countCodePoints(str, 0, len)));
 }
 
 static retCode skipBlanks(const char* txt, integer len, integer* pos) {
@@ -327,9 +327,10 @@ ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
 
   integer txtLen = 0;
   const char* txt = strVal(s, &txtLen);
+  integer txtCount = countCodePoints(txt, 0, txtLen);
   integer txtPos = 0;
 
-  integer txtQ = (width == 0 ? txtLen : minimum(width, txtLen));
+  integer txtQ = (width == 0 ? txtCount : minimum(width, txtCount));
 
   if (srcWidth != 0)
     txtQ = minimum(txtQ, srcWidth);
@@ -337,10 +338,9 @@ ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
   switch (sourceAlign) {
   default:
   case leftToRight:
-    txtPos = 0;
     break;
   case rightToLeft:
-    txtPos = maximum(txtLen - txtQ, 0);
+    txtPos = advanceCodePoint(txt, 0, txtLen, maximum(txtCount - txtQ, 0));
     break;
   }
 
@@ -461,11 +461,21 @@ ValueReturn s__sub_str(enginePo P, termPo s, termPo f, termPo c) {
   integer start = integerVal(f);
   integer count = integerVal(c);
 
-  count = minimum(count, len - start);
+  integer bufflen = 4 * count + 1;
+  char buff[bufflen];
+  integer pos = advanceCodePoint(str, 0, len, start);
 
-  char buff[count + 1];
-  uniMove(buff, count + 1, &str[start], count);
-  return normalReturn(allocateString(buff, count));
+  integer outpos = 0;
+  while (count-- > 0) {
+    codePoint ch;
+    if (nxtPoint(str, &pos, len, &ch) == Ok) {
+      appendCodePoint(buff, &outpos, bufflen, ch);
+    }
+    else
+      break;
+  }
+
+  return normalReturn(allocateString(buff, outpos));
 }
 
 ValueReturn s__str_hdtl(enginePo P, termPo s) {
@@ -531,7 +541,7 @@ ValueReturn s__str_set(enginePo P, termPo s, termPo o, termPo c) {
   const char* src = strVal(s, &len);
   integer off = integerVal(o);
   codePoint ch = charVal(c);
-  integer offset = minimum(off, len + 2);
+  integer offset = advanceCodePoint(src, 0, len, off);
   char str[len + 16];
   uniNCpy(str, len + 16, src, offset);
   integer srcOffset = offset;
@@ -545,7 +555,8 @@ ValueReturn s__str_set(enginePo P, termPo s, termPo o, termPo c) {
 ValueReturn s__str_drop(enginePo P, termPo s, termPo o) {
   integer len;
   const char* src = strVal(s, &len);
-  integer offset = integerVal(o);
+  integer off = integerVal(o);
+  integer offset = advanceCodePoint(src, 0, len, off);
   char str[len + 16];
   uniNCpy(str, len + 16, src, offset);
   integer srcOffset = offset;
@@ -616,30 +627,41 @@ ValueReturn s__str_concat(enginePo P, termPo f, termPo s) {
 }
 
 ValueReturn s__str_splice(enginePo P, termPo l, termPo f, termPo c, termPo r) {
-  integer llen;
-  const char* lhs = strVal(l, &llen);
+  integer srcLen;
+  const char* src = strVal(l, &srcLen);
   integer from = integerVal(f);
   integer cnt = integerVal(c);
   integer rlen;
   const char* rhs = strVal(r, &rlen);
 
-  // Clamp the from and cnt values
-  if (from < 0)
-    from = 0;
-  if (cnt < 0)
-    cnt = 0;
-  if (from > llen)
-    from = llen;
-  if (from + cnt > llen)
-    cnt = llen - from;
+  integer oLen = 4 * (srcLen + rlen);
+  char buff[oLen];
 
-  integer len = llen + rlen - cnt;
-  char buff[len];
-  uniMove(buff, len, lhs, from);
-  uniMove(&buff[from], len - from, rhs, rlen);
-  uniMove(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
+  integer srcPos = 0;
+  integer outPos = 0;
+  integer splPos = 0;
 
-  return normalReturn(allocateString(buff, len));
+  while (srcPos < srcLen && from-- > 0) {
+    codePoint ch = nextCodePoint(src, &srcPos, srcLen);
+    appendCodePoint(buff, &outPos, oLen, ch);
+  }
+
+  while (splPos < rlen) {
+    codePoint ch = nextCodePoint(rhs, &splPos, rlen);
+    appendCodePoint(buff, &outPos, oLen, ch);
+  }
+
+  if (cnt > 0)
+    srcPos = advanceCodePoint(src, srcPos, srcLen, cnt);
+
+  while (srcPos < srcLen) {
+    codePoint ch = nextCodePoint(src, &srcPos, srcLen);
+    appendCodePoint(buff, &outPos, oLen, ch);
+  }
+
+  assert(outPos<=oLen);
+
+  return normalReturn(allocateString(buff, outPos));
 }
 
 ValueReturn s__str_start(enginePo P, termPo s, termPo p) {
@@ -682,9 +704,10 @@ ValueReturn s__str_reverse(enginePo P, termPo s) {
   const char* lhs = strVal(s, &len);
 
   char buff[len];
-  uniMove(buff, len, lhs, len);
 
-  uniReverse(buff, len);
-
-  return normalReturn(allocateString(buff, len));
+  if (uniReverse(lhs, (char*)&buff[0], len) == Ok) {
+    return normalReturn(allocateString(buff, len));
+  }
+  else
+    return abnormalReturn(eINVAL);
 }
