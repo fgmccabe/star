@@ -521,8 +521,8 @@ codePoint uniSearchDelims(char* s, integer len, char* t) {
 
 // This is a poor algorithm. Fix me with Boyer-Moore or better
 integer uniSearch(const char* src, integer len, integer start, const char* tgt, integer tlen) {
-  integer pos = start;
-  integer index = 0;
+  integer pos = advanceCodePoint(src, 0, len, start);
+  integer index = start;
 
   while (pos <= len - tlen) {
     if (uniIsPrefix(tgt, tlen, &src[pos], len - pos))
